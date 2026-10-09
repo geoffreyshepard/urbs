@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "core/pool.hpp"
@@ -49,6 +50,40 @@ struct Command {
 enum class CitizenEvent : u16 { Decide = 1, Arrive = 2 };
 enum class BuildingEvent : u16 { Hourly = 1 };
 
+enum class Sector : u8 { Construction, Food, Industry, Distribution, Services, Government, Military, Count };
+inline constexpr int kSectorCount = static_cast<int>(Sector::Count);
+inline constexpr const char* sector_name(Sector s) {
+  constexpr const char* n[] = {"Construction", "Food", "Industry", "Distribution", "Services", "Government", "Military"};
+  return n[static_cast<int>(s)];
+}
+
+struct Policy {
+  u8 sector_priority[kSectorCount] = {1, 2, 4, 3, 4, 5, 5};  // 1 = highest
+  u8 tax_rate[6] = {10, 8, 6, 6, 0, 0};                      // percent of income per class
+  u16 wage = 4;                                              // denarii per worker per day (public jobs)
+  u8 rations = 0;        // grain dole (annona) for the poor
+  u8 slave_treatment = 1;  // 0 harsh, 1 fair, 2 kind
+  u8 manumission = 1;      // 0 forbidden, 1 occasional, 2 encouraged
+  u8 curfew = 0;
+  u8 conscription = 0;
+  u8 max_insula_tier = 4;  // building code
+  u8 immigration_open = 1;
+};
+
+enum class AlertKind : u8 {
+  HouseDevolved, HouseNeeds, NoWorkers, InputsMissing, MarketEmpty, Homeless, Unemployment, NoRoad, StorageFull,
+  Immigrants, Emigrants, TreasuryLow, Fire, Collapse, Disease, Crime, Riot, Revolt, Raid, GodAngry, Request, Event,
+  Count
+};
+
+struct Alert {
+  Tick t = 0;
+  AlertKind kind = AlertKind::Event;
+  u16 arg = 0;
+  BuildingId b;
+  u32 count = 1;
+};
+
 struct TickStats {
   u32 events = 0, decisions = 0, arrivals = 0, path_requests = 0, path_results = 0;
   u32 walking = 0;
@@ -74,6 +109,13 @@ struct World {
   std::vector<GoodId> food_slots;
   std::vector<GoodId> hh_goods;  // household goods slots (pottery, clothing, oil, wine, ...)
   std::vector<i8> good_food_slot, good_hh_slot;  // per good: slot index or -1
+
+  Policy policy;
+  std::vector<Alert> alerts;  // newest last; capped
+  i32 entry_tile = -1;        // where immigrants arrive and emigrants leave
+  u32 immigrants_today = 0, emigrants_today = 0, immigrants_total = 0, emigrants_total = 0;
+  i32 appeal = 0;             // last computed city appeal
+  std::vector<ServiceId> need_services[8];  // services satisfying each data::NeedKind
 
   std::vector<Command> commands;  // pending, applied at next tick start
   TickStats stats;
@@ -102,7 +144,8 @@ struct World {
   [[nodiscard]] i32 entrance_tile(BuildingId id) const { return buildings[id].entrance; }
 
   // --- Citizens ---
-  CitizenId spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, u32 age_years);
+  // Spawns at `home`, or walking in from `at_tile` when at_tile >= 0.
+  CitizenId spawn_citizen(CitizenClass cls, BuildingId home, HouseholdId hh, u32 age_years, i32 at_tile = -1);
   void despawn_citizen(CitizenId id);
   HouseholdId create_household(BuildingId home, CitizenClass cls);
   // World-px position for rendering at fractional tick `alpha` past `now`. Returns false if indoors.
@@ -131,6 +174,29 @@ struct World {
   void add_stock(BuildingId b, GoodId g, u16 n);
   u32 labor_hourly_runs = 0;
 
+  // --- Society (sim/housing.cpp) ---
+  [[nodiscard]] Sector sector_of(const Building& b) const;
+  void add_alert(AlertKind k, BuildingId b, u16 arg = 0);
+  [[nodiscard]] bool requirement_met(const Building& b, const data::HousingReq& r) const;
+  [[nodiscard]] int first_unmet(const Building& b, u8 tier) const;  // index into tier reqs or -1
+  BuildingId find_vacant_house(i32 near_tile, u16 space) const;
+  void start_emigration(HouseholdId hh);
+  struct HappinessParts {
+    i16 food = 0, water = 0, rest = 0, hygiene = 0, religion = 0, entertainment = 0, variety = 0, housing = 0,
+        employment = 0, taxes = 0, gods = 0, events = 0, health = 0;
+    [[nodiscard]] i32 total() const {
+      return 128 + food + water + rest + hygiene + religion + entertainment + variety + housing + employment + taxes +
+             gods + events + health;
+    }
+  };
+  [[nodiscard]] HappinessParts happiness_parts(u32 citizen) const;
+  [[nodiscard]] u8 food_kinds(const Household& h) const;
+  [[nodiscard]] std::string citizen_name(u32 i) const;  // UI only (allocates)
+  BuildingId best_service_for(data::NeedKind need, i32 from_tile, u16* cost = nullptr) const;
+  i32 happy_sum_today = 0;
+  u32 happy_count_today = 0;
+  u8 avg_happiness = 128;
+
  private:
   void apply_commands();
   void process_events();
@@ -144,6 +210,10 @@ struct World {
   void haul_step(u32 i);
   void daily_update();
   void release_worker(u32 i);
+  void house_daily(BuildingId id);
+  void citizen_daily(u32 i);
+  void immigration_hourly();
+  void finish_leave(u32 i);
   void decide(u32 i);
   void arrive(u32 i);
   void start_activity(u32 i, Activity a);

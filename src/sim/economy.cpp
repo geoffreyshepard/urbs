@@ -17,19 +17,6 @@ int manhattan_tiles(const TileMap& m, i32 a, i32 b) {
   return std::abs(a % m.w - b % m.w) + std::abs(a / m.w - b / m.w);
 }
 
-// Lower value = filled first by the labor allocator.
-int labor_priority(const Building& b, const data::BuildingDef& d) {
-  if (b.state == BState::Construction) return 0;
-  switch (d.kind) {
-    case BuildingKind::Farm: return 1;
-    case BuildingKind::Water:
-    case BuildingKind::Market:
-    case BuildingKind::Storage: return 2;
-    case BuildingKind::Patrol:
-    case BuildingKind::Service: return 3;
-    default: return d.category == "food" ? 1 : 4;
-  }
-}
 }  // namespace
 
 bool World::pay(i64 d) {
@@ -211,14 +198,14 @@ void World::labor_allocate() {
     scratch_u32_.push_back(i);
   }
   if (scratch_u32_.empty()) return;
-  for (int prio = 0; prio <= 4 && !scratch_u32_.empty(); ++prio) {
+  for (int prio = 1; prio <= 5 && !scratch_u32_.empty(); ++prio) {
     for (u32 bi = 0; bi < buildings.ids.high_water() && !scratch_u32_.empty(); ++bi) {
       if (!buildings.ids.alive_index(bi)) continue;
       Building& b = buildings.b[bi];
       if (b.state != BState::Active && b.state != BState::Construction) continue;
       if (b.jobs <= b.employed || b.entrance < 0) continue;
       const data::BuildingDef& d = defs->b(b.def);
-      if (labor_priority(b, d) != prio) continue;
+      if (policy.sector_priority[static_cast<int>(sector_of(b))] != prio) continue;
       const u8 classes = b.state == BState::Construction ? static_cast<u8>(data::ClassMask::Workers) : d.worker_classes;
       while (b.employed < b.jobs && !scratch_u32_.empty()) {
         // Nearest suitable unemployed citizen by home distance.

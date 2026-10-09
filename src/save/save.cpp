@@ -73,6 +73,7 @@ void World::serialize(save::Writer& w) const {
   w.vec(C.name2); w.vec(C.traits); w.vec(C.skills); w.vec(C.happiness); w.vec(C.health); w.vec(C.goal);
   w.vec(C.goal_progress); w.vec(C.spouse); w.vec(C.mother); w.vec(C.father); w.vec(C.memory); w.vec(C.memory_head);
   w.vec(C.flags);
+  w.vec(C.reason);
   w.tag("HOUS");
   save::write_slots(w, households.ids);
   w.vec(households.h);
@@ -87,6 +88,12 @@ void World::serialize(save::Writer& w) const {
   w.vec(econ.produced_today); w.vec(econ.consumed_today); w.vec(econ.produced_yday); w.vec(econ.consumed_yday);
   w.vec(econ.city_stock);
   w.pod(labor_hourly_runs);
+  w.tag("SOCI");
+  w.pod(policy);
+  w.vec(alerts);
+  w.pod(entry_tile);
+  w.pod(immigrants_today); w.pod(emigrants_today); w.pod(immigrants_total); w.pod(emigrants_total);
+  w.pod(appeal); w.pod(happy_sum_today); w.pod(happy_count_today); w.pod(avg_happiness);
   w.tag("END.");
 }
 
@@ -119,6 +126,7 @@ void World::deserialize(save::Reader& r) {
   r.vec(C.name2); r.vec(C.traits); r.vec(C.skills); r.vec(C.happiness); r.vec(C.health); r.vec(C.goal);
   r.vec(C.goal_progress); r.vec(C.spouse); r.vec(C.mother); r.vec(C.father); r.vec(C.memory); r.vec(C.memory_head);
   r.vec(C.flags);
+  r.vec(C.reason);
   r.expect("HOUS");
   save::read_slots(r, households.ids);
   r.vec(households.h);
@@ -133,6 +141,12 @@ void World::deserialize(save::Reader& r) {
   r.vec(econ.produced_today); r.vec(econ.consumed_today); r.vec(econ.produced_yday); r.vec(econ.consumed_yday);
   r.vec(econ.city_stock);
   r.pod(labor_hourly_runs);
+  r.expect("SOCI");
+  r.pod(policy);
+  r.vec_fixed(alerts);
+  r.pod(entry_tile);
+  r.pod(immigrants_today); r.pod(emigrants_today); r.pod(immigrants_total); r.pod(emigrants_total);
+  r.pod(appeal); r.pod(happy_sum_today); r.pod(happy_count_today); r.pod(avg_happiness);
   r.expect("END.");
 }
 

@@ -1,0 +1,10 @@
+{
+  "name": "town_1000",
+  "map": {"size": 160, "seed": 9, "flat": true, "river": false},
+  "world": {"max_citizens": 3000, "max_buildings": 1024, "max_households": 1200},
+  "generator": "town",
+  "houses": 160,
+  "citizens": 500,
+  "ticks": 12000,
+  "test": {"min_citizens": 900, "max_alloc_violations": 0}
+}

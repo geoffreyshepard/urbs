@@ -48,7 +48,10 @@ class Renderer {
   // Renders the world and ImGui (draw_data may be null) and presents.
   void render(ImDrawData* draw_data);
   // Writes the next rendered frame to a PNG (without ImGui unless include_ui).
-  void request_screenshot(const std::string& path) { screenshot_path_ = path; }
+  void request_screenshot(const std::string& path, bool include_ui = true) {
+    screenshot_path_ = path;
+    screenshot_ui_ = include_ui;
+  }
 
   f32 time = 0;
 
@@ -92,6 +95,7 @@ class Renderer {
   bool overlay_dirty_ = false;
 
   std::string screenshot_path_;
+  bool screenshot_ui_ = true;
   FrameStats stats_;
 };
 

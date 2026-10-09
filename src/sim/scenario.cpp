@@ -1,6 +1,7 @@
 #include "sim/scenario.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -206,11 +207,89 @@ void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
 }
 }  // namespace
 
+namespace {
+// Procedural town: grid roads, 8x8 blocks. Ring lots (2x2) on block edges, some blocks hold 3x3 lots
+// for big buildings, the outer ring holds farms. Seeds `citizens` people into the houses.
+void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
+  const i32 sp = 9, W = w.map.w, H = w.map.h;
+  const i32 blocks = std::max<i32>(2, static_cast<i32>(std::sqrt(static_cast<double>(s.houses) / 10.0)) + 2);
+  const i32 x0 = W / 2 - blocks * sp / 2, y0 = H / 2 - blocks * sp / 2;
+  for (i32 k = 0; k <= blocks; ++k) {
+    w.place_road_line(x0, y0 + k * sp, x0 + blocks * sp, y0 + k * sp, Road::Dirt);
+    w.place_road_line(x0 + k * sp, y0, x0 + k * sp, y0 + blocks * sp, Road::Dirt);
+  }
+  // Entry road to the west edge.
+  w.place_road_line(0, y0 + (blocks / 2) * sp, x0, y0 + (blocks / 2) * sp, Road::Dirt);
+  auto B = [&](const char* id) { return defs.building(id); };
+  std::vector<BuildingId> houses;
+  u32 placed_houses = 0;
+  const char* small_cycle[] = {"house_plot", "house_plot", "house_plot", "well", "house_plot", "house_plot",
+                               "shrine",     "house_plot", "house_plot", "well", "latrina",    "house_plot",
+                               "house_plot", "tavern",     "house_plot", "well", "house_plot", "physician"};
+  const char* big_cycle[] = {"market", "granary", "warehouse", "bakery", "mill", "market", "temple", "lumber_camp"};
+  u32 sc = 0, bc = 0;
+  for (i32 by = 0; by < blocks; ++by)
+    for (i32 bx = 0; bx < blocks; ++bx) {
+      const i32 ox = x0 + bx * sp + 1, oy = y0 + by * sp + 1;
+      const bool outer = bx == 0 || by == 0 || bx == blocks - 1 || by == blocks - 1;
+      if (outer && (bx + by) % 2 == 0) {
+        w.place_building(B((bx + by) % 4 == 0 ? "wheat_farm" : "vegetable_garden"), ox, oy, 8, 8, true);
+        continue;
+      }
+      if ((bx * 7 + by * 3) % 5 == 0) {
+        const i32 lx[4] = {0, 5, 0, 5}, ly[4] = {0, 0, 5, 5};
+        for (int k = 0; k < 4; ++k) {
+          BuildingDefId d = B(big_cycle[bc++ % 8]);
+          const auto& bd = defs.b(d);
+          w.place_building(d, ox + lx[k], oy + ly[k], bd.w, bd.h, true);
+        }
+        continue;
+      }
+      // Ring of 2x2 lots: along the four edges of the 8x8 block.
+      const i32 ring[12][2] = {{0, 0}, {2, 0}, {4, 0}, {6, 0}, {6, 2}, {6, 4}, {6, 6}, {4, 6}, {2, 6}, {0, 6}, {0, 4}, {0, 2}};
+      for (auto& l : ring) {
+        const char* id = small_cycle[sc++ % 18];
+        BuildingDefId d = B(id);
+        const auto& bd = defs.b(d);
+        BuildingId b = w.place_building(d, ox + l[0], oy + l[1], bd.w, bd.h, true);
+        if (b && bd.kind == data::BuildingKind::House) {
+          houses.push_back(b);
+          ++placed_houses;
+        }
+      }
+    }
+  // Starting stock and population.
+  w.buildings.for_each([&](BuildingId id, const Building& b) {
+    const auto& d = defs.b(b.def);
+    if (d.id == "granary") w.add_stock(id, defs.good("wheat"), 150);
+    if (d.id == "warehouse") {
+      w.add_stock(id, defs.good("wood"), 80);
+      w.add_stock(id, defs.good("pottery"), 40);
+    }
+  });
+  rng::Stream& r = w.stream(rng::StreamId::World);
+  u32 spawned = 0;
+  for (size_t hi = 0; spawned < s.citizens && hi < houses.size() * 3; ++hi) {
+    BuildingId h = houses[hi % houses.size()];
+    if (w.buildings[h].residents + 4 > w.buildings[h].capacity) continue;
+    HouseholdId hh = w.create_household(h, CitizenClass::Pleb);
+    w.households[hh].food = 12;
+    w.households[hh].water = 4;
+    const u32 size = 3 + r.below(2);
+    for (u32 m = 0; m < size && spawned < s.citizens; ++m, ++spawned)
+      w.spawn_citizen(CitizenClass::Pleb, h, hh, m < 2 ? 18 + r.below(30) : r.below(18));
+  }
+  w.econ.treasury = 5000;
+  URBS_LOG_INFO("town: {} houses, {} citizens", placed_houses, spawned);
+}
+}  // namespace
+
 void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   generate_map(w.map, s.map);
   if (s.generator == "stress_city") build_grid_city(w, defs, s);
   w.init(s.world, defs);
   if (s.generator == "scripted") setup_scripted(w, defs, s);
+  if (s.generator == "town") setup_town(w, defs, s);
   if (s.generator != "stress_city") return;
 
   const BuildingDefId house = defs.building("house_plot");

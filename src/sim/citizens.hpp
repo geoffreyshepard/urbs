@@ -33,6 +33,43 @@ inline constexpr const char* activity_name(Activity a) {
   return n[static_cast<int>(a)];
 }
 
+// Why a citizen is doing what it does (shown in the inspector).
+enum class Reason : u8 {
+  None, Night, Tired, Shift, Thirsty, Hungry, BuyFood, FetchWater, Worship, Bathe, Entertainment, Idle, Homeless,
+  NoPath, Hauling, Building, Immigrating, Emigrating, ServiceFull, Midday, Unemployed, Child, NoFood, NoWater,
+  Healing, School, Patrolling, Count
+};
+inline constexpr const char* reason_text(Reason r) {
+  constexpr const char* t[] = {"",
+                               "it is night: sleeping",
+                               "exhausted: resting at home",
+                               "on shift",
+                               "thirsty: drinking at home",
+                               "hungry: eating at home",
+                               "the household is low on food: shopping at the market",
+                               "the household has no water: fetching water",
+                               "wants to worship",
+                               "wants to bathe",
+                               "wants entertainment",
+                               "free time at home",
+                               "homeless: looking for housing",
+                               "cannot reach the destination",
+                               "carrying goods",
+                               "working on a construction site",
+                               "arriving in the city",
+                               "unhappy: leaving the city",
+                               "the place was full: going home",
+                               "midday meal at home",
+                               "unemployed: free time at home",
+                               "a child: playing at home",
+                               "hungry, but the household has no food",
+                               "thirsty, but there is no water source nearby",
+                               "sick: seeing a physician",
+                               "at school",
+                               "patrolling the streets"};
+  return t[static_cast<int>(r)];
+}
+
 // Lazily evaluated needs. 255 = fully satisfied, 0 = desperate.
 enum class Need : u8 { Food, Water, Rest, Hygiene, Religion, Entertainment, Count };
 inline constexpr int kNeedCount = static_cast<int>(Need::Count);
@@ -81,6 +118,7 @@ struct Citizens {
   std::vector<u8> carrying;    // good id + 1 (0 = nothing), for rendering/hauling
   std::vector<u16> carry_amount;
   std::vector<u32> task;       // current haul task / patrol state (kNoIndex if none)
+  std::vector<Reason> reason;  // why the current activity was chosen
 
   // --- cold ---
   std::vector<CitizenClass> cls;
@@ -134,6 +172,12 @@ struct Household {
   u16 water = 0;          // water units at home
   u16 goods[8] = {};      // household goods stock per slot (World::hh_goods)
   CitizenId shopper;      // member currently on a shopping errand
+  CitizenId fetcher;      // member currently fetching water
+  u16 nomen = 0;          // family name index (shared by members)
+  u8 unhappy_days = 0;
+  u32 happy_sum = 0;  // accumulated by the staggered daily citizen pass
+  u16 happy_n = 0;
+  u8 leaving = 0;
   CitizenId owner;        // for slaves: owning household head (servi privati); invalid = public
   u8 flags = 0;
 };

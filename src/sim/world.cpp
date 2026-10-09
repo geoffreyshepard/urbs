@@ -40,6 +40,10 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   scratch_u32_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
   scratch_u32b_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
   econ.init(static_cast<u32>(d.goods.size()), cfg.max_buildings, 4096);
+  for (auto& v : need_services) v.clear();
+  for (u16 sv = 0; sv < d.services.size(); ++sv)
+    if (d.services[sv].need != data::NeedKind::None) need_services[static_cast<int>(d.services[sv].need)].push_back(ServiceId{sv});
+  alerts.reserve(160);
   food_slots.clear();
   hh_goods.clear();
   good_food_slot.assign(d.goods.size(), -1);
@@ -118,6 +122,10 @@ void World::compute_entrance(Building& b) {
   b.entrance = best;
 }
 
+namespace {
+const data::HousingTierDef* tier0(const data::Defs& d, const data::BuildingDef& bd) { return d.tier(bd.house_line, 0); }
+}  // namespace
+
 BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, bool instant) {
   if (!can_place(def, x, y, w, h)) return BuildingId{};
   BuildingId id = buildings.ids.create();
@@ -134,6 +142,8 @@ BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, 
   const u32 base_area = static_cast<u32>(bd.w * bd.h);
   b.jobs = bd.painted ? static_cast<u16>(std::max<u32>(1, bd.workers * area / std::max<u32>(1, base_area))) : bd.workers;
   b.capacity = bd.housing;
+  if (bd.kind == data::BuildingKind::House)
+    if (const auto* t = tier0(*defs, bd)) b.capacity = t->capacity;
   b.build_needed = static_cast<u32>(bd.build_work) * (bd.painted ? std::max<u32>(1, area / base_area) : 1);
   for (i32 ty = y; ty < y + h; ++ty)
     for (i32 tx = x; tx < x + w; ++tx) map.building[static_cast<size_t>(map.idx(tx, ty))] = id;
@@ -279,6 +289,7 @@ HouseholdId World::create_household(BuildingId home, CitizenClass cls) {
   h = Household{};
   h.home = home;
   h.cls = cls;
+  h.nomen = static_cast<u16>(stream(rng::StreamId::Names).below(static_cast<u32>(std::max<size_t>(1, defs->names.nomina.size()))));
   if (home.valid()) {
     Building& b = buildings[home];
     h.next_in_house = b.first_household;
@@ -287,7 +298,7 @@ HouseholdId World::create_household(BuildingId home, CitizenClass cls) {
   return id;
 }
 
-CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, u32 age_years) {
+CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, u32 age_years, i32 at_tile) {
   CitizenId id = citizens.ids.create();
   if (!id) return id;
   const u32 i = id.index();
@@ -295,9 +306,10 @@ CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, 
   ++C.token[i];
   C.activity[i] = Activity::Home;
   C.next[i] = Activity::None;
-  C.loc[i] = at;
+  C.loc[i] = at_tile >= 0 ? BuildingId{} : at;
   C.dest[i] = BuildingId{};
-  C.dest_tile[i] = at.valid() ? buildings[at].entrance : -1;
+  C.dest_tile[i] = at_tile >= 0 ? at_tile : (at.valid() ? buildings[at].entrance : -1);
+  C.reason[i] = Reason::None;
   C.path[i] = path::kNoHandle;
   C.home[i] = at;
   C.work[i] = BuildingId{};
@@ -305,6 +317,13 @@ CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, 
   C.cls[i] = cls;
   rng::Stream& r = stream(rng::StreamId::Citizens);
   C.sex[i] = static_cast<u8>(r.below(2));
+  {
+    rng::Stream& nr = stream(rng::StreamId::Names);
+    const auto& N = defs->names;
+    C.name0[i] = static_cast<u16>(nr.below(static_cast<u32>(cls == CitizenClass::Slave ? N.slave.size() : N.praenomina.size())));
+    C.name1[i] = hh.valid() ? households[hh].nomen : static_cast<u16>(nr.below(static_cast<u32>(N.nomina.size())));
+    C.name2[i] = static_cast<u16>(nr.below(static_cast<u32>(N.cognomina.size())));
+  }
   C.born[i] = static_cast<i64>(now) - static_cast<i64>(age_years) * static_cast<i64>(kTicksPerYear) -
               static_cast<i64>(r.below(static_cast<u32>(kTicksPerYear)));
   C.need_t0[i] = now;
@@ -325,7 +344,7 @@ CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, 
     ++h.members;
   }
   if (at.valid()) ++buildings[at].residents;
-  schedule_citizen(i, now + 1 + r.below(static_cast<u32>(kTicksPerHour)), CitizenEvent::Decide);
+  schedule_citizen(i, now + 1 + (at_tile >= 0 ? 0 : r.below(static_cast<u32>(kTicksPerHour))), CitizenEvent::Decide);
   return id;
 }
 
@@ -384,6 +403,10 @@ void World::request_walk(u32 i, i32 from, BuildingId to, i32 to_tile, Activity n
     return;
   }
   if (from == to_tile) {
+    if (next == Activity::Leave) {
+      finish_leave(i);
+      return;
+    }
     C.loc[i] = to;
     start_activity(i, next);
     return;
@@ -402,139 +425,6 @@ bool World::citizen_position(u32 i, f32 alpha, Vec2& out, int* facing) const {
   out = {t.x * static_cast<f32>(kTilePx), t.y * static_cast<f32>(kTilePx)};
   if (facing) *facing = paths.store().facing(C.path[i], C.path_rev[i] != 0, e);
   return true;
-}
-
-void World::start_activity(u32 i, Activity a) {
-  auto& C = citizens;
-  C.rebase_needs(i, now);
-  C.activity[i] = a;
-  C.next[i] = Activity::None;
-  const size_t nb = static_cast<size_t>(i) * kNeedCount;
-  auto rate = [&](Need n, i8 r) { C.need_rate[nb + static_cast<size_t>(n)] = r; };
-  rate(Need::Food, -6);
-  rate(Need::Water, -8);
-  rate(Need::Rest, -9);
-  rate(Need::Hygiene, -4);
-  rate(Need::Religion, -2);
-  rate(Need::Entertainment, -3);
-  const u32 h = hour_of_day(now);
-  Tick end = now + kTicksPerHour;
-  const i32 j = jitter(i);
-  auto at_hour = [&](u32 hour) { return static_cast<Tick>(static_cast<i64>(next_hour(now, hour)) + j); };
-  switch (a) {
-    case Activity::Sleep:
-      rate(Need::Rest, 40);
-      rate(Need::Food, -3);
-      rate(Need::Water, -3);
-      end = at_hour(5);
-      break;
-    case Activity::Work:
-    case Activity::Build: {
-      if (C.loc[i].valid() && buildings.alive(C.loc[i])) ++buildings[C.loc[i]].present;
-      rate(Need::Rest, -12);
-      rate(Need::Food, -7);
-      end = h < 12 ? at_hour(12) : at_hour(17);
-      // Porters waiting for a task re-check every half hour.
-      if (a == Activity::Work && is_porter_job(C.work[i])) end = std::min<Tick>(end, now + kTicksPerHour / 2);
-      break;
-    }
-    case Activity::Haul:
-      rate(Need::Rest, -12);
-      rate(Need::Food, -7);
-      haul_step(i);
-      return;
-    case Activity::Shop: {
-      Household* hh = C.household[i].valid() ? &households[C.household[i]] : nullptr;
-      if (hh) {
-        household_shop(i, C.loc[i]);
-        hh->shopper = CitizenId{};
-      }
-      end = now + kTicksPerHour / 2;
-      break;
-    }
-    case Activity::Home: {
-      Household* hh = C.household[i].valid() ? &households[C.household[i]] : nullptr;
-      if (hh && C.need(i, Need::Food, now) < 200) household_eat(i);
-      C.carrying[i] = 0;
-      C.set_need(i, Need::Water, 255);
-      if (h < 5 || h >= 22) end = at_hour(5);
-      else if (h < 7) end = at_hour(7);
-      else if (h < 12) end = at_hour(12);
-      else if (h < 13) end = at_hour(13);
-      else if (h < 17) end = at_hour(17);
-      else end = at_hour(22);
-      break;
-    }
-    default: break;
-  }
-  if (end <= now) end = now + 1;
-  C.activity_end[i] = end;
-  schedule_citizen(i, end, CitizenEvent::Decide);
-}
-
-void World::decide(u32 i) {
-  auto& C = citizens;
-  ++stats.decisions;
-  // Leave the current activity.
-  if ((C.activity[i] == Activity::Work || C.activity[i] == Activity::Build) && C.loc[i].valid() &&
-      buildings.alive(C.loc[i])) {
-    Building& w = buildings[C.loc[i]];
-    if (w.present > 0) --w.present;
-  }
-  const u32 h = hour_of_day(now);
-  const i32 here = current_tile(i);
-  BuildingId home = C.home[i];
-  if (!home.valid() || !buildings.alive(home)) {
-    C.activity[i] = Activity::Wander;
-    schedule_citizen(i, now + kTicksPerHour * 2, CitizenEvent::Decide);
-    return;
-  }
-  BuildingId target = home;
-  Activity act = Activity::Home;
-  if (h >= 22 || h < 5) {
-    act = Activity::Sleep;
-  } else if (C.work[i].valid() && buildings.alive(C.work[i]) && h >= 7 && h < 17 && h != 12) {
-    target = C.work[i];
-    act = buildings[target].state == BState::Construction ? Activity::Build : Activity::Work;
-    if (act == Activity::Work && is_porter_job(target) && claim_task(i)) return;
-  } else if (C.household[i].valid() && h >= 13 && h < 20) {
-    Household& hh = households[C.household[i]];
-    if (household_food(hh) < hh.members * 2u && !hh.shopper.valid()) {
-      ServiceId market = defs->service("market");
-      if (market.valid() && services.ready(market.v)) {
-        BuildingId m = services.provider(market.v, buildings[home].entrance);
-        if (m.valid() && buildings.alive(m)) {
-          target = m;
-          act = Activity::Shop;
-          hh.shopper = CitizenId::make(i, C.ids.gens()[i]);
-        }
-      }
-    }
-  }
-  const i32 to_tile = buildings[target].entrance;
-  if (C.loc[i] == target) {
-    start_activity(i, act);
-    return;
-  }
-  request_walk(i, here, target, to_tile, act);
-}
-
-void World::arrive(u32 i) {
-  auto& C = citizens;
-  ++stats.arrivals;
-  if (C.path[i] != path::kNoHandle) {
-    paths.store().unref(C.path[i]);
-    C.path[i] = path::kNoHandle;
-    if (walking > 0) --walking;
-  }
-  C.loc[i] = C.dest[i];
-  if (!C.loc[i].valid() || !buildings.alive(C.loc[i])) {
-    C.loc[i] = BuildingId{};
-    C.activity[i] = Activity::Wander;
-    schedule_citizen(i, now + 1, CitizenEvent::Decide);
-    return;
-  }
-  start_activity(i, C.next[i]);
 }
 
 void World::on_citizen_event(const Event& e) {
@@ -646,8 +536,23 @@ void World::tick() {
   if (nav.regions_dirty || std::any_of(nav.chunk_dirty.begin(), nav.chunk_dirty.end(), [](u8 d) { return d != 0; }))
     services.mark_all_dirty();
   services.step(nav, cfg.service_budget);
-  if (now % kTicksPerDay == 0) daily_update();
+  if (now % kTicksPerDay == 0) {
+    daily_update();
+    avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;
+    happy_sum_today = 0;
+    happy_count_today = 0;
+    immigrants_today = emigrants_today = 0;
+  }
   if (now % kTicksPerHour == 7) labor_allocate();
+  if (now % kTicksPerHour == 20) immigration_hourly();
+  {
+    // Staggered daily passes: each citizen and each building once per game day.
+    const u32 tod = tick_of_day(now);
+    for (u32 i = tod; i < citizens.ids.high_water(); i += static_cast<u32>(kTicksPerDay))
+      if (citizens.ids.alive_index(i)) citizen_daily(i);
+    for (u32 bi = tod; bi < buildings.ids.high_water(); bi += static_cast<u32>(kTicksPerDay))
+      if (buildings.ids.alive_index(bi)) house_daily(buildings.ids.id_at(bi));
+  }
   if (econ.goods > 0) {
     // Two goods per tick: every good is matched about every 20 ticks.
     match_good(GoodId{static_cast<u16>((now * 2) % econ.goods)});

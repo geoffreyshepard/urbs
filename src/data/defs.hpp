@@ -61,11 +61,35 @@ struct RecipeDef {
   u16 work = 100;  // worker-ticks per batch
 };
 
+// Citizen needs a service can satisfy (matches sim::Need for the first six).
+enum class NeedKind : i8 { None = -1, Food = 0, Water, Rest, Hygiene, Religion, Entertainment, Health, Education };
+
 struct ServiceDef {
   std::string id, name;
   bool patrol = false;
   u16 visit_ticks = 50;  // time a citizen spends inside
-  u16 range = 60;        // max useful travel cost (ticks) for coverage
+  u16 range = 60;        // max walking time (ticks) for a house to count as covered
+  NeedKind need = NeedKind::None;
+  u8 quality = 100;      // how well a visit satisfies the need (0..255)
+};
+
+struct HousingReq {
+  enum Kind : u8 { Service, FoodKinds, Food, Goods, Desirability, Sewer, PipedWater, Patrol } kind = Service;
+  std::vector<ServiceId> services;  // Service: any of; Patrol: one
+  std::vector<GoodId> goods;        // Goods: all of; Food: one
+  i32 value = 0;                    // FoodKinds / Desirability
+};
+
+struct HousingTierDef {
+  std::string id, name;
+  u8 line = 0;  // 0 plebeian, 1 patrician
+  u8 tier = 0;
+  u16 capacity = 5;
+  std::vector<HousingReq> reqs;
+};
+
+struct NameLists {
+  std::vector<std::string> praenomina, nomina, cognomina, slave;
 };
 
 struct BuildingDef {
@@ -103,6 +127,19 @@ struct Defs {
   std::vector<RecipeDef> recipes;
   std::vector<ServiceDef> services;
   std::vector<BuildingDef> buildings;
+  std::vector<HousingTierDef> housing;  // ordered by line, tier
+  NameLists names;
+  [[nodiscard]] const HousingTierDef* tier(u8 line, u8 t) const {
+    for (const auto& h : housing)
+      if (h.line == line && h.tier == t) return &h;
+    return nullptr;
+  }
+  [[nodiscard]] u8 max_tier(u8 line) const {
+    u8 m = 0;
+    for (const auto& h : housing)
+      if (h.line == line && h.tier > m) m = h.tier;
+    return m;
+  }
 
   std::unordered_map<std::string, u16> good_ids, recipe_ids, service_ids, building_ids;
 

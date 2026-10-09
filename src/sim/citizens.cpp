@@ -25,6 +25,7 @@ void Citizens::init(u32 cap) {
   carrying.assign(cap, 0);
   carry_amount.assign(cap, 0);
   task.assign(cap, 0xFFFFFFFFu);
+  reason.assign(cap, Reason::None);
   cls.assign(cap, CitizenClass::Pleb);
   sex.assign(cap, 0);
   born.assign(cap, 0);

@@ -366,6 +366,17 @@ void Renderer::render(ImDrawData* draw_data) {
   dynamic_.clear();
   translucent_.clear();
 
+  // UI into the scene texture when a screenshot wants it (so the PNG shows panels).
+  const bool ui_in_scene = draw_data && !screenshot_path_.empty() && screenshot_ui_;
+  if (ui_in_scene) {
+    SDL_GPUColorTargetInfo ut{};
+    ut.texture = scene_;
+    ut.load_op = SDL_GPU_LOADOP_LOAD;
+    ut.store_op = SDL_GPU_STOREOP_STORE;
+    SDL_GPURenderPass* up = SDL_BeginGPURenderPass(cmd, &ut, 1, nullptr);
+    ImGui_ImplSDLGPU3_RenderDrawData(draw_data, cmd, up);
+    SDL_EndGPURenderPass(up);
+  }
   // --- Present: blit scene to swapchain, then UI on top ---
   SDL_GPUBlitInfo bi{};
   bi.source.texture = scene_;
@@ -377,7 +388,7 @@ void Renderer::render(ImDrawData* draw_data) {
   bi.load_op = SDL_GPU_LOADOP_DONT_CARE;
   bi.filter = SDL_GPU_FILTER_NEAREST;
   SDL_BlitGPUTexture(cmd, &bi);
-  if (draw_data) {
+  if (draw_data && !ui_in_scene) {
     SDL_GPUColorTargetInfo ut{};
     ut.texture = swap;
     ut.load_op = SDL_GPU_LOADOP_LOAD;

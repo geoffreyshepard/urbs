@@ -1,5 +1,6 @@
 #include "data/defs.hpp"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -182,6 +183,14 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
     s.patrol = get_or<bool>(j, "patrol", false);
     s.visit_ticks = get_or<u16>(j, "visit_ticks", 50);
     s.range = get_or<u16>(j, "range", 60);
+    s.quality = get_or<u8>(j, "quality", 100);
+    static const std::pair<const char*, NeedKind> kNeeds[] = {
+        {"food", NeedKind::Food},         {"water", NeedKind::Water},     {"rest", NeedKind::Rest},
+        {"hygiene", NeedKind::Hygiene},   {"religion", NeedKind::Religion}, {"entertainment", NeedKind::Entertainment},
+        {"health", NeedKind::Health},     {"education", NeedKind::Education}};
+    std::string nk = get_or<std::string>(j, "need", "");
+    for (auto& [n, k] : kNeeds)
+      if (nk == n) s.need = k;
     d.service_ids[id] = static_cast<u16>(d.services.size());
     d.services.push_back(std::move(s));
   }
@@ -227,7 +236,10 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
     }
     b.service_capacity = get_or<u16>(j, "service_capacity", 0);
     b.housing = get_or<u16>(j, "housing", 0);
-    b.house_line = get_or<std::string>(j, "house_line", "pleb") == "patrician" ? 1 : 0;
+    {
+      std::string hl = get_or<std::string>(j, "house_line", "pleb");
+      b.house_line = hl == "patrician" ? 1 : hl == "slave" ? 2 : 0;
+    }
     b.storage = get_or<u16>(j, "storage", 0);
     if (j.contains("accepts"))
       for (auto& gname : j["accepts"]) {
@@ -252,6 +264,82 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       fail(mb, id, "service building needs 'service'");
     d.building_ids[id] = static_cast<u16>(d.buildings.size());
     d.buildings.push_back(std::move(b));
+  }
+  // Housing tiers
+  {
+    fs::path hp = fs::path(data_root) / "defs" / "housing.json";
+    Merged mh = load_kind(data_root, mods, "housing.json");
+    for (auto& id : mh.order) {
+      const json& j = mh.by_id[id];
+      HousingTierDef t;
+      t.id = id;
+      t.name = get_or<std::string>(j, "name", id);
+      t.line = get_or<std::string>(j, "line", "pleb") == "patrician" ? 1 : 0;
+      t.tier = get_or<u8>(j, "tier", 0);
+      t.capacity = get_or<u16>(j, "capacity", 5);
+      if (j.contains("requires"))
+        for (auto& r : j["requires"]) {
+          HousingReq q;
+          if (r.contains("service")) {
+            q.kind = HousingReq::Service;
+            for (auto& s : r["service"]) {
+              ServiceId sid = d.service(s.get<std::string>());
+              if (!sid) fail(mh, id, "unknown service " + s.get<std::string>());
+              q.services.push_back(sid);
+            }
+          } else if (r.contains("patrol")) {
+            q.kind = HousingReq::Patrol;
+            ServiceId sid = d.service(r["patrol"].get<std::string>());
+            if (!sid) fail(mh, id, "unknown patrol service");
+            q.services.push_back(sid);
+          } else if (r.contains("food_kinds")) {
+            q.kind = HousingReq::FoodKinds;
+            q.value = r["food_kinds"].get<i32>();
+          } else if (r.contains("food")) {
+            q.kind = HousingReq::Food;
+            GoodId g = d.good(r["food"].get<std::string>());
+            if (!g) fail(mh, id, "unknown food good");
+            q.goods.push_back(g);
+          } else if (r.contains("goods")) {
+            q.kind = HousingReq::Goods;
+            for (auto& s : r["goods"]) {
+              GoodId g = d.good(s.get<std::string>());
+              if (!g) fail(mh, id, "unknown good " + s.get<std::string>());
+              q.goods.push_back(g);
+            }
+          } else if (r.contains("desirability")) {
+            q.kind = HousingReq::Desirability;
+            q.value = r["desirability"].get<i32>();
+          } else if (r.contains("sewer")) {
+            q.kind = HousingReq::Sewer;
+          } else if (r.contains("piped_water")) {
+            q.kind = HousingReq::PipedWater;
+          } else {
+            fail(mh, id, "unknown requirement " + r.dump());
+          }
+          t.reqs.push_back(std::move(q));
+        }
+      d.housing.push_back(std::move(t));
+    }
+    std::sort(d.housing.begin(), d.housing.end(),
+              [](const HousingTierDef& a, const HousingTierDef& b) { return a.line != b.line ? a.line < b.line : a.tier < b.tier; });
+    (void)hp;
+  }
+  // Names
+  {
+    fs::path np = fs::path(data_root) / "defs" / "names.json";
+    if (fs::exists(np)) {
+      std::ifstream f(np);
+      json j = json::parse(f);
+      d.names.praenomina = j.value("praenomina", std::vector<std::string>{});
+      d.names.nomina = j.value("nomina", std::vector<std::string>{});
+      d.names.cognomina = j.value("cognomina", std::vector<std::string>{});
+      d.names.slave = j.value("slave", std::vector<std::string>{});
+    }
+    if (d.names.praenomina.empty()) d.names.praenomina = {"Gaius"};
+    if (d.names.nomina.empty()) d.names.nomina = {"Julius"};
+    if (d.names.cognomina.empty()) d.names.cognomina = {"Rufus"};
+    if (d.names.slave.empty()) d.names.slave = {"Syrus"};
   }
   return d;
 }

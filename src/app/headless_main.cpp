@@ -101,6 +101,52 @@ int main(int argc, char** argv) {
       static_cast<unsigned long long>(path_req), static_cast<unsigned long long>(arrivals), max_walking,
       static_cast<unsigned long long>(ps.hits()), static_cast<unsigned long long>(ps.misses()), ps.live_paths(),
       static_cast<unsigned long long>(world->sched.dropped()));
+  if (dump || verbose) {
+    u32 reasons[64] = {}, acts[32] = {}, tiers[8] = {};
+    const auto& C = world->citizens;
+    for (u32 i = 0; i < C.ids.high_water(); ++i)
+      if (C.ids.alive_index(i)) {
+        ++reasons[static_cast<int>(C.reason[i])];
+        ++acts[static_cast<int>(C.activity[i])];
+      }
+    world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+      if (defs.b(b.def).kind == data::BuildingKind::House) ++tiers[b.tier & 7];
+    });
+    {
+      i64 a[13] = {};
+      u32 n = 0;
+      for (u32 i = 0; i < C.ids.high_water(); ++i) {
+        if (!C.ids.alive_index(i)) continue;
+        auto p = world->happiness_parts(i);
+        i16 v[13] = {p.food, p.water, p.rest, p.hygiene, p.religion, p.entertainment, p.variety, p.housing,
+                     p.employment, p.taxes, p.gods, p.events, p.health};
+        for (int k = 0; k < 13; ++k) a[k] += v[k];
+        ++n;
+      }
+      const char* names[13] = {"food", "water", "rest", "hygiene", "religion", "entert", "variety", "housing",
+                               "employ", "taxes", "gods", "events", "health"};
+      std::printf("happiness parts (avg):");
+      for (int k = 0; k < 13; ++k) std::printf(" %s=%.1f", names[k], n ? static_cast<double>(a[k]) / n : 0.0);
+      std::printf("\n");
+      u32 unmet[32] = {};
+      world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+        if (defs.b(b.def).kind == data::BuildingKind::House) ++unmet[std::min<u32>(b.extra, 31)];
+      });
+      std::printf("houses by first unmet next-tier requirement (1-based, 0=none):");
+      for (int k = 0; k < 32; ++k)
+        if (unmet[k]) std::printf(" #%d=%u", k, unmet[k]);
+      std::printf("\n");
+    }
+    std::printf("reasons:");
+    for (int k = 0; k < static_cast<int>(sim::Reason::Count); ++k)
+      if (reasons[k]) std::printf(" [%s]=%u", sim::reason_text(static_cast<sim::Reason>(k)), reasons[k]);
+    std::printf("\nactivities:");
+    for (int k = 0; k < static_cast<int>(sim::Activity::Count); ++k)
+      if (acts[k]) std::printf(" %s=%u", sim::activity_name(static_cast<sim::Activity>(k)), acts[k]);
+    std::printf("\nhouse tiers: %u %u %u %u %u  appeal %d  happiness %u  immigrants %u emigrants %u\n", tiers[0],
+                tiers[1], tiers[2], tiers[3], tiers[4], world->appeal, world->avg_happiness, world->immigrants_total,
+                world->emigrants_total);
+  }
   if (dump) {
     world->buildings.for_each([&](BuildingId, const sim::Building& b) {
       const auto& d = defs.b(b.def);

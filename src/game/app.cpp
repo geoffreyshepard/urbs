@@ -33,6 +33,8 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--scenario")) o.scenario = argv[++i];
     else if (arg("--speed")) o.speed = std::atoi(argv[++i]);
     else if (arg("--ticks")) o.ticks_before = std::atoi(argv[++i]);
+    else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
+    else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -90,6 +92,11 @@ bool App::init(const AppOptions& opt) {
   if (opt.cam_x >= 0) cam.center = {opt.cam_x * sim::kTilePx, opt.cam_y * sim::kTilePx};
   if (opt.zoom >= 0) cam.zoom = std::min(opt.zoom, render::kZoomCount - 1);
   speed_ = std::clamp(opt.speed, 0, 3);
+  if (opt.inspect >= 0 && world_->citizens.ids.alive_index(static_cast<u32>(opt.inspect))) {
+    sel_.citizen = world_->citizens.ids.id_at(static_cast<u32>(opt.inspect));
+    sel_.follow = true;
+    sel_.building = world_->citizens.home[static_cast<u32>(opt.inspect)];
+  }
   last_counter_ = SDL_GetPerformanceCounter();
   return true;
 }
@@ -113,7 +120,7 @@ void App::handle_event(const SDL_Event& e) {
       break;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
       if (!ui_mouse && (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT)) dragging_ = true;
-      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT) tools_.mouse_down(mouse_tile());
+      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT && !tools_.mouse_down(mouse_tile())) pick_at_mouse();
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
       if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) dragging_ = false;
@@ -136,6 +143,8 @@ void App::handle_event(const SDL_Event& e) {
       if (e.key.key == SDLK_X) tools_.select_demolish();
       if (e.key.key == SDLK_B) show_build_ = !show_build_;
       if (e.key.key == SDLK_L) show_stock_ = !show_stock_;
+      if (e.key.key == SDLK_J) show_labor_ = !show_labor_;
+      if (e.key.key == SDLK_F) sel_.follow = !sel_.follow;
       if (e.key.key == SDLK_SPACE) speed_ = speed_ == 0 ? 1 : 0;
       if (e.key.key == SDLK_1) speed_ = 1;
       if (e.key.key == SDLK_2) speed_ = 2;
@@ -184,6 +193,35 @@ Vec2i App::mouse_tile() const {
   Vec2 wp = const_cast<render::Renderer&>(renderer_).camera().screen_to_world({mx, my});
   return {static_cast<i32>(std::floor(wp.x / static_cast<f32>(sim::kTilePx))),
           static_cast<i32>(std::floor(wp.y / static_cast<f32>(sim::kTilePx)))};
+}
+
+void App::pick_at_mouse() {
+  float mx, my;
+  SDL_GetMouseState(&mx, &my);
+  const Vec2 wp = renderer_.camera().screen_to_world({mx, my});
+  const auto& C = world_->citizens;
+  f32 best = 7.0f * 7.0f;
+  CitizenId pick;
+  for (u32 i = 0; i < C.ids.high_water(); ++i) {
+    if (!C.ids.alive_index(i) || C.activity[i] != sim::Activity::Walk) continue;
+    Vec2 p;
+    if (!world_->citizen_position(i, alpha_, p, nullptr)) continue;
+    const f32 dx = p.x - wp.x, dy = (p.y - 4) - wp.y;
+    if (dx * dx + dy * dy < best) {
+      best = dx * dx + dy * dy;
+      pick = C.ids.id_at(i);
+    }
+  }
+  if (pick.valid()) {
+    sel_.citizen = pick;
+    return;
+  }
+  const Vec2i t = mouse_tile();
+  if (world_->map.in_bounds(t.x, t.y)) {
+    BuildingId b = world_->map.building[static_cast<size_t>(world_->map.idx(t.x, t.y))];
+    sel_.building = b;
+    if (!b.valid()) sel_.citizen = CitizenId{};
+  }
 }
 
 void App::draw_build_menu() {
@@ -264,6 +302,14 @@ void App::draw_debug_ui() {
     if (ImGui::RadioButton(speeds[i], speed_ == i)) speed_ = i;
   }
   ImGui::Text("citizens %u  walking %u  buildings %u", w.citizens.ids.count(), w.walking, w.buildings.ids.count());
+  ImGui::Text("happiness %u  appeal %d  treasury %lld", w.avg_happiness, w.appeal, static_cast<long long>(w.econ.treasury));
+  if (ImGui::Button("Build (B)")) show_build_ = !show_build_;
+  ImGui::SameLine();
+  if (ImGui::Button("Goods (L)")) show_stock_ = !show_stock_;
+  ImGui::SameLine();
+  if (ImGui::Button("Labor (J)")) show_labor_ = !show_labor_;
+  ImGui::SameLine();
+  if (ImGui::Button("Alerts")) show_alerts_ = !show_alerts_;
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
@@ -298,12 +344,31 @@ void App::run() {
     draw_debug_ui();
     draw_build_menu();
     draw_stock_window();
+    draw_citizen_panel(*world_, sel_);
+    draw_building_panel(*world_, sel_);
+    draw_labor_panel(*world_, &show_labor_);
+    if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
+      const auto& jb = world_->buildings[jump];
+      renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
+      sel_.building = jump;
+    }
     ImGui::Render();
+    if (sel_.follow && sel_.citizen.valid() && world_->citizens.alive(sel_.citizen)) {
+      Vec2 p;
+      const u32 ci = sel_.citizen.index();
+      if (world_->citizen_position(ci, alpha_, p, nullptr)) renderer_.camera().center = p;
+      else if (world_->citizens.loc[ci].valid() && world_->buildings.alive(world_->citizens.loc[ci])) {
+        const auto& lb = world_->buildings[world_->citizens.loc[ci]];
+        renderer_.camera().center = {(static_cast<f32>(lb.x) + static_cast<f32>(lb.w) / 2) * sim::kTilePx,
+                                     (static_cast<f32>(lb.y) + static_cast<f32>(lb.h) / 2) * sim::kTilePx};
+      }
+    }
+    draw_selection(*world_, sel_, renderer_, alpha_);
 
     view_.draw(*world_, renderer_, alpha_);
     tools_.draw(*world_, view_, renderer_);
     ++frame_;
-    if (!opt_.screenshot.empty() && frame_ == opt_.frames) renderer_.request_screenshot(opt_.screenshot);
+    if (!opt_.screenshot.empty() && frame_ == opt_.frames) renderer_.request_screenshot(opt_.screenshot, !opt_.no_ui);
     renderer_.render(ImGui::GetDrawData());
     if (!opt_.screenshot.empty() && frame_ >= opt_.frames) running_ = false;
   }

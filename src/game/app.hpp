@@ -5,6 +5,7 @@
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
 #include "data/defs.hpp"
+#include "game/panels.hpp"
 #include "game/tools.hpp"
 #include "game/world_view.hpp"
 #include "sim/scenario.hpp"
@@ -22,6 +23,8 @@ struct AppOptions {
   std::string scenario;          // headless scenario json to load
   int speed = 1;
   int ticks_before = 0;          // run this many ticks before the first frame
+  int inspect = -1;              // select (and follow) this citizen index at start
+  bool no_ui = false;
 };
 
 AppOptions parse_args(int argc, char** argv);
@@ -41,6 +44,7 @@ class App {
   void draw_build_menu();
   void draw_stock_window();
   [[nodiscard]] Vec2i mouse_tile() const;
+  void pick_at_mouse();
 
   AppOptions opt_;
   platform::Window win_;
@@ -50,7 +54,8 @@ class App {
   sim::ScenarioSpec spec_;
   WorldView view_;
   Tools tools_;
-  bool show_build_ = true, show_stock_ = false;
+  bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = true;
+  Selection sel_;
   sim::MapGenParams gen_;
   int speed_ = 1;  // 0 pause, 1, 2, 4 (index into kSpeeds)
   f64 accum_ = 0;
