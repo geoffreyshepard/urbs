@@ -95,13 +95,13 @@ int World::first_unmet(const Building& b, u8 tier) const {
   return -1;
 }
 
-BuildingId World::find_vacant_house(i32 near, u16 space) const {
+BuildingId World::find_vacant_house(i32 near, u16 space, u8 line) const {
   BuildingId best;
   int best_d = 1 << 30;
   buildings.for_each([&](BuildingId id, const Building& b) {
     if (b.state != BState::Active || b.entrance < 0) return;
     const auto& d = defs->b(b.def);
-    if (d.kind != BuildingKind::House || d.house_line != 0) return;
+    if (d.kind != BuildingKind::House || d.house_line != line) return;
     if (b.capacity < b.residents + space) return;
     if (near >= 0 && !nav.connected(near, b.entrance)) return;
     int dd = near >= 0 ? std::abs(near % map.w - b.entrance % map.w) + std::abs(near / map.w - b.entrance / map.w) : 0;
@@ -203,6 +203,7 @@ void World::house_daily(BuildingId id) {
     }
     hi = next;
   }
+  b.desirability_seen = static_cast<u8>(std::clamp(128 + building_desirability(b), 0, 255));
   if (b.residents == 0) {
     b.tier = 0;
     b.extra = 0;
@@ -276,6 +277,12 @@ World::HappinessParts World::happiness_parts(u32 i) const {
   if (age >= 14 && age < 60 && !C.work[i].valid() && C.cls[i] != CitizenClass::Patrician) p.employment = -8;
   p.taxes = static_cast<i16>(-static_cast<int>(policy.tax_rate[static_cast<int>(C.cls[i]) % 6]) / 2);
   p.health = static_cast<i16>((static_cast<int>(C.health[i]) - 255) / 8);
+  if (C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Eques) {
+    p.education = lin(C.need(i, Need::Education, now), -12, 6);
+    // Prestige: the elite care about how desirable their neighbourhood is.
+    if (C.home[i].valid() && buildings.alive(C.home[i]))
+      p.prestige = static_cast<i16>(std::clamp((static_cast<int>(buildings[C.home[i]].desirability_seen) - 128) / 2, -15, 15));
+  }
   return p;
 }
 
@@ -288,6 +295,11 @@ void World::citizen_daily(u32 i) {
     spend(wage, econ::Money::Wages);
     hhp->savings += wage;
     hhp->income_today = static_cast<u16>(std::min<i32>(60000, hhp->income_today + wage));
+  }
+  // Patricians live off their estates outside the city: income enters the household, not the treasury.
+  if (hhp && citizens.cls[i] == CitizenClass::Patrician && citizens.age_years(i, now) >= 16) {
+    hhp->savings += 12;
+    hhp->income_today = static_cast<u16>(std::min<i32>(60000, hhp->income_today + 12));
   }
   const i32 h = std::clamp(happiness_parts(i).total(), 0, 255);
   citizens.happiness[i] = static_cast<u8>(h);
@@ -368,6 +380,27 @@ void World::immigration_hourly() {
       citizens.reason[c.index()] = Reason::Immigrating;
       ++immigrants_today;
       ++immigrants_total;
+    }
+  }
+  // The elite arrive when there is a vacant domus and the city is pleasant enough.
+  if (avg_happiness >= 115 && pop >= 150 && r.chance(0.5f)) {
+    BuildingId domus = find_vacant_house(entry_tile, 3, 1);
+    if (domus.valid()) {
+      const CitizenClass cls = r.chance(0.5f) ? CitizenClass::Patrician : CitizenClass::Eques;
+      HouseholdId hh = create_household(domus, cls);
+      if (hh) {
+        households[hh].savings = cls == CitizenClass::Patrician ? 600 : 300;
+        households[hh].food = 12;
+        households[hh].water = 6;
+        const u16 size = static_cast<u16>(2 + r.below(2));
+        for (u16 m = 0; m < size; ++m) {
+          CitizenId c = spawn_citizen(cls, domus, hh, m < 2 ? 25 + r.below(30) : r.below(14), entry_tile);
+          if (!c) break;
+          citizens.reason[c.index()] = Reason::Immigrating;
+          ++immigrants_today;
+          ++immigrants_total;
+        }
+      }
     }
   }
   if (n > 0) add_alert(AlertKind::Immigrants, BuildingId{}, static_cast<u16>(immigrants_today));

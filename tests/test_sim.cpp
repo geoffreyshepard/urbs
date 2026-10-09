@@ -136,3 +136,44 @@ TEST_CASE("simulation is deterministic and save/load round-trips exactly") {
   CHECK(a->citizens.ids.count() == c->citizens.ids.count());
   std::remove(path.c_str());
 }
+
+TEST_CASE("water network: aqueduct flows downhill, fills reservoir, pipes feed a fountain") {
+  sim::World w;
+  sim::MapGenParams p;
+  p.size = 64;
+  p.flat = true;
+  p.river = false;
+  sim::generate_map(w.map, p);
+  // Lake on the west edge; terrain falls from height 5 at the lake to 2 in the east.
+  for (i32 y = 0; y < 64; ++y)
+    for (i32 x = 0; x < 64; ++x) {
+      const size_t i = static_cast<size_t>(w.map.idx(x, y));
+      w.map.terrain[i] = x < 4 ? sim::Terrain::Shallow : sim::Terrain::Grass;
+      w.map.height[i] = static_cast<u8>(x < 4 ? 0 : std::max(2, 5 - x / 10));
+    }
+  w.init(sim::WorldConfig{}, defs());
+  const auto& D = defs();
+  BuildingId a = w.place_building(D.building("aqueduct"), 4, 20, 20, 1, true);  // x 4..23, y 20
+  REQUIRE(a.valid());
+  BuildingId res = w.place_building(D.building("reservoir"), 24, 19, 3, 3, true);
+  REQUIRE(res.valid());
+  w.place_underground_line(27, 20, 35, 20, 1, true);
+  BuildingId f = w.place_building(D.building("fountain"), 35, 21, 1, 1, true);
+  REQUIRE(f.valid());
+  // Uphill aqueduct: from the lake to a hill at height 7 must stay dry past the climb.
+  for (i32 x = 4; x < 30; ++x) w.map.height[static_cast<size_t>(w.map.idx(x, 40))] = static_cast<u8>(x < 15 ? 3 : 7);
+  BuildingId up = w.place_building(D.building("aqueduct"), 4, 40, 26, 1, true);
+  REQUIRE(up.valid());
+  w.recompute_water();
+  CHECK((w.map.water[static_cast<size_t>(w.map.idx(23, 20))] & 1) != 0);
+  CHECK((w.map.water[static_cast<size_t>(w.map.idx(30, 20))] & 2) != 0);
+  CHECK((w.buildings[f].flags & 0x20) != 0);
+  CHECK((w.map.water[static_cast<size_t>(w.map.idx(10, 40))] & 1) != 0);
+  CHECK((w.map.water[static_cast<size_t>(w.map.idx(20, 40))] & 1) == 0);
+  // Sewer draining into the lake.
+  w.place_underground_line(4, 50, 20, 50, 2, true);
+  w.recompute_water();
+  CHECK((w.map.water[static_cast<size_t>(w.map.idx(20, 50))] & 4) != 0);
+  // Aqueducts can be walked under.
+  CHECK(w.nav.walkable(10, 20));
+}

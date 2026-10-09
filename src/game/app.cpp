@@ -35,6 +35,7 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--ticks")) o.ticks_before = std::atoi(argv[++i]);
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
+    else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -92,6 +93,8 @@ bool App::init(const AppOptions& opt) {
   if (opt.cam_x >= 0) cam.center = {opt.cam_x * sim::kTilePx, opt.cam_y * sim::kTilePx};
   if (opt.zoom >= 0) cam.zoom = std::min(opt.zoom, render::kZoomCount - 1);
   speed_ = std::clamp(opt.speed, 0, 3);
+  overlay_ = static_cast<Overlay>(std::clamp(opt.overlay, 0, static_cast<int>(Overlay::Count) - 1));
+  overlay_age_ = 1 << 20;
   if (opt.inspect >= 0 && world_->citizens.ids.alive_index(static_cast<u32>(opt.inspect))) {
     sel_.citizen = world_->citizens.ids.id_at(static_cast<u32>(opt.inspect));
     sel_.follow = true;
@@ -145,6 +148,10 @@ void App::handle_event(const SDL_Event& e) {
       if (e.key.key == SDLK_L) show_stock_ = !show_stock_;
       if (e.key.key == SDLK_J) show_labor_ = !show_labor_;
       if (e.key.key == SDLK_F) sel_.follow = !sel_.follow;
+      if (e.key.key == SDLK_O) {
+        overlay_ = static_cast<Overlay>((static_cast<int>(overlay_) + 1) % static_cast<int>(Overlay::Count));
+        overlay_age_ = 1 << 20;
+      }
       if (e.key.key == SDLK_SPACE) speed_ = speed_ == 0 ? 1 : 0;
       if (e.key.key == SDLK_1) speed_ = 1;
       if (e.key.key == SDLK_2) speed_ = 2;
@@ -315,6 +322,29 @@ void App::draw_debug_ui() {
   if (ImGui::Button("Labor (J)")) show_labor_ = !show_labor_;
   ImGui::SameLine();
   if (ImGui::Button("Alerts")) show_alerts_ = !show_alerts_;
+  {
+    int ov = static_cast<int>(overlay_);
+    ImGui::SetNextItemWidth(170);
+    const char* names[static_cast<int>(Overlay::Count)];
+    for (int k = 0; k < static_cast<int>(Overlay::Count); ++k) names[k] = overlay_name(static_cast<Overlay>(k));
+    if (ImGui::Combo("Overlay (O)", &ov, names, static_cast<int>(Overlay::Count))) {
+      overlay_ = static_cast<Overlay>(ov);
+      overlay_age_ = 1 << 20;
+    }
+    if (overlay_ == Overlay::Service) {
+      int sv = overlay_service_.valid() ? overlay_service_.v : 0;
+      ImGui::SetNextItemWidth(170);
+      if (ImGui::BeginCombo("Service", defs_.services[static_cast<size_t>(sv)].name.c_str())) {
+        for (u16 k = 0; k < defs_.services.size(); ++k)
+          if (ImGui::Selectable(defs_.services[k].name.c_str(), k == sv)) {
+            overlay_service_ = ServiceId{k};
+            overlay_age_ = 1 << 20;
+          }
+        ImGui::EndCombo();
+      }
+      if (!overlay_service_.valid()) overlay_service_ = ServiceId{0};
+    }
+  }
   if (ImGui::Button("Finance")) show_finance_ = !show_finance_;
   ImGui::SameLine();
   if (ImGui::Button("Trade")) show_trade_ = !show_trade_;
@@ -374,6 +404,13 @@ void App::run() {
       }
     }
     draw_selection(*world_, sel_, renderer_, alpha_);
+    if (overlay_ == Overlay::None) {
+      renderer_.set_overlay(nullptr);
+    } else if (++overlay_age_ > 30) {
+      build_overlay(*world_, overlay_, overlay_service_, overlay_px_);
+      renderer_.set_overlay(overlay_px_.data());
+      overlay_age_ = 0;
+    }
 
     view_.draw(*world_, renderer_, alpha_);
     tools_.draw(*world_, view_, renderer_);

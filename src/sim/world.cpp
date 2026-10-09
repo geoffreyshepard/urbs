@@ -39,6 +39,10 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   scratch_tiles_.reserve(cfg.max_buildings);
   scratch_u32_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
   scratch_u32b_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
+  water_queue_.reserve(static_cast<size_t>(map.w * map.h));
+  reservoir_full_.assign(cfg.max_buildings, 0);
+  desir_acc_.assign(static_cast<size_t>(map.w * map.h), 0);
+  water_dirty = desir_dirty = true;
   labor_head_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
   labor_fill_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
   econ.init(static_cast<u32>(d.goods.size()), cfg.max_buildings, 4096);
@@ -155,9 +159,14 @@ BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, 
     if (const auto* t = tier0(*defs, bd)) b.capacity = t->capacity;
   b.build_needed = static_cast<u32>(bd.build_work) * (bd.painted ? std::max<u32>(1, area / base_area) : 1);
   for (i32 ty = y; ty < y + h; ++ty)
-    for (i32 tx = x; tx < x + w; ++tx) map.building[static_cast<size_t>(map.idx(tx, ty))] = id;
+    for (i32 tx = x; tx < x + w; ++tx) {
+      const size_t ti = static_cast<size_t>(map.idx(tx, ty));
+      map.building[ti] = id;
+      if (bd.passable) map.water[ti] |= 0x80;
+    }
   update_nav_rect(x, y, w, h);
   compute_entrance(b);
+  water_dirty = desir_dirty = true;
   b.state = BState::Construction;
   ++b.token;
   // Inventory: storage capacity, producer buffer, or construction materials.
@@ -206,13 +215,19 @@ void World::complete_construction(BuildingId id) {
   b.jobs = bd.painted ? static_cast<u16>(std::max<u32>(bd.workers ? 1u : 0u, bd.workers * area / std::max<u32>(1, base_area)))
                       : bd.workers;
   providers_dirty_ = true;
+  water_dirty = desir_dirty = true;
 }
 
 void World::remove_building(BuildingId id) {
   if (!buildings.alive(id)) return;
   Building& b = buildings[id];
   for (i32 ty = b.y; ty < b.y + b.h; ++ty)
-    for (i32 tx = b.x; tx < b.x + b.w; ++tx) map.building[static_cast<size_t>(map.idx(tx, ty))] = BuildingId{};
+    for (i32 tx = b.x; tx < b.x + b.w; ++tx) {
+      const size_t ti = static_cast<size_t>(map.idx(tx, ty));
+      map.building[ti] = BuildingId{};
+      map.water[ti] &= static_cast<u8>(~0x80);
+    }
+  water_dirty = desir_dirty = true;
   update_nav_rect(b.x, b.y, b.w, b.h);
   // Evict residents and workers.
   for (u32 i = 0; i < citizens.ids.high_water(); ++i) {
@@ -283,6 +298,10 @@ void World::demolish(i32 x0, i32 y0, i32 x1, i32 y1) {
         map.road[i] = Road::None;
         nav.update_tile(map, x, y, now);
         map.mark_dirty(x, y);
+      }
+      if (map.under[i]) {
+        map.under[i] = 0;
+        water_dirty = true;
       }
     }
 }
@@ -485,6 +504,7 @@ void World::refresh_service_providers() {
     buildings.for_each([&](BuildingId id, const Building& b) {
       if (b.state != BState::Active || b.entrance < 0) return;
       if (defs->b(b.def).service.v != s) return;
+      if (defs->b(b.def).needs_pipe && !(b.flags & 0x20)) return;  // dry fountain / baths
       scratch_ids_.push_back(id);
       scratch_tiles_.push_back(b.entrance);
     });
@@ -513,6 +533,12 @@ void World::apply_commands() {
         break;
       }
       case CmdType::Demolish: demolish(c.x0, c.y0, c.x1, c.y1); break;
+      case CmdType::PlaceUnder: {
+        const i64 len = std::abs(c.x1 - c.x0) + std::abs(c.y1 - c.y0) + 1;
+        if (c.value && !pay(len * (c.def == 2 ? 6 : 2), econ::Money::Construction)) break;
+        place_underground_line(c.x0, c.y0, c.x1, c.y1, static_cast<u8>(c.def == 2 ? 2 : 1), c.value != 0);
+        break;
+      }
       case CmdType::OpenRoute:
         if (c.def < routes.size() && !routes[c.def].open && routes[c.def].available &&
             pay(defs->partners[c.def].open_cost, econ::Money::Other)) {
@@ -579,6 +605,8 @@ void World::tick() {
   sched.set_now(now);
   apply_commands();
   if (nav.regions_dirty) nav.rebuild_regions();
+  if (water_dirty) recompute_water();
+  if (desir_dirty) recompute_desirability();
   if (providers_dirty_) refresh_service_providers();
   if (nav.regions_dirty || std::any_of(nav.chunk_dirty.begin(), nav.chunk_dirty.end(), [](u8 d) { return d != 0; }))
     services.mark_all_dirty();

@@ -54,6 +54,28 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
   sim::Command c;
   switch (kind) {
     case ToolKind::Build: {
+      const auto& d = w.defs->b(def);
+      if (d.layer == 1 || d.layer == 2) {
+        c.type = sim::CmdType::PlaceUnder;
+        c.def = d.layer;
+        c.value = 1;
+        c.x0 = start_.x;
+        c.y0 = start_.y;
+        c.x1 = tile.x;
+        c.y1 = tile.y;
+        w.push(c);
+        break;
+      }
+      if (d.layer == 3) {
+        c.type = sim::CmdType::PlaceRoad;
+        c.def = static_cast<u16>(sim::Road::Bridge);
+        c.x0 = start_.x;
+        c.y0 = start_.y;
+        c.x1 = tile.x;
+        c.y1 = tile.y;
+        w.push(c);
+        break;
+      }
       Recti f = footprint(w);
       c.type = sim::CmdType::PlaceBuilding;
       c.def = def.v;
@@ -95,6 +117,26 @@ void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r
   switch (kind) {
     case ToolKind::Build: {
       if (!def.valid()) return;
+      const auto& ld = w.defs->b(def);
+      if (ld.layer != 0) {
+        // Line tools: pipes and sewers go 4-connected (x then y), bridges like roads.
+        Vec2i a = dragging_ ? start_ : hover_, b = hover_;
+        i32 x = a.x, y = a.y;
+        for (int n = 0; n < 2048; ++n) {
+          r.push_rect(static_cast<f32>(x) * T, static_cast<f32>(y) * T, T, T, 0.03f,
+                      ld.layer == 2 ? render::rgba(150, 100, 60, 140) : render::rgba(60, 140, 230, 140));
+          if (x == b.x && y == b.y) break;
+          if (ld.layer == 3) {
+            x += (b.x > x) - (b.x < x);
+            y += (b.y > y) - (b.y < y);
+          } else if (x != b.x) {
+            x += (b.x > x) - (b.x < x);
+          } else {
+            y += (b.y > y) - (b.y < y);
+          }
+        }
+        break;
+      }
       Recti f = footprint(w);
       const bool ok = w.can_place(def, f.x, f.y, f.w, f.h) && w.econ.treasury >= cost(w);
       r.push_rect(static_cast<f32>(f.x) * T, static_cast<f32>(f.y) * T, static_cast<f32>(f.w) * T,

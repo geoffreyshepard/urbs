@@ -259,6 +259,12 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
     b.needs_road = get_or<bool>(j, "needs_road", b.kind != BuildingKind::Decor && b.kind != BuildingKind::Farm);
     b.water_radius = get_or<u16>(j, "water_radius", 0);
     b.patrol_range = get_or<u8>(j, "patrol_range", 0);
+    {
+      std::string layer = get_or<std::string>(j, "layer", "");
+      b.layer = layer == "pipe" ? 1 : layer == "sewer" ? 2 : layer == "bridge" ? 3 : 0;
+    }
+    b.passable = get_or<bool>(j, "passable", false);
+    b.needs_pipe = get_or<bool>(j, "needs_pipe", false);
     if (b.kind == BuildingKind::House && b.housing == 0) fail(mb, id, "house needs 'housing' > 0");
     if ((b.kind == BuildingKind::Service || b.kind == BuildingKind::Patrol) && !b.service)
       fail(mb, id, "service building needs 'service'");

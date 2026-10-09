@@ -5,6 +5,7 @@
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
 #include "data/defs.hpp"
+#include "game/overlays.hpp"
 #include "game/panels.hpp"
 #include "game/tools.hpp"
 #include "game/world_view.hpp"
@@ -25,6 +26,7 @@ struct AppOptions {
   int ticks_before = 0;          // run this many ticks before the first frame
   int inspect = -1;              // select (and follow) this citizen index at start
   bool no_ui = false;
+  int overlay = 0;
 };
 
 AppOptions parse_args(int argc, char** argv);
@@ -57,6 +59,10 @@ class App {
   bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = true, show_finance_ = false,
        show_trade_ = false;
   Selection sel_;
+  Overlay overlay_ = Overlay::None;
+  ServiceId overlay_service_;
+  std::vector<u32> overlay_px_;
+  int overlay_age_ = 0;
   sim::MapGenParams gen_;
   int speed_ = 1;  // 0 pause, 1, 2, 4 (index into kSpeeds)
   f64 accum_ = 0;

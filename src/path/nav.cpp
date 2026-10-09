@@ -4,7 +4,7 @@ namespace urbs::path {
 
 u8 tile_cost(const sim::TileMap& m, i32 i) {
   const size_t s = static_cast<size_t>(i);
-  if (m.building[s].valid()) return kBlocked;
+  if (m.building[s].valid() && !(m.water[s] & 0x80)) return kBlocked;  // bit7: passable structure
   switch (m.road[s]) {
     case sim::Road::Paved:
     case sim::Road::Bridge: return kCostPaved;

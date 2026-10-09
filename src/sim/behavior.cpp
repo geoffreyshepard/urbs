@@ -45,7 +45,7 @@ void World::decide(u32 i) {
   if (C.loc[i].valid() && buildings.alive(C.loc[i])) {
     Building& lb = buildings[C.loc[i]];
     if ((C.activity[i] == Activity::Work || C.activity[i] == Activity::Build) && lb.present > 0) --lb.present;
-    if (C.activity[i] == Activity::Visit && lb.visitors > 0) --lb.visitors;
+    if ((C.activity[i] == Activity::Visit || C.activity[i] == Activity::School) && lb.visitors > 0) --lb.visitors;
   }
   if (C.activity[i] == Activity::Leave) return;
   if (C.flags[i] & kFlagVisitor) {
@@ -122,6 +122,15 @@ void World::decide(u32 i) {
     else consider(Activity::Work, job, Reason::Shift, 800);
   }
   if (adult && job.valid() && h == 12) consider(Activity::Home, home, Reason::Midday, 300);
+  // Children go to school in the morning.
+  if (age >= 6 && age < 14 && h >= 8 && h < 12) {
+    ServiceId school = defs->service("school");
+    if (school.valid() && services.ready(school.v) &&
+        services.cost_ticks(school.v, home_tile) <= defs->services[school.v].range) {
+      BuildingId sb = services.provider(school.v, home_tile);
+      if (sb.valid()) consider(Activity::School, sb, Reason::School, 760);
+    }
+  }
 
   if (adult && hh && h >= 7 && h < 20) {
     if (household_food(*hh) < hh->members * 2u && (!hh->shopper.valid() || hh->shopper == C.ids.id_at(i))) {
@@ -146,11 +155,14 @@ void World::decide(u32 i) {
     };
     static constexpr L kLeisure[] = {{Need::Religion, NeedKind::Religion, Reason::Worship},
                                      {Need::Hygiene, NeedKind::Hygiene, Reason::Bathe},
-                                     {Need::Entertainment, NeedKind::Entertainment, Reason::Entertainment}};
+                                     {Need::Entertainment, NeedKind::Entertainment, Reason::Entertainment},
+                                     {Need::Education, NeedKind::Education, Reason::School}};
     for (const L& l : kLeisure) {
       const u8 v = C.need(i, l.need, now);
       if (v >= 170) continue;
       if (!adult && l.need == Need::Entertainment) continue;
+      if (l.need == Need::Education && (!adult || (C.cls[i] != CitizenClass::Patrician && C.cls[i] != CitizenClass::Eques)))
+        continue;
       BuildingId s = best_service_for(l.kind, home_tile, nullptr);
       if (s.valid()) consider(Activity::Visit, s, l.reason, 400 + (170 - v));
     }
@@ -183,6 +195,8 @@ void World::start_activity(u32 i, Activity a) {
   rate(Need::Hygiene, -4);
   rate(Need::Religion, -2);
   rate(Need::Entertainment, -3);
+  const bool upper = C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Eques;
+  rate(Need::Education, upper ? -2 : 0);
   const u32 h = hour_of_day(now);
   Tick end = now + kTicksPerHour;
   const i32 j = jitter(i);
@@ -219,6 +233,13 @@ void World::start_activity(u32 i, Activity a) {
       end = now + kTicksPerHour;
       break;
     }
+    case Activity::School: {
+      Building& b = buildings[C.loc[i]];
+      ++b.visitors;
+      C.flags[i] |= kFlagSchooled;
+      end = at_hour(12);
+      break;
+    }
     case Activity::Shop:
       if (hh) {
         household_shop(i, C.loc[i]);
@@ -244,6 +265,7 @@ void World::start_activity(u32 i, Activity a) {
         case NeedKind::Religion: n = Need::Religion; break;
         case NeedKind::Hygiene: n = Need::Hygiene; break;
         case NeedKind::Entertainment: n = Need::Entertainment; break;
+        case NeedKind::Education: n = Need::Education; break;
         default: break;
       }
       if (b.visitors >= bd.service_capacity && bd.service_capacity > 0) {

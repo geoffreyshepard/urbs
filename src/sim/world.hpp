@@ -38,7 +38,7 @@ struct WorldConfig {
 };
 
 // ---- Commands: the only way the outside world mutates the sim (applied at tick start) -----------
-enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, Debug };
+enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, PlaceUnder, Debug };
 // SetPolicy ids (Command::def): value in Command::value.
 enum class PolicyId : u16 { Wage, TaxPatrician, TaxEques, TaxPleb, TaxLibertus, Rations, SlaveTreatment, Manumission,
                             Curfew, Conscription, MaxInsula, Immigration, Count };
@@ -201,19 +201,26 @@ struct World {
   void add_stock(BuildingId b, GoodId g, u16 n);
   u32 labor_hourly_runs = 0;
 
+  // --- Infrastructure (sim/infrastructure.cpp) ---
+  bool water_dirty = true, desir_dirty = true;
+  void place_underground_line(i32 x0, i32 y0, i32 x1, i32 y1, u8 bit, bool place);
+  void recompute_water();
+  void recompute_desirability();
+  [[nodiscard]] i32 building_desirability(const Building& b) const;
+
   // --- Society (sim/housing.cpp) ---
   [[nodiscard]] Sector sector_of(const Building& b) const;
   void add_alert(AlertKind k, BuildingId b, u16 arg = 0);
   [[nodiscard]] bool requirement_met(const Building& b, const data::HousingReq& r) const;
   [[nodiscard]] int first_unmet(const Building& b, u8 tier) const;  // index into tier reqs or -1
-  BuildingId find_vacant_house(i32 near_tile, u16 space) const;
+  BuildingId find_vacant_house(i32 near_tile, u16 space, u8 line = 0) const;
   void start_emigration(HouseholdId hh);
   struct HappinessParts {
     i16 food = 0, water = 0, rest = 0, hygiene = 0, religion = 0, entertainment = 0, variety = 0, housing = 0,
-        employment = 0, taxes = 0, gods = 0, events = 0, health = 0;
+        employment = 0, taxes = 0, gods = 0, events = 0, health = 0, education = 0, prestige = 0;
     [[nodiscard]] i32 total() const {
       return 128 + food + water + rest + hygiene + religion + entertainment + variety + housing + employment + taxes +
-             gods + events + health;
+             gods + events + health + education + prestige;
     }
   };
   [[nodiscard]] HappinessParts happiness_parts(u32 citizen) const;
@@ -256,6 +263,9 @@ struct World {
   std::vector<i32> scratch_tiles_;
   std::vector<u32> scratch_u32_, scratch_u32b_;
   std::vector<u32> labor_head_, labor_fill_;
+  std::vector<i32> water_queue_;
+  std::vector<u8> reservoir_full_;
+  std::vector<i16> desir_acc_;
   bool providers_dirty_ = true;
 };
 

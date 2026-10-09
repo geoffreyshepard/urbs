@@ -304,7 +304,7 @@ void Renderer::render(ImDrawData* draw_data) {
   if (map_) {
     f32 mw = static_cast<f32>(map_->w * sim::kTilePx), mh = static_cast<f32>(map_->h * sim::kTilePx);
     quads[0] = {0, 0, kDepthTerrain, mw, mh, 0, 0, static_cast<u16>(map_->w), static_cast<u16>(map_->h), kWhite};
-    quads[1] = {0, 0, 0.02f, mw, mh, 0, 0, static_cast<u16>(map_->w), static_cast<u16>(map_->h), rgba(255, 255, 255, 150)};
+    quads[1] = {0, 0, 0.02f, mw, mh, 0, 0, static_cast<u16>(map_->w), static_cast<u16>(map_->h), rgba(255, 255, 255, 230)};
     quad_buf_.upload(dev_, cp, quads, sizeof(quads));
   }
   SDL_EndGPUCopyPass(cp);

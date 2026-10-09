@@ -197,6 +197,9 @@ bool save_world(const sim::World& w, const std::string& path, const std::string&
   body.vec(w.map.road);
   body.vec(w.map.variant);
   body.vec(w.map.building);
+  body.vec(w.map.under);
+  body.vec(w.map.water);
+  body.vec(w.map.desir);
   w.serialize(body);
 
   const auto& raw = body.data();
@@ -293,6 +296,9 @@ bool load_world(sim::World& w, const data::Defs& defs, const std::string& path, 
     r.vec(w.map.road);
     r.vec(w.map.variant);
     r.vec(w.map.building);
+    r.vec(w.map.under);
+    r.vec(w.map.water);
+    r.vec(w.map.desir);
     w.map.mark_all_dirty();
     w.init(cfg, defs);
     w.deserialize(r);

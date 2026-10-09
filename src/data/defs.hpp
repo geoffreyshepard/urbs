@@ -128,6 +128,9 @@ struct BuildingDef {
   u8 god = 0xFF;          // temples: god index
   u16 water_radius = 0;   // wells/fountains
   u8 patrol_range = 0;
+  u8 layer = 0;           // 0 building, 1 pipe (underground), 2 sewer (underground), 3 bridge (road over water)
+  bool passable = false;  // citizens can walk through (aqueduct arches)
+  bool needs_pipe = false;  // only works with piped water (fountain, thermae)
 };
 
 struct Defs {

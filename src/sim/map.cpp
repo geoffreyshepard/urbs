@@ -20,6 +20,9 @@ void TileMap::resize(i32 width, i32 height_tiles) {
   road.assign(n, Road::None);
   variant.assign(n, 0);
   building.assign(n, BuildingId{});
+  under.assign(n, 0);
+  water.assign(n, 0);
+  desir.assign(n, 0);
   chunk_dirty.assign(static_cast<size_t>(chunks_x() * chunks_y()), 1);
   ++revision;
 }

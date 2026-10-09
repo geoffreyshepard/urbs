@@ -35,6 +35,9 @@ struct TileMap {
   std::vector<Road> road;
   std::vector<u8> variant;  // visual variant (stable random per tile)
   std::vector<BuildingId> building;
+  std::vector<u8> under;    // underground layer: bit0 pipe, bit1 sewer
+  std::vector<u8> water;    // computed: bit0 aqueduct carries water, bit1 pipe pressurised, bit2 sewer drains
+  std::vector<i8> desir;    // computed desirability field
   std::vector<u8> chunk_dirty;  // per chunk: static render layer must be rebuilt
   u32 revision = 0;             // bumps on any structural change (roads, buildings, terrain)
 

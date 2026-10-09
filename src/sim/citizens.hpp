@@ -72,10 +72,10 @@ inline constexpr const char* reason_text(Reason r) {
 }
 
 // Lazily evaluated needs. 255 = fully satisfied, 0 = desperate.
-enum class Need : u8 { Food, Water, Rest, Hygiene, Religion, Entertainment, Count };
+enum class Need : u8 { Food, Water, Rest, Hygiene, Religion, Entertainment, Education, Count };
 inline constexpr int kNeedCount = static_cast<int>(Need::Count);
 inline constexpr const char* need_name(Need n) {
-  constexpr const char* names[] = {"food", "water", "rest", "hygiene", "religion", "entertainment"};
+  constexpr const char* names[] = {"food", "water", "rest", "hygiene", "religion", "entertainment", "education"};
   return names[static_cast<int>(n)];
 }
 
@@ -86,6 +86,7 @@ inline constexpr const char* class_name(CitizenClass c) {
 }
 
 inline constexpr u8 kFlagVisitor = 1;  // non-resident (trader, envoy): excluded from population and labor
+inline constexpr u8 kFlagSchooled = 2;  // attended school as a child (raises skill caps)
 inline constexpr int kMaxTraits = 3;
 inline constexpr int kSkillCount = 6;  // farming, crafting, building, trading, soldiering, scholarship
 inline constexpr int kMemoryEntries = 8;
