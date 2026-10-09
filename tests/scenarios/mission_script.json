@@ -1,0 +1,14 @@
+{
+  "name": "mission_script",
+  "id": "test_mission",
+  "mission": 3,
+  "map": {"size": 96, "seed": 2, "flat": true, "river": false},
+  "world": {"max_citizens": 1000, "max_buildings": 256, "max_households": 400},
+  "generator": "town",
+  "houses": 40,
+  "citizens": 150,
+  "goals": {"population": 100, "survive_days": 3},
+  "script": "mission_script.lua",
+  "ticks": 6000,
+  "test": {"min_citizens": 100, "max_alloc_violations": 0}
+}

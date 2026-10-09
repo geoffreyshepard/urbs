@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "save/serialize.hpp"
+#include "script/lua_host.hpp"
 
 namespace urbs::save {
 
@@ -125,6 +126,37 @@ void World::serialize(save::Writer& w) const {
   w.pod(fires_total);
   w.pod(collapses_total);
   w.pod(plague_houses);
+  w.tag("GOVN");
+  w.pod(ratings);
+  w.pod(favor);
+  w.pod(empire);
+  w.vec(requests);
+  w.pod(next_request_id);
+  w.pod(requests_fulfilled);
+  w.pod(requests_failed);
+  w.pod(loan);
+  w.pod(debt_days);
+  w.pod(goals.population); w.pod(goals.culture); w.pod(goals.prosperity); w.pod(goals.security); w.pod(goals.favor);
+  w.pod(goals.requests); w.pod(goals.survive_days); w.pod(goals.max_debt_days); w.pod(goals.fail_on_favor);
+  w.vec(goals.buildings);
+  w.pod(mission);
+  w.pod(mission_days);
+  w.str(mission_id);
+  w.str(lost_reason);
+  w.vec(unlocked);
+  w.pod(mission_number);
+  w.pod(difficulty);
+  w.pod(static_cast<u32>(messages.size()));
+  for (const auto& m : messages) {
+    w.pod(m.id); w.pod(m.t); w.pod(m.advisor); w.pod(m.answered);
+    w.str(m.title); w.str(m.text); w.str(m.callback);
+    w.pod(static_cast<u32>(m.options.size()));
+    for (const auto& o : m.options) w.str(o);
+  }
+  w.pod(next_message_id);
+  w.str(script_source);
+  w.str(script_name);
+  w.str(script ? script->export_state() : std::string());
   w.tag("ARMY");
   save::write_slots(w, army.ids);
   w.vec(army.x); w.vec(army.y); w.vec(army.px); w.vec(army.py); w.vec(army.hp); w.vec(army.unit); w.vec(army.slot);
@@ -224,6 +256,42 @@ void World::deserialize(save::Reader& r) {
   r.pod(fires_total);
   r.pod(collapses_total);
   r.pod(plague_houses);
+  r.expect("GOVN");
+  r.pod(ratings);
+  r.pod(favor);
+  r.pod(empire);
+  r.vec(requests);
+  r.pod(next_request_id);
+  r.pod(requests_fulfilled);
+  r.pod(requests_failed);
+  r.pod(loan);
+  r.pod(debt_days);
+  r.pod(goals.population); r.pod(goals.culture); r.pod(goals.prosperity); r.pod(goals.security); r.pod(goals.favor);
+  r.pod(goals.requests); r.pod(goals.survive_days); r.pod(goals.max_debt_days); r.pod(goals.fail_on_favor);
+  r.vec(goals.buildings);
+  r.pod(mission);
+  r.pod(mission_days);
+  mission_id = r.str();
+  lost_reason = r.str();
+  r.vec(unlocked);
+  r.pod(mission_number);
+  r.pod(difficulty);
+  {
+    const u32 nm = r.pod<u32>();
+    messages.clear();
+    for (u32 k = 0; k < nm; ++k) {
+      Message m;
+      r.pod(m.id); r.pod(m.t); r.pod(m.advisor); r.pod(m.answered);
+      m.title = r.str(); m.text = r.str(); m.callback = r.str();
+      const u32 no = r.pod<u32>();
+      for (u32 o = 0; o < no; ++o) m.options.push_back(r.str());
+      messages.push_back(std::move(m));
+    }
+  }
+  r.pod(next_message_id);
+  script_source = r.str();
+  script_name = r.str();
+  pending_script_state_ = r.str();
   r.expect("ARMY");
   save::read_slots(r, army.ids);
   r.vec(army.x); r.vec(army.y); r.vec(army.px); r.vec(army.py); r.vec(army.hp); r.vec(army.unit); r.vec(army.slot);
@@ -369,6 +437,11 @@ bool load_world(sim::World& w, const data::Defs& defs, const std::string& path, 
     w.map.mark_all_dirty();
     w.init(cfg, defs);
     w.deserialize(r);
+    if (!w.script_source.empty()) {
+      auto host = std::make_unique<script::LuaHost>(w, w.script_source, w.script_name);
+      if (host->start()) host->import_state(w.pending_script_state_);
+      w.script = std::move(host);
+    }
     if (!r.done()) throw std::runtime_error("trailing data in save");
   } catch (const std::exception& e) {
     if (err) *err = e.what();

@@ -1,6 +1,8 @@
 #include "sim/scenario.hpp"
 
 #include <algorithm>
+#include <filesystem>
+#include "script/lua_host.hpp"
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -21,6 +23,7 @@ ScenarioSpec load_scenario(const std::string& path) {
   ss << f.rdbuf();
   ScenarioSpec s;
   s.json = ss.str();
+  s.path = path;
   json j = json::parse(s.json, nullptr, true, true);
   s.name = j.value("name", path);
   if (j.contains("map")) {
@@ -404,8 +407,98 @@ void setup_policy(World& w, const ScenarioSpec& s) {
 }
 }  // namespace
 
+namespace {
+// Lays a dirt road from the map edge (side: 0 n, 1 e, 2 s, 3 w) to the most central walkable tile.
+void entry_road(World& w, i32 side) {
+  const i32 W = w.map.w, H = w.map.h;
+  i32 start = -1;
+  for (i32 k = 0; k < (side % 2 == 0 ? W : H) / 2 && start < 0; ++k)
+    for (i32 sgn : {1, -1}) {
+      const i32 a = (side % 2 == 0 ? W : H) / 2 + sgn * k;
+      const i32 x = side == 1 ? W - 1 : side == 3 ? 0 : a, y = side == 0 ? 0 : side == 2 ? H - 1 : a;
+      if (w.map.in_bounds(x, y) && w.nav.walkable(x, y)) {
+        start = w.map.idx(x, y);
+        break;
+      }
+    }
+  i32 goal = -1;
+  for (i32 r = 0; r < W / 2 && goal < 0; ++r)
+    for (i32 dy = -r; dy <= r && goal < 0; ++dy)
+      for (i32 dx = -r; dx <= r && goal < 0; ++dx)
+        if (w.nav.walkable(W / 2 + dx, H / 2 + dy) && start >= 0 && w.nav.connected(start, w.map.idx(W / 2 + dx, H / 2 + dy)))
+          goal = w.map.idx(W / 2 + dx, H / 2 + dy);
+  if (start < 0 || goal < 0) return;
+  bool rev = false;
+  const u32 h = w.paths.find_now(start, goal, w.now, &rev);
+  if (h == path::kNoHandle) return;
+  const u32 n = w.paths.store().length(h);
+  for (u32 k = 0; k < n; ++k) {
+    const Vec2i t = w.paths.store().tile(h, k);
+    w.place_road(t.x, t.y, Road::Dirt);
+  }
+  w.paths.store().unref(h);
+  w.entry_tile = start;
+}
+
+void setup_mission(World& w, const data::Defs& defs, ScenarioSpec& s) {
+  json j = json::parse(s.json, nullptr, true, true);
+  if (j.contains("entry_road")) entry_road(w, j["entry_road"].get<i32>());
+  w.mission_id = j.value("id", s.name);
+  if (j.contains("mission")) w.unlock_up_to(j["mission"].get<u8>());
+  w.difficulty = j.value("difficulty", static_cast<u8>(1));
+  w.empire = j.value("era", std::string("republic")) == "empire" ? 1 : 0;
+  w.favor = j.value("favor", 50);
+  if (j.contains("unlock"))
+    for (auto& b : j["unlock"]) {
+      BuildingDefId d = defs.building(b.get<std::string>());
+      if (d.valid()) w.unlocked[d.v] = 1;
+    }
+  if (j.contains("gods")) {
+    std::fill(w.god_available.begin(), w.god_available.end(), u8{0});
+    for (auto& g : j["gods"]) {
+      const u8 k = defs.god(g.get<std::string>());
+      if (k != 0xFF) w.god_available[k] = 1;
+    }
+  }
+  if (j.contains("goals")) {
+    auto& g = j["goals"];
+    w.goals.population = g.value("population", 0u);
+    w.goals.culture = g.value("culture", static_cast<u8>(0));
+    w.goals.prosperity = g.value("prosperity", static_cast<u8>(0));
+    w.goals.security = g.value("security", static_cast<u8>(0));
+    w.goals.favor = g.value("favor", static_cast<u8>(0));
+    w.goals.requests = g.value("requests", static_cast<u16>(0));
+    w.goals.survive_days = g.value("survive_days", static_cast<u16>(0));
+    if (g.contains("buildings"))
+      for (auto& [b, n] : g["buildings"].items()) {
+        BuildingDefId d = defs.building(b);
+        if (!d) throw std::runtime_error("scenario goals: unknown building " + b);
+        w.goals.buildings.push_back(Goals::BuildingGoal{d, n.get<u16>()});
+      }
+  }
+  if (j.contains("script")) {
+    std::filesystem::path sp = std::filesystem::path(s.path).parent_path() / j["script"].get<std::string>();
+    std::ifstream f(sp);
+    if (!f) throw std::runtime_error("cannot open script " + sp.string());
+    std::stringstream ss;
+    ss << f.rdbuf();
+    w.script_source = ss.str();
+    w.script_name = sp.filename().string();
+    auto host = std::make_unique<script::LuaHost>(w, w.script_source, w.script_name);
+    if (!host->start()) throw std::runtime_error("script error: " + host->last_error());
+    script::LuaHost* raw = host.get();
+    w.script = std::move(host);
+    raw->on_start();
+  }
+}
+}  // namespace
+
 void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   generate_map(w.map, s.map);
+  {
+    json j = json::parse(s.json, nullptr, true, true);
+    w.now = static_cast<Tick>(j.value("start_hour", 0)) * kTicksPerHour;
+  }
   if (s.generator == "stress_city") build_grid_city(w, defs, s);
   w.init(s.world, defs);
   if (s.generator == "scripted") setup_scripted(w, defs, s);
@@ -413,6 +506,7 @@ void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   setup_trade(w, defs, s);
   setup_policy(w, s);
   setup_orders(defs, s);
+  setup_mission(w, defs, s);
   if (s.generator != "stress_city") return;
 
   const BuildingDefId house = defs.building("house_plot");

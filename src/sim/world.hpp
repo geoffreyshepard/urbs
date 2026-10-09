@@ -43,7 +43,7 @@ struct WorldConfig {
 // ---- Commands: the only way the outside world mutates the sim (applied at tick start) -----------
 enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, PlaceUnder, BuySlaves,
                           Festival, Trigger, RaiseUnit, UnitOrder, UnitFormation, UnitStance, DisbandUnit, Campaign,
-                          Debug };
+                          FulfillRequest, TakeLoan, Answer, Debug };
 // Trigger ids (Command::def) for debug/scripted threats; Command::x0,y0 = target tile when relevant.
 enum class TriggerId : u16 { Fire, Collapse, Plague, Riot, Revolt, Flood, Earthquake, Drought, Storm, Blight,
                              Blessing, Wrath, Raid, Count };
@@ -113,6 +113,55 @@ struct Alert {
   u32 count = 1;
 };
 
+struct Ratings {
+  u8 culture = 0, prosperity = 0, security = 50, favor = 50;
+};
+
+// A request from Rome: send goods, money or troops before the deadline.
+struct Request {
+  u8 active = 0;
+  u8 kind = 0;  // 0 goods, 1 denarii, 2 troops (soldiers)
+  GoodId good;
+  u16 amount = 0;
+  Tick deadline = 0;
+  i32 reward = 0;      // denarii on success
+  i8 favor_win = 8, favor_lose = -12;
+  u16 id = 0;
+};
+
+struct Loan {
+  i64 remaining = 0;
+  i64 installment = 0;
+};
+
+struct Goals {
+  u32 population = 0;
+  u8 culture = 0, prosperity = 0, security = 0, favor = 0;
+  u16 requests = 0;  // requests fulfilled
+  u16 survive_days = 0;
+  struct BuildingGoal {
+    BuildingDefId def;
+    u16 count = 0;
+  };
+  std::vector<BuildingGoal> buildings;
+  // Failure (Civitas/Imperium): favor at 0, too long in debt, population collapse.
+  u16 max_debt_days = 32;
+  u8 fail_on_favor = 1;
+};
+
+// Narrative messages and choices raised by scripts or the game.
+struct Message {
+  u16 id = 0;
+  Tick t = 0;
+  u8 advisor = 0;  // 0 none, 1 engineer, 2 quaestor, 3 haruspex, 4 legate, 5 aedile
+  u8 answered = 0;
+  std::string title, text;
+  std::vector<std::string> options;
+  std::string callback;  // Lua global function called with the chosen option (1-based)
+};
+
+enum class MissionState : u8 { Running, Won, Lost };
+
 struct TickStats {
   u32 events = 0, decisions = 0, arrivals = 0, path_requests = 0, path_results = 0;
   u32 walking = 0;
@@ -161,6 +210,24 @@ struct World {
   u32 immigrants_today = 0, emigrants_today = 0, immigrants_total = 0, emigrants_total = 0;
   i32 appeal = 0;             // last computed city appeal
   std::vector<ServiceId> need_services[8];  // services satisfying each data::NeedKind
+
+  // Governance (sim/governance.cpp)
+  Ratings ratings;
+  i32 favor = 50;  // 0..100 (Senate in the Republic, Emperor in the Empire)
+  u8 empire = 0;
+  std::vector<Request> requests;
+  u16 next_request_id = 1, requests_fulfilled = 0, requests_failed = 0;
+  Loan loan;
+  u16 debt_days = 0;
+  Goals goals;
+  MissionState mission = MissionState::Running;
+  u16 mission_days = 0;
+  std::string mission_id, lost_reason;
+  std::vector<u8> unlocked;  // per building def
+  u8 mission_number = 16;    // buildings with unlock <= this are available
+  u8 difficulty = 1;         // 0 Otium, 1 Civitas, 2 Imperium
+  std::vector<Message> messages;
+  u16 next_message_id = 1;
 
   military::Army army;
   u32 soldiers_lost_ = 0, enemies_killed_ = 0;
@@ -286,6 +353,33 @@ struct World {
   i32 happy_sum_today = 0;
   u32 happy_count_today = 0;
   u8 avg_happiness = 128;
+
+  // Governance (sim/governance.cpp)
+  void governance_daily();
+  void compute_ratings();
+  u16 add_request(u8 kind, GoodId good, u16 amount, u16 days, i32 reward, i8 favor_win, i8 favor_lose);
+  bool fulfill_request(u16 id);
+  void take_loan(i64 amount);
+  void change_favor(i32 delta);
+  u16 post_message(u8 advisor, const std::string& title, const std::string& text,
+                   const std::vector<std::string>& options = {}, const std::string& callback = "");
+  void answer(u16 message_id, i32 option);
+  [[nodiscard]] bool is_unlocked(BuildingDefId d) const { return d.v < unlocked.size() && unlocked[d.v]; }
+  void unlock_up_to(u8 mission);
+  [[nodiscard]] u32 count_active(BuildingDefId d) const;
+  [[nodiscard]] bool goals_met() const;
+  // Scripting (src/script): set by the scenario loader; called at event points only.
+  struct ScriptHost {
+    virtual ~ScriptHost() = default;
+    virtual void on_day() = 0;
+    virtual void on_choice(const std::string& callback, i32 option) = 0;
+    virtual void on_request(u16 id, bool fulfilled) = 0;
+    [[nodiscard]] virtual std::string export_state() const = 0;
+    virtual void import_state(const std::string& s) = 0;
+  };
+  std::unique_ptr<ScriptHost> script;
+  std::string script_source, script_name;  // kept to recreate the script on load
+  std::string pending_script_state_;       // restored into the script after load
 
   // Military (sim/military.cpp)
   [[nodiscard]] u32 field_cost(i32 tile, u8 side) const;

@@ -30,6 +30,7 @@ struct ScenarioSpec {
   u32 expect_min_births = 0, expect_min_deaths = 0;
   u32 expect_max_ruins = 0xFFFFFFFFu;
   std::string json;  // raw scenario text (for scripted scenarios)
+  std::string path;  // file it was loaded from (scripts are relative to it)
 };
 
 // Pushes all orders due at the next tick. Call before World::tick().

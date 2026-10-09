@@ -1,0 +1,46 @@
+{
+  "id": "m01_latium",
+  "name": "Latium — The Founding",
+  "mission": 1,
+  "era": "republic",
+  "difficulty": 0,
+  "map": {
+    "size": 160,
+    "seed": 1101,
+    "coast": -1,
+    "river": true,
+    "hills": 0.35,
+    "forest": 0.5,
+    "marsh": 0.25
+  },
+  "world": {
+    "max_citizens": 3000,
+    "max_buildings": 1024,
+    "max_households": 1000
+  },
+  "generator": "scripted",
+  "entry_road": 3,
+  "start": {
+    "treasury": 4000
+  },
+  "gods": [
+    "jupiter",
+    "ceres",
+    "vesta"
+  ],
+  "trade": {
+    "partners": [
+      "latin_villages"
+    ]
+  },
+  "goals": {
+    "population": 300,
+    "culture": 15,
+    "buildings": {
+      "granary": 1,
+      "market": 1
+    }
+  },
+  "script": "script.lua",
+  "start_hour": 7
+}

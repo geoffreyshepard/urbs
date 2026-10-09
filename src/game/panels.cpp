@@ -4,6 +4,9 @@
 
 #include <algorithm>
 
+#include "game/advisors.hpp"
+#include "game/ui_icons.hpp"
+
 namespace urbs::game {
 
 using data::HousingReq;
@@ -553,6 +556,148 @@ void draw_military_panel(sim::World& w, Selection& sel, bool* open) {
       if (ImGui::Button(nm[lv])) cmd(sim::CmdType::Campaign, lv);
     }
   }
+  ImGui::End();
+}
+
+void draw_rome_panel(sim::World& w, bool* open) {
+  if (!*open) return;
+  const auto& D = *w.defs;
+  ImGui::SetNextWindowPos({420, 120}, ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize({420, 420}, ImGuiCond_FirstUseEver);
+  ImGui::Begin(w.empire ? "Rome (the Emperor)" : "Rome (the Senate)", open);
+  auto bar = [](const char* name, int v, int goal) {
+    ImGui::ProgressBar(static_cast<float>(v) / 100.0f, ImVec2(180, 0), std::to_string(v).c_str());
+    ImGui::SameLine();
+    if (goal > 0) ImGui::Text("%s (goal %d)", name, goal);
+    else ImGui::TextUnformatted(name);
+  };
+  bar("Culture", w.ratings.culture, w.goals.culture);
+  bar("Prosperity", w.ratings.prosperity, w.goals.prosperity);
+  bar("Security", w.ratings.security, w.goals.security);
+  bar("Favor", w.favor, w.goals.favor);
+  ImGui::Separator();
+  ImGui::TextUnformatted("Requests");
+  bool any = false;
+  for (const auto& r : w.requests) {
+    if (!r.active) continue;
+    any = true;
+    const u64 days = r.deadline > w.now ? (r.deadline - w.now) / kTicksPerDay : 0;
+    std::string what = r.kind == 0 ? std::to_string(r.amount) + " " + D.goods[r.good.v].name
+                                   : r.kind == 1 ? std::to_string(r.amount) + " denarii"
+                                                 : "a unit of " + std::to_string(r.amount) + " soldiers";
+    ImGui::Text("Send %s within %llu days", what.c_str(), static_cast<unsigned long long>(days));
+    if (r.kind == 0) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("(have %u)", w.econ.city_stock[r.good.v]);
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton(("Send##r" + std::to_string(r.id)).c_str())) {
+      sim::Command c;
+      c.type = sim::CmdType::FulfillRequest;
+      c.def = r.id;
+      w.push(c);
+    }
+  }
+  if (!any) ImGui::TextDisabled("No outstanding requests.");
+  ImGui::Text("Fulfilled %u, failed %u", w.requests_fulfilled, w.requests_failed);
+  ImGui::Separator();
+  if (w.loan.remaining > 0) {
+    ImGui::Text("Loan outstanding: %lld denarii", static_cast<long long>(w.loan.remaining));
+  } else if (ImGui::Button("Ask Rome for a loan of 2000 denarii (20% interest)")) {
+    sim::Command c;
+    c.type = sim::CmdType::TakeLoan;
+    c.value = 2000;
+    w.push(c);
+  }
+  ImGui::Separator();
+  ImGui::TextUnformatted("Mission goals");
+  auto goal = [](bool ok, const std::string& t) {
+    ImGui::TextColored(ok ? ImVec4(0.5f, 0.9f, 0.5f, 1) : ImVec4(0.9f, 0.9f, 0.9f, 1), "%s %s", ok ? "[x]" : "[ ]", t.c_str());
+  };
+  if (w.goals.population) goal(w.population() >= w.goals.population, "Population " + std::to_string(w.population()) + " / " + std::to_string(w.goals.population));
+  if (w.goals.culture) goal(w.ratings.culture >= w.goals.culture, "Culture " + std::to_string(w.goals.culture));
+  if (w.goals.prosperity) goal(w.ratings.prosperity >= w.goals.prosperity, "Prosperity " + std::to_string(w.goals.prosperity));
+  if (w.goals.security) goal(w.ratings.security >= w.goals.security, "Security " + std::to_string(w.goals.security));
+  if (w.goals.favor) goal(w.favor >= w.goals.favor, "Favor " + std::to_string(w.goals.favor));
+  if (w.goals.requests) goal(w.requests_fulfilled >= w.goals.requests, "Requests fulfilled " + std::to_string(w.goals.requests));
+  if (w.goals.survive_days) goal(w.mission_days >= w.goals.survive_days, "Endure " + std::to_string(w.goals.survive_days) + " days");
+  for (const auto& g : w.goals.buildings)
+    goal(w.count_active(g.def) >= g.count, std::to_string(g.count) + " x " + D.b(g.def).name);
+  ImGui::End();
+}
+
+void draw_advisors_panel(const sim::World& w, const UiIcons& icons, int* advisor, bool* open) {
+  if (!*open) return;
+  ImGui::SetNextWindowPos({420, 560}, ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize({520, 260}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Advisors", open);
+  for (int a = 1; a <= 5; ++a) {
+    if (a > 1) ImGui::SameLine();
+    ImGui::PushID(a);
+    if (ImGui::Selectable("##adv", *advisor == a, 0, ImVec2(56, 56))) *advisor = a;
+    ImGui::SameLine(ImGui::GetCursorPosX() - 60);
+    icons.image(kAdvisorSprites[a], 56);
+    ImGui::PopID();
+  }
+  ImGui::TextUnformatted(kAdvisorNames[*advisor]);
+  ImGui::Separator();
+  for (const auto& line : advisor_report(w, *advisor)) ImGui::TextWrapped("%s", line.c_str());
+  ImGui::End();
+}
+
+void draw_messages(sim::World& w, const UiIcons& icons, u16* last_seen) {
+  // Show the oldest unread message (or unanswered choice) as a dialogue.
+  for (auto& m : w.messages) {
+    if (m.id <= *last_seen && (m.options.empty() || m.answered)) continue;
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.35f),
+                            ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize({460, 0}, ImGuiCond_Appearing);
+    ImGui::Begin(("##msg" + std::to_string(m.id)).c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    if (m.advisor > 0 && m.advisor <= 5) {
+      icons.image(kAdvisorSprites[m.advisor], 64);
+      ImGui::SameLine();
+      ImGui::BeginGroup();
+      ImGui::TextDisabled("%s", kAdvisorNames[m.advisor]);
+    } else {
+      ImGui::BeginGroup();
+    }
+    ImGui::Text("%s", m.title.c_str());
+    ImGui::EndGroup();
+    ImGui::Separator();
+    ImGui::TextWrapped("%s", m.text.c_str());
+    ImGui::Spacing();
+    if (m.options.empty()) {
+      if (ImGui::Button("Very well")) *last_seen = m.id;
+    } else {
+      for (size_t k = 0; k < m.options.size(); ++k)
+        if (ImGui::Button((m.options[k] + "##o" + std::to_string(k)).c_str())) {
+          sim::Command c;
+          c.type = sim::CmdType::Answer;
+          c.def = m.id;
+          c.value = static_cast<i32>(k + 1);
+          w.push(c);
+          m.answered = static_cast<u8>(k + 1);  // hide immediately; the sim confirms next tick
+          *last_seen = std::max(*last_seen, m.id);
+        }
+    }
+    ImGui::End();
+    break;
+  }
+}
+
+void draw_mission_end(const sim::World& w, bool* dismissed) {
+  if (w.mission == sim::MissionState::Running || *dismissed) return;
+  ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.4f), ImGuiCond_Always,
+                          ImVec2(0.5f, 0.5f));
+  ImGui::Begin("##end", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
+  if (w.mission == sim::MissionState::Won) {
+    ImGui::Text("Victory!");
+    ImGui::TextWrapped("The Senate is pleased with your work. A greater task awaits.");
+  } else {
+    ImGui::Text("Defeat");
+    ImGui::TextWrapped("%s", w.lost_reason.c_str());
+  }
+  if (ImGui::Button("Continue")) *dismissed = true;
   ImGui::End();
 }
 

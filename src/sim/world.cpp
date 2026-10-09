@@ -55,6 +55,9 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   field_heap_.init(static_cast<u32>(map.w * map.h));
   req_physician_ = data::HousingReq{data::HousingReq::Service, {d.service("physician"), d.service("hospital")}, {}, 0};
   req_fountain_ = data::HousingReq{data::HousingReq::Service, {d.service("fountain")}, {}, 0};
+  requests.assign(8, Request{});
+  unlock_up_to(16);
+  messages.reserve(80);
   god_mood.assign(d.gods.size(), 50);
   god_available.assign(d.gods.size(), 0);
   god_offerings.assign(d.gods.size(), 0);
@@ -536,7 +539,7 @@ void World::apply_commands() {
     switch (c.type) {
       case CmdType::PlaceBuilding: {
         const BuildingDefId d{c.def};
-        if (!can_place(d, c.x0, c.y0, c.x1, c.y1)) break;
+        if (!is_unlocked(d) || !can_place(d, c.x0, c.y0, c.x1, c.y1)) break;
         const auto& bd = defs->b(d);
         const i64 area = static_cast<i64>(c.x1) * c.y1, base = static_cast<i64>(bd.w) * bd.h;
         const i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
@@ -586,6 +589,9 @@ void World::apply_commands() {
           order_unit(c.def, military::Order::Campaign, -1);
         }
         break;
+      case CmdType::FulfillRequest: fulfill_request(c.def); break;
+      case CmdType::TakeLoan: take_loan(c.value); break;
+      case CmdType::Answer: answer(c.def, c.value); break;
       case CmdType::OpenRoute:
         if (c.def < routes.size() && !routes[c.def].open && routes[c.def].available &&
             pay(defs->partners[c.def].open_cost, econ::Money::Other)) {
@@ -667,6 +673,7 @@ void World::tick() {
     riot_check();
     revolt_check(false);
     military_daily();
+    governance_daily();
     crimes_yday = crimes_today;
     crimes_today = births_today = deaths_today = marriages_today = freed_today = 0;
     avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;

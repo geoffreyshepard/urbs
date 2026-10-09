@@ -41,6 +41,7 @@ class Renderer {
 
   Camera& camera() { return cam_; }
   const Atlas& atlas() const { return atlas_; }
+  SDL_GPUDevice* device() const { return dev_; }
   const TerrainSprites& terrain_sprites() const { return ts_; }
   const FrameStats& stats() const { return stats_; }
   [[nodiscard]] f32 map_px_h() const { return map_ ? static_cast<f32>(map_->h * sim::kTilePx) : 1.0f; }

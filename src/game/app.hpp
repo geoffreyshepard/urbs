@@ -8,6 +8,7 @@
 #include "game/overlays.hpp"
 #include "game/panels.hpp"
 #include "game/tools.hpp"
+#include "game/ui_icons.hpp"
 #include "game/world_view.hpp"
 #include "sim/scenario.hpp"
 #include "sim/world.hpp"
@@ -59,6 +60,10 @@ class App {
   bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = true, show_finance_ = false,
        show_trade_ = false, show_religion_ = false, show_threats_ = false, show_military_ = false;
   f32 right_drag_ = 0;
+  bool show_rome_ = false, show_advisors_ = false, end_dismissed_ = false;
+  int advisor_ = 1;
+  u16 last_message_ = 0;
+  UiIcons icons_;
   Selection sel_;
   Overlay overlay_ = Overlay::None;
   ServiceId overlay_service_;

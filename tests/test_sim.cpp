@@ -203,3 +203,39 @@ TEST_CASE("military: raise a cohort at a barracks, repel a raid") {
   for (int t = 0; t < 3000 && w->enemies_killed_ + w->soldiers_lost_ == 0; ++t) w->tick();
   CHECK(w->enemies_killed_ + w->soldiers_lost_ > 0);
 }
+
+TEST_CASE("lua mission script: messages, requests, choices, save/load of script state") {
+  auto spec = sim::load_scenario(scenario("mission_script.json"));
+  auto w = std::make_unique<sim::World>();
+  sim::setup_scenario(*w, defs(), spec);
+  REQUIRE(w->script);
+  CHECK(w->messages.size() == 1);
+  for (int t = 0; t < 1200 * 5; ++t) w->tick();
+  CHECK(w->requests_failed == 1);
+  CHECK(w->favor < 50);
+  CHECK(w->messages.size() >= 2);
+  // Answer the choice: the Lua callback stores the option in urbs.state.
+  u16 q = 0;
+  for (const auto& m : w->messages)
+    if (!m.options.empty()) q = m.id;
+  REQUIRE(q != 0);
+  w->answer(q, 2);
+  const std::string st = w->script->export_state();
+  CHECK(st.find("answer\tn\t2") != std::string::npos);
+  CHECK(st.find("checked\tb\t1") != std::string::npos);
+  // Save and load: script state and messages survive.
+  const std::string path = (std::filesystem::temp_directory_path() / "urbs_script_save.urbs").string();
+  std::string err;
+  REQUIRE(save::save_world(*w, path, "test", &err));
+  auto c = std::make_unique<sim::World>();
+  REQUIRE_MESSAGE(save::load_world(*c, defs(), path, &err), err);
+  REQUIRE(c->script);
+  CHECK(c->script->export_state() == st);
+  CHECK(c->messages.size() == w->messages.size());
+  for (int t = 0; t < 600; ++t) {
+    w->tick();
+    c->tick();
+  }
+  CHECK(save::world_hash(*w) == save::world_hash(*c));
+  std::remove(path.c_str());
+}

@@ -81,6 +81,7 @@ bool App::init(const AppOptions& opt) {
     return false;
   }
   view_.init(renderer_.atlas(), defs_);
+  icons_.init(win_.gpu, renderer_.atlas());
   gen_.size = opt.map_size;
   gen_.seed = opt.seed;
   gen_.coast = 2;
@@ -268,7 +269,7 @@ void App::draw_build_menu() {
     if (!ImGui::CollapsingHeader(cat)) continue;
     for (u16 i = 0; i < defs_.buildings.size(); ++i) {
       const auto& d = defs_.buildings[i];
-      if (d.category != cat) continue;
+      if (d.category != cat || !world_->is_unlocked(BuildingDefId{i})) continue;
       const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
       std::string label = d.name + "  (" + std::to_string(d.cost_denarii) + ")";
       if (ImGui::Selectable(label.c_str(), sel)) tools_.select_building(BuildingDefId{i});
@@ -380,6 +381,9 @@ void App::draw_debug_ui() {
   if (ImGui::Button("Threats")) show_threats_ = !show_threats_;
   ImGui::SameLine();
   if (ImGui::Button("Military")) show_military_ = !show_military_;
+  if (ImGui::Button("Rome")) show_rome_ = !show_rome_;
+  ImGui::SameLine();
+  if (ImGui::Button("Advisors")) show_advisors_ = !show_advisors_;
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
@@ -422,6 +426,10 @@ void App::run() {
     draw_religion_panel(*world_, &show_religion_);
     draw_threats_panel(*world_, sel_, &show_threats_);
     draw_military_panel(*world_, sel_, &show_military_);
+    draw_rome_panel(*world_, &show_rome_);
+    draw_advisors_panel(*world_, icons_, &advisor_, &show_advisors_);
+    draw_messages(*world_, icons_, &last_message_);
+    draw_mission_end(*world_, &end_dismissed_);
     if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
       const auto& jb = world_->buildings[jump];
       renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
@@ -500,6 +508,7 @@ void App::run() {
 }
 
 void App::shutdown() {
+  icons_.shutdown(win_.gpu);
   renderer_.shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();

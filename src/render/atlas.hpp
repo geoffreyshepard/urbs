@@ -32,6 +32,7 @@ class Atlas {
   [[nodiscard]] u32 height() const { return h_; }
   // Average colour of a sprite's opaque pixels (used for far-zoom terrain and minimap).
   [[nodiscard]] u32 average_color(const Sprite& s) const;
+  [[nodiscard]] const std::vector<u8>& pixels() const { return pixels_; }
 
  private:
   SDL_GPUTexture* tex_ = nullptr;
