@@ -336,7 +336,8 @@ void World::lifecycle_daily(u32 i) {
     const Building& h = buildings[C.home[i]];
     const f32 room = h.residents < h.capacity + 2 ? 1.0f : 0.2f;
     const f32 mood = std::clamp(static_cast<f32>(C.happiness[i]) / 140.0f, 0.2f, 1.4f);
-    if (r.chance(0.0075f * room * mood * trait_mul(i, &data::TraitDef::fertility))) give_birth(i);
+    const f32 juno = effect(Effect::Births) ? 1.5f : effect(Effect::Barren) ? 0.3f : 1.0f;
+    if (r.chance(0.0075f * room * mood * juno * trait_mul(i, &data::TraitDef::fertility))) give_birth(i);
   }
 
   // Slaves: escapes under bad conditions.

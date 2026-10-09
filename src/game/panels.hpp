@@ -23,6 +23,8 @@ void draw_building_panel(sim::World& w, Selection& sel);
 void draw_labor_panel(sim::World& w, bool* open);
 void draw_finance_panel(sim::World& w, bool* open);
 void draw_trade_panel(sim::World& w, bool* open);
+void draw_religion_panel(sim::World& w, bool* open);
+void draw_threats_panel(sim::World& w, const Selection& sel, bool* open);
 // Returns the building to jump to if an alert was clicked.
 BuildingId draw_alerts_panel(const sim::World& w, bool* open);
 void draw_selection(const sim::World& w, const Selection& sel, render::Renderer& r, f32 alpha);

@@ -25,7 +25,7 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   SDL_GPUShader* vs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, sprite_vert_spv, sprite_vert_spv_size,
                                   sprite_vert_msl, sprite_vert_msl_size, 0, 1);
   SDL_GPUShader* fs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, sprite_frag_spv, sprite_frag_spv_size,
-                                  sprite_frag_msl, sprite_frag_msl_size, 1, 0);
+                                  sprite_frag_msl, sprite_frag_msl_size, 1, 1);
   if (!vs || !fs) return false;
 
   SDL_GPUVertexBufferDescription vbd{};
@@ -325,6 +325,7 @@ void Renderer::render(ImDrawData* draw_data) {
   dt.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
   SDL_GPURenderPass* rp = SDL_BeginGPURenderPass(cmd, &ct, 1, &dt);
   SDL_BindGPUGraphicsPipeline(rp, pipe_opaque_);
+  SDL_PushGPUFragmentUniformData(cmd, 0, light, sizeof(light));
   if (map_) {
     if (cam_.far()) {
       draw_instances(rp, cmd, quad_buf_.buf, 1, far_tex_, static_cast<u32>(map_->w), static_cast<u32>(map_->h));
@@ -348,6 +349,8 @@ void Renderer::render(ImDrawData* draw_data) {
   SDL_BindGPUGraphicsPipeline(rp, pipe_translucent_);
   draw_instances(rp, cmd, trans_buf_.buf, n_trans, atlas_.texture(), atlas_.width(), atlas_.height());
   if (map_ && overlay_pixels_) {
+    const f32 white[4] = {1, 1, 1, 1};
+    SDL_PushGPUFragmentUniformData(cmd, 0, white, sizeof(white));
     // Second quad instance (offset 32 bytes) is the overlay.
     Vec2 o = cam_.origin();
     CameraUniform u{{o.x, o.y},

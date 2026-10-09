@@ -373,6 +373,23 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       d.traits.push_back(std::move(t));
     }
   }
+  // Gods
+  {
+    Merged mg2 = load_kind(data_root, mods, "gods.json");
+    for (auto& id : mg2.order) {
+      const json& j = mg2.by_id[id];
+      GodDef g;
+      g.id = id;
+      g.name = get_or<std::string>(j, "name", id);
+      g.domain = get_or<std::string>(j, "domain", "");
+      g.blessing = get_or<std::string>(j, "blessing", "");
+      g.wrath = get_or<std::string>(j, "wrath", "");
+      g.blessing_text = get_or<std::string>(j, "blessing_text", "");
+      g.wrath_text = get_or<std::string>(j, "wrath_text", "");
+      g.festival_day = get_or<u8>(j, "festival_day", 0);
+      d.gods.push_back(std::move(g));
+    }
+  }
   // Names
   {
     fs::path np = fs::path(data_root) / "defs" / "names.json";

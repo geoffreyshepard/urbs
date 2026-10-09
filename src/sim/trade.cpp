@@ -78,7 +78,7 @@ void World::trade_exchange(u32 p, BuildingId post) {
     const u32 cap_left = ga.amount > rs.sold[g.v] ? ga.amount - rs.sold[g.v] : 0;
     const u16 q = static_cast<u16>(std::min<u32>({econ.available(inv, g), cap_left, kPerVisit, stock - trade_level[g.v]}));
     if (q == 0) continue;
-    const u32 unit = trade_price(p, g, false);
+    const u32 unit = trade_price(p, g, false) * (effect(Effect::TradePrices) ? 6 : 5) / 5;
     econ.take(inv, g, q);
     earn(static_cast<i64>(unit) * q / 10, econ::Money::Exports);
     rs.sold[g.v] = static_cast<u16>(rs.sold[g.v] + q);
@@ -111,6 +111,10 @@ void World::trade_daily() {
   for (u32 p = 0; p < routes.size(); ++p) {
     auto& rs = routes[p];
     if (!rs.open || now < rs.next_visit) continue;
+    if (effect(Effect::NoTrade)) {
+      rs.next_visit = now + kTicksPerDay;
+      continue;
+    }
     const auto& pd = defs->partners[p];
     rs.next_visit = now + static_cast<Tick>(pd.interval_days) * kTicksPerDay;
     if (pd.sea) {

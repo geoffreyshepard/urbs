@@ -1,0 +1,80 @@
+{
+  "name": "threats",
+  "map": {
+    "size": 160,
+    "seed": 9,
+    "flat": true,
+    "river": false
+  },
+  "world": {
+    "max_citizens": 4000,
+    "max_buildings": 1024,
+    "max_households": 2000
+  },
+  "generator": "town",
+  "houses": 160,
+  "citizens": 700,
+  "start_slaves": 10,
+  "orders": [
+    {
+      "tick": 100,
+      "trigger": "fire"
+    },
+    {
+      "tick": 200,
+      "trigger": "fire"
+    },
+    {
+      "tick": 300,
+      "trigger": "plague"
+    },
+    {
+      "tick": 1300,
+      "trigger": "storm"
+    },
+    {
+      "tick": 1500,
+      "trigger": "drought"
+    },
+    {
+      "tick": 2500,
+      "trigger": "earthquake"
+    },
+    {
+      "tick": 3000,
+      "trigger": "collapse"
+    },
+    {
+      "tick": 3500,
+      "trigger": "riot"
+    },
+    {
+      "tick": 3800,
+      "trigger": "revolt"
+    },
+    {
+      "tick": 4200,
+      "trigger": "blight"
+    },
+    {
+      "tick": 4500,
+      "trigger": "flood"
+    },
+    {
+      "tick": 5000,
+      "trigger": "wrath",
+      "value": 8
+    },
+    {
+      "tick": 5200,
+      "trigger": "blessing",
+      "value": 4
+    }
+  ],
+  "ticks": 9600,
+  "test": {
+    "min_citizens": 550,
+    "max_alloc_violations": 0,
+    "max_ruins": 25
+  }
+}

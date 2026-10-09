@@ -28,6 +28,7 @@ struct ScenarioSpec {
   bool industry = false;  // town generator: add workshops, forum, trade post
   i64 min_treasury_end = -1000000000;
   u32 expect_min_births = 0, expect_min_deaths = 0;
+  u32 expect_max_ruins = 0xFFFFFFFFu;
   std::string json;  // raw scenario text (for scripted scenarios)
 };
 

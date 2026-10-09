@@ -54,6 +54,7 @@ class Renderer {
   }
 
   f32 time = 0;
+  f32 light[4] = {1, 1, 1, 1};  // global light tint for the world (day/night, season, weather)
 
  private:
   struct Chunk {

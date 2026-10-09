@@ -254,6 +254,14 @@ void App::draw_build_menu() {
       const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
       std::string label = d.name + "  (" + std::to_string(d.cost_denarii) + ")";
       if (ImGui::Selectable(label.c_str(), sel)) tools_.select_building(BuildingDefId{i});
+      if (sel && d.service.valid() && defs_.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine") {
+        // Temple dedication.
+        for (u8 g = 0; g < defs_.gods.size(); ++g) {
+          if (!world_->god_available[g]) continue;
+          ImGui::SameLine();
+          if (ImGui::RadioButton(defs_.gods[g].name.c_str(), tools_.god == g)) tools_.god = g;
+        }
+      }
       if (ImGui::IsItemHovered()) {
         std::string tip = std::to_string(d.w) + "x" + std::to_string(d.h) + (d.painted ? " (drag to paint)" : "");
         for (const auto& c : d.cost_goods) tip += "\n" + std::to_string(c.amount) + " " + defs_.goods[c.good.v].name;
@@ -348,6 +356,10 @@ void App::draw_debug_ui() {
   if (ImGui::Button("Finance")) show_finance_ = !show_finance_;
   ImGui::SameLine();
   if (ImGui::Button("Trade")) show_trade_ = !show_trade_;
+  ImGui::SameLine();
+  if (ImGui::Button("Religion")) show_religion_ = !show_religion_;
+  ImGui::SameLine();
+  if (ImGui::Button("Threats")) show_threats_ = !show_threats_;
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
@@ -387,6 +399,8 @@ void App::run() {
     draw_labor_panel(*world_, &show_labor_);
     draw_finance_panel(*world_, &show_finance_);
     draw_trade_panel(*world_, &show_trade_);
+    draw_religion_panel(*world_, &show_religion_);
+    draw_threats_panel(*world_, sel_, &show_threats_);
     if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
       const auto& jb = world_->buildings[jump];
       renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
@@ -412,7 +426,50 @@ void App::run() {
       overlay_age_ = 0;
     }
 
+    {
+      // Light: day/night cycle from the sim clock, season and weather colour it.
+      const f32 tod = (static_cast<f32>(sim::tick_of_day(world_->now)) + alpha_) / static_cast<f32>(kTicksPerDay) * 24.0f;
+      f32 day = 1.0f;
+      if (tod < 4.5f || tod > 21.5f) day = 0.0f;
+      else if (tod < 7.0f) day = (tod - 4.5f) / 2.5f;
+      else if (tod > 19.0f) day = (21.5f - tod) / 2.5f;
+      f32 rr = 0.42f + 0.58f * day, gg = 0.46f + 0.54f * day, bb = 0.70f + 0.30f * day;
+      if (tod > 17.5f && tod < 21.0f) {  // warm sunset
+        rr = std::min(1.0f, rr + 0.08f);
+        bb *= 0.92f;
+      }
+      switch (sim::season(world_->now)) {
+        case sim::Season::Winter: rr *= 0.93f; gg *= 0.96f; break;
+        case sim::Season::Autumn: bb *= 0.93f; break;
+        case sim::Season::Summer: rr = std::min(1.0f, rr * 1.03f); break;
+        default: break;
+      }
+      if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm) {
+        rr *= 0.85f;
+        gg *= 0.87f;
+        bb *= 0.92f;
+      }
+      renderer_.light[0] = rr;
+      renderer_.light[1] = gg;
+      renderer_.light[2] = bb;
+    }
     view_.draw(*world_, renderer_, alpha_);
+    if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm ||
+        world_->weather == sim::Weather::Snow) {
+      // Rain streaks / snowflakes over the visible area (screen-space feel, world-space coordinates).
+      const Recti vis = renderer_.camera().visible_world(0);
+      const bool snow = world_->weather == sim::Weather::Snow;
+      const int n = world_->weather == sim::Weather::Storm ? 500 : 280;
+      for (int k = 0; k < n; ++k) {
+        const u32 hsh = static_cast<u32>(k) * 2654435761u;
+        const f32 fx = static_cast<f32>(hsh % 10007) / 10007.0f, fy0 = static_cast<f32>((hsh >> 12) % 9973) / 9973.0f;
+        const f32 speed = snow ? 0.08f : 0.9f;
+        const f32 fy = std::fmod(fy0 + renderer_.time * speed, 1.0f);
+        const f32 x = static_cast<f32>(vis.x) + fx * static_cast<f32>(vis.w) + (snow ? std::sin(renderer_.time + static_cast<f32>(k)) * 4 : 0);
+        const f32 y = static_cast<f32>(vis.y) + fy * static_cast<f32>(vis.h);
+        renderer_.push_rect(x, y, 1, snow ? 1 : 5, 0.04f, snow ? render::rgba(250, 250, 255, 220) : render::rgba(180, 200, 230, 120));
+      }
+    }
     tools_.draw(*world_, view_, renderer_);
     ++frame_;
     if (!opt_.screenshot.empty() && frame_ == opt_.frames) renderer_.request_screenshot(opt_.screenshot, !opt_.no_ui);

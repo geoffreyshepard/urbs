@@ -34,6 +34,7 @@ class WorldView {
   render::Sprite child_[4][4];
   render::Sprite scaffold_[4], foundation_;
   render::Sprite ship_[4];
+  render::Sprite fire_[4], smoke_[4], rubble_[4], plague_;
 };
 
 }  // namespace urbs::game

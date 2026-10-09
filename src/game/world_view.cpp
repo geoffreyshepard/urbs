@@ -46,6 +46,12 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs) {
   for (int v = 0; v < 4; ++v) scaffold_[v] = atlas.find("fx/scaffold_" + std::to_string(v));
   foundation_ = atlas.find("fx/foundation");
   for (int d = 0; d < 4; ++d) ship_[d] = atlas.find(std::string("fx/ship_") + kDirs[d]);
+  for (int f = 0; f < 4; ++f) {
+    fire_[f] = atlas.find("fx/fire_" + std::to_string(f));
+    smoke_[f] = atlas.find("fx/smoke_" + std::to_string(f));
+    rubble_[f] = atlas.find("fx/rubble_" + std::to_string(f));
+  }
+  plague_ = atlas.find("fx/plague_mark");
   dot = atlas.get("fx/dot");
   white = atlas.get("fx/white");
 }
@@ -70,6 +76,28 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
   const f32 px = static_cast<f32>(b.x) * T, py = static_cast<f32>(b.y) * T;
   const f32 fw = static_cast<f32>(b.w) * T, fh = static_cast<f32>(b.h) * T;
   const f32 foot = py + fh;
+  if (b.state == sim::BState::Ruin) {
+    for (i32 ty = b.y; ty < b.y + b.h; ++ty)
+      for (i32 tx = b.x; tx < b.x + b.w; ++tx) {
+        const Sprite& s = rubble_[(tx * 7 + ty * 3) & 3];
+        if (s.valid) r.push_sprite(s, static_cast<f32>(tx) * T, static_cast<f32>(ty) * T, render::kDepthRoad - 0.0005f);
+      }
+    return;
+  }
+  if (b.plague > 0 && plague_.valid)
+    r.push_sprite(plague_, px + fw / 2 - 4, py - 10, render::depth_for_foot(foot, map_h) - 0.0002f);
+  if (b.state == sim::BState::Burning) {
+    const int frame = static_cast<int>(r.time * 8.0f);
+    for (i32 ty = b.y; ty < b.y + b.h; ++ty)
+      for (i32 tx = b.x; tx < b.x + b.w; ++tx) {
+        const int f = (frame + tx * 3 + ty * 5) & 3;
+        const f32 x = static_cast<f32>(tx) * T, y = static_cast<f32>(ty + 1) * T;
+        if (fire_[f].valid) r.push_sprite(fire_[f], x, y - 1, render::depth_for_foot(y, map_h) - 0.0003f);
+        if (smoke_[f].valid)
+          r.push_sprite(smoke_[f], x + static_cast<f32>((f * 5) % 7) - 3.0f, y - 30.0f - static_cast<f32>(f * 4),
+                        0.05f, render::rgba(255, 255, 255, 200));
+      }
+  }
   const DefSprites* ds = b.def.v < defs_.size() ? &defs_[b.def.v] : nullptr;
   u32 tint = render::kWhite;
   if (b.state == sim::BState::Ruin) tint = render::rgba(90, 80, 70, 255);

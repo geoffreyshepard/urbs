@@ -14,6 +14,7 @@ class Tools {
   ToolKind kind = ToolKind::Inspect;
   BuildingDefId def;
   sim::Road road = sim::Road::Dirt;
+  u8 god = 0;  // dedication for temples
 
   void select_building(BuildingDefId d) {
     kind = ToolKind::Build;

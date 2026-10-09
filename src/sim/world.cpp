@@ -51,6 +51,15 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
     r.bought.assign(d.goods.size(), 0);
     r.sold.assign(d.goods.size(), 0);
   }
+  req_physician_ = data::HousingReq{data::HousingReq::Service, {d.service("physician"), d.service("hospital")}, {}, 0};
+  req_fountain_ = data::HousingReq{data::HousingReq::Service, {d.service("fountain")}, {}, 0};
+  god_mood.assign(d.gods.size(), 50);
+  god_available.assign(d.gods.size(), 0);
+  god_offerings.assign(d.gods.size(), 0);
+  for (const char* g : {"jupiter", "juno", "mars", "venus", "ceres", "vesta"}) {
+    const u8 gi = d.god(g);
+    if (gi != 0xFF) god_available[gi] = 1;
+  }
   trade_mode.assign(d.goods.size(), 0);
   trade_level.assign(d.goods.size(), 50);
   for (auto& v : need_services) v.clear();
@@ -528,7 +537,16 @@ void World::apply_commands() {
         const i64 area = static_cast<i64>(c.x1) * c.y1, base = static_cast<i64>(bd.w) * bd.h;
         const i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
         if (!pay(cost, econ::Money::Construction)) break;
-        place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
+        BuildingId nb = place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
+        // Temples are dedicated to a god (Command::value); default: the first worshipped god.
+        if (nb.valid() && bd.service.valid() && defs->services[bd.service.v].need == data::NeedKind::Religion &&
+            bd.id != "shrine") {
+          u8 g = static_cast<u8>(c.value);
+          if (g >= god_available.size() || !god_available[g])
+            for (g = 0; g < god_available.size() && !god_available[g]; ++g) {
+            }
+          buildings[nb].extra = g;
+        }
         break;
       }
       case CmdType::PlaceRoad: {
@@ -545,6 +563,8 @@ void World::apply_commands() {
         break;
       }
       case CmdType::BuySlaves: buy_public_slaves(static_cast<u32>(std::clamp(c.value, 0, 50))); break;
+      case CmdType::Festival: hold_festival(static_cast<u8>(c.def), c.value); break;
+      case CmdType::Trigger: trigger(static_cast<TriggerId>(c.def), c.x0, c.y0, c.value); break;
       case CmdType::OpenRoute:
         if (c.def < routes.size() && !routes[c.def].open && routes[c.def].available &&
             pay(defs->partners[c.def].open_cost, econ::Money::Other)) {
@@ -621,7 +641,10 @@ void World::tick() {
   lap(1);
   if (now % kTicksPerDay == 0) {
     daily_update();
+    weather_daily();
+    religion_daily();
     riot_check();
+    revolt_check(false);
     crimes_yday = crimes_today;
     crimes_today = births_today = deaths_today = marriages_today = freed_today = 0;
     avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;

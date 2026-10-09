@@ -60,6 +60,7 @@ ScenarioSpec load_scenario(const std::string& path) {
     s.min_treasury_end = t.value("min_treasury", s.min_treasury_end);
     s.expect_min_births = t.value("min_births", 0u);
     s.expect_min_deaths = t.value("min_deaths", 0u);
+    s.expect_max_ruins = t.value("max_ruins", 0xFFFFFFFFu);
     if (t.contains("produced"))
       for (auto& [k, v] : t["produced"].items()) s.expect_produced.emplace_back(k, v.get<u32>());
     if (t.contains("active"))
@@ -99,6 +100,16 @@ bool check_expectations(const World& w, const ScenarioSpec& spec) {
     std::fprintf(stderr, "FAIL: births %u (min %u), deaths %u (min %u)\n", w.births_total, spec.expect_min_births,
                  w.deaths_total, spec.expect_min_deaths);
     ok = false;
+  }
+  {
+    u32 ruins = 0;
+    w.buildings.for_each([&](BuildingId, const Building& b) {
+      if (b.state == BState::Ruin) ++ruins;
+    });
+    if (ruins > spec.expect_max_ruins) {
+      std::fprintf(stderr, "FAIL: %u ruins > %u\n", ruins, spec.expect_max_ruins);
+      ok = false;
+    }
   }
   if (w.econ.treasury < spec.min_treasury_end) {
     std::fprintf(stderr, "FAIL: treasury %lld < %lld\n", static_cast<long long>(w.econ.treasury),
@@ -190,35 +201,6 @@ void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
       }
     }
   }
-  if (j.contains("orders"))
-    for (auto& o : j["orders"]) {
-      Command c;
-      Tick t = o.value("tick", 1ull);
-      if (o.contains("place")) {
-        BuildingDefId d = defs.building(o["place"].get<std::string>());
-        if (!d) throw std::runtime_error("scenario order: unknown building " + o["place"].get<std::string>());
-        c.type = CmdType::PlaceBuilding;
-        c.def = d.v;
-        c.x0 = o["x"];
-        c.y0 = o["y"];
-        c.x1 = o.value("w", static_cast<i32>(defs.b(d).w));
-        c.y1 = o.value("h", static_cast<i32>(defs.b(d).h));
-      } else if (o.contains("road")) {
-        c.type = CmdType::PlaceRoad;
-        c.def = static_cast<u16>(parse_road(o.value("type", "paved")));
-        c.x0 = o["road"][0];
-        c.y0 = o["road"][1];
-        c.x1 = o["road"][2];
-        c.y1 = o["road"][3];
-      } else if (o.contains("demolish")) {
-        c.type = CmdType::Demolish;
-        c.x0 = o["demolish"][0];
-        c.y0 = o["demolish"][1];
-        c.x1 = o["demolish"][2];
-        c.y1 = o["demolish"][3];
-      }
-      s.orders.emplace_back(t, c);
-    }
 }
 }  // namespace
 
@@ -239,8 +221,8 @@ void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
   std::vector<BuildingId> houses;
   u32 placed_houses = 0;
   const char* small_cycle[] = {"house_plot", "house_plot", "house_plot", "well", "house_plot", "house_plot",
-                               "shrine",     "house_plot", "house_plot", "well", "latrina",    "house_plot",
-                               "house_plot", "tavern",     "house_plot", "well", "house_plot", "physician"};
+                               "shrine",     "house_plot", "vigiles_post", "well", "latrina",  "house_plot",
+                               "house_plot", "tavern",     "house_plot", "well", "engineers_post", "physician"};
   const char* big_plain[] = {"market", "granary", "warehouse", "bakery", "mill", "domus_plot", "temple", "lumber_camp",
                              "market", "slave_quarters", "domus_plot", "forum"};
   const char* big_ind[] = {"market", "granary", "forum",    "potter",   "clay_pit", "trade_post", "potter", "bakery",
@@ -348,6 +330,50 @@ void setup_trade(World& w, const data::Defs& defs, const ScenarioSpec& s) {
   set("export", 2);
 }
 
+void setup_orders(const data::Defs& defs, ScenarioSpec& s) {
+  json j = json::parse(s.json, nullptr, true, true);
+  if (j.contains("orders"))
+    for (auto& o : j["orders"]) {
+      Command c;
+      Tick t = o.value("tick", 1ull);
+      if (o.contains("place")) {
+        BuildingDefId d = defs.building(o["place"].get<std::string>());
+        if (!d) throw std::runtime_error("scenario order: unknown building " + o["place"].get<std::string>());
+        c.type = CmdType::PlaceBuilding;
+        c.def = d.v;
+        c.x0 = o["x"];
+        c.y0 = o["y"];
+        c.x1 = o.value("w", static_cast<i32>(defs.b(d).w));
+        c.y1 = o.value("h", static_cast<i32>(defs.b(d).h));
+      } else if (o.contains("road")) {
+        c.type = CmdType::PlaceRoad;
+        c.def = static_cast<u16>(parse_road(o.value("type", "paved")));
+        c.x0 = o["road"][0];
+        c.y0 = o["road"][1];
+        c.x1 = o["road"][2];
+        c.y1 = o["road"][3];
+      } else if (o.contains("trigger")) {
+        static const char* kTrig[] = {"fire", "collapse", "plague", "riot", "revolt", "flood", "earthquake",
+                                      "drought", "storm", "blight", "blessing", "wrath"};
+        c.type = CmdType::Trigger;
+        c.def = 0xFFFF;
+        for (u16 k = 0; k < 12; ++k)
+          if (o["trigger"].get<std::string>() == kTrig[k]) c.def = k;
+        if (c.def == 0xFFFF) throw std::runtime_error("scenario order: unknown trigger " + o["trigger"].get<std::string>());
+        c.x0 = o.value("x", -1);
+        c.y0 = o.value("y", -1);
+        c.value = o.value("value", 0);
+      } else if (o.contains("demolish")) {
+        c.type = CmdType::Demolish;
+        c.x0 = o["demolish"][0];
+        c.y0 = o["demolish"][1];
+        c.x1 = o["demolish"][2];
+        c.y1 = o["demolish"][3];
+      }
+      s.orders.emplace_back(t, c);
+    }
+}
+
 void setup_policy(World& w, const ScenarioSpec& s) {
   json j = json::parse(s.json, nullptr, true, true);
   if (j.contains("policy")) {
@@ -369,6 +395,7 @@ void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   if (s.generator == "town") setup_town(w, defs, s);
   setup_trade(w, defs, s);
   setup_policy(w, s);
+  setup_orders(defs, s);
   if (s.generator != "stress_city") return;
 
   const BuildingDefId house = defs.building("house_plot");

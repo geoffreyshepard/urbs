@@ -167,7 +167,9 @@ void World::finish_leave(u32 i) {
 void World::house_daily(BuildingId id) {
   Building& b = buildings[id];
   const auto& d = defs->b(b.def);
-  if (b.state != BState::Active || d.kind != BuildingKind::House || d.house_line > 1) return;
+  if (b.state != BState::Active || d.kind != BuildingKind::House) return;
+  disease_daily(id);
+  if (d.house_line > 1) return;
   const u8 line = d.house_line;
   // Household mood: emigration of persistently unhappy households.
   for (u32 hi = b.first_household; hi != kNoIndex;) {
@@ -277,6 +279,17 @@ World::HappinessParts World::happiness_parts(u32 i) const {
   if (age >= 14 && age < 60 && !C.work[i].valid() && C.cls[i] != CitizenClass::Patrician) p.employment = -8;
   p.taxes = static_cast<i16>(-static_cast<int>(policy.tax_rate[static_cast<int>(C.cls[i]) % 6]) / 2);
   if (C.bonus_until[i] > day_index(now)) p.events = C.bonus[i];
+  {
+    u32 sum = 0, n = 0;
+    for (size_t g = 0; g < god_mood.size(); ++g)
+      if (god_available[g]) {
+        sum += god_mood[g];
+        ++n;
+      }
+    if (n) p.gods = static_cast<i16>((static_cast<i32>(sum / n) - 50) / 5);
+    if (effect(Effect::Happy)) p.gods = static_cast<i16>(p.gods + 6);
+    if (effect(Effect::Discontent)) p.gods = static_cast<i16>(p.gods - 8);
+  }
   p.safety = static_cast<i16>(-std::min<u32>(12, crimes_yday * 2000 / std::max<u32>(1, population())));
   if (C.cls[i] == CitizenClass::Slave) p.freedom = static_cast<i16>(policy.slave_treatment == 0 ? -25 : policy.slave_treatment == 1 ? -12 : -4);
   for (int k = 0; k < kMaxTraits; ++k) {
@@ -310,6 +323,10 @@ void World::citizen_daily(u32 i) {
     hhp->savings += 12;
     hhp->income_today = static_cast<u16>(std::min<i32>(60000, hhp->income_today + 12));
   }
+  // Natural recovery when not in a plague house.
+  if (citizens.health[i] < 255 && !(citizens.home[i].valid() && buildings.alive(citizens.home[i]) &&
+                                    buildings[citizens.home[i]].plague > 0))
+    citizens.health[i] = static_cast<u8>(std::min(255, citizens.health[i] + 6));
   const i32 h = std::clamp(happiness_parts(i).total(), 0, 255);
   citizens.happiness[i] = static_cast<u8>(h);
   happy_sum_today += h;

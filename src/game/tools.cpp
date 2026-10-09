@@ -79,6 +79,7 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
       Recti f = footprint(w);
       c.type = sim::CmdType::PlaceBuilding;
       c.def = def.v;
+      c.value = god;
       c.x0 = f.x;
       c.y0 = f.y;
       c.x1 = f.w;

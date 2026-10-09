@@ -63,8 +63,19 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
     case sim::AlertKind::Riot: return "Riot!";
     case sim::AlertKind::Revolt: return "Servile revolt!";
     case sim::AlertKind::Raid: return "Raiders are approaching!";
-    case sim::AlertKind::GodAngry: return "A god is angry";
+    case sim::AlertKind::GodAngry: {
+      const u16 g = a.arg & 0xFF;
+      if (g >= D.gods.size()) return "The gods stir";
+      return (a.arg & 0x100) ? D.gods[g].blessing_text : D.gods[g].wrath_text;
+    }
     case sim::AlertKind::Request: return "A request from Rome";
+    case sim::AlertKind::Event:
+      if (a.arg == 1000) return "Drought! The fields and wells dry up.";
+      if (a.arg == 1001) return "Flood! Low ground near the water is inundated.";
+      if (a.arg == 1002) return "Earthquake!";
+      if (a.arg == 1003) return "Blight withers the crops.";
+      if (a.arg < D.gods.size()) return "A festival is held in honour of " + D.gods[a.arg].name;
+      return "Event";
     default: return "Event";
   }
 }
@@ -195,6 +206,12 @@ void draw_building_panel(sim::World& w, Selection& sel) {
                   c.amount);
   }
   if (b.jobs) ImGui::Text("Workers: %u / %u (present %u)", b.employed, b.jobs, b.present);
+  if (b.state == sim::BState::Active || b.state == sim::BState::Burning)
+    ImGui::Text("Fire risk %u%%  structural damage %u%%%s", b.fire_risk * 100 / 255, b.damage * 100 / 255,
+                b.plague ? "  PLAGUE" : "");
+  if (d.service.valid() && D.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine" &&
+      b.extra < D.gods.size())
+    ImGui::Text("Dedicated to %s", D.gods[b.extra].name.c_str());
   if (d.kind == data::BuildingKind::House) {
     const auto* t = D.tier(d.house_line, b.tier);
     ImGui::Text("%s: %u / %u residents", t ? t->name.c_str() : "House", b.residents, b.capacity);
@@ -420,6 +437,72 @@ void draw_trade_panel(sim::World& w, bool* open) {
     }
     ImGui::EndTable();
   }
+  ImGui::End();
+}
+
+void draw_religion_panel(sim::World& w, bool* open) {
+  if (!*open) return;
+  const auto& D = *w.defs;
+  ImGui::SetNextWindowPos({620, 60}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Religion", open);
+  ImGui::Text("Weather: %s", sim::weather_name(w.weather));
+  for (u32 g = 0; g < D.gods.size(); ++g) {
+    if (!w.god_available[g]) continue;
+    ImGui::PushID(static_cast<int>(g));
+    const u8 m = w.god_mood[g];
+    const char* mood = m >= 85 ? "exalted" : m >= 65 ? "pleased" : m >= 35 ? "indifferent" : m >= 15 ? "displeased" : "wrathful";
+    ImGui::Text("%-14s %3u  %s", D.gods[g].name.c_str(), m, mood);
+    ImGui::SameLine(300);
+    if (ImGui::SmallButton("Festival")) {
+      sim::Command c;
+      c.type = sim::CmdType::Festival;
+      c.def = static_cast<u16>(g);
+      c.value = 1;
+      w.push(c);
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Grand")) {
+      sim::Command c;
+      c.type = sim::CmdType::Festival;
+      c.def = static_cast<u16>(g);
+      c.value = 3;
+      w.push(c);
+    }
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("%s. Feast day: day %u of the year.", D.gods[g].domain.c_str(), D.gods[g].festival_day + 1u);
+    ImGui::PopID();
+  }
+  ImGui::End();
+}
+
+void draw_threats_panel(sim::World& w, const Selection& sel, bool* open) {
+  if (!*open) return;
+  ImGui::SetNextWindowPos({620, 380}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Threats (debug)", open);
+  ImGui::TextWrapped("Triggers act on the selected building, or a random one.");
+  i32 x = -1, y = -1;
+  if (sel.building.valid() && w.buildings.alive(sel.building)) {
+    x = w.buildings[sel.building].x;
+    y = w.buildings[sel.building].y;
+  }
+  const char* names[] = {"Fire", "Collapse", "Plague", "Riot", "Servile revolt", "Flood", "Earthquake", "Drought",
+                         "Storm", "Blight", "Blessing", "Wrath"};
+  static int god = 0;
+  for (int t = 0; t < 12; ++t) {
+    if (t % 3) ImGui::SameLine();
+    if (ImGui::Button(names[t], ImVec2(120, 0))) {
+      sim::Command c;
+      c.type = sim::CmdType::Trigger;
+      c.def = static_cast<u16>(t);
+      c.x0 = x;
+      c.y0 = y;
+      c.value = god;
+      w.push(c);
+    }
+  }
+  ImGui::SliderInt("god for blessing/wrath", &god, 0, static_cast<int>(w.defs->gods.size()) - 1);
+  ImGui::Text("fires %u, collapses %u, plague houses %u, riots %u", w.fires_total, w.collapses_total, w.plague_houses,
+              w.riots_total);
   ImGui::End();
 }
 

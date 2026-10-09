@@ -126,6 +126,8 @@ void World::building_hourly(BuildingId id) {
   const data::BuildingDef& d = defs->b(b.def);
   sched.schedule(Event{now + kTicksPerHour, id.index(), static_cast<u16>(BuildingEvent::Hourly), b.token,
                        EventKind::Building});
+  hazards_hourly(id);
+  if (b.state == BState::Ruin || b.state == BState::Burning) return;
   if (b.state == BState::Construction) {
     bool have_all = true;
     for (const auto& c : d.cost_goods)
@@ -143,6 +145,9 @@ void World::building_hourly(BuildingId id) {
   u32 eff = 100;
   if (d.kind == BuildingKind::Farm) {
     if (season(now) == Season::Winter) eff = 0;
+    if (effect(Effect::Harvest)) eff = eff * 3 / 2;
+    if (effect(Effect::Blight)) eff = 0;
+    if (effect(Effect::Drought)) eff = eff * 3 / 10;
     u32 fert = 0, n = 0;
     for (i32 y = b.y; y < b.y + b.h; ++y)
       for (i32 x = b.x; x < b.x + b.w; ++x) {
@@ -151,6 +156,7 @@ void World::building_hourly(BuildingId id) {
       }
     eff = eff * (n ? fert / n : 128) / 128;
   }
+  if (d.kind != BuildingKind::Farm && effect(Effect::Workshops)) eff = eff * 6 / 5;
   // Each present worker contributes 75% plus up to 50% more with skill (and work traits).
   const u32 effort = static_cast<u32>(b.present) * 75 + b.skill_sum * 50 / 255;
   b.work_progress += effort * static_cast<u32>(kTicksPerHour) / 100 * eff / 100;

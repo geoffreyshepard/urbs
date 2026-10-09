@@ -125,6 +125,11 @@ void World::decide(u32 i) {
   }
   if (food < 90) consider(Activity::Home, home, has_food ? Reason::Hungry : Reason::NoFood, has_food ? 920 : 110);
 
+  // The sick see a physician (or hospital) when one is in reach.
+  if (C.health[i] < 150 && h >= 6 && h < 21) {
+    BuildingId doc = best_service_for(NeedKind::Health, here, nullptr);
+    if (doc.valid()) consider(Activity::Visit, doc, Reason::Healing, 880);
+  }
   const bool shift = h >= 7 && h < 17 && h != 12;
   BuildingId job = C.work[i];
   if (adult && job.valid() && buildings.alive(job) && shift) {
@@ -298,6 +303,15 @@ void World::start_activity(u32 i, Activity a) {
       }
       ++b.visitors;
       ++b.served_today;
+      if (sd.need == NeedKind::Religion) {
+        if (bd.id == "shrine" || bd.id == "pantheon") {
+          for (size_t g = 0; g < god_offerings.size(); ++g)
+            if (god_available[g]) ++god_offerings[g];
+        } else if (b.extra < god_offerings.size()) {
+          god_offerings[b.extra] = static_cast<u16>(god_offerings[b.extra] + 3);
+        }
+      }
+      if (sd.need == NeedKind::Health) C.health[i] = static_cast<u8>(std::min(255, C.health[i] + sd.quality));
       // A visit always lifts the need above the "wants to go" threshold; better services last longer.
       if (n != Need::Count) C.set_need(i, n, std::max<u8>(C.need(i, n, now), static_cast<u8>(175 + sd.quality / 3)));
       end = now + std::max<u16>(5, sd.visit_ticks);

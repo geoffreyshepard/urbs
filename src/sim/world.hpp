@@ -38,7 +38,19 @@ struct WorldConfig {
 };
 
 // ---- Commands: the only way the outside world mutates the sim (applied at tick start) -----------
-enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, PlaceUnder, BuySlaves, Debug };
+enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, PlaceUnder, BuySlaves,
+                          Festival, Trigger, Debug };
+// Trigger ids (Command::def) for debug/scripted threats; Command::x0,y0 = target tile when relevant.
+enum class TriggerId : u16 { Fire, Collapse, Plague, Riot, Revolt, Flood, Earthquake, Drought, Storm, Blight,
+                             Blessing, Wrath, Raid, Count };
+enum class Weather : u8 { Clear, Rain, Heat, Storm, Snow, Count };
+inline constexpr const char* weather_name(Weather w) {
+  constexpr const char* n[] = {"clear", "rain", "heat", "storm", "snow"};
+  return n[static_cast<int>(w)];
+}
+// Active timed effects (blessings, wrath, disasters). Ticks until they end.
+enum class Effect : u8 { Favor, Births, Barren, Morale, Desertion, Happy, Discontent, Harvest, Blight, SeaTrade,
+                         TradePrices, NoTrade, Workshops, Fireproof, Hearth, Health, Drought, Count };
 // SetPolicy ids (Command::def): value in Command::value.
 enum class PolicyId : u16 { Wage, TaxPatrician, TaxEques, TaxPleb, TaxLibertus, Rations, SlaveTreatment, Manumission,
                             Curfew, Conscription, MaxInsula, Immigration, Count };
@@ -126,6 +138,15 @@ struct World {
   std::vector<i8> good_food_slot, good_hh_slot;  // per good: slot index or -1
 
   Policy policy;
+  // Religion (sim/religion.cpp)
+  std::vector<u8> god_mood;        // 0..100 per god
+  std::vector<u8> god_available;   // worshipped in this city
+  std::vector<u16> god_offerings;  // temple visits today per god
+  Tick effect_until[static_cast<int>(Effect::Count)] = {};
+  Tick festival_until = 0;
+  u8 festival_god = 0xFF;
+  Weather weather = Weather::Clear;
+  u32 fires_total = 0, collapses_total = 0, plague_houses = 0;
   std::vector<TradeRouteState> routes;  // one per data::TradePartnerDef
   std::vector<u8> trade_mode;           // per good: 0 none, 1 import, 2 export
   std::vector<u16> trade_level;         // import below / export above this city stock
@@ -280,6 +301,21 @@ struct World {
   void assign_goal(u32 i);
   void free_slave(u32 i);
   void riot_check();
+  // Religion and threats (sim/religion.cpp, sim/threats.cpp)
+  void religion_daily();
+  void weather_daily();
+  void hazards_hourly(BuildingId id);
+  void ignite(BuildingId id);
+  void ruin(BuildingId id);
+  void disease_daily(BuildingId id);
+  void revolt_check(bool forced);
+  void trigger(TriggerId t, i32 x, i32 y, i32 value);
+  void hold_festival(u8 god, i32 size);
+  void god_blessing(u8 god);
+  void god_wrath(u8 god);
+  [[nodiscard]] bool effect(Effect e) const { return effect_until[static_cast<int>(e)] > now; }
+  void set_effect(Effect e, Tick duration) { effect_until[static_cast<int>(e)] = now + duration; }
+  [[nodiscard]] bool patrol_covers(const char* service, const Building& b) const;
   void citizen_daily(u32 i);
   void immigration_hourly();
   void finish_leave(u32 i);
@@ -301,6 +337,7 @@ struct World {
   std::vector<i32> water_queue_;
   std::vector<u8> reservoir_full_;
   std::vector<i16> desir_acc_;
+  data::HousingReq req_physician_, req_fountain_;
   bool providers_dirty_ = true;
 };
 

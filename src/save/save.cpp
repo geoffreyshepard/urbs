@@ -114,6 +114,17 @@ void World::serialize(save::Writer& w) const {
   for (u32 v : {births_today, deaths_today, marriages_today, crimes_today, crimes_yday, freed_today, births_total,
                 deaths_total, riots_total})
     w.pod(v);
+  w.tag("GODS");
+  w.vec(god_mood);
+  w.vec(god_available);
+  w.vec(god_offerings);
+  for (Tick t : effect_until) w.pod(t);
+  w.pod(festival_until);
+  w.pod(festival_god);
+  w.pod(weather);
+  w.pod(fires_total);
+  w.pod(collapses_total);
+  w.pod(plague_houses);
   w.pod(static_cast<u8>(water_dirty));
   w.pod(static_cast<u8>(desir_dirty));
   w.tag("END.");
@@ -190,6 +201,17 @@ void World::deserialize(save::Reader& r) {
   for (u32* v : {&births_today, &deaths_today, &marriages_today, &crimes_today, &crimes_yday, &freed_today,
                  &births_total, &deaths_total, &riots_total})
     r.pod(*v);
+  r.expect("GODS");
+  r.vec(god_mood);
+  r.vec(god_available);
+  r.vec(god_offerings);
+  for (Tick& t : effect_until) r.pod(t);
+  r.pod(festival_until);
+  r.pod(festival_god);
+  r.pod(weather);
+  r.pod(fires_total);
+  r.pod(collapses_total);
+  r.pod(plague_houses);
   water_dirty = r.pod<u8>() != 0;
   desir_dirty = r.pod<u8>() != 0;
   r.expect("END.");

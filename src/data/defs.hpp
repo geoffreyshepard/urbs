@@ -103,6 +103,11 @@ struct TraitDef {
   i8 happiness = 0;
 };
 
+struct GodDef {
+  std::string id, name, domain, blessing, wrath, blessing_text, wrath_text;
+  u8 festival_day = 0;  // day of year of the god's feast
+};
+
 struct NameLists {
   std::vector<std::string> praenomina, nomina, cognomina, slave;
 };
@@ -148,6 +153,12 @@ struct Defs {
   std::vector<HousingTierDef> housing;  // ordered by line, tier
   std::vector<TradePartnerDef> partners;
   std::vector<TraitDef> traits;
+  std::vector<GodDef> gods;
+  [[nodiscard]] u8 god(const std::string& id) const {
+    for (size_t k = 0; k < gods.size(); ++k)
+      if (gods[k].id == id) return static_cast<u8>(k);
+    return 0xFF;
+  }
   NameLists names;
   [[nodiscard]] const HousingTierDef* tier(u8 line, u8 t) const {
     for (const auto& h : housing)
