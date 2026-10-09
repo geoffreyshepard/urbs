@@ -247,6 +247,137 @@ void draw_labor_panel(sim::World& w, bool* open) {
   ImGui::End();
 }
 
+void draw_finance_panel(sim::World& w, bool* open) {
+  if (!*open) return;
+  ImGui::SetNextWindowPos({300, 200}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Finance", open);
+  const auto& L = w.econ.money;
+  ImGui::Text("Treasury: %lld denarii", static_cast<long long>(w.econ.treasury));
+  if (ImGui::BeginTable("fin", 4)) {
+    ImGui::TableSetupColumn("");
+    ImGui::TableSetupColumn("Yesterday");
+    ImGui::TableSetupColumn("This year");
+    ImGui::TableSetupColumn("Last year");
+    ImGui::TableHeadersRow();
+    i64 net[3] = {};
+    for (int k = 0; k < econ::kMoneyCount; ++k) {
+      const auto m = static_cast<econ::Money>(k);
+      const i64 s = econ::money_is_income(m) ? 1 : -1;
+      net[0] += s * L.yesterday[k];
+      net[1] += s * L.year[k];
+      net[2] += s * L.last_year[k];
+      if (!L.yesterday[k] && !L.year[k] && !L.last_year[k]) continue;
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextColored(s > 0 ? ImVec4(0.5f, 0.9f, 0.5f, 1) : ImVec4(0.95f, 0.6f, 0.5f, 1), "%s", econ::money_name(m));
+      ImGui::TableNextColumn();
+      ImGui::Text("%lld", static_cast<long long>(L.yesterday[k]));
+      ImGui::TableNextColumn();
+      ImGui::Text("%lld", static_cast<long long>(L.year[k]));
+      ImGui::TableNextColumn();
+      ImGui::Text("%lld", static_cast<long long>(L.last_year[k]));
+    }
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::TextUnformatted("Net");
+    for (i64 v : net) {
+      ImGui::TableNextColumn();
+      ImGui::Text("%+lld", static_cast<long long>(v));
+    }
+    ImGui::EndTable();
+  }
+  ImGui::Separator();
+  auto cmd_policy = [&](sim::PolicyId id, int v) {
+    sim::Command c;
+    c.type = sim::CmdType::SetPolicy;
+    c.def = static_cast<u16>(id);
+    c.value = v;
+    w.push(c);
+  };
+  int wage = w.policy.wage;
+  if (ImGui::SliderInt("Wage (per worker/day)", &wage, 1, 20)) cmd_policy(sim::PolicyId::Wage, wage);
+  int tax = w.policy.tax_rate[2];
+  if (ImGui::SliderInt("Tax on plebeians (%)", &tax, 0, 30)) cmd_policy(sim::PolicyId::TaxPleb, tax);
+  int tax_e = w.policy.tax_rate[1];
+  if (ImGui::SliderInt("Tax on equites (%)", &tax_e, 0, 30)) cmd_policy(sim::PolicyId::TaxEques, tax_e);
+  int tax_p = w.policy.tax_rate[0];
+  if (ImGui::SliderInt("Tax on patricians (%)", &tax_p, 0, 30)) cmd_policy(sim::PolicyId::TaxPatrician, tax_p);
+  const char* dole[] = {"No grain dole", "Grain dole for the poor", "Grain dole for all"};
+  int r = w.policy.rations;
+  if (ImGui::Combo("Annona", &r, dole, 3)) cmd_policy(sim::PolicyId::Rations, r);
+  ImGui::End();
+}
+
+void draw_trade_panel(sim::World& w, bool* open) {
+  if (!*open) return;
+  const auto& D = *w.defs;
+  ImGui::SetNextWindowPos({500, 120}, ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize({560, 520}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Trade", open);
+  ImGui::TextUnformatted("Routes");
+  for (u32 p = 0; p < w.routes.size(); ++p) {
+    const auto& rs = w.routes[p];
+    if (!rs.available) continue;
+    const auto& pd = D.partners[p];
+    ImGui::PushID(static_cast<int>(p));
+    ImGui::Text("%s (%s)", pd.name.c_str(), pd.sea ? "sea" : "land");
+    ImGui::SameLine(260);
+    if (rs.open) {
+      ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.5f, 1), "open");
+    } else if (ImGui::Button(("Open route (" + std::to_string(pd.open_cost) + ")").c_str())) {
+      sim::Command c;
+      c.type = sim::CmdType::OpenRoute;
+      c.def = static_cast<u16>(p);
+      w.push(c);
+    }
+    std::string buys = "  buys:", sells = "  sells:";
+    for (const auto& g : pd.buys)
+      buys += " " + D.goods[g.good.v].name + " " + std::to_string(w.trade_price(p, g.good, false) / 10) + "dn";
+    for (const auto& g : pd.sells)
+      sells += " " + D.goods[g.good.v].name + " " + std::to_string(w.trade_price(p, g.good, true) / 10) + "dn";
+    ImGui::TextWrapped("%s", buys.c_str());
+    ImGui::TextWrapped("%s", sells.c_str());
+    ImGui::PopID();
+  }
+  ImGui::Separator();
+  ImGui::TextUnformatted("Goods: import when stock is below the level, export above it");
+  if (ImGui::BeginTable("tg", 4)) {
+    ImGui::TableSetupColumn("Good");
+    ImGui::TableSetupColumn("Stock");
+    ImGui::TableSetupColumn("Mode");
+    ImGui::TableSetupColumn("Level");
+    ImGui::TableHeadersRow();
+    const char* modes[] = {"-", "Import", "Export"};
+    for (u32 g = 0; g < D.goods.size(); ++g) {
+      ImGui::PushID(static_cast<int>(g));
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(D.goods[g].name.c_str());
+      ImGui::TableNextColumn();
+      ImGui::Text("%u", w.econ.city_stock[g]);
+      ImGui::TableNextColumn();
+      int m = w.trade_mode[g];
+      ImGui::SetNextItemWidth(90);
+      bool changed = ImGui::Combo("##m", &m, modes, 3);
+      ImGui::TableNextColumn();
+      int lvl = w.trade_level[g];
+      ImGui::SetNextItemWidth(120);
+      changed |= ImGui::SliderInt("##l", &lvl, 0, 1000);
+      if (changed) {
+        sim::Command c;
+        c.type = sim::CmdType::SetTrade;
+        c.def = static_cast<u16>(g);
+        c.value = m;
+        c.x0 = lvl;
+        w.push(c);
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndTable();
+  }
+  ImGui::End();
+}
+
 BuildingId draw_alerts_panel(const sim::World& w, bool* open) {
   BuildingId jump;
   if (!*open) return jump;

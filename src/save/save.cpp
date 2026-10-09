@@ -94,6 +94,19 @@ void World::serialize(save::Writer& w) const {
   w.pod(entry_tile);
   w.pod(immigrants_today); w.pod(emigrants_today); w.pod(immigrants_total); w.pod(emigrants_total);
   w.pod(appeal); w.pod(happy_sum_today); w.pod(happy_count_today); w.pod(avg_happiness);
+  w.tag("TRAD");
+  w.pod(econ.money);
+  w.vec(econ.price);
+  w.vec(econ.imported_today); w.vec(econ.exported_today); w.vec(econ.imported_yday); w.vec(econ.exported_yday);
+  w.pod(static_cast<u32>(routes.size()));
+  for (const auto& r : routes) {
+    w.pod(r.open); w.pod(r.available); w.pod(r.next_visit); w.pod(r.ship_until); w.pod(r.ship_at); w.pod(r.caravan_traded);
+    w.vec(r.bought);
+    w.vec(r.sold);
+  }
+  w.vec(trade_mode);
+  w.vec(trade_level);
+  w.pod(visitors);
   w.tag("END.");
 }
 
@@ -147,6 +160,20 @@ void World::deserialize(save::Reader& r) {
   r.pod(entry_tile);
   r.pod(immigrants_today); r.pod(emigrants_today); r.pod(immigrants_total); r.pod(emigrants_total);
   r.pod(appeal); r.pod(happy_sum_today); r.pod(happy_count_today); r.pod(avg_happiness);
+  r.expect("TRAD");
+  r.pod(econ.money);
+  r.vec(econ.price);
+  r.vec(econ.imported_today); r.vec(econ.exported_today); r.vec(econ.imported_yday); r.vec(econ.exported_yday);
+  const u32 nr = r.pod<u32>();
+  if (nr != routes.size()) throw std::runtime_error("save: trade partner list changed");
+  for (auto& rt : routes) {
+    r.pod(rt.open); r.pod(rt.available); r.pod(rt.next_visit); r.pod(rt.ship_until); r.pod(rt.ship_at); r.pod(rt.caravan_traded);
+    r.vec(rt.bought);
+    r.vec(rt.sold);
+  }
+  r.vec(trade_mode);
+  r.vec(trade_level);
+  r.pod(visitors);
   r.expect("END.");
 }
 

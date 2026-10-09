@@ -325,6 +325,22 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
               [](const HousingTierDef& a, const HousingTierDef& b) { return a.line != b.line ? a.line < b.line : a.tier < b.tier; });
     (void)hp;
   }
+  // Trade partners
+  {
+    Merged mt = load_kind(data_root, mods, "trade_partners.json");
+    for (auto& id : mt.order) {
+      const json& j = mt.by_id[id];
+      TradePartnerDef t;
+      t.id = id;
+      t.name = get_or<std::string>(j, "name", id);
+      t.sea = get_or<std::string>(j, "route", "land") == "sea";
+      t.open_cost = get_or<i32>(j, "open_cost", 0);
+      t.interval_days = get_or<u16>(j, "interval_days", 5);
+      t.buys = goods_list(mt, id, j, "buys");
+      t.sells = goods_list(mt, id, j, "sells");
+      d.partners.push_back(std::move(t));
+    }
+  }
   // Names
   {
     fs::path np = fs::path(data_root) / "defs" / "names.json";

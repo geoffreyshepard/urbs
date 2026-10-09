@@ -33,6 +33,7 @@ class WorldView {
   render::Sprite people_[static_cast<int>(sim::CitizenClass::Count)][4][4];
   render::Sprite child_[4][4];
   render::Sprite scaffold_[4], foundation_;
+  render::Sprite ship_[4];
 };
 
 }  // namespace urbs::game

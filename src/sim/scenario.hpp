@@ -25,6 +25,8 @@ struct ScenarioSpec {
   std::vector<std::pair<std::string, u32>> expect_produced;  // good id -> min produced yesterday+today  // building id -> minimum active count
   // Scripted orders: commands pushed before the given tick.
   std::vector<std::pair<Tick, Command>> orders;
+  bool industry = false;  // town generator: add workshops, forum, trade post
+  i64 min_treasury_end = -1000000000;
   std::string json;  // raw scenario text (for scripted scenarios)
 };
 

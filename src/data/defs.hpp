@@ -88,6 +88,14 @@ struct HousingTierDef {
   std::vector<HousingReq> reqs;
 };
 
+struct TradePartnerDef {
+  std::string id, name;
+  bool sea = false;
+  i32 open_cost = 0;
+  u16 interval_days = 5;
+  std::vector<GoodAmount> buys, sells;  // amount = yearly cap
+};
+
 struct NameLists {
   std::vector<std::string> praenomina, nomina, cognomina, slave;
 };
@@ -128,6 +136,7 @@ struct Defs {
   std::vector<ServiceDef> services;
   std::vector<BuildingDef> buildings;
   std::vector<HousingTierDef> housing;  // ordered by line, tier
+  std::vector<TradePartnerDef> partners;
   NameLists names;
   [[nodiscard]] const HousingTierDef* tier(u8 line, u8 t) const {
     for (const auto& h : housing)

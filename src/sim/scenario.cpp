@@ -48,6 +48,7 @@ ScenarioSpec load_scenario(const std::string& path) {
   s.workplaces = j.value("workplaces", 0u);
   s.markets = j.value("markets", 0u);
   s.house_capacity = j.value("house_capacity", 0u);
+  s.industry = j.value("industry", false);
   s.ticks = j.value("ticks", 0ull);
   if (j.contains("test")) {
     auto& t = j["test"];
@@ -56,6 +57,7 @@ ScenarioSpec load_scenario(const std::string& path) {
     s.expect_max_alloc_violations = t.value("max_alloc_violations", 0xFFFFFFFFu);
     if (t.contains("stock"))
       for (auto& [k, v] : t["stock"].items()) s.expect_stock.emplace_back(k, v.get<u32>());
+    s.min_treasury_end = t.value("min_treasury", s.min_treasury_end);
     if (t.contains("produced"))
       for (auto& [k, v] : t["produced"].items()) s.expect_produced.emplace_back(k, v.get<u32>());
     if (t.contains("active"))
@@ -90,6 +92,11 @@ bool check_expectations(const World& w, const ScenarioSpec& spec) {
       std::fprintf(stderr, "FAIL: stock of %s is %llu < %u\n", gid.c_str(), static_cast<unsigned long long>(total), minv);
       ok = false;
     }
+  }
+  if (w.econ.treasury < spec.min_treasury_end) {
+    std::fprintf(stderr, "FAIL: treasury %lld < %lld\n", static_cast<long long>(w.econ.treasury),
+                 static_cast<long long>(spec.min_treasury_end));
+    ok = false;
   }
   for (const auto& [gid, minv] : spec.expect_produced) {
     GoodId g = w.defs->good(gid);
@@ -171,6 +178,7 @@ void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
       for (u32 k = 0; k < count; ++k) {
         HouseholdId hh = w.create_household(home, CitizenClass::Pleb);
         w.households[hh].food = static_cast<u16>(h.value("food", 8u));
+        w.households[hh].savings = h.value("savings", 100);
         for (u32 m = 0; m < members; ++m) w.spawn_citizen(CitizenClass::Pleb, home, hh, m < 2 ? 20 + r.below(20) : 15 + r.below(30));
       }
     }
@@ -226,22 +234,37 @@ void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
   const char* small_cycle[] = {"house_plot", "house_plot", "house_plot", "well", "house_plot", "house_plot",
                                "shrine",     "house_plot", "house_plot", "well", "latrina",    "house_plot",
                                "house_plot", "tavern",     "house_plot", "well", "house_plot", "physician"};
-  const char* big_cycle[] = {"market", "granary", "warehouse", "bakery", "mill", "market", "temple", "lumber_camp"};
+  const char* big_plain[] = {"market", "granary", "warehouse", "bakery", "mill", "market", "temple", "lumber_camp"};
+  const char* big_ind[] = {"market", "granary", "forum",    "potter",   "clay_pit", "trade_post", "potter", "bakery",
+                           "mill",   "clay_pit", "warehouse", "temple",  "forum",    "potter",     "weaver", "balneum",
+                           "market", "clay_pit", "potter",    "granary", "lumber_camp", "forum",   "sawmill", "school"};
+  const char** big_cycle = s.industry ? big_ind : big_plain;
+  const u32 big_n = s.industry ? 24 : 8;
   u32 sc = 0, bc = 0;
   for (i32 by = 0; by < blocks; ++by)
     for (i32 bx = 0; bx < blocks; ++bx) {
       const i32 ox = x0 + bx * sp + 1, oy = y0 + by * sp + 1;
       const bool outer = bx == 0 || by == 0 || bx == blocks - 1 || by == blocks - 1;
       if (outer && (bx + by) % 2 == 0) {
-        w.place_building(B((bx + by) % 4 == 0 ? "wheat_farm" : "vegetable_garden"), ox, oy, 8, 8, true);
+        const char* farm = (bx + by) % 4 == 0 ? "wheat_farm" : "vegetable_garden";
+        if (s.industry && (bx * 3 + by) % 7 == 0) farm = "sheep_farm";
+        w.place_building(B(farm), ox, oy, 8, 8, true);
         continue;
       }
       if ((bx * 7 + by * 3) % 5 == 0) {
         const i32 lx[4] = {0, 5, 0, 5}, ly[4] = {0, 0, 5, 5};
         for (int k = 0; k < 4; ++k) {
-          BuildingDefId d = B(big_cycle[bc++ % 8]);
+          BuildingDefId d = B(big_cycle[bc++ % big_n]);
           const auto& bd = defs.b(d);
-          w.place_building(d, ox + lx[k], oy + ly[k], bd.w, bd.h, true);
+          if (bd.w > 3 || bd.h > 3) {  // too big for a 3x3 lot: use a market instead
+            d = B("market");
+          }
+          const auto& bd2 = defs.b(d);
+          if (bd2.resource)
+            for (i32 ty = oy + ly[k]; ty < oy + ly[k] + bd2.h; ++ty)
+              for (i32 tx = ox + lx[k]; tx < ox + lx[k] + bd2.w; ++tx)
+                w.map.resource[static_cast<size_t>(w.map.idx(tx, ty))] = static_cast<Resource>(bd2.resource);
+          w.place_building(d, ox + lx[k], oy + ly[k], bd2.w, bd2.h, true);
         }
         continue;
       }
@@ -275,6 +298,7 @@ void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
     HouseholdId hh = w.create_household(h, CitizenClass::Pleb);
     w.households[hh].food = 12;
     w.households[hh].water = 4;
+    w.households[hh].savings = 120;
     const u32 size = 3 + r.below(2);
     for (u32 m = 0; m < size && spawned < s.citizens; ++m, ++spawned)
       w.spawn_citizen(CitizenClass::Pleb, h, hh, m < 2 ? 18 + r.below(30) : r.below(18));
@@ -284,12 +308,46 @@ void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
 }
 }  // namespace
 
+namespace {
+void setup_trade(World& w, const data::Defs& defs, const ScenarioSpec& s) {
+  json j = json::parse(s.json, nullptr, true, true);
+  if (!j.contains("trade")) return;
+  auto& t = j["trade"];
+  if (t.contains("partners")) {
+    for (auto& r : w.routes) r.available = 0;
+    for (auto& p : t["partners"])
+      for (size_t k = 0; k < defs.partners.size(); ++k)
+        if (defs.partners[k].id == p.get<std::string>()) w.routes[k].available = 1;
+  }
+  if (t.contains("open"))
+    for (auto& p : t["open"])
+      for (size_t k = 0; k < defs.partners.size(); ++k)
+        if (defs.partners[k].id == p.get<std::string>()) {
+          w.routes[k].open = 1;
+          w.routes[k].available = 1;
+          w.routes[k].next_visit = kTicksPerHour * 8;
+        }
+  auto set = [&](const char* key, u8 mode) {
+    if (!t.contains(key)) return;
+    for (auto& [g, lvl] : t[key].items()) {
+      GoodId gid = defs.good(g);
+      if (!gid) throw std::runtime_error("scenario trade: unknown good " + g);
+      w.trade_mode[gid.v] = mode;
+      w.trade_level[gid.v] = lvl.get<u16>();
+    }
+  };
+  set("import", 1);
+  set("export", 2);
+}
+}  // namespace
+
 void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   generate_map(w.map, s.map);
   if (s.generator == "stress_city") build_grid_city(w, defs, s);
   w.init(s.world, defs);
   if (s.generator == "scripted") setup_scripted(w, defs, s);
   if (s.generator == "town") setup_town(w, defs, s);
+  setup_trade(w, defs, s);
   if (s.generator != "stress_city") return;
 
   const BuildingDefId house = defs.building("house_plot");
@@ -359,6 +417,7 @@ void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
     HouseholdId hh = w.create_household(h, CitizenClass::Pleb);
     if (!hh) break;
     w.households[hh].food = 10;
+    w.households[hh].savings = 100;
     // Nearest workplaces to this house.
     BuildingId near[4];
     i32 nd[4] = {1 << 30, 1 << 30, 1 << 30, 1 << 30};

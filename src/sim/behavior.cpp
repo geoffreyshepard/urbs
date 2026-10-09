@@ -48,6 +48,12 @@ void World::decide(u32 i) {
     if (C.activity[i] == Activity::Visit && lb.visitors > 0) --lb.visitors;
   }
   if (C.activity[i] == Activity::Leave) return;
+  if (C.flags[i] & kFlagVisitor) {
+    // Traders: after trading (or if lost), walk back to the edge and leave.
+    C.reason[i] = Reason::None;
+    request_walk(i, current_tile(i), BuildingId{}, entry_tile, Activity::Leave);
+    return;
+  }
   const u32 h = hour_of_day(now);
   const i32 here = current_tile(i);
   BuildingId home = C.home[i];
@@ -171,7 +177,7 @@ void World::start_activity(u32 i, Activity a) {
   C.next[i] = Activity::None;
   const size_t nb = static_cast<size_t>(i) * kNeedCount;
   auto rate = [&](Need n, i8 r) { C.need_rate[nb + static_cast<size_t>(n)] = r; };
-  rate(Need::Food, -6);
+  rate(Need::Food, -5);
   rate(Need::Water, -8);
   rate(Need::Rest, -7);
   rate(Need::Hygiene, -4);
@@ -203,6 +209,16 @@ void World::start_activity(u32 i, Activity a) {
       rate(Need::Food, -7);
       haul_step(i);
       return;
+    case Activity::Trade: {
+      // The first trader of the caravan to arrive does the exchange for this visit.
+      const u32 p = C.task[i];
+      if (p < routes.size() && !routes[p].caravan_traded && C.loc[i].valid()) {
+        trade_exchange(p, C.loc[i]);
+        routes[p].caravan_traded = 1;
+      }
+      end = now + kTicksPerHour;
+      break;
+    }
     case Activity::Shop:
       if (hh) {
         household_shop(i, C.loc[i]);
@@ -246,7 +262,7 @@ void World::start_activity(u32 i, Activity a) {
       break;
     }
     case Activity::Home: {
-      if (C.need(i, Need::Food, now) < 200) household_eat(i);
+      if (C.need(i, Need::Food, now) < 180) household_eat(i);
       if (hh && hh->water > 0 && C.need(i, Need::Water, now) < 200) {
         --hh->water;
         C.set_need(i, Need::Water, 255);

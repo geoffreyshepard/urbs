@@ -42,6 +42,13 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   labor_head_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
   labor_fill_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
   econ.init(static_cast<u32>(d.goods.size()), cfg.max_buildings, 4096);
+  routes.assign(d.partners.size(), TradeRouteState{});
+  for (auto& r : routes) {
+    r.bought.assign(d.goods.size(), 0);
+    r.sold.assign(d.goods.size(), 0);
+  }
+  trade_mode.assign(d.goods.size(), 0);
+  trade_level.assign(d.goods.size(), 50);
   for (auto& v : need_services) v.clear();
   for (u16 sv = 0; sv < d.services.size(); ++sv)
     if (d.services[sv].need != data::NeedKind::None) need_services[static_cast<int>(d.services[sv].need)].push_back(ServiceId{sv});
@@ -495,17 +502,49 @@ void World::apply_commands() {
         const auto& bd = defs->b(d);
         const i64 area = static_cast<i64>(c.x1) * c.y1, base = static_cast<i64>(bd.w) * bd.h;
         const i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
-        if (!pay(cost)) break;
+        if (!pay(cost, econ::Money::Construction)) break;
         place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
         break;
       }
       case CmdType::PlaceRoad: {
         const i64 len = std::max(std::abs(c.x1 - c.x0), std::abs(c.y1 - c.y0)) + 1;
-        if (!pay(len * (static_cast<Road>(c.def) == Road::Paved ? 4 : 1))) break;
+        if (!pay(len * (static_cast<Road>(c.def) == Road::Paved ? 4 : 1), econ::Money::Construction)) break;
         place_road_line(c.x0, c.y0, c.x1, c.y1, static_cast<Road>(c.def));
         break;
       }
       case CmdType::Demolish: demolish(c.x0, c.y0, c.x1, c.y1); break;
+      case CmdType::OpenRoute:
+        if (c.def < routes.size() && !routes[c.def].open && routes[c.def].available &&
+            pay(defs->partners[c.def].open_cost, econ::Money::Other)) {
+          routes[c.def].open = 1;
+          routes[c.def].next_visit = now + kTicksPerHour * 4;
+        }
+        break;
+      case CmdType::SetTrade:
+        if (c.def < trade_mode.size()) {
+          trade_mode[c.def] = static_cast<u8>(c.value);
+          trade_level[c.def] = static_cast<u16>(std::max(0, c.x0));
+        }
+        break;
+      case CmdType::SetPolicy: {
+        const i32 v = c.value;
+        switch (static_cast<PolicyId>(c.def)) {
+          case PolicyId::Wage: policy.wage = static_cast<u16>(std::clamp(v, 0, 100)); break;
+          case PolicyId::TaxPatrician: policy.tax_rate[0] = static_cast<u8>(std::clamp(v, 0, 50)); break;
+          case PolicyId::TaxEques: policy.tax_rate[1] = static_cast<u8>(std::clamp(v, 0, 50)); break;
+          case PolicyId::TaxPleb: policy.tax_rate[2] = static_cast<u8>(std::clamp(v, 0, 50)); break;
+          case PolicyId::TaxLibertus: policy.tax_rate[3] = static_cast<u8>(std::clamp(v, 0, 50)); break;
+          case PolicyId::Rations: policy.rations = static_cast<u8>(std::clamp(v, 0, 2)); break;
+          case PolicyId::SlaveTreatment: policy.slave_treatment = static_cast<u8>(std::clamp(v, 0, 2)); break;
+          case PolicyId::Manumission: policy.manumission = static_cast<u8>(std::clamp(v, 0, 2)); break;
+          case PolicyId::Curfew: policy.curfew = static_cast<u8>(v != 0); break;
+          case PolicyId::Conscription: policy.conscription = static_cast<u8>(std::clamp(v, 0, 2)); break;
+          case PolicyId::MaxInsula: policy.max_insula_tier = static_cast<u8>(std::clamp(v, 2, 4)); break;
+          case PolicyId::Immigration: policy.immigration_open = static_cast<u8>(v != 0); break;
+          default: break;
+        }
+        break;
+      }
       default: break;
     }
   }
@@ -554,6 +593,7 @@ void World::tick() {
     immigrants_today = emigrants_today = 0;
   }
   if (now % kTicksPerHour == 20) immigration_hourly();
+  if (now % kTicksPerHour == 33) trade_daily();
   {
     // Staggered daily passes: each citizen and each building once per game day.
     const u32 tod = tick_of_day(now);

@@ -1,0 +1,42 @@
+{
+  "name": "economy_3000",
+  "map": {
+    "size": 224,
+    "seed": 21,
+    "flat": true,
+    "river": false
+  },
+  "world": {
+    "max_citizens": 6000,
+    "max_buildings": 2048,
+    "max_households": 2500
+  },
+  "generator": "town",
+  "industry": true,
+  "houses": 420,
+  "citizens": 2000,
+  "trade": {
+    "open": [
+      "latin_villages",
+      "rome"
+    ],
+    "export": {
+      "pottery": 200,
+      "bread": 150,
+      "clothing": 80,
+      "planks": 60,
+      "flour": 150,
+      "wheat": 600,
+      "amphorae": 100
+    },
+    "import": {
+      "tools": 10
+    }
+  },
+  "ticks": 192000,
+  "test": {
+    "min_citizens": 1200,
+    "max_alloc_violations": 0,
+    "min_treasury": -40000
+  }
+}

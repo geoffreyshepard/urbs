@@ -38,7 +38,20 @@ struct WorldConfig {
 };
 
 // ---- Commands: the only way the outside world mutates the sim (applied at tick start) -----------
-enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, Debug };
+enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, Debug };
+// SetPolicy ids (Command::def): value in Command::value.
+enum class PolicyId : u16 { Wage, TaxPatrician, TaxEques, TaxPleb, TaxLibertus, Rations, SlaveTreatment, Manumission,
+                            Curfew, Conscription, MaxInsula, Immigration, Count };
+
+struct TradeRouteState {
+  u8 open = 0;
+  u8 available = 1;    // offered in this scenario
+  Tick next_visit = 0;
+  Tick ship_until = 0;  // sea: ship docked until this tick
+  BuildingId ship_at;
+  u8 caravan_traded = 1;  // land: set once the current caravan has exchanged goods
+  std::vector<u16> bought, sold;  // per good, this year
+};
 struct Command {
   CmdType type = CmdType::Debug;
   u16 def = 0;    // building def / road type / policy id
@@ -60,8 +73,8 @@ inline constexpr const char* sector_name(Sector s) {
 struct Policy {
   u8 sector_priority[kSectorCount] = {1, 2, 4, 3, 4, 5, 5};  // 1 = highest
   u8 tax_rate[6] = {10, 8, 6, 6, 0, 0};                      // percent of income per class
-  u16 wage = 4;                                              // denarii per worker per day (public jobs)
-  u8 rations = 0;        // grain dole (annona) for the poor
+  u16 wage = 5;                                              // denarii per worker per day (paid by the city)
+  u8 rations = 1;        // grain dole (annona): 0 none, 1 staples free for the poor, 2 staples free for all
   u8 slave_treatment = 1;  // 0 harsh, 1 fair, 2 kind
   u8 manumission = 1;      // 0 forbidden, 1 occasional, 2 encouraged
   u8 curfew = 0;
@@ -113,6 +126,11 @@ struct World {
   std::vector<i8> good_food_slot, good_hh_slot;  // per good: slot index or -1
 
   Policy policy;
+  std::vector<TradeRouteState> routes;  // one per data::TradePartnerDef
+  std::vector<u8> trade_mode;           // per good: 0 none, 1 import, 2 export
+  std::vector<u16> trade_level;         // import below / export above this city stock
+  u32 visitors = 0;                     // traders currently in the city
+  [[nodiscard]] u32 population() const { return citizens.ids.count() - visitors; }
   std::vector<Alert> alerts;  // newest last; capped
   i32 entry_tile = -1;        // where immigrants arrive and emigrants leave
   u32 immigrants_today = 0, emigrants_today = 0, immigrants_total = 0, emigrants_total = 0;
@@ -167,7 +185,14 @@ struct World {
   void request_walk(u32 i, i32 from_tile, BuildingId to, i32 to_tile, Activity next);
 
   // --- Economy (sim/economy.cpp) ---
-  bool pay(i64 denarii);
+  bool pay(i64 denarii, econ::Money category = econ::Money::Construction);
+  void earn(i64 denarii, econ::Money category);
+  void spend(i64 denarii, econ::Money category);  // may go into debt
+  // Partner price for one unit in tenths of a denarius. buying = city buys from partner.
+  [[nodiscard]] u32 trade_price(u32 partner, GoodId g, bool buying) const;
+  void trade_daily();
+  void trade_exchange(u32 partner, BuildingId post);
+  [[nodiscard]] BuildingId nearest_trade_post(bool sea, i32 near_tile) const;
   [[nodiscard]] bool is_porter_job(BuildingId b) const;
   void cancel_task(u32 task, bool goods_lost);
   void household_eat(u32 citizen);

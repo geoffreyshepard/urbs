@@ -45,6 +45,7 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs) {
     for (int f = 0; f < 4; ++f) child_[d][f] = atlas.get("people/child_" + std::string(kDirs[d]) + "_" + std::to_string(f));
   for (int v = 0; v < 4; ++v) scaffold_[v] = atlas.find("fx/scaffold_" + std::to_string(v));
   foundation_ = atlas.find("fx/foundation");
+  for (int d = 0; d < 4; ++d) ship_[d] = atlas.find(std::string("fx/ship_") + kDirs[d]);
   dot = atlas.get("fx/dot");
   white = atlas.get("fx/white");
 }
@@ -145,6 +146,23 @@ void WorldView::draw(const sim::World& w, render::Renderer& r, f32 alpha) {
     const Recti br{b.x * sim::kTilePx, b.y * sim::kTilePx - 96, b.w * sim::kTilePx, b.h * sim::kTilePx + 96};
     if (vis.intersects(br)) draw_building(w, r, b, map_h);
   });
+
+  // Ships docked at harbors.
+  for (const auto& rs : w.routes) {
+    if (rs.ship_until <= w.now || !rs.ship_at.valid() || !w.buildings.alive(rs.ship_at)) continue;
+    const auto& hb = w.buildings[rs.ship_at];
+    // Moor on the first water tile next to the harbor.
+    for (i32 ty = hb.y - 1; ty <= hb.y + hb.h; ++ty)
+      for (i32 tx = hb.x - 1; tx <= hb.x + hb.w; ++tx) {
+        if (!w.map.in_bounds(tx, ty) || !sim::terrain_water(w.map.terrain[static_cast<size_t>(w.map.idx(tx, ty))])) continue;
+        const Sprite& s = ship_[1];
+        if (s.valid)
+          r.push_sprite(s, (static_cast<f32>(tx) + 0.5f) * T, (static_cast<f32>(ty) + 1.0f) * T,
+                        render::depth_for_foot((static_cast<f32>(ty) + 1.0f) * T, map_h));
+        ty = hb.y + hb.h + 1;
+        break;
+      }
+  }
 
   const auto& C = w.citizens;
   for (u32 i = 0; i < C.ids.high_water(); ++i) {

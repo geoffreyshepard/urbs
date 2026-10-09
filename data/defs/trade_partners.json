@@ -1,0 +1,12 @@
+[
+  {"id": "latin_villages", "name": "Latin villages", "route": "land", "open_cost": 200, "interval_days": 4, "buys": {"pottery": 400, "bread": 600, "clothing": 200, "planks": 300}, "sells": {"wheat": 1200, "wood": 800, "clay": 600, "wool": 400}},
+  {"id": "rome", "name": "Rome", "route": "land", "open_cost": 500, "interval_days": 3, "buys": {"pottery": 800, "olive_oil": 600, "wine": 600, "bricks": 800, "cut_stone": 400, "tools": 300, "clothing": 400}, "sells": {"tools": 400, "pottery": 400, "clothing": 300, "furniture": 200, "wine": 300, "iron": 300}},
+  {"id": "etruria", "name": "Etruria", "route": "land", "open_cost": 400, "interval_days": 5, "buys": {"wheat": 1000, "olive_oil": 400, "salt": 400}, "sells": {"iron": 600, "bricks": 400, "wine": 400, "marble": 100}},
+  {"id": "carthage", "name": "Carthage", "route": "sea", "open_cost": 800, "interval_days": 6, "buys": {"olive_oil": 800, "wine": 800, "pottery": 600, "weapons": 200}, "sells": {"wheat": 2000, "garum": 400, "dye": 200, "glassware": 100}},
+  {"id": "massalia", "name": "Massalia", "route": "sea", "open_cost": 700, "interval_days": 6, "buys": {"wheat": 1200, "wine": 600, "garum": 300, "cut_stone": 400}, "sells": {"salt": 600, "clothing": 400, "silver": 200, "tools": 300}},
+  {"id": "alexandria", "name": "Alexandria", "route": "sea", "open_cost": 1500, "interval_days": 8, "buys": {"olive_oil": 800, "wine": 800, "silver": 300, "marble": 300}, "sells": {"wheat": 3000, "papyrus": 600, "glassware": 400, "jewelry": 100, "dye": 300}},
+  {"id": "hispania", "name": "Hispania", "route": "sea", "open_cost": 900, "interval_days": 7, "buys": {"wine": 600, "pottery": 600, "tools": 300, "clothing": 300}, "sells": {"silver": 400, "iron": 600, "olive_oil": 800, "garum": 400}},
+  {"id": "gallia", "name": "Gallia", "route": "land", "open_cost": 800, "interval_days": 6, "buys": {"wine": 1200, "olive_oil": 600, "pottery": 600, "jewelry": 100}, "sells": {"wool": 800, "meat": 600, "wood": 1200, "iron": 400}},
+  {"id": "greece", "name": "Greece", "route": "sea", "open_cost": 1000, "interval_days": 7, "buys": {"wheat": 1000, "olive_oil": 400, "silver": 200}, "sells": {"marble": 600, "statues": 100, "scrolls": 200, "wine": 600, "furniture": 200}},
+  {"id": "germania", "name": "Germania", "route": "land", "open_cost": 900, "interval_days": 8, "buys": {"wine": 800, "weapons": 200, "jewelry": 100, "glassware": 100}, "sells": {"wood": 1600, "meat": 800, "wool": 600}}
+]

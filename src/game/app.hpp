@@ -54,7 +54,8 @@ class App {
   sim::ScenarioSpec spec_;
   WorldView view_;
   Tools tools_;
-  bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = true;
+  bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = true, show_finance_ = false,
+       show_trade_ = false;
   Selection sel_;
   sim::MapGenParams gen_;
   int speed_ = 1;  // 0 pause, 1, 2, 4 (index into kSpeeds)

@@ -19,13 +19,6 @@ int manhattan_tiles(const TileMap& m, i32 a, i32 b) {
 
 }  // namespace
 
-bool World::pay(i64 d) {
-  if (d <= 0) return true;
-  if (econ.treasury < d) return false;
-  econ.treasury -= d;
-  return true;
-}
-
 bool World::is_porter_job(BuildingId id) const {
   if (!buildings.alive(id)) return false;
   const Building& b = buildings[id];
@@ -53,15 +46,20 @@ void World::household_eat(u32 i) {
   auto& C = citizens;
   if (!C.household[i].valid()) return;
   Household& h = households[C.household[i]];
-  if (h.food > 0) {
+  if (h.meals > 0) {
+    --h.meals;
+  } else if (h.food > 0) {
     --h.food;
+    h.meals = 1;
   } else {
     int best = -1;
     for (int k = 0; k < 8; ++k)
       if (h.fstock[k] > 0 && (best < 0 || h.fstock[k] > h.fstock[best])) best = k;
     if (best < 0) return;  // nothing to eat
     --h.fstock[best];
-    ++econ.consumed_today[food_slots[static_cast<size_t>(best)].v];
+    const GoodId g = food_slots[static_cast<size_t>(best)];
+    ++econ.consumed_today[g.v];
+    h.meals = static_cast<u8>(std::max(1, 2 * static_cast<int>(defs->goods[g.v].nutrition)) - 1);
   }
   C.set_need(i, Need::Food, 255);
 }
@@ -74,10 +72,22 @@ void World::household_shop(u32 i, BuildingId market) {
   if (inv == econ::kNoInv) return;
   const u16 per_kind = static_cast<u16>(std::max<u32>(2, h.members * 3u));
   u32 bought = 0;
+  i64 spent_tenths = 0;
+  // Units affordable at the market price (tenths of a denarius); savings never go negative.
+  // Annona: staples (food worth at most 2 denarii) are free for poor households, or for all.
+  const bool dole = policy.rations == 2 || (policy.rations == 1 && h.savings < 10);
+  auto afford = [&](GoodId g, u16 want) -> u16 {
+    if (dole && defs->goods[g.v].food && defs->goods[g.v].base_price <= 2) return want;
+    const u32 unit = std::max<u32>(1, econ.price[g.v]);
+    const i64 budget = static_cast<i64>(h.savings) * 10 - spent_tenths;
+    if (budget <= 0) return 0;
+    return static_cast<u16>(std::min<i64>(want, budget / unit));
+  };
   for (size_t k = 0; k < food_slots.size() && k < 8; ++k) {
     GoodId g = food_slots[k];
     if (h.fstock[k] >= per_kind) continue;
-    u16 got = econ.take(inv, g, std::min<u16>(econ.available(inv, g), static_cast<u16>(per_kind - h.fstock[k])));
+    u16 got = econ.take(inv, g, afford(g, std::min<u16>(econ.available(inv, g), static_cast<u16>(per_kind - h.fstock[k]))));
+    if (!(dole && defs->goods[g.v].base_price <= 2)) spent_tenths += static_cast<i64>(got) * econ.price[g.v];
     h.fstock[k] = static_cast<u16>(h.fstock[k] + got);
     bought += got;
     if (got && !C.carrying[i]) {
@@ -89,11 +99,15 @@ void World::household_shop(u32 i, BuildingId market) {
     GoodId g = hh_goods[k];
     const u16 want = static_cast<u16>(std::max<u32>(1, h.members / 2u));
     if (h.goods[k] >= want) continue;
-    u16 got = econ.take(inv, g, std::min<u16>(econ.available(inv, g), static_cast<u16>(want - h.goods[k])));
+    u16 got = econ.take(inv, g, afford(g, std::min<u16>(econ.available(inv, g), static_cast<u16>(want - h.goods[k]))));
+    spent_tenths += static_cast<i64>(got) * econ.price[g.v];
     h.goods[k] = static_cast<u16>(h.goods[k] + got);
     bought += got;
   }
   (void)bought;
+  const i64 paid = (spent_tenths + 9) / 10;
+  h.savings -= static_cast<i32>(std::min<i64>(paid, h.savings));
+  earn(paid, econ::Money::Sales);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -310,8 +324,9 @@ void World::match_good(GoodId g) {
       for (const auto& o : defs->recipes[d.recipe.v].outputs)
         if (o.good == g) supplies = true;
     if (supplies && econ.available(b.inv, g) > 0) scratch_u32_.push_back(bi);
-    if (storage && b.state == BState::Active && econ.accept[static_cast<size_t>(b.inv) * econ.goods + g.v] &&
-        econ.free_space(b.inv) > 0)
+    // Sinks for producer output: warehouses/granaries/stockpiles (trade posts only stage trade goods).
+    if (d.kind == BuildingKind::Storage && b.state == BState::Active &&
+        econ.accept[static_cast<size_t>(b.inv) * econ.goods + g.v] && econ.free_space(b.inv) > 0)
       scratch_u32b_.push_back(bi);
   }
   u32 made = 0;
@@ -374,13 +389,18 @@ void World::match_good(GoodId g) {
     } else if (b.state == BState::Active && d.kind == BuildingKind::Market) {
       want = econ.target[static_cast<size_t>(b.inv) * econ.goods + g.v];
       prio = 1;
+    } else if (b.state == BState::Active && d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2 &&
+               econ.city_stock[g.v] > trade_level[g.v]) {
+      want = 40;  // stage export goods at the trade post
+      prio = 0;
     }
     if (want == 0) continue;
     const u32 have = econ.amt(b.inv, g) + econ.rin(b.inv, g);
     if (have >= want) continue;
     if (econ.free_space(b.inv) == 0) continue;
     // Markets restock only from storage, never directly from workshops' raw output piles.
-    u32 si = nearest_supplier(bi, false);
+    // Trade posts stage exports only from other storage (never from themselves or other posts).
+    u32 si = nearest_supplier(bi, d.kind == BuildingKind::TradePost);
     if (si == kNoIndex) continue;
     u16 amount = static_cast<u16>(std::min<u32>({want - have, econ.available(buildings.b[si].inv, g),
                                                  econ::kPorterCarry, econ.free_space(b.inv)}));
@@ -501,6 +521,12 @@ void World::haul_step(u32 i) {
 }
 
 void World::daily_update() {
+  econ.money.roll_day();
+  if (day_of_year(now) == 0) econ.money.roll_year();
+  std::swap(econ.imported_today, econ.imported_yday);
+  std::swap(econ.exported_today, econ.exported_yday);
+  std::fill(econ.imported_today.begin(), econ.imported_today.end(), 0u);
+  std::fill(econ.exported_today.begin(), econ.exported_today.end(), 0u);
   std::swap(econ.produced_today, econ.produced_yday);
   std::swap(econ.consumed_today, econ.consumed_yday);
   std::fill(econ.produced_today.begin(), econ.produced_today.end(), 0u);
@@ -512,6 +538,16 @@ void World::daily_update() {
     if (k != BuildingKind::Storage && k != BuildingKind::Market && k != BuildingKind::TradePost) return;
     for (u32 g = 0; g < econ.goods; ++g) econ.city_stock[g] += econ.amount[static_cast<size_t>(b.inv) * econ.goods + g];
   });
+  // Market prices follow scarcity: stock measured in days of yesterday's consumption.
+  for (u32 g = 0; g < econ.goods; ++g) {
+    const u32 base = static_cast<u32>(defs->goods[g].base_price) * 10;
+    const u32 use = std::max<u32>(1, econ.consumed_yday[g]);
+    const u32 days_x10 = econ.city_stock[g] * 10 / use;  // 30 = three days of stock
+    i32 pct = 150 - static_cast<i32>(std::min<u32>(days_x10, 90)) * 100 / 90;  // 150% when empty, 50% at 9+ days
+    if (econ.consumed_yday[g] == 0) pct = 100;
+    econ.price[g] = static_cast<u16>(std::max<u32>(1, base * static_cast<u32>(std::clamp(pct, 60, 200)) / 100));
+  }
+  if (econ.treasury < 0) add_alert(AlertKind::TreasuryLow, BuildingId{});
 }
 
 }  // namespace urbs::sim

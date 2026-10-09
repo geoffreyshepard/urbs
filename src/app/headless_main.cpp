@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
   u64 decisions = 0, path_req = 0, arrivals = 0;
   u32 max_walking = 0;
   double sys_max[8] = {}, sys_sum[8] = {};
+  u64 fallbacks = 0, failed_paths = 0;
   for (u64 t = 0; t < ticks; ++t) {
     sim::push_due_orders(*world, spec);
     world->tick();
@@ -76,6 +77,8 @@ int main(int argc, char** argv) {
     path_req += world->stats.path_requests;
     arrivals += world->stats.arrivals;
     max_walking = std::max(max_walking, world->stats.walking);
+    fallbacks += world->paths.stats().fallbacks;
+    failed_paths += world->paths.stats().failed;
     for (int k = 0; k < 8; ++k) {
       sys_max[k] = std::max(sys_max[k], world->stats.sys_ms[k]);
       sys_sum[k] += world->stats.sys_ms[k];
@@ -108,6 +111,8 @@ int main(int argc, char** argv) {
       static_cast<unsigned long long>(world->sched.dropped()));
   if (verbose) {
     const char* names[8] = {"commands", "services", "daily", "labor", "matcher", "events", "paths", "-"};
+    std::printf("path fallbacks %llu, failed %llu\n", static_cast<unsigned long long>(fallbacks),
+                static_cast<unsigned long long>(failed_paths));
     std::printf("system ms (avg / max):");
     for (int k = 0; k < 7; ++k) std::printf(" %s %.3f/%.2f", names[k], sys_sum[k] / static_cast<double>(ticks), sys_max[k]);
     std::printf("\n");
@@ -147,6 +152,46 @@ int main(int argc, char** argv) {
       for (int k = 0; k < 32; ++k)
         if (unmet[k]) std::printf(" #%d=%u", k, unmet[k]);
       std::printf("\n");
+    }
+    std::printf("money yesterday:");
+    for (int k = 0; k < econ::kMoneyCount; ++k)
+      if (world->econ.money.yesterday[k])
+        std::printf(" %s %lld", econ::money_name(static_cast<econ::Money>(k)),
+                    static_cast<long long>(world->econ.money.yesterday[k]));
+    std::printf("  treasury %lld\n", static_cast<long long>(world->econ.treasury));
+    std::printf("goods (stock/made/used/imp/exp/price):");
+    for (u32 g = 0; g < world->econ.goods; ++g)
+      if (world->econ.city_stock[g] || world->econ.produced_yday[g] || world->econ.consumed_yday[g])
+        std::printf(" %s %u/%u/%u/%u/%u/%.1f", defs.goods[g].id.c_str(), world->econ.city_stock[g],
+                    world->econ.produced_yday[g], world->econ.consumed_yday[g], world->econ.imported_yday[g],
+                    world->econ.exported_yday[g], world->econ.price[g] / 10.0);
+    std::printf("\n");
+    {
+      u64 sav = 0, nh = 0, poor = 0, nofood = 0;
+      for (u32 k = 0; k < world->households.ids.high_water(); ++k)
+        if (world->households.ids.alive_index(k)) {
+          const auto& h = world->households.h[k];
+          sav += static_cast<u64>(std::max(0, h.savings));
+          ++nh;
+          if (h.savings < 5) ++poor;
+          if (world->household_food(h) == 0) ++nofood;
+        }
+      for (size_t p = 0; p < world->routes.size(); ++p)
+      if (world->routes[p].open)
+      {
+        u32 sold = 0, bought = 0;
+        for (u32 g = 0; g < world->econ.goods; ++g) {
+          sold += world->routes[p].sold[g];
+          bought += world->routes[p].bought[g];
+        }
+        std::printf("route %s next_visit=%llu (now %llu) sold %u bought %u traded=%u\n", defs.partners[p].id.c_str(),
+                    static_cast<unsigned long long>(world->routes[p].next_visit), static_cast<unsigned long long>(world->now),
+                    sold, bought, world->routes[p].caravan_traded);
+      }
+    std::printf("entry tile %d, visitors %u\n", world->entry_tile, world->visitors);
+    std::printf("households %llu, avg savings %.1f, poor %llu, no food %llu\n", static_cast<unsigned long long>(nh),
+                  nh ? static_cast<double>(sav) / static_cast<double>(nh) : 0.0, static_cast<unsigned long long>(poor),
+                  static_cast<unsigned long long>(nofood));
     }
     std::printf("reasons:");
     for (int k = 0; k < static_cast<int>(sim::Reason::Count); ++k)

@@ -149,6 +149,11 @@ void World::start_emigration(HouseholdId id) {
 
 void World::finish_leave(u32 i) {
   auto& C = citizens;
+  if (C.flags[i] & kFlagVisitor) {
+    if (visitors > 0) --visitors;
+    despawn_citizen(C.ids.id_at(i));
+    return;
+  }
   HouseholdId hh = C.household[i];
   ++emigrants_today;
   ++emigrants_total;
@@ -168,6 +173,26 @@ void World::house_daily(BuildingId id) {
   for (u32 hi = b.first_household; hi != kNoIndex;) {
     Household& h = households.h[hi];
     const u32 next = h.next_in_house;
+    // Taxes on the day's wages, collected where a forum covers the house.
+    if (h.income_today > 0) {
+      ServiceId forum = defs->service("forum");
+      if (forum.valid() && services.ready(forum.v) && services.cost_ticks(forum.v, b.entrance) <= defs->services[forum.v].range) {
+        // Wage tax plus 5% per day of savings above 30: hoarded money returns to the treasury, so
+        // wages and taxes+sales roughly balance and exports pay for the city's growth.
+        const i32 wealth = h.savings > 30 ? (h.savings - 30) / 20 : 0;
+        const i32 tax = std::min<i32>(h.savings, (h.income_today * policy.tax_rate[static_cast<int>(h.cls) % 6] + 50) / 100 + wealth);
+        h.savings -= tax;
+        earn(tax, econ::Money::Taxes);
+      }
+      h.income_today = 0;
+    }
+    // Household goods wear out: one unit of each held good every eight days.
+    if ((day_index(now) + hi) % 8 == 0)
+      for (size_t k = 0; k < hh_goods.size() && k < 8; ++k)
+        if (h.goods[k] > 0) {
+          --h.goods[k];
+          ++econ.consumed_today[hh_goods[k].v];
+        }
     const u32 sum = h.happy_sum, n = h.happy_n;
     h.happy_sum = 0;
     h.happy_n = 0;
@@ -255,6 +280,15 @@ World::HappinessParts World::happiness_parts(u32 i) const {
 }
 
 void World::citizen_daily(u32 i) {
+  if (citizens.flags[i] & kFlagVisitor) return;
+  // Wages (paid by the city) and taxes (collected where a forum covers the home).
+  Household* hhp = citizens.household[i].valid() && households.ids.alive(citizens.household[i]) ? &households[citizens.household[i]] : nullptr;
+  if (hhp && citizens.work[i].valid() && buildings.alive(citizens.work[i])) {
+    const i32 wage = policy.wage;
+    spend(wage, econ::Money::Wages);
+    hhp->savings += wage;
+    hhp->income_today = static_cast<u16>(std::min<i32>(60000, hhp->income_today + wage));
+  }
   const i32 h = std::clamp(happiness_parts(i).total(), 0, 255);
   citizens.happiness[i] = static_cast<u8>(h);
   happy_sum_today += h;
@@ -270,7 +304,7 @@ void World::immigration_hourly() {
   if (!policy.immigration_open) return;
   const u32 hour = hour_of_day(now);
   if (hour < 6 || hour > 19) return;
-  u32 free = 0, pop = citizens.ids.count(), jobs_free = 0, unemployed = 0;
+  u32 free = 0, pop = population(), jobs_free = 0, unemployed = 0;
   BuildingId first_house;
   buildings.for_each([&](BuildingId id, const Building& b) {
     if (b.state != BState::Active) return;
@@ -282,7 +316,7 @@ void World::immigration_hourly() {
     if (b.jobs > b.employed) jobs_free += b.jobs - b.employed;
   });
   for (u32 i = 0; i < citizens.ids.high_water(); ++i)
-    if (citizens.ids.alive_index(i) && !citizens.work[i].valid() && citizens.age_years(i, now) >= 14 &&
+    if (citizens.ids.alive_index(i) && !(citizens.flags[i] & kFlagVisitor) && !citizens.work[i].valid() && citizens.age_years(i, now) >= 14 &&
         citizens.age_years(i, now) < 60)
       ++unemployed;
   u32 food_stock = 0;
@@ -325,6 +359,7 @@ void World::immigration_hourly() {
     HouseholdId hh = create_household(house, CitizenClass::Pleb);
     if (!hh) break;
     households[hh].food = static_cast<u16>(size * 2);
+    households[hh].savings = static_cast<i32>(size) * 15;
     households[hh].water = size;
     for (u16 m = 0; m < size; ++m) {
       const u32 age = m < 2 ? 18 + r.below(25) : r.below(16);

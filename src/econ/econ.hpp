@@ -3,11 +3,12 @@
 
 #include "core/pool.hpp"
 #include "core/types.hpp"
+#include "econ/money.hpp"
 
 namespace urbs::econ {
 
 inline constexpr u32 kNoInv = 0xFFFFFFFFu;
-inline constexpr u16 kPorterCarry = 6;
+inline constexpr u16 kPorterCarry = 10;
 
 enum class TaskState : u8 { Open, Claimed, Carrying };
 
@@ -37,6 +38,9 @@ struct Econ {
   u32 open_tasks = 0;
 
   i64 treasury = 0;
+  Ledger money;
+  std::vector<u16> price;  // current market price per good, in tenths of a denarius
+  std::vector<u32> imported_today, exported_today, imported_yday, exported_yday;
   // Ledgers (per game day, rolled at midnight): produced / consumed per good.
   std::vector<u32> produced_today, consumed_today, produced_yday, consumed_yday;
   std::vector<u32> city_stock;  // recomputed daily: sum over storage + markets

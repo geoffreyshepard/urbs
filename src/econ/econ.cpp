@@ -24,6 +24,11 @@ void Econ::init(u32 n_goods, u32 max_inv, u32 max_tasks) {
   produced_yday.assign(n_goods, 0);
   consumed_yday.assign(n_goods, 0);
   city_stock.assign(n_goods, 0);
+  price.assign(n_goods, 10);
+  imported_today.assign(n_goods, 0);
+  exported_today.assign(n_goods, 0);
+  imported_yday.assign(n_goods, 0);
+  exported_yday.assign(n_goods, 0);
 }
 
 u32 Econ::create_inventory(BuildingId own, u16 cap) {

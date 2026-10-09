@@ -284,6 +284,11 @@ void App::draw_stock_window() {
     ImGui::EndTable();
   }
   ImGui::Text("Open haul tasks: %u", e.open_tasks);
+  ImGui::TextUnformatted("Prices (denarii):");
+  for (u32 g = 0; g < e.goods; ++g)
+    if (e.city_stock[g] || e.consumed_yday[g])
+      ImGui::Text("  %s %.1f  (imported %u, exported %u)", defs_.goods[g].name.c_str(), e.price[g] / 10.0, e.imported_yday[g],
+                  e.exported_yday[g]);
   ImGui::End();
 }
 
@@ -310,6 +315,9 @@ void App::draw_debug_ui() {
   if (ImGui::Button("Labor (J)")) show_labor_ = !show_labor_;
   ImGui::SameLine();
   if (ImGui::Button("Alerts")) show_alerts_ = !show_alerts_;
+  if (ImGui::Button("Finance")) show_finance_ = !show_finance_;
+  ImGui::SameLine();
+  if (ImGui::Button("Trade")) show_trade_ = !show_trade_;
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
@@ -347,6 +355,8 @@ void App::run() {
     draw_citizen_panel(*world_, sel_);
     draw_building_panel(*world_, sel_);
     draw_labor_panel(*world_, &show_labor_);
+    draw_finance_panel(*world_, &show_finance_);
+    draw_trade_panel(*world_, &show_trade_);
     if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
       const auto& jb = world_->buildings[jump];
       renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};

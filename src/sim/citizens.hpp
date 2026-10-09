@@ -23,13 +23,14 @@ enum class Activity : u8 {
   Patrol,    // vigiles, engineers, guards
   Leave,     // emigrating: walking to the map edge
   Dead,
+  Trade,     // caravan trader at a trade post
   Count
 };
 
 inline constexpr const char* activity_name(Activity a) {
   constexpr const char* n[] = {"none", "sleeping", "at home", "working", "shopping", "fetching water", "visiting",
                                "at school", "walking", "wandering", "building", "hauling", "patrolling", "leaving",
-                               "dead"};
+                               "dead", "trading"};
   return n[static_cast<int>(a)];
 }
 
@@ -84,6 +85,7 @@ inline constexpr const char* class_name(CitizenClass c) {
   return n[static_cast<int>(c)];
 }
 
+inline constexpr u8 kFlagVisitor = 1;  // non-resident (trader, envoy): excluded from population and labor
 inline constexpr int kMaxTraits = 3;
 inline constexpr int kSkillCount = 6;  // farming, crafting, building, trading, soldiering, scholarship
 inline constexpr int kMemoryEntries = 8;
@@ -168,6 +170,8 @@ struct Household {
   CitizenClass cls = CitizenClass::Pleb;
   i32 savings = 0;
   u16 food = 0;           // abstract food units (scenario seed stock; eaten before slot food)
+  u8 meals = 0;           // meals left from the last opened food unit
+  u16 income_today = 0;   // wages earned since the last tax collection
   u16 fstock[8] = {};     // food stock per food slot (World::food_slots)
   u16 water = 0;          // water units at home
   u16 goods[8] = {};      // household goods stock per slot (World::hh_goods)
