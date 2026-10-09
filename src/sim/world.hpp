@@ -105,7 +105,7 @@ struct Policy {
 enum class AlertKind : u8 {
   HouseDevolved, HouseNeeds, NoWorkers, InputsMissing, MarketEmpty, Homeless, Unemployment, NoRoad, StorageFull,
   Immigrants, Emigrants, TreasuryLow, Fire, Collapse, Disease, Crime, Riot, Revolt, Raid, GodAngry, Request, Event,
-  Count
+  Dedicated, Count
 };
 
 struct Alert {
@@ -304,6 +304,11 @@ struct World {
   void trade_exchange(u32 partner, BuildingId post);
   [[nodiscard]] BuildingId nearest_trade_post(bool sea, i32 near_tile) const;
   [[nodiscard]] bool is_porter_job(BuildingId b) const;
+  // Load size for a haul between two buildings: cart loads for long hauls while carters work.
+  [[nodiscard]] u16 carry_for(u32 src_bi, u32 dst_bi) const;
+  void count_carters();
+  u32 carters_ = 0;
+  u8 crime_cut_ = 0;  // % from staffed courts and councils (recomputed daily; saved)
   void cancel_task(u32 task, bool goods_lost);
   void household_eat(u32 citizen);
   void household_shop(u32 citizen, BuildingId market);
@@ -372,7 +377,13 @@ struct World {
   void compute_ratings();
   u16 add_request(u8 kind, GoodId good, u16 amount, u16 days, i32 reward, i8 favor_win, i8 favor_lose);
   bool fulfill_request(u16 id);
+  void dedicate(BuildingId id);  // a monument's completion effects
+  void building_hourly(BuildingId id);  // construction, production, hazards (public for tests)
   [[nodiscard]] bool site_ready(const Building& b) const;
+  // Monuments rise in kMonumentStages stages; each stage needs its share of the materials.
+  static constexpr u32 kMonumentStages = 4;
+  [[nodiscard]] u32 construction_stage(const Building& b) const;
+  [[nodiscard]] u32 materials_needed_now(const Building& b, u32 amount) const;
   // An open land (or sea) route still buys g this year.
   [[nodiscard]] bool open_route_buys(GoodId g, bool sea) const;
   // Unreserved amount of g in warehouses, granaries, stockpiles and trade posts (what a request can send).
@@ -434,7 +445,6 @@ struct World {
   void apply_path_results();
   void on_citizen_event(const Event& e);
   void on_building_event(const Event& e);
-  void building_hourly(BuildingId id);
   void labor_allocate();
   void match_good(GoodId g);
   bool claim_task(u32 i);

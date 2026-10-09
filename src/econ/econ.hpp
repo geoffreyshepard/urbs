@@ -9,6 +9,8 @@ namespace urbs::econ {
 
 inline constexpr u32 kNoInv = 0xFFFFFFFFu;
 inline constexpr u16 kPorterCarry = 10;
+inline constexpr u16 kCartCarry = 40;     // carters from a cart depot
+inline constexpr i32 kCartMinTiles = 40;  // hauls at least this long are loaded for a cart
 
 enum class TaskState : u8 { Open, Claimed, Carrying };
 

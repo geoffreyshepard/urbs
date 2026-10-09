@@ -171,6 +171,7 @@ void World::serialize(save::Writer& w) const {
   w.pod(soldiers_lost_);
   w.pod(enemies_killed_);
   w.pod(buy_captives_);
+  w.pod(crime_cut_);
   w.pod(nav_changed_tick_);
   w.pod(static_cast<u8>(water_dirty));
   w.pod(static_cast<u8>(desir_dirty));
@@ -312,10 +313,12 @@ void World::deserialize(save::Reader& r) {
   r.pod(soldiers_lost_);
   r.pod(enemies_killed_);
   r.pod(buy_captives_);
+  if (r.version >= 2) r.pod(crime_cut_);
   r.pod(nav_changed_tick_);
   water_dirty = r.pod<u8>() != 0;
   desir_dirty = r.pod<u8>() != 0;
   r.expect("END.");
+  count_carters();  // derived from buildings
 }
 
 }  // namespace urbs::sim
@@ -411,9 +414,9 @@ bool load_world(sim::World& w, const data::Defs& defs, const std::string& path, 
     Reader h(file.data(), file.size());
     if (h.pod<u32>() != kMagic) throw std::runtime_error("not an Urbs save");
     u32 version = h.pod<u32>();
-    if (version != kSaveVersion)
+    if (version < kOldestSaveVersion || version > kSaveVersion)
       throw std::runtime_error("incompatible save version " + std::to_string(version) + " (this build reads " +
-                               std::to_string(kSaveVersion) + ")");
+                               std::to_string(kOldestSaveVersion) + "-" + std::to_string(kSaveVersion) + ")");
     h.str();
     h.pod<u64>();
     h.pod<Tick>();
@@ -424,6 +427,7 @@ bool load_world(sim::World& w, const data::Defs& defs, const std::string& path, 
     size_t n = ZSTD_decompress(raw.data(), raw.size(), file.data() + head_size, comp_size);
     if (ZSTD_isError(n) || n != raw_size) throw std::runtime_error("corrupt save (decompression failed)");
     Reader r(raw.data(), raw.size());
+    r.version = version;
     r.expect("CONF");
     sim::WorldConfig cfg = r.pod<sim::WorldConfig>();
     r.expect("MAP.");

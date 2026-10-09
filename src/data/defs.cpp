@@ -265,6 +265,18 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
     }
     b.passable = get_or<bool>(j, "passable", false);
     b.needs_pipe = get_or<bool>(j, "needs_pipe", false);
+    b.carts = get_or<bool>(j, "carts", false);
+    b.crime_cut = get_or<u8>(j, "crime_cut", 0);
+    b.favor_days = get_or<u8>(j, "favor_days", 0);
+    if (j.contains("dedication")) {
+      const json& dj = j["dedication"];
+      b.dedication.favor = get_or<i8>(dj, "favor", 0);
+      b.dedication.mood = get_or<i8>(dj, "mood", 0);
+      b.dedication.days = get_or<u8>(dj, "days", 0);
+      b.dedication.god = get_or<std::string>(dj, "god", "");
+      b.dedication.god_mood = get_or<i8>(dj, "god_mood", 0);
+      b.dedication.culture = get_or<u8>(dj, "culture", 0);
+    }
     if (b.kind == BuildingKind::House && b.housing == 0) fail(mb, id, "house needs 'housing' > 0");
     if ((b.kind == BuildingKind::Service || b.kind == BuildingKind::Patrol) && !b.service)
       fail(mb, id, "service building needs 'service'");
@@ -412,6 +424,8 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       u.charge = get_or<f32>(j, "charge", 1.0f);
       u.siege = get_or<f32>(j, "siege", 0.5f);
       u.unlock = get_or<u8>(j, "unlock", 1);
+      if (j.contains("trained_at"))
+        for (auto& t : j["trained_at"]) u.trained_at.push_back(t.get<std::string>());
       d.units.push_back(std::move(u));
     }
   }

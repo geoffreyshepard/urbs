@@ -24,3 +24,11 @@ foreach(sc ${URBS_MISSIONS})
   add_test(NAME mission_${_n} COMMAND urbs_headless --scenario ${sc} --ticks 192000 --autoplay)
   set_tests_properties(mission_${_n} PROPERTIES LABELS long PASS_REGULAR_EXPRESSION "mission WON")
 endforeach()
+
+# Save compatibility: saves written by older releases must still load and run.
+file(GLOB URBS_OLD_SAVES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/saves/*.urbs)
+foreach(sv ${URBS_OLD_SAVES})
+  get_filename_component(_n ${sv} NAME_WE)
+  add_test(NAME save_${_n} COMMAND urbs_headless --load ${sv} --ticks 1200)
+  set_tests_properties(save_${_n} PROPERTIES PASS_REGULAR_EXPRESSION "loaded .*alloc_violations\":0")
+endforeach()

@@ -55,7 +55,11 @@ void World::compute_ratings() {
     tier_max = std::max<u32>(tier_max, defs->max_tier(d.house_line) + d.house_line * 2);
   });
   const u32 hp = std::max<u32>(1, houses);
-  ratings.culture = static_cast<u8>(std::min<u32>(100, (rel * 40 + ent * 35 + edu * 25) / hp));
+  u32 monuments = 0;
+  buildings.for_each([&](BuildingId, const Building& b) {
+    if (b.state == BState::Active) monuments += defs->b(b.def).dedication.culture;
+  });
+  ratings.culture = static_cast<u8>(std::min<u32>(100, (rel * 40 + ent * 35 + edu * 25) / hp + monuments));
   // Prosperity: housing quality, employment, treasury health.
   u32 adults = 0, employed = 0;
   for (u32 i = 0; i < citizens.ids.high_water(); ++i) {
@@ -206,6 +210,17 @@ bool World::goals_met() const {
 
 void World::governance_daily() {
   ++mission_days;
+  // Civic institutions: courts and councils cut crime city-wide; the council courts the Senate.
+  {
+    u32 cut = 0;
+    buildings.for_each([&](BuildingId, const Building& b) {
+      if (b.state != BState::Active || b.employed == 0) return;
+      const auto& d = defs->b(b.def);
+      cut += d.crime_cut;
+      if (d.favor_days && mission_days % d.favor_days == 0) change_favor(1);
+    });
+    crime_cut_ = static_cast<u8>(std::min<u32>(cut, 60));
+  }
   // Scholars produce scientia: staff of schools, libraries and academies, plus readers.
   buildings.for_each([&](BuildingId, const Building& b) {
     if (b.state != BState::Active) return;

@@ -39,6 +39,7 @@ class Writer {
 class Reader {
  public:
   Reader(const u8* p, size_t n) : p_(p), end_(p + n) {}
+  u32 version = 0;  // save format version being read (sections branch on it for older saves)
   template <typename T>
   T pod() {
     static_assert(std::is_trivially_copyable_v<T>);

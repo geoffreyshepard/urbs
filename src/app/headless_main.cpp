@@ -9,6 +9,7 @@
 #include "core/alloc_track.hpp"
 #include "core/log.hpp"
 #include "data/defs.hpp"
+#include "save/save.hpp"
 #include "sim/scenario.hpp"
 #include "sim/autoplay.hpp"
 #include "sim/world.hpp"
@@ -26,7 +27,7 @@ std::string data_root() {
 }  // namespace
 
 int main(int argc, char** argv) {
-  std::string scenario_path;
+  std::string scenario_path, load_path;
   u64 ticks_override = 0;
   bool test = false, verbose = false, dump = false, autoplay = false, daily = false;
   int difficulty = -1;
@@ -37,6 +38,7 @@ int main(int argc, char** argv) {
       return 0;
     }
     if (is("--scenario") && i + 1 < argc) scenario_path = argv[++i];
+    else if (is("--load") && i + 1 < argc) load_path = argv[++i];
     else if (is("--ticks") && i + 1 < argc) ticks_override = std::strtoull(argv[++i], nullptr, 10);
     else if (is("--test")) test = true;
     else if (is("--verbose")) verbose = true;
@@ -46,22 +48,31 @@ int main(int argc, char** argv) {
     else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
   }
   core::init_logging(verbose);
-  if (scenario_path.empty()) {
-    std::fprintf(stderr, "usage: urbs_headless --scenario file.json [--ticks N] [--test]\n");
+  if (scenario_path.empty() && load_path.empty()) {
+    std::fprintf(stderr, "usage: urbs_headless (--scenario file.json | --load save.urbs) [--ticks N] [--test]\n");
     return 2;
   }
   data::Defs defs;
   sim::ScenarioSpec spec;
   try {
     defs = data::load_defs(data_root());
-    spec = sim::load_scenario(scenario_path);
+    if (!scenario_path.empty()) spec = sim::load_scenario(scenario_path);
   } catch (const std::exception& e) {
     std::fprintf(stderr, "error: %s\n", e.what());
     return 1;
   }
   auto world = std::make_unique<sim::World>();
   const auto ts = std::chrono::steady_clock::now();
-  sim::setup_scenario(*world, defs, spec);
+  if (!load_path.empty()) {
+    std::string err;
+    if (!save::load_world(*world, defs, load_path, &err)) {
+      std::fprintf(stderr, "error: %s\n", err.c_str());
+      return 1;
+    }
+    std::printf("loaded %s: day %u, population %u\n", load_path.c_str(), world->mission_days, world->population());
+  } else {
+    sim::setup_scenario(*world, defs, spec);
+  }
   URBS_LOG_INFO("setup {:.0f} ms, citizens {}, buildings {}",
                 std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - ts).count(),
                 world->citizens.ids.count(), world->buildings.ids.count());

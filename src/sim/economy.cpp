@@ -24,7 +24,13 @@ bool World::is_porter_job(BuildingId id) const {
   const Building& b = buildings[id];
   if (b.state != BState::Active) return false;
   BuildingKind k = defs->b(b.def).kind;
-  return k == BuildingKind::Storage || k == BuildingKind::Market || k == BuildingKind::TradePost;
+  return k == BuildingKind::Storage || k == BuildingKind::Market || k == BuildingKind::TradePost || defs->b(b.def).carts;
+}
+
+u16 World::carry_for(u32 src_bi, u32 dst_bi) const {
+  if (carters_ == 0) return econ::kPorterCarry;
+  const int d = manhattan_tiles(map, buildings.b[src_bi].entrance, buildings.b[dst_bi].entrance);
+  return d >= econ::kCartMinTiles ? econ::kCartCarry : econ::kPorterCarry;
 }
 
 void World::add_stock(BuildingId id, GoodId g, u16 n) {
@@ -131,9 +137,18 @@ void World::building_hourly(BuildingId id) {
   if (b.state == BState::Construction) {
     bool have_all = true;
     for (const auto& c : d.cost_goods)
-      if (b.inv == econ::kNoInv || econ.amt(b.inv, c.good) < c.amount) have_all = false;
+      if (b.inv == econ::kNoInv || econ.amt(b.inv, c.good) < materials_needed_now(b, c.amount)) have_all = false;
     if (!have_all) return;
+    const u32 stage = construction_stage(b);
     b.build_progress += static_cast<u32>(b.present) * static_cast<u32>(kTicksPerHour);
+    // A monument stage ends only where the next stage's materials are needed.
+    if (d.kind == BuildingKind::Monument && stage + 1 < kMonumentStages) {
+      const u32 stage_end = static_cast<u32>(static_cast<u64>(b.build_needed) * (stage + 1) / kMonumentStages);
+      bool next_ready = true;
+      for (const auto& c : d.cost_goods)
+        if (econ.amt(b.inv, c.good) < (c.amount * (stage + 2) + kMonumentStages - 1) / kMonumentStages) next_ready = false;
+      if (!next_ready) b.build_progress = std::min(b.build_progress, stage_end);
+    }
     if (b.build_progress >= b.build_needed) {
       for (const auto& c : d.cost_goods) econ.take(b.inv, c.good, c.amount);
       complete_construction(id);
@@ -208,11 +223,23 @@ void World::release_worker(u32 i) {
   }
 }
 
-// A construction site hires builders once its materials are delivered or on the way.
+u32 World::construction_stage(const Building& b) const {
+  if (defs->b(b.def).kind != BuildingKind::Monument || b.build_needed == 0) return 0;
+  return std::min<u32>(kMonumentStages - 1, static_cast<u32>(static_cast<u64>(b.build_progress) * kMonumentStages / b.build_needed));
+}
+
+u32 World::materials_needed_now(const Building& b, u32 amount) const {
+  if (defs->b(b.def).kind != BuildingKind::Monument) return amount;
+  return (amount * (construction_stage(b) + 1) + kMonumentStages - 1) / kMonumentStages;
+}
+
+// A construction site hires builders once its materials (for monuments: the current stage's share)
+// are delivered or on the way.
 bool World::site_ready(const Building& b) const {
   if (b.state != BState::Construction) return true;
   for (const auto& c : defs->b(b.def).cost_goods)
-    if (b.inv == econ::kNoInv || econ.amt(b.inv, c.good) + econ.rin(b.inv, c.good) < c.amount) return false;
+    if (b.inv == econ::kNoInv || econ.amt(b.inv, c.good) + econ.rin(b.inv, c.good) < materials_needed_now(b, c.amount))
+      return false;
   return true;
 }
 
@@ -331,6 +358,13 @@ void World::labor_allocate() {
         }
     }
   }
+}
+
+void World::count_carters() {
+  carters_ = 0;
+  buildings.for_each([&](BuildingId, const Building& b) {
+    if (b.state == BState::Active && defs->b(b.def).carts) carters_ += b.employed;
+  });
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -463,7 +497,7 @@ void World::match_good(GoodId g) {
     u32 si = nearest_supplier(bi, d.kind == BuildingKind::TradePost);
     if (si == kNoIndex) continue;
     u16 amount = static_cast<u16>(std::min<u32>({want - have, econ.available(buildings.b[si].inv, g),
-                                                 econ::kPorterCarry, econ.free_space(b.inv)}));
+                                                 carry_for(si, bi), econ.free_space(b.inv)}));
     if (amount == 0) continue;
     if (!make_task(si, bi, amount, prio)) break;
   }
@@ -492,7 +526,7 @@ void World::match_good(GoodId g) {
       }
     }
     if (best == kNoIndex) continue;
-    u16 amount = static_cast<u16>(std::min<u32>({avail, econ::kPorterCarry, econ.free_space(buildings.b[best].inv)}));
+    u16 amount = static_cast<u16>(std::min<u32>({avail, carry_for(si, best), econ.free_space(buildings.b[best].inv)}));
     if (amount > 0 && !make_task(si, best, amount, 0)) break;
   }
 }
@@ -504,14 +538,18 @@ bool World::claim_task(u32 i) {
   if (here < 0) return false;
   u32 best = kNoIndex;
   int best_score = 1 << 30;
+  const bool carter = C.work[i].valid() && buildings.alive(C.work[i]) && defs->b(buildings[C.work[i]].def).carts;
   for (u32 t = 0; t < econ.task_ids.high_water(); ++t) {
     if (!econ.task_ids.alive_index(t)) continue;
     const econ::HaulTask& task = econ.tasks[t];
     if (task.state != econ::TaskState::Open || !buildings.alive(task.src)) continue;
+    // Cart loads need a cart; carters prefer them.
+    const bool cart_load = task.amount > econ::kPorterCarry;
+    if (cart_load && !carter) continue;
     const i32 se = buildings[task.src].entrance;
     if (se < 0 || !nav.connected(here, se)) continue;
     int score = manhattan_tiles(map, here, se) - static_cast<int>(task.priority) * 40 -
-                static_cast<int>(std::min<Tick>(now - task.created, 400) / 10);
+                static_cast<int>(std::min<Tick>(now - task.created, 400) / 10) - (carter && cart_load ? 80 : 0);
     if (score < best_score) {
       best_score = score;
       best = t;

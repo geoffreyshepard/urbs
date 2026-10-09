@@ -215,7 +215,8 @@ BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, 
   if (instant || (b.build_needed == 0 && bd.cost_goods.empty())) {
     complete_construction(id);
   } else {
-    b.jobs = static_cast<u16>(std::clamp<u32>(2 + area / 4, 2, 16));
+    b.jobs = bd.kind == data::BuildingKind::Monument ? static_cast<u16>(std::clamp<u32>(area / 2, 8, 40))
+                                                     : static_cast<u16>(std::clamp<u32>(2 + area / 4, 2, 16));
   }
   sched.schedule(Event{now + 1 + id.index() % kTicksPerHour, id.index(), static_cast<u16>(BuildingEvent::Hourly), b.token,
                        EventKind::Building});
@@ -238,6 +239,25 @@ void World::complete_construction(BuildingId id) {
                       : bd.workers;
   providers_dirty_ = true;
   water_dirty = desir_dirty = true;
+  if (bd.kind == data::BuildingKind::Monument) dedicate(id);
+}
+
+void World::dedicate(BuildingId id) {
+  const auto& ded = defs->b(buildings[id].def).dedication;
+  change_favor(ded.favor);
+  if (ded.mood != 0 && ded.days > 0) {
+    const u16 until = static_cast<u16>(day_index(now) + ded.days);
+    for (u32 i = 0; i < citizens.ids.high_water(); ++i)
+      if (citizens.ids.alive_index(i)) {
+        citizens.bonus[i] = ded.mood;
+        citizens.bonus_until[i] = until;
+      }
+  }
+  if (!ded.god.empty()) {
+    const u8 g = defs->god(ded.god);
+    if (g < god_mood.size()) god_mood[g] = static_cast<u8>(std::clamp(static_cast<int>(god_mood[g]) + ded.god_mood, 0, 100));
+  }
+  add_alert(AlertKind::Dedicated, id);
 }
 
 void World::remove_building(BuildingId id) {
@@ -704,7 +724,10 @@ void World::tick() {
       if (buildings.ids.alive_index(bi)) house_daily(buildings.ids.id_at(bi));
   }
   lap(2);
-  if (now % kTicksPerHour == 7) labor_allocate();
+  if (now % kTicksPerHour == 7) {
+    labor_allocate();
+    count_carters();
+  }
   lap(3);
   if (econ.goods > 0) {
     // Two goods per tick: every good is matched about every 20 ticks.

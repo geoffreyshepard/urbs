@@ -362,6 +362,7 @@ void World::lifecycle_daily(u32 i) {
     const bool watched = guard.valid() && C.home[i].valid() && buildings.alive(C.home[i]) && services.ready(guard.v) &&
                          services.cost_ticks(guard.v, buildings[C.home[i]].entrance) <= 120;
     if (watched) p *= 0.3f;
+    p *= static_cast<f32>(100 - crime_cut_) / 100.0f;
     if (r.chance(p)) {
       ++crimes_today;
       // Victim: a random household in a random house.

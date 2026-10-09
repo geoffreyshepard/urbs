@@ -148,6 +148,11 @@ bool World::raise_unit(UnitDefId def, BuildingId barracks) {
   if (ud.enemy) return false;
   Building& b = buildings[barracks];
   if (b.state != BState::Active || defs->b(b.def).kind != data::BuildingKind::Military || b.entrance < 0) return false;
+  if (!ud.trained_at.empty() &&
+      std::find(ud.trained_at.begin(), ud.trained_at.end(), defs->b(b.def).id) == ud.trained_at.end()) {
+    add_alert(AlertKind::Event, barracks, 1102);  // this building cannot train that unit
+    return false;
+  }
   // Gear must be in the barracks.
   u16 n = ud.size;
   for (const auto& g : ud.gear) {

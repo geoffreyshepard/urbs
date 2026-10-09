@@ -65,6 +65,7 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
     case sim::AlertKind::Crime: return "Crime near " + bname;
     case sim::AlertKind::Riot: return "Riot!";
     case sim::AlertKind::Revolt: return "Servile revolt!";
+    case sim::AlertKind::Dedicated: return bname + " has been dedicated! The city celebrates";
     case sim::AlertKind::Raid: return "Raiders are approaching! (" + std::to_string(a.arg) + " warbands)";
     case sim::AlertKind::GodAngry: {
       const u16 g = a.arg & 0xFF;
@@ -79,6 +80,7 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
       if (a.arg == 1003) return "Blight withers the crops.";
       if (a.arg == 1100) return "Not enough weapons and armor in the barracks to raise that unit.";
       if (a.arg == 1101) return "Not enough recruits: too few men of fighting age are free.";
+      if (a.arg == 1102) return "That unit cannot be trained here (cavalry at stables, ballistae at a fort, legions at barracks).";
       if (a.arg == 1200) return "The legion returns victorious with plunder and captives!";
       if (a.arg == 1201) return "The campaign failed; the survivors return.";
       if (a.arg < D.gods.size()) return "A festival is held in honour of " + D.gods[a.arg].name;
@@ -208,9 +210,26 @@ void draw_building_panel(sim::World& w, Selection& sel) {
   ImGui::Text("%s", states[static_cast<int>(b.state)]);
   if (b.state == sim::BState::Construction) {
     ImGui::ProgressBar(b.build_needed ? static_cast<float>(b.build_progress) / static_cast<float>(b.build_needed) : 0.0f);
+    const bool monument = d.kind == data::BuildingKind::Monument;
+    if (monument)
+      ImGui::Text("Stage %u of %u: each stage needs its share of the materials", w.construction_stage(b) + 1,
+                  sim::World::kMonumentStages);
     for (const auto& c : d.cost_goods)
-      ImGui::Text("  %s: %u / %u", D.goods[c.good.v].name.c_str(), b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0,
-                  c.amount);
+      ImGui::Text("  %s: %u / %u%s", D.goods[c.good.v].name.c_str(), b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0,
+                  c.amount, monument ? (" (this stage " + std::to_string(w.materials_needed_now(b, c.amount)) + ")").c_str() : "");
+    if (!w.site_ready(b)) ImGui::TextColored({0.7f, 0.3f, 0.2f, 1}, "Waiting for materials; builders will come when they arrive.");
+  }
+  if (d.kind == data::BuildingKind::Monument) {
+    const auto& ded = d.dedication;
+    std::string fx;
+    if (ded.favor) fx += " favor +" + std::to_string(ded.favor) + ",";
+    if (ded.mood) fx += " happiness +" + std::to_string(ded.mood) + " for " + std::to_string(ded.days) + " days,";
+    if (!ded.god.empty()) fx += " pleases " + ded.god + ",";
+    if (ded.culture) fx += " culture +" + std::to_string(ded.culture) + ",";
+    if (!fx.empty()) {
+      fx.pop_back();
+      ImGui::TextWrapped("Dedication:%s", fx.c_str());
+    }
   }
   if (b.jobs) ImGui::Text("Workers: %u / %u (present %u)", b.employed, b.jobs, b.present);
   if (b.state == sim::BState::Active || b.state == sim::BState::Burning)

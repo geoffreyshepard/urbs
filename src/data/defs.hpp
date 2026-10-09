@@ -120,6 +120,7 @@ struct UnitDef {
   u8 morale = 60;
   f32 charge = 1.0f, siege = 0.5f;
   u8 unlock = 1;
+  std::vector<std::string> trained_at;  // building ids that can raise it (empty = any military building)
   [[nodiscard]] bool ranged() const { return range > 2.0f; }
 };
 
@@ -163,6 +164,19 @@ struct BuildingDef {
   u8 layer = 0;           // 0 building, 1 pipe (underground), 2 sewer (underground), 3 bridge (road over water)
   bool passable = false;  // citizens can walk through (aqueduct arches)
   bool needs_pipe = false;  // only works with piped water (fountain, thermae)
+  bool carts = false;       // workers are carters: they haul long-distance loads of kCartCarry
+  // Civic institutions (courts, council), while staffed: city-wide crime cut (%), favor +1 every N days.
+  u8 crime_cut = 0;
+  u8 favor_days = 0;
+  // Monuments: what the dedication does when construction completes.
+  struct Dedication {
+    i8 favor = 0;          // favor with Rome
+    i8 mood = 0;           // happiness bonus for every citizen...
+    u8 days = 0;           // ...for this many days
+    std::string god;       // a god pleased by it (empty = none)
+    i8 god_mood = 0;
+    u8 culture = 0;        // permanent culture rating points while it stands
+  } dedication;
 };
 
 struct Defs {

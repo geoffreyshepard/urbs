@@ -239,3 +239,37 @@ TEST_CASE("lua mission script: messages, requests, choices, save/load of script 
   CHECK(save::world_hash(*w) == save::world_hash(*c));
   std::remove(path.c_str());
 }
+
+TEST_CASE("monuments rise in stages as materials arrive, and dedication applies its effects") {
+  sim::World w;
+  sim::MapGenParams p;
+  p.size = 64;
+  p.flat = true;
+  p.river = false;
+  sim::generate_map(w.map, p);
+  w.init(sim::WorldConfig{}, defs());
+  const auto& D = defs();
+  const BuildingDefId tj = D.building("temple_of_jupiter");
+  REQUIRE(tj.valid());
+  BuildingId m = w.place_building(tj, 20, 20, D.b(tj).w, D.b(tj).h, false);
+  REQUIRE(m.valid());
+  sim::Building& b = w.buildings[m];
+  CHECK(b.jobs >= 8);
+  CHECK(w.construction_stage(b) == 0);
+  // With nothing delivered the site is not ready; a quarter of each material starts stage 1.
+  CHECK_FALSE(w.site_ready(b));
+  for (const auto& c : D.b(tj).cost_goods) w.econ.add(b.inv, c.good, static_cast<u16>((c.amount + 3) / 4));
+  CHECK(w.site_ready(b));
+  // Builders work up to the end of the stage, then wait for the next share.
+  b.present = 40;
+  for (int h = 0; h < 200; ++h) w.building_hourly(m);
+  CHECK(b.state == sim::BState::Construction);
+  CHECK(w.construction_stage(b) == 1);
+  CHECK_FALSE(w.site_ready(b));
+  // Deliver everything: it completes and is dedicated.
+  for (const auto& c : D.b(tj).cost_goods) w.econ.add(b.inv, c.good, static_cast<u16>(c.amount - (c.amount + 3) / 4));
+  const i32 favor0 = w.favor;
+  for (int h = 0; h < 400 && w.buildings[m].state == sim::BState::Construction; ++h) w.building_hourly(m);
+  CHECK(w.buildings[m].state == sim::BState::Active);
+  CHECK(w.favor == std::min(100, favor0 + D.b(tj).dedication.favor));
+}

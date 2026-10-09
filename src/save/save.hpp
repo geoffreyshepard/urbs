@@ -8,7 +8,9 @@
 namespace urbs::save {
 
 // Bump on any change to saved state; add a migration in load_world or reject with a clear error.
-inline constexpr u32 kSaveVersion = 1;
+// Version history: 1 = v0.1.0; 2 = civic crime cut (M12). Older versions still load.
+inline constexpr u32 kSaveVersion = 2;
+inline constexpr u32 kOldestSaveVersion = 1;
 
 struct SaveInfo {
   u32 version = 0;
