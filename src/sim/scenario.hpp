@@ -39,6 +39,8 @@ void push_due_orders(World& w, const ScenarioSpec& spec);
 bool check_expectations(const World& w, const ScenarioSpec& spec);
 
 ScenarioSpec load_scenario(const std::string& path);
+// Parses scenario JSON text; `path` locates relative files (scripts).
+ScenarioSpec parse_scenario(const std::string& text, const std::string& path);
 // Generates the map and populates the world according to the spec. World must not be initialised.
 void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& spec);
 

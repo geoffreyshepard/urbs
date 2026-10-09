@@ -1,0 +1,12 @@
+[
+  {"id": "crop_rotation", "name": "Crop rotation", "cost": 40, "desc": "Farms yield 20% more."},
+  {"id": "water_mills", "name": "Water mills", "cost": 50, "desc": "Mills and workshops work 15% faster."},
+  {"id": "hypocaust", "name": "Hypocaust heating", "cost": 60, "desc": "Baths serve more visitors and please more."},
+  {"id": "roman_concrete", "name": "Roman concrete", "cost": 80, "desc": "Construction needs 25% less labour."},
+  {"id": "arches", "name": "Arch construction", "cost": 70, "desc": "Aqueducts and bridges cost half."},
+  {"id": "insula_codes", "name": "Insula building codes", "cost": 60, "desc": "Tall buildings wear and burn 40% slower."},
+  {"id": "legion_drill", "name": "Legion drill reforms", "cost": 90, "desc": "New units start with 30 experience; morale +10."},
+  {"id": "medicine", "name": "Greek medicine", "cost": 70, "desc": "Disease is half as likely; the sick recover faster."},
+  {"id": "cursus", "name": "Cursus publicus", "cost": 60, "desc": "Caravans visit 30% more often."},
+  {"id": "latin_schools", "name": "Latin grammar schools", "cost": 50, "desc": "Schools teach more children; skills grow faster."}
+]

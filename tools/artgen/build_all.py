@@ -26,6 +26,8 @@ import effects                                  # noqa: E402
 import units                                    # noqa: E402
 import goods                                    # noqa: E402
 import ui                                       # noqa: E402
+import hud                                      # noqa: E402
+import worldmap                                 # noqa: E402
 from buildings import fixed as bfixed           # noqa: E402
 
 SPRITES_DIR = os.path.join(ROOT, "assets", "sprites")
@@ -58,7 +60,21 @@ def required_names():
     n += ["fx/dot", "fx/white"]
     n += ["fx/select_%dx%d" % (w, h) for w in range(1, 5) for h in range(1, 5)]
     n += phase2_names()
+    n += phase3_names()
     return n
+
+
+HUD_ICONS = ("population happiness culture prosperity security favor build rome advisors finance "
+             "goods trade labor religion military research alerts help menu pause play fast "
+             "faster road demolish overlay").split()
+PLACES = ["Rome", "Ostia", "Beneventum", "Capua", "Syracuse", "Carthago Nova", "Aquileia", "Narbo",
+          "Campania", "Corinth", "Lugdunum", "Alexandria", "Colonia Agrippina", "Londinium",
+          "Antioch"]
+
+
+def phase3_names():
+    return (["ui/province_map", "ui/logo", "ui/panel_corner", "ui/divider"] +
+            ["ui/icon_" + i for i in HUD_ICONS])
 
 
 GOODS = ("wheat vegetables fish meat olives grapes flour bread olive_oil wine salt garum wood "
@@ -106,7 +122,8 @@ def phase2_names():
 def generate_all():
     """-> list of (name, PIL image, anchor or None), sorted by name."""
     sprites = []
-    for mod in (terrain, roads, objects, people, units, buildings, fx, effects, goods, ui):
+    for mod in (terrain, roads, objects, people, units, buildings, fx, effects, goods, ui,
+                hud, worldmap):
         sprites += mod.generate()
     names = [s[0] for s in sprites]
     dup = {x for x in names if names.count(x) > 1}
@@ -136,6 +153,16 @@ def main():
             ax, ay = anchor
             assert 0 <= ax < img.width and 0 <= ay < img.height, name
             meta[name] = {"ax": int(ax), "ay": int(ay)}
+
+    # non-image outputs (e.g. province_places.json)
+    places = worldmap.extra_files()["province_places.json"]
+    missing_places = [p for p in PLACES if p not in places]
+    if missing_places:
+        raise SystemExit("province_places.json missing: %s" % missing_places)
+    for fname, data in sorted(worldmap.extra_files().items()):
+        with open(os.path.join(SPRITES_DIR, fname), "w") as f:
+            json.dump(data, f, indent=1, sort_keys=True)
+            f.write("\n")
 
     with open(os.path.join(SPRITES_DIR, "meta.json"), "w") as f:
         json.dump(meta, f, indent=1, sort_keys=True)

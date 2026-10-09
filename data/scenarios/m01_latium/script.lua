@@ -1,4 +1,4 @@
--- Mission 1: Latium — The Founding. A tutorial that teaches through advisors.
+-- Mission 1: Latium - The Founding. A tutorial that teaches through advisors.
 -- Persistent state lives in urbs.state (saved with the game).
 local S = urbs.state
 
@@ -33,19 +33,24 @@ function on_day(day)
       AEDILE)
   end
   if urbs.count("market") >= 1 and urbs.count("granary") >= 1 then
-    step_done(2, "The gods",
+    step_done(2, "Taxes",
+      "The city pays its workers from the treasury. Build a Forum: its clerks collect taxes from every house nearby, " ..
+      "and the coins come back to us. Without it the treasury will run dry.", QUAESTOR)
+  end
+  if urbs.count("forum") >= 1 then
+    step_done(3, "The gods",
       "The gods watch over us. A Shrine keeps people content and lets huts grow. " ..
       "Ceres especially should be honoured if we want good harvests.",
       HARUSPEX)
   end
-  if urbs.count("shrine") >= 1 and S.step == 3 then
-    S.step = 4
+  if urbs.count("shrine") >= 1 and S.step == 4 then
+    S.step = 5
     S.request = urbs.request({kind = "goods", good = "wheat", amount = 40, days = 16, reward = 600, favor = 10, penalty = -10})
     urbs.message("A request from Rome",
       "Rome asks for 40 wheat to feed the city's poor. Store the grain in your granary and send it from the Rome panel " ..
       "before the deadline. The Senate will remember it.", QUAESTOR)
   end
-  if S.step == 4 and day >= 20 and not S.merchants then
+  if S.step >= 5 and day >= 20 and not S.merchants then
     S.merchants = true
     urbs.choice("Latin merchants",
       "Traders from the Latin villages offer to bring timber and grain if we let them use our road. " ..

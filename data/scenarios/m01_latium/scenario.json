@@ -1,6 +1,6 @@
 {
   "id": "m01_latium",
-  "name": "Latium — The Founding",
+  "name": "Latium - The Founding",
   "mission": 1,
   "era": "republic",
   "difficulty": 0,
@@ -42,5 +42,9 @@
     }
   },
   "script": "script.lua",
-  "start_hour": 7
+  "start_hour": 7,
+  "start_stock": {
+    "wood": 60,
+    "wheat": 40
+  }
 }

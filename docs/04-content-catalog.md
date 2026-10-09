@@ -61,7 +61,7 @@ Housing tiers are gated by unlocks on purpose: early missions cap housing (Hut i
 ### Housing and civic
 | Building | M | | Building | M |
 |---|---|---|---|---|
-| Housing plot (plebeian) | 1 | | Forum (taxes, admin) | 2 |
+| Housing plot (plebeian) | 1 | | Forum (taxes, admin) | 1 |
 | Domus plot (equites/patrician) | 4 | | Governor's palace | 4 |
 | Slave quarters | 6 | | Basilica (courts, commerce) | 8 |
 | Plaza | 4 | | Curia (council, laws) | 9 |

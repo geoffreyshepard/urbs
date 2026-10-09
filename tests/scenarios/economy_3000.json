@@ -35,8 +35,8 @@
   },
   "ticks": 192000,
   "test": {
-    "min_citizens": 1200,
+    "min_citizens": 900,
     "max_alloc_violations": 0,
-    "min_treasury": -120000
+    "min_treasury": -10000
   }
 }

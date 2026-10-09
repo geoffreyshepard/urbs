@@ -27,8 +27,8 @@ The salary accrues to the governor's **personal savings**, which carry across mi
 
 | # | Mission | Era | Pop goal | Target length | New systems introduced |
 |---|---|---|---|---|---|
-| 1 | **Latium — The Founding** | Early Republic | 300 | 30 min | Roads, housing (tent → hut), wells, wheat farms, granary, market, shrine. Tutorial. |
-| 2 | **Ostia — River Port** | Early Republic | 600 | 45 min | Warehouses, fishing, salt, first trade route, forum and flat tax, vigiles (fire), physician, tavern |
+| 1 | **Latium — The Founding** | Early Republic | 300 | 30 min | Roads, housing (tent → hut), wells, wheat farms, granary, market, shrine, forum and taxes. Tutorial. |
+| 2 | **Ostia — River Port** | Early Republic | 600 | 45 min | Warehouses, fishing, salt, first trade route, vigiles (fire), physician, tavern |
 | 3 | **Beneventum — Samnite Frontier** | Early Republic | 1,000 | 60 min | Walls, gates, militia, raids, temples and the first gods, paved roads, quarry and stone |
 | 4 | **Capua — Campania** | Early Republic | 1,500 | 75 min | Olives, vines, pottery and amphorae; equites; domus; theater; schools; small baths |
 | 5 | **Syracuse — Sicilia** | Mid Republic | 2,000 | 90 min | Harbor, sea trade, grain exports, requests from Rome, garum |

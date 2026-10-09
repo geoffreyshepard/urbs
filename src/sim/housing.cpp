@@ -179,9 +179,9 @@ void World::house_daily(BuildingId id) {
     if (h.income_today > 0) {
       ServiceId forum = defs->service("forum");
       if (forum.valid() && services.ready(forum.v) && services.cost_ticks(forum.v, b.entrance) <= defs->services[forum.v].range) {
-        // Wage tax plus 5% per day of savings above 30: hoarded money returns to the treasury, so
+        // Wage tax plus 10% per day of savings above 20: hoarded money returns to the treasury, so
         // wages and taxes+sales roughly balance and exports pay for the city's growth.
-        const i32 wealth = h.savings > 30 ? (h.savings - 30) / 20 : 0;
+        const i32 wealth = h.savings > 20 ? (h.savings - 20) / 10 : 0;
         const i32 tax = std::min<i32>(h.savings, (h.income_today * policy.tax_rate[static_cast<int>(h.cls) % 6] + 50) / 100 + wealth);
         h.savings -= tax;
         earn(tax, econ::Money::Taxes);
@@ -312,7 +312,9 @@ void World::citizen_daily(u32 i) {
   if (!citizens.ids.alive_index(i)) return;
   // Wages (paid by the city) and taxes (collected where a forum covers the home).
   Household* hhp = citizens.household[i].valid() && households.ids.alive(citizens.household[i]) ? &households[citizens.household[i]] : nullptr;
-  if (hhp && !hhp->city_slaves && citizens.work[i].valid() && buildings.alive(citizens.work[i])) {
+  const bool worked = (citizens.flags[i] & kFlagWorked) != 0;
+  citizens.flags[i] &= static_cast<u8>(~kFlagWorked);
+  if (hhp && !hhp->city_slaves && worked && citizens.work[i].valid() && buildings.alive(citizens.work[i])) {
     const i32 wage = policy.wage;
     spend(wage, econ::Money::Wages);
     hhp->savings += wage;
@@ -370,7 +372,10 @@ void World::immigration_hourly() {
   if (appeal <= 0 || free < 3 || !first_house.valid()) return;
   if (!ensure_entry_tile()) return;
   rng::Stream& r = stream(rng::StreamId::Immigration);
-  const int n = std::min<int>(6, 1 + appeal / 20 + static_cast<int>(free / 120));
+  // Expected households per hour: 0.2..1.5 by appeal, growing with the city; fractional via chance.
+  const f32 rate = std::clamp(static_cast<f32>(appeal) / 60.0f, 0.2f, 1.5f) * (1.0f + static_cast<f32>(pop) / 2000.0f);
+  int n = static_cast<int>(rate);
+  if (r.chance(rate - static_cast<f32>(n))) ++n;
   for (int k = 0; k < n; ++k) {
     const u16 size = static_cast<u16>(2 + r.below(4));
     BuildingId house = find_vacant_house(entry_tile, size);

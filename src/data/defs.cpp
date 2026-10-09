@@ -415,6 +415,15 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       d.units.push_back(std::move(u));
     }
   }
+  // Techniques (civic research)
+  {
+    Merged mt = load_kind(data_root, mods, "techniques.json");
+    for (auto& id : mt.order) {
+      const json& j = mt.by_id[id];
+      d.techniques.push_back(TechniqueDef{id, get_or<std::string>(j, "name", id), get_or<std::string>(j, "desc", ""),
+                                          get_or<u16>(j, "cost", 50)});
+    }
+  }
   // Names
   {
     fs::path np = fs::path(data_root) / "defs" / "names.json";

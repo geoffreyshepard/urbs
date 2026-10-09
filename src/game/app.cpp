@@ -6,13 +6,15 @@
 
 #include <chrono>
 #include <cmath>
-#include <string>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <string>
 
 #include "core/log.hpp"
 #include "core/profile.hpp"
-#include "sim/scenario.hpp"
+#include "game/style.hpp"
+#include "save/save.hpp"
 
 namespace urbs::game {
 
@@ -31,11 +33,12 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--map-size")) o.map_size = std::atoi(argv[++i]);
     else if (arg("--seed")) o.seed = std::strtoull(argv[++i], nullptr, 10);
     else if (arg("--scenario")) o.scenario = argv[++i];
+    else if (arg("--screen")) o.screen = argv[++i];
     else if (arg("--speed")) o.speed = std::atoi(argv[++i]);
     else if (arg("--ticks")) o.ticks_before = std::atoi(argv[++i]);
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
-    else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
+    else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -44,27 +47,183 @@ AppOptions parse_args(int argc, char** argv) {
   return o;
 }
 
-void App::new_world(const std::string& scenario) {
-  world_ = std::make_unique<sim::World>();
-  if (!scenario.empty()) {
-    spec_ = sim::load_scenario(scenario);
-    sim::setup_scenario(*world_, defs_, spec_);
-  } else {
-    sim::generate_map(world_->map, gen_);
-    world_->init(sim::WorldConfig{}, defs_);
-  }
+// ------------------------------------------------------------------------------------------------
+// World lifecycle
+// ------------------------------------------------------------------------------------------------
+
+void App::after_world_change() {
   renderer_.set_map(&world_->map);
+  sel_ = Selection{};
+  tools_.cancel();
+  end_dismissed_ = false;
+  last_message_ = 0;
+  overlay_ = Overlay::None;
+  accum_ = 0;
+  last_autosave_day_ = static_cast<u16>(sim::day_index(world_->now));
+  salary_day_ = world_->mission_days;
+  // Start the camera at the heart of the settlement (or the map centre).
   auto& cam = renderer_.camera();
-  cam.center = {static_cast<f32>(world_->map.w * sim::kTilePx) / 2, static_cast<f32>(world_->map.h * sim::kTilePx) / 2};
+  const i32 t = world_->buildings.ids.count() > 0 ? world_->city_target_tile()
+                                                  : (world_->entry_tile >= 0 ? world_->entry_tile : -1);
+  if (t >= 0 && world_->buildings.ids.count() == 0 && world_->entry_tile >= 0) {
+    // Fresh mission: centre between the entry and the map centre.
+    cam.center = {static_cast<f32>((t % world_->map.w + world_->map.w / 2) / 2 * sim::kTilePx),
+                  static_cast<f32>((t / world_->map.w + world_->map.h / 2) / 2 * sim::kTilePx)};
+  } else if (t >= 0) {
+    cam.center = {static_cast<f32>(t % world_->map.w * sim::kTilePx), static_cast<f32>(t / world_->map.w * sim::kTilePx)};
+  } else {
+    cam.center = {static_cast<f32>(world_->map.w * sim::kTilePx) / 2, static_cast<f32>(world_->map.h * sim::kTilePx) / 2};
+  }
+  cam.zoom = 3;
+}
+
+void App::start_scenario(sim::ScenarioSpec spec) {
+  spec_ = std::move(spec);
+  auto w = std::make_unique<sim::World>();
+  try {
+    sim::setup_scenario(*w, defs_, spec_);
+  } catch (const std::exception& e) {
+    status_ = std::string("Could not start: ") + e.what();
+    status_time_ = 8;
+    URBS_LOG_ERROR("{}", status_);
+    return;
+  }
+  w->difficulty = static_cast<u8>(settings_.difficulty);
+  world_ = std::move(w);
+  after_world_change();
+  screen_ = Screen::Playing;
+  speed_ = 1;
+}
+
+void App::new_world(const std::string& scenario) {
+  if (!scenario.empty()) {
+    start_scenario(sim::load_scenario(scenario));
+    return;
+  }
+  menu_background();
+}
+
+void App::menu_background() {
+  // A quiet generated landscape behind the menus.
+  world_ = std::make_unique<sim::World>();
+  sim::MapGenParams p;
+  p.size = 128;
+  p.seed = 77;
+  p.coast = 2;
+  p.hills = 0.4f;
+  sim::generate_map(world_->map, p);
+  world_->init(sim::WorldConfig{}, defs_);
+  world_->now = kTicksPerHour * 9;
+  spec_ = sim::ScenarioSpec{};
+  renderer_.set_map(&world_->map);
+  renderer_.camera().center = {64.0f * sim::kTilePx, 56.0f * sim::kTilePx};
+  renderer_.camera().zoom = 2;
+}
+
+void App::defs_for_mission(int index) {
+  // Former cities become trade partners selling what they were good at.
+  defs_ = base_defs_;
+  for (int k = 0; k < index; ++k) {
+    const auto& prev = campaign_.missions[static_cast<size_t>(k)];
+    if (!profile_.done(prev.id) || prev.sells.empty()) continue;
+    data::TradePartnerDef t;
+    t.id = "former_" + prev.id;
+    t.name = prev.name.substr(0, prev.name.find(" - "));
+    t.sea = false;
+    t.open_cost = 100;
+    t.interval_days = 5;
+    for (const auto& g : prev.sells) {
+      const GoodId gid = defs_.good(g);
+      if (gid.valid()) t.sells.push_back({gid, 400});
+    }
+    for (const char* g : {"pottery", "wine", "olive_oil", "clothing"}) {
+      const GoodId gid = defs_.good(g);
+      if (gid.valid()) t.buys.push_back({gid, 200});
+    }
+    defs_.partners.push_back(std::move(t));
+  }
+}
+
+void App::start_mission(int index) {
+  if (index < 0 || index >= static_cast<int>(campaign_.missions.size())) return;
+  const auto& mi = campaign_.missions[static_cast<size_t>(index)];
+  const std::string path = root_ + "data/scenarios/" + mi.id + "/scenario.json";
+  if (!std::filesystem::exists(path)) {
+    status_ = "This mission is not available yet.";
+    status_time_ = 5;
+    return;
+  }
+  defs_for_mission(index);
+  view_.init(renderer_.atlas(), defs_);
+  mission_index_ = index;
+  start_scenario(sim::load_scenario(path));
+  if (world_ && screen_ == Screen::Playing) {
+    for (size_t k = base_defs_.partners.size(); k < defs_.partners.size(); ++k) world_->routes[k].available = 1;
+  }
+}
+
+void App::start_sandbox() {
+  defs_ = base_defs_;
+  view_.init(renderer_.atlas(), defs_);
+  mission_index_ = -1;
+  std::string j = R"({"name":"Sandbox","id":"sandbox","mission":16,"difficulty":0,"start_hour":7,)";
+  j += R"("map":{"size":)" + std::to_string(gen_.size) + R"(,"seed":)" + std::to_string(gen_.seed) +
+       R"(,"coast":)" + std::to_string(gen_.coast) + R"(,"river":)" + (gen_.river ? "true" : "false") +
+       R"(,"hills":)" + std::to_string(gen_.hills) + R"(,"forest":)" + std::to_string(gen_.forest) + R"(},)";
+  j += R"("world":{"max_citizens":16000,"max_buildings":4096,"max_households":5000},)";
+  j += R"("generator":"scripted","entry_road":3,"start":{"treasury":15000},)";
+  j += R"("gods":["jupiter","juno","mars","venus","ceres","neptune","mercury","minerva","vulcan","vesta"],)";
+  j += R"("trade":{"partners":["latin_villages","rome","etruria","carthage","massalia","gallia","greece"]}})";
+  start_scenario(sim::parse_scenario(j, root_ + "data/scenarios/sandbox.json"));
+}
+
+std::string App::save_path(const std::string& name) const { return user_dir_ + "saves/" + name + ".urbs"; }
+
+void App::save_slot(const std::string& name) {
+  std::filesystem::create_directories(user_dir_ + "saves");
+  std::string err;
+  const std::string label = world_->mission_id.empty() ? std::string("sandbox") : world_->mission_id;
+  if (save::save_world(*world_, save_path(name), label, &err)) {
+    status_ = "Saved (" + name + ").";
+  } else {
+    status_ = "Save failed: " + err;
+  }
+  status_time_ = 4;
+}
+
+bool App::load_slot(const std::string& name) {
+  auto w = std::make_unique<sim::World>();
+  std::string err;
+  save::SaveInfo info;
+  defs_ = base_defs_;
+  if (save::read_info(save_path(name), info)) defs_for_mission(campaign_.index_of(info.mission));
+  if (!save::load_world(*w, defs_, save_path(name), &err)) {
+    status_ = "Load failed: " + err;
+    status_time_ = 6;
+    return false;
+  }
+  view_.init(renderer_.atlas(), defs_);
+  world_ = std::move(w);
+  mission_index_ = campaign_.index_of(world_->mission_id);
+  spec_ = sim::ScenarioSpec{};
+  after_world_change();
+  screen_ = Screen::Playing;
+  speed_ = 0;
+  status_ = "Loaded (" + name + ").";
+  status_time_ = 4;
+  return true;
 }
 
 bool App::init(const AppOptions& opt) {
   opt_ = opt;
+  user_dir_ = platform::user_data_dir();
+  settings_.load(user_dir_);
   if (!platform::create_window(win_, "Urbs", 1600, 900)) return false;
+  if (settings_.fullscreen) SDL_SetWindowFullscreen(win_.window, true);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGui::GetIO().IniFilename = nullptr;
-  ImGui::StyleColorsDark();
+  apply_roman_style(settings_.ui_scale);
   ImGui_ImplSDL3_InitForSDLGPU(win_.window);
   ImGui_ImplSDLGPU3_InitInfo ii{};
   ii.Device = win_.gpu;
@@ -72,23 +231,34 @@ bool App::init(const AppOptions& opt) {
   ii.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
   ImGui_ImplSDLGPU3_Init(&ii);
 
-  const std::string root = platform::data_root();
-  if (!renderer_.init(win_, root)) return false;
+  root_ = platform::data_root();
+  if (!renderer_.init(win_, root_)) return false;
   try {
-    defs_ = data::load_defs(root + "data");
+    base_defs_ = data::load_defs(root_ + "data");
   } catch (const std::exception& e) {
     URBS_LOG_ERROR("defs: {}", e.what());
     return false;
   }
+  defs_ = base_defs_;
+  campaign_.load(root_);
+  profile_.load(user_dir_);
+  selected_mission_ = profile_.next_index(campaign_);
   view_.init(renderer_.atlas(), defs_);
   icons_.init(win_.gpu, renderer_.atlas());
-  gen_.size = opt.map_size;
+  gen_.size = 192;
   gen_.seed = opt.seed;
   gen_.coast = 2;
-  new_world(opt.scenario);
-  for (int t = 0; t < opt.ticks_before; ++t) {
-    sim::push_due_orders(*world_, spec_);
-    world_->tick();
+
+  if (!opt.scenario.empty()) {
+    new_world(opt.scenario);
+    if (!world_) return false;
+    for (int t = 0; t < opt.ticks_before; ++t) {
+      sim::push_due_orders(*world_, spec_);
+      world_->tick();
+    }
+  } else {
+    menu_background();
+    screen_ = opt.screen == "campaign" ? Screen::Campaign : Screen::Menu;
   }
   auto& cam = renderer_.camera();
   if (opt.cam_x >= 0) cam.center = {opt.cam_x * sim::kTilePx, opt.cam_y * sim::kTilePx};
@@ -105,12 +275,20 @@ bool App::init(const AppOptions& opt) {
   return true;
 }
 
+// ------------------------------------------------------------------------------------------------
+// Input
+// ------------------------------------------------------------------------------------------------
+
 void App::handle_event(const SDL_Event& e) {
   ImGui_ImplSDL3_ProcessEvent(&e);
+  if (e.type == SDL_EVENT_QUIT) {
+    running_ = false;
+    return;
+  }
+  if (screen_ != Screen::Playing) return;
   auto& cam = renderer_.camera();
   const bool ui_mouse = ImGui::GetIO().WantCaptureMouse;
   switch (e.type) {
-    case SDL_EVENT_QUIT: running_ = false; break;
     case SDL_EVENT_MOUSE_WHEEL:
       if (!ui_mouse) {
         float mx, my;
@@ -123,6 +301,7 @@ void App::handle_event(const SDL_Event& e) {
       }
       break;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
+      if (paused_menu_) break;
       if (!ui_mouse && (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT)) {
         dragging_ = true;
         right_drag_ = 0;
@@ -131,17 +310,20 @@ void App::handle_event(const SDL_Event& e) {
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
       if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) {
-        // A right click (not a drag) with a unit selected orders it to march there.
-        if (e.button.button == SDL_BUTTON_RIGHT && dragging_ && right_drag_ < 5 && !ui_mouse &&
-            sel_.unit < military::kMaxUnits && world_->army.units[sel_.unit].alive && world_->army.units[sel_.unit].side == 0) {
-          const Vec2i t = mouse_tile();
-          sim::Command c;
-          c.type = sim::CmdType::UnitOrder;
-          c.def = sel_.unit;
-          c.value = static_cast<i32>(military::Order::Move);
-          c.x0 = t.x;
-          c.y0 = t.y;
-          world_->push(c);
+        // A right click (not a drag): order the selected unit there, or cancel the current tool.
+        if (e.button.button == SDL_BUTTON_RIGHT && dragging_ && right_drag_ < 5 && !ui_mouse) {
+          if (sel_.unit < military::kMaxUnits && world_->army.units[sel_.unit].alive && world_->army.units[sel_.unit].side == 0) {
+            const Vec2i t = mouse_tile();
+            sim::Command c;
+            c.type = sim::CmdType::UnitOrder;
+            c.def = sel_.unit;
+            c.value = static_cast<i32>(military::Order::Move);
+            c.x0 = t.x;
+            c.y0 = t.y;
+            world_->push(c);
+          } else {
+            tools_.cancel();
+          }
         }
         dragging_ = false;
       }
@@ -159,14 +341,20 @@ void App::handle_event(const SDL_Event& e) {
       if (ImGui::GetIO().WantCaptureKeyboard) break;
       if (e.key.key == SDLK_ESCAPE) {
         if (tools_.kind != ToolKind::Inspect) tools_.cancel();
-        else running_ = false;
+        else if (sel_.building.valid() || sel_.citizen.valid() || sel_.unit != 0xFFFF) sel_ = Selection{};
+        else paused_menu_ = !paused_menu_;
       }
+      if (paused_menu_) break;
       if (e.key.key == SDLK_R) tools_.select_road(sim::Road::Dirt);
       if (e.key.key == SDLK_X) tools_.select_demolish();
       if (e.key.key == SDLK_B) show_build_ = !show_build_;
       if (e.key.key == SDLK_L) show_stock_ = !show_stock_;
       if (e.key.key == SDLK_J) show_labor_ = !show_labor_;
       if (e.key.key == SDLK_F) sel_.follow = !sel_.follow;
+      if (e.key.key == SDLK_H || e.key.key == SDLK_F1) show_help_ = !show_help_;
+      if (e.key.key == SDLK_F12) show_debug_ = !show_debug_;
+      if (e.key.key == SDLK_F5) save_slot("quicksave");
+      if (e.key.key == SDLK_F9) load_slot("quicksave");
       if (e.key.key == SDLK_O) {
         overlay_ = static_cast<Overlay>((static_cast<int>(overlay_) + 1) % static_cast<int>(Overlay::Count));
         overlay_age_ = 1 << 20;
@@ -181,19 +369,39 @@ void App::handle_event(const SDL_Event& e) {
 }
 
 void App::update_camera(f32 dt) {
-  if (ImGui::GetIO().WantCaptureKeyboard) return;
   auto& cam = renderer_.camera();
+  if (screen_ != Screen::Playing) {
+    // Slow drift behind the menus.
+    cam.center.x += dt * 6.0f;
+    if (cam.center.x > static_cast<f32>(world_->map.w * sim::kTilePx) * 0.8f) cam.center.x = static_cast<f32>(world_->map.w * sim::kTilePx) * 0.2f;
+    return;
+  }
+  if (ImGui::GetIO().WantCaptureKeyboard) return;
   const bool* keys = SDL_GetKeyboardState(nullptr);
   f32 speed = 900.0f * dt / render::kZoomLevels[cam.zoom];
   if (keys[SDL_SCANCODE_W] || keys[SDL_SCANCODE_UP]) cam.center.y -= speed;
   if (keys[SDL_SCANCODE_S] || keys[SDL_SCANCODE_DOWN]) cam.center.y += speed;
   if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT]) cam.center.x -= speed;
   if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) cam.center.x += speed;
+  if (settings_.edge_scroll && SDL_GetWindowFlags(win_.window) & SDL_WINDOW_INPUT_FOCUS) {
+    float mx, my;
+    SDL_GetMouseState(&mx, &my);
+    int ww, wh;
+    SDL_GetWindowSize(win_.window, &ww, &wh);
+    if (mx < 6) cam.center.x -= speed;
+    if (my < 6) cam.center.y -= speed;
+    if (mx > static_cast<f32>(ww - 6)) cam.center.x += speed;
+    if (my > static_cast<f32>(wh - 6)) cam.center.y += speed;
+  }
   cam.center.x = clamp(cam.center.x, 0.0f, static_cast<f32>(world_->map.w * sim::kTilePx));
   cam.center.y = clamp(cam.center.y, 0.0f, static_cast<f32>(world_->map.h * sim::kTilePx));
 }
 
 void App::step_sim(f64 dt) {
+  if (screen_ != Screen::Playing || paused_menu_) {
+    alpha_ = 0;
+    return;
+  }
   const int mult = kSpeeds[speed_];
   if (mult == 0) {
     alpha_ = 0;
@@ -211,6 +419,17 @@ void App::step_sim(f64 dt) {
   if (n == 8) accum_ = 0;  // behind: slow down instead of spiralling
   if (n > 0) sim_ms_ = std::chrono::duration<f64, std::milli>(std::chrono::steady_clock::now() - t0).count();
   alpha_ = static_cast<f32>(accum_ / kTickSeconds);
+  // Career salary accrues to personal savings; autosave every four days.
+  if (mission_index_ >= 0 && world_->mission_days > salary_day_) {
+    profile_.savings += campaign_.missions[static_cast<size_t>(mission_index_)].salary * (world_->mission_days - salary_day_);
+    salary_day_ = world_->mission_days;
+  }
+  const u16 day = static_cast<u16>(sim::day_index(world_->now));
+  if (settings_.autosave && day >= last_autosave_day_ + 4) {
+    last_autosave_day_ = day;
+    save_slot("autosave");
+    profile_.save(user_dir_);
+  }
 }
 
 Vec2i App::mouse_tile() const {
@@ -225,8 +444,22 @@ void App::pick_at_mouse() {
   float mx, my;
   SDL_GetMouseState(&mx, &my);
   const Vec2 wp = renderer_.camera().screen_to_world({mx, my});
-  const auto& C = world_->citizens;
+  // Soldiers first (to select units), then walking citizens, then buildings.
+  const auto& A = world_->army;
   f32 best = 7.0f * 7.0f;
+  for (u32 i = 0; i < A.ids.high_water(); ++i) {
+    if (!A.ids.alive_index(i)) continue;
+    const f32 dx = A.x[i] * sim::kTilePx - wp.x, dy = A.y[i] * sim::kTilePx - 4 - wp.y;
+    if (dx * dx + dy * dy < best) {
+      best = dx * dx + dy * dy;
+      sel_.unit = A.unit[i];
+    }
+  }
+  if (best < 7.0f * 7.0f) {
+    show_military_ = true;
+    return;
+  }
+  const auto& C = world_->citizens;
   CitizenId pick;
   for (u32 i = 0; i < C.ids.high_water(); ++i) {
     if (!C.ids.alive_index(i) || C.activity[i] != sim::Activity::Walk) continue;
@@ -246,157 +479,37 @@ void App::pick_at_mouse() {
   if (world_->map.in_bounds(t.x, t.y)) {
     BuildingId b = world_->map.building[static_cast<size_t>(world_->map.idx(t.x, t.y))];
     sel_.building = b;
+    sel_.unit = 0xFFFF;
     if (!b.valid()) sel_.citizen = CitizenId{};
   }
 }
 
-void App::draw_build_menu() {
-  if (!show_build_) return;
-  ImGui::SetNextWindowPos({10, 220}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({260, 480}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Build (B)", &show_build_);
-  ImGui::Text("Treasury: %lld denarii", static_cast<long long>(world_->econ.treasury));
-  if (ImGui::Button("Dirt road (R)")) tools_.select_road(sim::Road::Dirt);
-  ImGui::SameLine();
-  if (ImGui::Button("Paved road")) tools_.select_road(sim::Road::Paved);
-  if (ImGui::Button("Demolish (X)")) tools_.select_demolish();
-  ImGui::SameLine();
-  if (ImGui::Button("Cancel (Esc)")) tools_.cancel();
-  static const char* kCats[] = {"housing", "farm", "food",      "industry", "storage", "water",    "health",
-                                "religion", "entertainment", "education", "safety",   "civic",   "trade",
-                                "infrastructure", "decor", "military", "monument"};
-  for (const char* cat : kCats) {
-    if (!ImGui::CollapsingHeader(cat)) continue;
-    for (u16 i = 0; i < defs_.buildings.size(); ++i) {
-      const auto& d = defs_.buildings[i];
-      if (d.category != cat || !world_->is_unlocked(BuildingDefId{i})) continue;
-      const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
-      std::string label = d.name + "  (" + std::to_string(d.cost_denarii) + ")";
-      if (ImGui::Selectable(label.c_str(), sel)) tools_.select_building(BuildingDefId{i});
-      if (sel && d.service.valid() && defs_.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine") {
-        // Temple dedication.
-        for (u8 g = 0; g < defs_.gods.size(); ++g) {
-          if (!world_->god_available[g]) continue;
-          ImGui::SameLine();
-          if (ImGui::RadioButton(defs_.gods[g].name.c_str(), tools_.god == g)) tools_.god = g;
-        }
-      }
-      if (ImGui::IsItemHovered()) {
-        std::string tip = std::to_string(d.w) + "x" + std::to_string(d.h) + (d.painted ? " (drag to paint)" : "");
-        for (const auto& c : d.cost_goods) tip += "\n" + std::to_string(c.amount) + " " + defs_.goods[c.good.v].name;
-        if (d.workers) tip += "\nworkers: " + std::to_string(d.workers);
-        ImGui::SetTooltip("%s", tip.c_str());
-      }
-    }
+void App::update_light() {
+  // Light: day/night cycle from the sim clock; season and weather colour it.
+  const f32 tod = (static_cast<f32>(sim::tick_of_day(world_->now)) + alpha_) / static_cast<f32>(kTicksPerDay) * 24.0f;
+  f32 day = 1.0f;
+  if (tod < 4.5f || tod > 21.5f) day = 0.0f;
+  else if (tod < 7.0f) day = (tod - 4.5f) / 2.5f;
+  else if (tod > 19.0f) day = (21.5f - tod) / 2.5f;
+  f32 rr = 0.42f + 0.58f * day, gg = 0.46f + 0.54f * day, bb = 0.70f + 0.30f * day;
+  if (tod > 17.5f && tod < 21.0f) {  // warm sunset
+    rr = std::min(1.0f, rr + 0.08f);
+    bb *= 0.92f;
   }
-  ImGui::End();
-}
-
-void App::draw_stock_window() {
-  if (!show_stock_) return;
-  ImGui::SetNextWindowPos({1300, 10}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Goods (L)", &show_stock_);
-  const auto& e = world_->econ;
-  if (ImGui::BeginTable("goods", 4)) {
-    ImGui::TableSetupColumn("Good");
-    ImGui::TableSetupColumn("Stock");
-    ImGui::TableSetupColumn("Made");
-    ImGui::TableSetupColumn("Used");
-    ImGui::TableHeadersRow();
-    for (u32 g = 0; g < e.goods; ++g) {
-      if (!e.city_stock[g] && !e.produced_yday[g] && !e.consumed_yday[g]) continue;
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::TextUnformatted(defs_.goods[g].name.c_str());
-      ImGui::TableNextColumn();
-      ImGui::Text("%u", e.city_stock[g]);
-      ImGui::TableNextColumn();
-      ImGui::Text("%u", e.produced_yday[g]);
-      ImGui::TableNextColumn();
-      ImGui::Text("%u", e.consumed_yday[g]);
-    }
-    ImGui::EndTable();
+  switch (sim::season(world_->now)) {
+    case sim::Season::Winter: rr *= 0.93f; gg *= 0.96f; break;
+    case sim::Season::Autumn: bb *= 0.93f; break;
+    case sim::Season::Summer: rr = std::min(1.0f, rr * 1.03f); break;
+    default: break;
   }
-  ImGui::Text("Open haul tasks: %u", e.open_tasks);
-  ImGui::TextUnformatted("Prices (denarii):");
-  for (u32 g = 0; g < e.goods; ++g)
-    if (e.city_stock[g] || e.consumed_yday[g])
-      ImGui::Text("  %s %.1f  (imported %u, exported %u)", defs_.goods[g].name.c_str(), e.price[g] / 10.0, e.imported_yday[g],
-                  e.exported_yday[g]);
-  ImGui::End();
-}
-
-void App::draw_debug_ui() {
-  auto& cam = renderer_.camera();
-  const sim::World& w = *world_;
-  ImGui::SetNextWindowPos({10, 10}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Debug");
-  ImGui::Text("%.1f FPS  (%.2f ms)  sim %.2f ms", static_cast<double>(ImGui::GetIO().Framerate),
-              static_cast<double>(frame_ms_), sim_ms_);
-  ImGui::Text("Day %llu, %02u:00 (%s, %s)", static_cast<unsigned long long>(sim::day_index(w.now) + 1),
-              sim::hour_of_day(w.now), sim::phase_name(sim::phase_of(w.now)), sim::season_name(sim::season(w.now)));
-  const char* speeds[] = {"Pause", "1x", "2x", "4x"};
-  for (int i = 0; i < 4; ++i) {
-    if (i) ImGui::SameLine();
-    if (ImGui::RadioButton(speeds[i], speed_ == i)) speed_ = i;
+  if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm) {
+    rr *= 0.85f;
+    gg *= 0.87f;
+    bb *= 0.92f;
   }
-  ImGui::Text("citizens %u  walking %u  buildings %u", w.citizens.ids.count(), w.walking, w.buildings.ids.count());
-  ImGui::Text("happiness %u  appeal %d  treasury %lld", w.avg_happiness, w.appeal, static_cast<long long>(w.econ.treasury));
-  if (ImGui::Button("Build (B)")) show_build_ = !show_build_;
-  ImGui::SameLine();
-  if (ImGui::Button("Goods (L)")) show_stock_ = !show_stock_;
-  ImGui::SameLine();
-  if (ImGui::Button("Labor (J)")) show_labor_ = !show_labor_;
-  ImGui::SameLine();
-  if (ImGui::Button("Alerts")) show_alerts_ = !show_alerts_;
-  {
-    int ov = static_cast<int>(overlay_);
-    ImGui::SetNextItemWidth(170);
-    const char* names[static_cast<int>(Overlay::Count)];
-    for (int k = 0; k < static_cast<int>(Overlay::Count); ++k) names[k] = overlay_name(static_cast<Overlay>(k));
-    if (ImGui::Combo("Overlay (O)", &ov, names, static_cast<int>(Overlay::Count))) {
-      overlay_ = static_cast<Overlay>(ov);
-      overlay_age_ = 1 << 20;
-    }
-    if (overlay_ == Overlay::Service) {
-      int sv = overlay_service_.valid() ? overlay_service_.v : 0;
-      ImGui::SetNextItemWidth(170);
-      if (ImGui::BeginCombo("Service", defs_.services[static_cast<size_t>(sv)].name.c_str())) {
-        for (u16 k = 0; k < defs_.services.size(); ++k)
-          if (ImGui::Selectable(defs_.services[k].name.c_str(), k == sv)) {
-            overlay_service_ = ServiceId{k};
-            overlay_age_ = 1 << 20;
-          }
-        ImGui::EndCombo();
-      }
-      if (!overlay_service_.valid()) overlay_service_ = ServiceId{0};
-    }
-  }
-  if (ImGui::Button("Finance")) show_finance_ = !show_finance_;
-  ImGui::SameLine();
-  if (ImGui::Button("Trade")) show_trade_ = !show_trade_;
-  ImGui::SameLine();
-  if (ImGui::Button("Religion")) show_religion_ = !show_religion_;
-  ImGui::SameLine();
-  if (ImGui::Button("Threats")) show_threats_ = !show_threats_;
-  ImGui::SameLine();
-  if (ImGui::Button("Military")) show_military_ = !show_military_;
-  if (ImGui::Button("Rome")) show_rome_ = !show_rome_;
-  ImGui::SameLine();
-  if (ImGui::Button("Advisors")) show_advisors_ = !show_advisors_;
-  const auto& st = renderer_.stats();
-  ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
-              st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
-  float mx, my;
-  SDL_GetMouseState(&mx, &my);
-  Vec2 wp = cam.screen_to_world({mx, my});
-  i32 tx = static_cast<i32>(wp.x) / sim::kTilePx, ty = static_cast<i32>(wp.y) / sim::kTilePx;
-  if (w.map.in_bounds(tx, ty)) {
-    size_t i = static_cast<size_t>(w.map.idx(tx, ty));
-    ImGui::Text("tile %d,%d %s h%u gw%u fert%u", tx, ty, sim::terrain_name(w.map.terrain[i]), w.map.height[i],
-                w.map.groundwater[i], w.map.fertility[i]);
-  }
-  ImGui::End();
+  renderer_.light[0] = rr;
+  renderer_.light[1] = gg;
+  renderer_.light[2] = bb;
 }
 
 void App::run() {
@@ -411,81 +524,41 @@ void App::run() {
     update_camera(static_cast<f32>(dt));
     step_sim(dt);
     renderer_.time += static_cast<f32>(dt);
+    if (status_time_ > 0) status_time_ -= static_cast<f32>(dt);
 
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
-    draw_debug_ui();
-    draw_build_menu();
-    draw_stock_window();
-    draw_citizen_panel(*world_, sel_);
-    draw_building_panel(*world_, sel_);
-    draw_labor_panel(*world_, &show_labor_);
-    draw_finance_panel(*world_, &show_finance_);
-    draw_trade_panel(*world_, &show_trade_);
-    draw_religion_panel(*world_, &show_religion_);
-    draw_threats_panel(*world_, sel_, &show_threats_);
-    draw_military_panel(*world_, sel_, &show_military_);
-    draw_rome_panel(*world_, &show_rome_);
-    draw_advisors_panel(*world_, icons_, &advisor_, &show_advisors_);
-    draw_messages(*world_, icons_, &last_message_);
-    draw_mission_end(*world_, &end_dismissed_);
-    if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
-      const auto& jb = world_->buildings[jump];
-      renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
-      sel_.building = jump;
-    }
+    draw_ui();
     ImGui::Render();
-    if (sel_.follow && sel_.citizen.valid() && world_->citizens.alive(sel_.citizen)) {
-      Vec2 p;
-      const u32 ci = sel_.citizen.index();
-      if (world_->citizen_position(ci, alpha_, p, nullptr)) renderer_.camera().center = p;
-      else if (world_->citizens.loc[ci].valid() && world_->buildings.alive(world_->citizens.loc[ci])) {
-        const auto& lb = world_->buildings[world_->citizens.loc[ci]];
-        renderer_.camera().center = {(static_cast<f32>(lb.x) + static_cast<f32>(lb.w) / 2) * sim::kTilePx,
-                                     (static_cast<f32>(lb.y) + static_cast<f32>(lb.h) / 2) * sim::kTilePx};
-      }
-    }
-    draw_selection(*world_, sel_, renderer_, alpha_);
-    if (overlay_ == Overlay::None) {
-      renderer_.set_overlay(nullptr);
-    } else if (++overlay_age_ > 30) {
-      build_overlay(*world_, overlay_, overlay_service_, overlay_px_);
-      renderer_.set_overlay(overlay_px_.data());
-      overlay_age_ = 0;
-    }
 
-    {
-      // Light: day/night cycle from the sim clock, season and weather colour it.
-      const f32 tod = (static_cast<f32>(sim::tick_of_day(world_->now)) + alpha_) / static_cast<f32>(kTicksPerDay) * 24.0f;
-      f32 day = 1.0f;
-      if (tod < 4.5f || tod > 21.5f) day = 0.0f;
-      else if (tod < 7.0f) day = (tod - 4.5f) / 2.5f;
-      else if (tod > 19.0f) day = (21.5f - tod) / 2.5f;
-      f32 rr = 0.42f + 0.58f * day, gg = 0.46f + 0.54f * day, bb = 0.70f + 0.30f * day;
-      if (tod > 17.5f && tod < 21.0f) {  // warm sunset
-        rr = std::min(1.0f, rr + 0.08f);
-        bb *= 0.92f;
+    if (screen_ == Screen::Playing) {
+      if (sel_.follow && sel_.citizen.valid() && world_->citizens.alive(sel_.citizen)) {
+        Vec2 p;
+        const u32 ci = sel_.citizen.index();
+        if (world_->citizen_position(ci, alpha_, p, nullptr)) renderer_.camera().center = p;
+        else if (world_->citizens.loc[ci].valid() && world_->buildings.alive(world_->citizens.loc[ci])) {
+          const auto& lb = world_->buildings[world_->citizens.loc[ci]];
+          renderer_.camera().center = {(static_cast<f32>(lb.x) + static_cast<f32>(lb.w) / 2) * sim::kTilePx,
+                                       (static_cast<f32>(lb.y) + static_cast<f32>(lb.h) / 2) * sim::kTilePx};
+        }
       }
-      switch (sim::season(world_->now)) {
-        case sim::Season::Winter: rr *= 0.93f; gg *= 0.96f; break;
-        case sim::Season::Autumn: bb *= 0.93f; break;
-        case sim::Season::Summer: rr = std::min(1.0f, rr * 1.03f); break;
-        default: break;
+      draw_selection(*world_, sel_, renderer_, alpha_);
+      if (overlay_ == Overlay::None) {
+        renderer_.set_overlay(nullptr);
+      } else if (++overlay_age_ > 30) {
+        build_overlay(*world_, overlay_, overlay_service_, overlay_px_);
+        renderer_.set_overlay(overlay_px_.data());
+        overlay_age_ = 0;
       }
-      if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm) {
-        rr *= 0.85f;
-        gg *= 0.87f;
-        bb *= 0.92f;
-      }
-      renderer_.light[0] = rr;
-      renderer_.light[1] = gg;
-      renderer_.light[2] = bb;
+    } else {
+      renderer_.set_overlay(nullptr);
     }
+    update_light();
     view_.draw(*world_, renderer_, alpha_);
     if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm ||
         world_->weather == sim::Weather::Snow) {
-      // Rain streaks / snowflakes over the visible area (screen-space feel, world-space coordinates).
+      // Rain streaks / snowflakes over the visible area.
       const Recti vis = renderer_.camera().visible_world(0);
       const bool snow = world_->weather == sim::Weather::Snow;
       const int n = world_->weather == sim::Weather::Storm ? 500 : 280;
@@ -494,17 +567,20 @@ void App::run() {
         const f32 fx = static_cast<f32>(hsh % 10007) / 10007.0f, fy0 = static_cast<f32>((hsh >> 12) % 9973) / 9973.0f;
         const f32 speed = snow ? 0.08f : 0.9f;
         const f32 fy = std::fmod(fy0 + renderer_.time * speed, 1.0f);
-        const f32 x = static_cast<f32>(vis.x) + fx * static_cast<f32>(vis.w) + (snow ? std::sin(renderer_.time + static_cast<f32>(k)) * 4 : 0);
+        const f32 x = static_cast<f32>(vis.x) + fx * static_cast<f32>(vis.w) +
+                      (snow ? std::sin(renderer_.time + static_cast<f32>(k)) * 4 : 0);
         const f32 y = static_cast<f32>(vis.y) + fy * static_cast<f32>(vis.h);
         renderer_.push_rect(x, y, 1, snow ? 1 : 5, 0.04f, snow ? render::rgba(250, 250, 255, 220) : render::rgba(180, 200, 230, 120));
       }
     }
-    tools_.draw(*world_, view_, renderer_);
+    if (screen_ == Screen::Playing) tools_.draw(*world_, view_, renderer_);
     ++frame_;
     if (!opt_.screenshot.empty() && frame_ == opt_.frames) renderer_.request_screenshot(opt_.screenshot, !opt_.no_ui);
     renderer_.render(ImGui::GetDrawData());
     if (!opt_.screenshot.empty() && frame_ >= opt_.frames) running_ = false;
   }
+  profile_.save(user_dir_);
+  settings_.save(user_dir_);
 }
 
 void App::shutdown() {

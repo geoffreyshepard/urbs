@@ -230,6 +230,7 @@ void World::start_activity(u32 i, Activity a) {
       break;
     case Activity::Work:
     case Activity::Build: {
+      C.flags[i] |= kFlagWorked;
       if (C.loc[i].valid() && buildings.alive(C.loc[i])) {
         Building& wb = buildings[C.loc[i]];
         ++wb.present;
@@ -244,6 +245,7 @@ void World::start_activity(u32 i, Activity a) {
       break;
     }
     case Activity::Haul:
+      C.flags[i] |= kFlagWorked;
       rate(Need::Rest, -9);
       rate(Need::Food, -7);
       haul_step(i);
@@ -293,7 +295,9 @@ void World::start_activity(u32 i, Activity a) {
         case NeedKind::Education: n = Need::Education; break;
         default: break;
       }
-      if (b.visitors >= bd.service_capacity && bd.service_capacity > 0) {
+      u32 cap = bd.service_capacity;
+      if (tech(Tech::Hypocaust) && sd.need == NeedKind::Hygiene) cap = cap * 3 / 2;
+      if (b.visitors >= cap && cap > 0) {
         // Full: go home; the need is nudged up so the citizen doesn't come straight back.
         C.reason[i] = Reason::ServiceFull;
         C.activity[i] = Activity::Home;

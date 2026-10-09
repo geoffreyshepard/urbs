@@ -116,7 +116,7 @@ void World::trade_daily() {
       continue;
     }
     const auto& pd = defs->partners[p];
-    rs.next_visit = now + static_cast<Tick>(pd.interval_days) * kTicksPerDay;
+    rs.next_visit = now + static_cast<Tick>(pd.interval_days) * kTicksPerDay * (tech(Tech::Cursus) ? 7 : 10) / 10;
     if (pd.sea) {
       BuildingId harbor = nearest_trade_post(true, -1);
       if (!harbor.valid()) continue;

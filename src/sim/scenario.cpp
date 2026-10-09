@@ -21,8 +21,12 @@ ScenarioSpec load_scenario(const std::string& path) {
   if (!f) throw std::runtime_error("cannot open scenario " + path);
   std::stringstream ss;
   ss << f.rdbuf();
+  return parse_scenario(ss.str(), path);
+}
+
+ScenarioSpec parse_scenario(const std::string& text, const std::string& path) {
   ScenarioSpec s;
-  s.json = ss.str();
+  s.json = text;
   s.path = path;
   json j = json::parse(s.json, nullptr, true, true);
   s.name = j.value("name", path);
@@ -443,6 +447,27 @@ void entry_road(World& w, i32 side) {
 void setup_mission(World& w, const data::Defs& defs, ScenarioSpec& s) {
   json j = json::parse(s.json, nullptr, true, true);
   if (j.contains("entry_road")) entry_road(w, j["entry_road"].get<i32>());
+  if (j.contains("start_stock")) {
+    // A stockpile beside the end of the entry road holding the colonists' supplies.
+    i32 cx = w.map.w / 2, cy = w.map.h / 2, best = 1 << 30;
+    for (i32 i = 0; i < w.map.w * w.map.h; ++i)
+      if (w.map.road[static_cast<size_t>(i)] != Road::None) {
+        const i32 d = std::abs(i % w.map.w - w.map.w / 2) + std::abs(i / w.map.w - w.map.h / 2);
+        if (d < best) {
+          best = d;
+          cx = i % w.map.w;
+          cy = i / w.map.w;
+        }
+      }
+    const BuildingDefId sp = defs.building("stockpile");
+    BuildingId id;
+    for (i32 r = 1; r < 12 && !id.valid(); ++r)
+      for (i32 dy = -r; dy <= r && !id.valid(); ++dy)
+        for (i32 dx = -r; dx <= r && !id.valid(); ++dx)
+          if (w.can_place(sp, cx + dx, cy + dy, 3, 3)) id = w.place_building(sp, cx + dx, cy + dy, 3, 3, true);
+    if (id.valid())
+      for (auto& [g, n] : j["start_stock"].items()) w.add_stock(id, defs.good(g), n.get<u16>());
+  }
   w.mission_id = j.value("id", s.name);
   if (j.contains("mission")) w.unlock_up_to(j["mission"].get<u8>());
   w.difficulty = j.value("difficulty", static_cast<u8>(1));

@@ -43,7 +43,7 @@ struct WorldConfig {
 // ---- Commands: the only way the outside world mutates the sim (applied at tick start) -----------
 enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, PlaceUnder, BuySlaves,
                           Festival, Trigger, RaiseUnit, UnitOrder, UnitFormation, UnitStance, DisbandUnit, Campaign,
-                          FulfillRequest, TakeLoan, Answer, Debug };
+                          FulfillRequest, TakeLoan, Answer, Research, Grant, Debug };
 // Trigger ids (Command::def) for debug/scripted threats; Command::x0,y0 = target tile when relevant.
 enum class TriggerId : u16 { Fire, Collapse, Plague, Riot, Revolt, Flood, Earthquake, Drought, Storm, Blight,
                              Blessing, Wrath, Raid, Count };
@@ -53,6 +53,9 @@ inline constexpr const char* weather_name(Weather w) {
   return n[static_cast<int>(w)];
 }
 // Active timed effects (blessings, wrath, disasters). Ticks until they end.
+// Civic research techniques with code hooks (ids in data/defs/techniques.json).
+enum class Tech : u8 { CropRotation, WaterMills, Hypocaust, RomanConcrete, Arches, InsulaCodes, LegionDrill, Medicine,
+                       Cursus, LatinSchools, Count };
 enum class Effect : u8 { Favor, Births, Barren, Morale, Desertion, Happy, Discontent, Harvest, Blight, SeaTrade,
                          TradePrices, NoTrade, Workshops, Fireproof, Hearth, Health, Drought, Count };
 // SetPolicy ids (Command::def): value in Command::value.
@@ -89,7 +92,7 @@ inline constexpr const char* sector_name(Sector s) {
 struct Policy {
   u8 sector_priority[kSectorCount] = {1, 2, 4, 3, 4, 5, 5};  // 1 = highest
   u8 tax_rate[6] = {10, 8, 6, 6, 0, 0};                      // percent of income per class
-  u16 wage = 5;                                              // denarii per worker per day (paid by the city)
+  u16 wage = 4;                                              // denarii per worker per day (paid by the city)
   u8 rations = 1;        // grain dole (annona): 0 none, 1 staples free for the poor, 2 staples free for all
   u8 slave_treatment = 1;  // 0 harsh, 1 fair, 2 kind
   u8 manumission = 1;      // 0 forbidden, 1 occasional, 2 encouraged
@@ -227,6 +230,12 @@ struct World {
   u8 mission_number = 16;    // buildings with unlock <= this are available
   u8 difficulty = 1;         // 0 Otium, 1 Civitas, 2 Imperium
   std::vector<Message> messages;
+  // Civic research
+  u32 scientia = 0;
+  std::vector<u8> tech_known;          // per data technique
+  u8 tech_flags[static_cast<int>(Tech::Count)] = {};
+  [[nodiscard]] bool tech(Tech t) const { return tech_flags[static_cast<int>(t)] != 0; }
+  bool research(u16 technique);
   u16 next_message_id = 1;
 
   military::Army army;

@@ -36,6 +36,8 @@ fails.
 | `units.py` | Legionary, archer, cavalry, barbarian (walk + attack), ballista |
 | `goods.py` | Goods icons: 7x7 carried and 16x16 UI |
 | `ui.py` | God medallions and advisor portraits |
+| `hud.py` | Logo, meander ornaments, HUD icons |
+| `worldmap.py` | Province map (coastline polygons in lon/lat) and `province_places.json` |
 | `buildings/kit.py` | Building kit: projection helpers, faces, roofs, colonnades, pediments, domes, arcades, props |
 | `buildings/works.py`, `buildings/civic.py` | One recipe per fixed building id (sizes come from `data/defs/buildings.json`) |
 | `buildings/fixed.py` | Runs the recipes; stops if a non-painted building has no recipe |
@@ -97,3 +99,11 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
   - Liberti: muted green with a pileus cap.
   - Slave: gray.
   - Soldier: red tunic, gray armor and helmet.
+
+### Phase 3
+
+- `ui/province_map` is 512x288, covering lon -10 to 40 and lat 25 to 56 in an equirectangular projection.
+  - `assets/sprites/province_places.json` maps each place name to `{"x", "y"}`, normalised 0..1 on that image.
+  - Each place is snapped onto land, so it never sits in the sea.
+- `ui/logo` (about 200x60), `ui/panel_corner` (8x8, drawn as the top-left corner; mirror it for the others) and `ui/divider` (64x6, tileable).
+- `ui/icon_<name>`: 16x16 HUD icons.

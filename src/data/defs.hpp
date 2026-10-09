@@ -123,6 +123,11 @@ struct UnitDef {
   [[nodiscard]] bool ranged() const { return range > 2.0f; }
 };
 
+struct TechniqueDef {
+  std::string id, name, desc;
+  u16 cost = 50;
+};
+
 struct NameLists {
   std::vector<std::string> praenomina, nomina, cognomina, slave;
 };
@@ -170,6 +175,7 @@ struct Defs {
   std::vector<TraitDef> traits;
   std::vector<GodDef> gods;
   std::vector<UnitDef> units;
+  std::vector<TechniqueDef> techniques;
   [[nodiscard]] UnitDefId unit(const std::string& id) const {
     for (size_t k = 0; k < units.size(); ++k)
       if (units[k].id == id) return UnitDefId{static_cast<u16>(k)};

@@ -1,0 +1,228 @@
+{
+ "missions": [
+  {
+   "id": "m01_latium",
+   "name": "Latium - The Founding",
+   "rank": "Colonus",
+   "salary": 2,
+   "x": 0.47,
+   "y": 0.38,
+   "region": "Italia",
+   "blurb": "Found a hamlet by the river and grow it to 300 souls.",
+   "sells": [
+    "wheat",
+    "wood"
+   ]
+  },
+  {
+   "id": "m02_ostia",
+   "name": "Ostia - River Port",
+   "rank": "Decurio",
+   "salary": 4,
+   "x": 0.455,
+   "y": 0.39,
+   "region": "Italia",
+   "blurb": "Rome's harbor town: fish, salt, warehouses and the first trade route.",
+   "sells": [
+    "fish",
+    "salt"
+   ]
+  },
+  {
+   "id": "m03_beneventum",
+   "name": "Beneventum - Samnite Frontier",
+   "rank": "Quaestor",
+   "salary": 6,
+   "x": 0.5,
+   "y": 0.41,
+   "region": "Italia",
+   "blurb": "Walls, militia and temples on a troubled frontier.",
+   "sells": [
+    "stone",
+    "cut_stone"
+   ]
+  },
+  {
+   "id": "m04_capua",
+   "name": "Capua - Campania",
+   "rank": "Quaestor",
+   "salary": 7,
+   "x": 0.49,
+   "y": 0.42,
+   "region": "Italia",
+   "blurb": "Olives, vines and pottery; the first equites and their domus.",
+   "sells": [
+    "olive_oil",
+    "wine",
+    "pottery"
+   ]
+  },
+  {
+   "id": "m05_syracuse",
+   "name": "Syracuse - Sicilia",
+   "rank": "Aedile",
+   "salary": 9,
+   "x": 0.5,
+   "y": 0.53,
+   "region": "Sicilia",
+   "blurb": "Sea trade, grain exports and Rome's demands.",
+   "sells": [
+    "wheat",
+    "garum"
+   ]
+  },
+  {
+   "id": "m06_carthago_nova",
+   "name": "Carthago Nova - Hispania",
+   "rank": "Aedile",
+   "salary": 10,
+   "x": 0.18,
+   "y": 0.5,
+   "region": "Hispania",
+   "blurb": "Mines, smelters and the first legions against Punic threats.",
+   "sells": [
+    "silver",
+    "iron"
+   ]
+  },
+  {
+   "id": "m07_aquileia",
+   "name": "Aquileia - Northern Frontier",
+   "rank": "Praetor",
+   "salary": 12,
+   "x": 0.5,
+   "y": 0.28,
+   "region": "Italia",
+   "blurb": "Aqueducts over the hills, baths, sewers and barbarian raids.",
+   "sells": [
+    "concrete",
+    "wine"
+   ]
+  },
+  {
+   "id": "m08_narbo",
+   "name": "Narbo Martius - Gallia",
+   "rank": "Praetor",
+   "salary": 13,
+   "x": 0.33,
+   "y": 0.36,
+   "region": "Gallia",
+   "blurb": "A trade hub with carts, a basilica and a great temple.",
+   "sells": [
+    "furniture",
+    "clothing"
+   ]
+  },
+  {
+   "id": "m09_campania",
+   "name": "Campania - The Servile War",
+   "rank": "Consul",
+   "salary": 15,
+   "x": 0.5,
+   "y": 0.43,
+   "region": "Italia",
+   "blurb": "Keep the peace in a land worked by slaves.",
+   "sells": [
+    "wine",
+    "olive_oil"
+   ]
+  },
+  {
+   "id": "m10_corinth",
+   "name": "Corinth - Refounded",
+   "rank": "Consul",
+   "salary": 16,
+   "x": 0.66,
+   "y": 0.52,
+   "region": "Achaea",
+   "blurb": "Greek culture: odeon, academy, marble and dyes.",
+   "sells": [
+    "marble",
+    "dyed_clothing",
+    "scrolls"
+   ]
+  },
+  {
+   "id": "m11_lugdunum",
+   "name": "Lugdunum - Capital of Gaul",
+   "rank": "Proconsul",
+   "salary": 18,
+   "x": 0.36,
+   "y": 0.3,
+   "region": "Gallia",
+   "blurb": "The Republic becomes an Empire. Mint coins and honour the Emperor.",
+   "sells": [
+    "silver",
+    "tools"
+   ]
+  },
+  {
+   "id": "m12_alexandria",
+   "name": "Alexandria - Egypt",
+   "rank": "Proconsul",
+   "salary": 20,
+   "x": 0.82,
+   "y": 0.68,
+   "region": "Aegyptus",
+   "blurb": "The Nile flood, the grain fleet and the great lighthouse.",
+   "sells": [
+    "wheat",
+    "glassware",
+    "papyrus"
+   ]
+  },
+  {
+   "id": "m13_colonia",
+   "name": "Colonia Agrippina - The Rhine",
+   "rank": "Legatus Augusti",
+   "salary": 22,
+   "x": 0.42,
+   "y": 0.16,
+   "region": "Germania",
+   "blurb": "Limes forts, siege engines and great battles in harsh winters.",
+   "sells": [
+    "weapons",
+    "armor"
+   ]
+  },
+  {
+   "id": "m14_londinium",
+   "name": "Londinium - Britannia",
+   "rank": "Legatus Augusti",
+   "salary": 24,
+   "x": 0.3,
+   "y": 0.1,
+   "region": "Britannia",
+   "blurb": "A revolt burns the city midway; rebuild under pressure.",
+   "sells": [
+    "wool",
+    "iron"
+   ]
+  },
+  {
+   "id": "m15_antioch",
+   "name": "Antioch - The East",
+   "rank": "Praefectus Urbi",
+   "salary": 27,
+   "x": 0.95,
+   "y": 0.55,
+   "region": "Syria",
+   "blurb": "Luxury trade, huge markets and an earthquake.",
+   "sells": [
+    "jewelry",
+    "dyed_clothing"
+   ]
+  },
+  {
+   "id": "m16_roma",
+   "name": "Roma - Caput Mundi",
+   "rank": "Praefectus Urbi",
+   "salary": 30,
+   "x": 0.47,
+   "y": 0.39,
+   "region": "Italia",
+   "blurb": "Rebuild Rome after the great fire: Colosseum, Pantheon, Circus Maximus.",
+   "sells": []
+  }
+ ]
+}

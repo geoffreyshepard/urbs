@@ -117,6 +117,10 @@ u16 World::spawn_unit(UnitDefId def, u8 side, f32 x, f32 y, u16 count, BuildingI
   un.morale = ud.morale;
   un.formation = ud.ranged() ? Formation::Loose : Formation::Line;
   un.number = side == 0 ? army.next_number++ : 0;
+  if (side == 0 && tech(Tech::LegionDrill)) {
+    un.exp = 30;
+    un.morale = static_cast<u8>(std::min(100, un.morale + 10));
+  }
   if (effect(Effect::Morale) && side == 0) un.morale = static_cast<u8>(std::min(100, un.morale + 20));
   for (u16 s = 0; s < count; ++s) {
     SoldierId id = army.ids.create();

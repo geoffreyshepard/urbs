@@ -87,6 +87,7 @@ inline constexpr const char* class_name(CitizenClass c) {
 
 inline constexpr u8 kFlagVisitor = 1;  // non-resident (trader, envoy): excluded from population and labor
 inline constexpr u8 kFlagSchooled = 2;  // attended school as a child (raises skill caps)
+inline constexpr u8 kFlagWorked = 4;    // worked at least one shift today (wages are paid for work done)
 inline constexpr int kMaxTraits = 3;
 inline constexpr int kSkillCount = 6;  // farming, crafting, building, trading, soldiering, scholarship
 inline constexpr int kMemoryEntries = 8;

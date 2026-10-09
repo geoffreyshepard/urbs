@@ -10,6 +10,17 @@ using data::BuildingKind;
 
 void World::change_favor(i32 delta) { favor = std::clamp(favor + delta, 0, 100); }
 
+bool World::research(u16 t) {
+  if (t >= defs->techniques.size() || tech_known[t] || scientia < defs->techniques[t].cost) return false;
+  scientia -= defs->techniques[t].cost;
+  tech_known[t] = 1;
+  static const char* kIds[] = {"crop_rotation", "water_mills", "hypocaust", "roman_concrete", "arches", "insula_codes",
+                               "legion_drill", "medicine", "cursus", "latin_schools"};
+  for (int k = 0; k < static_cast<int>(Tech::Count); ++k)
+    if (defs->techniques[t].id == kIds[k]) tech_flags[k] = 1;
+  return true;
+}
+
 u32 World::count_active(BuildingDefId d) const {
   u32 n = 0;
   buildings.for_each([&](BuildingId, const Building& b) {
@@ -175,6 +186,14 @@ bool World::goals_met() const {
 
 void World::governance_daily() {
   ++mission_days;
+  // Scholars produce scientia: staff of schools, libraries and academies, plus readers.
+  buildings.for_each([&](BuildingId, const Building& b) {
+    if (b.state != BState::Active) return;
+    const auto& d = defs->b(b.def);
+    if (!d.service.valid() || defs->services[d.service.v].need != data::NeedKind::Education) return;
+    const u32 w = d.id == "school" ? 1 : d.id == "library" ? 2 : 3;
+    scientia += w * b.employed + b.served_today / 10;
+  });
   compute_ratings();
   // Favor drifts with the elite's mood and the city's reputation.
   u32 elite = 0, elite_happy = 0;

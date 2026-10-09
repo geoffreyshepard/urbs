@@ -56,6 +56,7 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   req_physician_ = data::HousingReq{data::HousingReq::Service, {d.service("physician"), d.service("hospital")}, {}, 0};
   req_fountain_ = data::HousingReq{data::HousingReq::Service, {d.service("fountain")}, {}, 0};
   requests.assign(8, Request{});
+  tech_known.assign(d.techniques.size(), 0);
   unlock_up_to(16);
   messages.reserve(80);
   god_mood.assign(d.gods.size(), 50);
@@ -173,6 +174,7 @@ BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, 
   if (bd.kind == data::BuildingKind::House)
     if (const auto* t = tier0(*defs, bd)) b.capacity = t->capacity;
   b.build_needed = static_cast<u32>(bd.build_work) * (bd.painted ? std::max<u32>(1, area / base_area) : 1);
+  if (tech(Tech::RomanConcrete)) b.build_needed = b.build_needed * 3 / 4;
   for (i32 ty = y; ty < y + h; ++ty)
     for (i32 tx = x; tx < x + w; ++tx) {
       const size_t ti = static_cast<size_t>(map.idx(tx, ty));
@@ -542,7 +544,8 @@ void World::apply_commands() {
         if (!is_unlocked(d) || !can_place(d, c.x0, c.y0, c.x1, c.y1)) break;
         const auto& bd = defs->b(d);
         const i64 area = static_cast<i64>(c.x1) * c.y1, base = static_cast<i64>(bd.w) * bd.h;
-        const i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
+        i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
+        if (tech(Tech::Arches) && (bd.id == "aqueduct" || bd.id == "grand_aqueduct")) cost /= 2;
         if (!pay(cost, econ::Money::Construction)) break;
         BuildingId nb = place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
         // Temples are dedicated to a god (Command::value); default: the first worshipped god.
@@ -590,6 +593,8 @@ void World::apply_commands() {
         }
         break;
       case CmdType::FulfillRequest: fulfill_request(c.def); break;
+      case CmdType::Research: research(c.def); break;
+      case CmdType::Grant: earn(c.value, econ::Money::Tribute); break;
       case CmdType::TakeLoan: take_loan(c.value); break;
       case CmdType::Answer: answer(c.def, c.value); break;
       case CmdType::OpenRoute:

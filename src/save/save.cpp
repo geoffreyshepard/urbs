@@ -154,6 +154,9 @@ void World::serialize(save::Writer& w) const {
     for (const auto& o : m.options) w.str(o);
   }
   w.pod(next_message_id);
+  w.pod(scientia);
+  w.vec(tech_known);
+  for (u8 f : tech_flags) w.pod(f);
   w.str(script_source);
   w.str(script_name);
   w.str(script ? script->export_state() : std::string());
@@ -289,6 +292,9 @@ void World::deserialize(save::Reader& r) {
     }
   }
   r.pod(next_message_id);
+  r.pod(scientia);
+  r.vec(tech_known);
+  for (u8& f : tech_flags) r.pod(f);
   script_source = r.str();
   script_name = r.str();
   pending_script_state_ = r.str();

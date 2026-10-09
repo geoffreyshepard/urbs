@@ -142,6 +142,7 @@ void World::hazards_hourly(BuildingId id) {
   // Fire risk grows with the building's risk, summer heat and crowded insulae; vigiles reset it.
   i32 risk = d.fire_risk;
   if (d.kind == BuildingKind::House) risk += b.tier >= 3 ? 2 + (b.tier - 2) : 0;
+  if (tech(Tech::InsulaCodes) && d.kind == BuildingKind::House) risk = risk * 3 / 5;
   if (risk > 0) {
     f32 k = 1.0f;
     if (season(now) == Season::Summer) k *= 1.5f;
@@ -208,6 +209,7 @@ void World::disease_daily(BuildingId id) {
   if (!requirement_met(b, req_fountain_)) risk *= 1.5f;
   if (physician) risk *= 0.4f;
   if (effect(Effect::Health)) risk *= 0.2f;
+  if (tech(Tech::Medicine)) risk *= 0.5f;
   if (r.chance(risk)) {
     b.plague = 5;
     ++plague_houses;

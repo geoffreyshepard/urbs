@@ -10,6 +10,7 @@
 #include "core/log.hpp"
 #include "data/defs.hpp"
 #include "sim/scenario.hpp"
+#include "sim/autoplay.hpp"
 #include "sim/world.hpp"
 
 using namespace urbs;
@@ -27,7 +28,8 @@ std::string data_root() {
 int main(int argc, char** argv) {
   std::string scenario_path;
   u64 ticks_override = 0;
-  bool test = false, verbose = false, dump = false;
+  bool test = false, verbose = false, dump = false, autoplay = false;
+  int difficulty = -1;
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
@@ -39,6 +41,8 @@ int main(int argc, char** argv) {
     else if (is("--test")) test = true;
     else if (is("--verbose")) verbose = true;
     else if (is("--dump")) dump = true;
+    else if (is("--autoplay")) autoplay = true;
+    else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
   }
   core::init_logging(verbose);
   if (scenario_path.empty()) {
@@ -61,6 +65,9 @@ int main(int argc, char** argv) {
                 std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - ts).count(),
                 world->citizens.ids.count(), world->buildings.ids.count());
 
+  sim::Autoplay bot;
+  if (autoplay) bot.init(*world);
+  if (difficulty >= 0) world->difficulty = static_cast<u8>(difficulty);
   const u64 ticks = ticks_override ? ticks_override : (spec.ticks ? spec.ticks : 1200);
   std::vector<double> ms;
   ms.reserve(ticks);
@@ -71,7 +78,9 @@ int main(int argc, char** argv) {
   u64 fallbacks = 0, failed_paths = 0;
   for (u64 t = 0; t < ticks; ++t) {
     sim::push_due_orders(*world, spec);
+    if (autoplay) bot.step(*world);
     world->tick();
+    if (autoplay && world->mission != sim::MissionState::Running) break;
     ms.push_back(world->stats.tick_ms);
     decisions += world->stats.decisions;
     path_req += world->stats.path_requests;
@@ -117,6 +126,11 @@ int main(int argc, char** argv) {
     for (int k = 0; k < 7; ++k) std::printf(" %s %.3f/%.2f", names[k], sys_sum[k] / static_cast<double>(ticks), sys_max[k]);
     std::printf("\n");
   }
+  if (autoplay)
+    std::printf("autoplay: %u actions, mission %s after %u days (pop %u, cul %u, pros %u, favor %d)%s%s\n", bot.actions,
+                world->mission == sim::MissionState::Won ? "WON" : world->mission == sim::MissionState::Lost ? "LOST" : "running",
+                world->mission_days, world->population(), world->ratings.culture, world->ratings.prosperity, world->favor,
+                world->lost_reason.empty() ? "" : " - ", world->lost_reason.c_str());
   if (verbose) {
     u32 per_side[2] = {}, units_side[2] = {};
     f32 ex = 0, ey = 0;

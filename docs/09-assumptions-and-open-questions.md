@@ -17,7 +17,7 @@
 | Minimum spec | Apple Silicon M1, 8 GB; comparable Windows/Linux PCs | "Whatever my Mac runs well" |
 | License | **Decided:** PolyForm Noncommercial 1.0.0 (code), CC BY-NC-SA 4.0 (assets, data, docs) | Free to use and contribute; no commercial resale |
 | Housing gating | Tiers unlock progressively (see catalog "Reachable from") | Fixed contradictions where tiers required buildings that unlock later |
-| Taxes | Forum and a flat tax at M2; per-class tax policy at Quaestor (M3) | Mission 2 introduces taxes, so the forum must exist then |
+| Taxes | Forum from mission 1 (the city pays wages, so it must be able to tax); per-class rates are a policy | Playtesting with the autoplay bot showed a city without tax collection always goes bankrupt |
 
 ## Open questions (decide before the milestone that needs them)
 

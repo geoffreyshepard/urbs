@@ -146,6 +146,7 @@ void World::building_hourly(BuildingId id) {
   if (d.kind == BuildingKind::Farm) {
     if (season(now) == Season::Winter) eff = 0;
     if (effect(Effect::Harvest)) eff = eff * 3 / 2;
+    if (tech(Tech::CropRotation)) eff = eff * 6 / 5;
     if (effect(Effect::Blight)) eff = 0;
     if (effect(Effect::Drought)) eff = eff * 3 / 10;
     u32 fert = 0, n = 0;
@@ -157,6 +158,7 @@ void World::building_hourly(BuildingId id) {
     eff = eff * (n ? fert / n : 128) / 128;
   }
   if (d.kind != BuildingKind::Farm && effect(Effect::Workshops)) eff = eff * 6 / 5;
+  if (d.kind != BuildingKind::Farm && tech(Tech::WaterMills)) eff = eff * 23 / 20;
   // Each present worker contributes 75% plus up to 50% more with skill (and work traits).
   const u32 effort = static_cast<u32>(b.present) * 75 + b.skill_sum * 50 / 255;
   b.work_progress += effort * static_cast<u32>(kTicksPerHour) / 100 * eff / 100;
