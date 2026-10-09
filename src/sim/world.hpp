@@ -90,7 +90,7 @@ inline constexpr const char* sector_name(Sector s) {
 }
 
 struct Policy {
-  u8 sector_priority[kSectorCount] = {1, 2, 4, 3, 4, 5, 5};  // 1 = highest
+  u8 sector_priority[kSectorCount] = {1, 2, 3, 2, 3, 4, 4};  // 1 = highest
   u8 tax_rate[6] = {10, 8, 6, 6, 0, 0};                      // percent of income per class
   u16 wage = 4;                                              // denarii per worker per day (paid by the city)
   u8 rations = 1;        // grain dole (annona): 0 none, 1 staples free for the poor, 2 staples free for all
@@ -204,7 +204,7 @@ struct World {
   Weather weather = Weather::Clear;
   u32 fires_total = 0, collapses_total = 0, plague_houses = 0;
   std::vector<TradeRouteState> routes;  // one per data::TradePartnerDef
-  std::vector<u8> trade_mode;           // per good: 0 none, 1 import, 2 export
+  std::vector<u8> trade_mode;           // per good: 0 none, 1 import, 2 export, 3 stockpile (kept in storage)
   std::vector<u16> trade_level;         // import below / export above this city stock
   u32 visitors = 0;                     // traders currently in the city
   [[nodiscard]] u32 population() const { return citizens.ids.count() - visitors; }
@@ -229,6 +229,10 @@ struct World {
   std::vector<u8> unlocked;  // per building def
   u8 mission_number = 16;    // buildings with unlock <= this are available
   u8 difficulty = 1;         // 0 Otium, 1 Civitas, 2 Imperium
+  // Sets the global difficulty; at the start of a mission it also scales the starting treasury.
+  void set_difficulty(u8 d);
+  // Multiplier for threat frequency and strength: Otium 0.5, Civitas 1, Imperium 1.5.
+  [[nodiscard]] f32 threat_scale() const { return difficulty == 0 ? 0.5f : difficulty == 2 ? 1.5f : 1.0f; }
   std::vector<Message> messages;
   // Civic research
   u32 scientia = 0;
@@ -368,6 +372,11 @@ struct World {
   void compute_ratings();
   u16 add_request(u8 kind, GoodId good, u16 amount, u16 days, i32 reward, i8 favor_win, i8 favor_lose);
   bool fulfill_request(u16 id);
+  [[nodiscard]] bool site_ready(const Building& b) const;
+  // An open land (or sea) route still buys g this year.
+  [[nodiscard]] bool open_route_buys(GoodId g, bool sea) const;
+  // Unreserved amount of g in warehouses, granaries, stockpiles and trade posts (what a request can send).
+  [[nodiscard]] u32 stored_amount(GoodId g) const;
   void take_loan(i64 amount);
   void change_favor(i32 delta);
   u16 post_message(u8 advisor, const std::string& title, const std::string& text,
@@ -460,6 +469,7 @@ struct World {
   std::vector<i32> scratch_tiles_;
   std::vector<u32> scratch_u32_, scratch_u32b_;
   std::vector<u32> labor_head_, labor_fill_;
+  std::vector<u8> labor_done_;  // per building index: no reachable candidate this run
   std::vector<i32> water_queue_;
   std::vector<u8> reservoir_full_;
   std::vector<i16> desir_acc_;

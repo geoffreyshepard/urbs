@@ -429,14 +429,15 @@ void draw_trade_panel(sim::World& w, bool* open) {
     ImGui::PopID();
   }
   ImGui::Separator();
-  ImGui::TextUnformatted("Goods: import when stock is below the level, export above it");
+  ImGui::TextUnformatted("Goods: import when stock is below the level, export above it.");
+  ImGui::TextUnformatted("Stockpile keeps a good in storage (markets do not take it), e.g. for a request from Rome.");
   if (ImGui::BeginTable("tg", 4)) {
     ImGui::TableSetupColumn("Good");
     ImGui::TableSetupColumn("Stock");
     ImGui::TableSetupColumn("Mode");
     ImGui::TableSetupColumn("Level");
     ImGui::TableHeadersRow();
-    const char* modes[] = {"-", "Import", "Export"};
+    const char* modes[] = {"-", "Import", "Export", "Stockpile"};
     for (u32 g = 0; g < D.goods.size(); ++g) {
       ImGui::PushID(static_cast<int>(g));
       ImGui::TableNextRow();
@@ -447,7 +448,7 @@ void draw_trade_panel(sim::World& w, bool* open) {
       ImGui::TableNextColumn();
       int m = w.trade_mode[g];
       ImGui::SetNextItemWidth(90);
-      bool changed = ImGui::Combo("##m", &m, modes, 3);
+      bool changed = ImGui::Combo("##m", &m, modes, 4);
       ImGui::TableNextColumn();
       int lvl = w.trade_level[g];
       ImGui::SetNextItemWidth(120);
@@ -590,7 +591,7 @@ void draw_rome_panel(sim::World& w, bool* open) {
     ImGui::Text("Send %s within %llu days", what.c_str(), static_cast<unsigned long long>(days));
     if (r.kind == 0) {
       ImGui::SameLine();
-      ImGui::TextDisabled("(have %u)", w.econ.city_stock[r.good.v]);
+      ImGui::TextDisabled("(%u in storage)", w.stored_amount(r.good));
     }
     ImGui::SameLine();
     if (ImGui::SmallButton(("Send##r" + std::to_string(r.id)).c_str())) {

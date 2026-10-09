@@ -27,14 +27,14 @@ void World::weather_daily() {
     case Season::Winter: weather = roll < 0.25f ? Weather::Rain : roll < 0.35f ? Weather::Snow : Weather::Clear; break;
   }
   // A hot spell can turn into drought.
-  if (weather == Weather::Heat && !effect(Effect::Drought) && r.chance(0.06f)) {
+  if (weather == Weather::Heat && !effect(Effect::Drought) && r.chance(0.06f * threat_scale())) {
     set_effect(Effect::Drought, kTicksPerDay * 4);
     add_alert(AlertKind::Event, BuildingId{}, 1000);
   }
   if (weather == Weather::Storm) {
     // Storms damage a few roofs and endanger docked ships.
     buildings.for_each([&](BuildingId, Building& b) {
-      if (b.state == BState::Active && r.chance(0.04f)) b.damage = static_cast<u8>(std::min(255, b.damage + 30));
+      if (b.state == BState::Active && r.chance(0.04f * threat_scale())) b.damage = static_cast<u8>(std::min(255, b.damage + 30));
     });
     for (auto& rs : routes)
       if (rs.ship_until > now && !effect(Effect::SeaTrade) && r.chance(0.3f)) rs.ship_until = now;
@@ -133,7 +133,8 @@ void World::hazards_hourly(BuildingId id) {
         BuildingId nb = map.building[static_cast<size_t>(map.idx(tx, ty))];
         if (!nb.valid() || nb == id || !buildings.alive(nb)) continue;
         const auto& nd = defs->b(buildings[nb].def);
-        if (nd.kind == BuildingKind::Decor || nd.kind == BuildingKind::Infrastructure) continue;
+        if (nd.kind == BuildingKind::Decor || nd.kind == BuildingKind::Infrastructure || nd.kind == BuildingKind::Water)
+          continue;  // stone wells, fountains, aqueducts and gardens do not burn
         if (buildings[nb].state == BState::Active && r.chance(spread)) ignite(nb);
       }
     return;
@@ -141,7 +142,8 @@ void World::hazards_hourly(BuildingId id) {
   if (b.state != BState::Active) return;
   // Fire risk grows with the building's risk, summer heat and crowded insulae; vigiles reset it.
   i32 risk = d.fire_risk;
-  if (d.kind == BuildingKind::House) risk += b.tier >= 3 ? 2 + (b.tier - 2) : 0;
+  // Tents and huts (cooking outdoors, little timber) do not build up fire risk; casae and insulae do.
+  if (d.kind == BuildingKind::House) risk = b.tier < 2 ? 0 : risk + (b.tier >= 3 ? 2 + (b.tier - 2) : 0);
   if (tech(Tech::InsulaCodes) && d.kind == BuildingKind::House) risk = risk * 3 / 5;
   if (risk > 0) {
     f32 k = 1.0f;
@@ -150,6 +152,7 @@ void World::hazards_hourly(BuildingId id) {
     if (weather == Weather::Rain || weather == Weather::Snow) k *= 0.3f;
     if (effect(Effect::Fireproof)) k *= 0.3f;
     if (effect(Effect::Hearth) && d.kind == BuildingKind::House) k *= 0.5f;
+    k *= threat_scale();
     if (patrol_covers("vigiles", b)) {
       b.fire_risk = static_cast<u8>(b.fire_risk / 4);
     } else {
@@ -165,7 +168,7 @@ void World::hazards_hourly(BuildingId id) {
   if (d.kind == BuildingKind::House && b.tier >= 3) wear += 2 * (b.tier - 2);
   if (patrol_covers("engineers", b)) {
     b.damage = static_cast<u8>(b.damage > 12 ? b.damage - 12 : 0);
-  } else if (wear > 0 && r.chance(0.05f * static_cast<f32>(wear))) {
+  } else if (wear > 0 && r.chance(0.05f * static_cast<f32>(wear) * threat_scale())) {
     ++b.damage;  // years for a plain house, weeks for a towering unmaintained insula
   }
   if (b.damage >= 250) ruin(id);
@@ -194,7 +197,7 @@ void World::disease_daily(BuildingId id) {
         if (!nb.valid() || nb == id || !buildings.alive(nb)) continue;
         Building& n = buildings[nb];
         if (n.plague == 0 && defs->b(n.def).kind == BuildingKind::House && n.residents > 0 &&
-            r.chance(physician ? 0.04f : 0.12f)) {
+            r.chance(physician ? 0.02f : 0.07f)) {
           n.plague = 5;
           ++plague_houses;
         }
@@ -202,7 +205,9 @@ void World::disease_daily(BuildingId id) {
     return;
   }
   // Outbreak risk: marsh or bad neighbourhood, crowding, no sewer in insulae, no fountain water.
-  f32 risk = 0.0004f;
+  // No outbreaks before the city can have physicians, or while it is a village.
+  if (!is_unlocked(defs->building("physician")) || population() < 250) return;
+  f32 risk = 0.00015f;
   if (b.desirability_seen < 120) risk *= 2.0f;
   if (b.residents >= b.capacity && b.tier >= 2) risk *= 2.0f;
   if (b.tier >= 3 && !(b.flags & 0x10)) risk *= 2.0f;
@@ -210,6 +215,7 @@ void World::disease_daily(BuildingId id) {
   if (physician) risk *= 0.4f;
   if (effect(Effect::Health)) risk *= 0.2f;
   if (tech(Tech::Medicine)) risk *= 0.5f;
+  risk *= threat_scale();
   if (r.chance(risk)) {
     b.plague = 5;
     ++plague_houses;

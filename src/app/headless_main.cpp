@@ -28,7 +28,7 @@ std::string data_root() {
 int main(int argc, char** argv) {
   std::string scenario_path;
   u64 ticks_override = 0;
-  bool test = false, verbose = false, dump = false, autoplay = false;
+  bool test = false, verbose = false, dump = false, autoplay = false, daily = false;
   int difficulty = -1;
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
     else if (is("--verbose")) verbose = true;
     else if (is("--dump")) dump = true;
     else if (is("--autoplay")) autoplay = true;
+    else if (is("--daily")) daily = true;
     else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
   }
   core::init_logging(verbose);
@@ -65,9 +66,15 @@ int main(int argc, char** argv) {
                 std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - ts).count(),
                 world->citizens.ids.count(), world->buildings.ids.count());
 
+  if (verbose) {
+    u32 res[static_cast<int>(sim::Resource::Count)] = {};
+    for (auto r : world->map.resource) ++res[static_cast<int>(r)];
+    std::printf("resource tiles: clay %u stone %u iron %u silver %u marble %u limestone %u pozzolana %u fish %u\n", res[1],
+                res[2], res[3], res[4], res[5], res[6], res[7], res[8]);
+  }
   sim::Autoplay bot;
   if (autoplay) bot.init(*world);
-  if (difficulty >= 0) world->difficulty = static_cast<u8>(difficulty);
+  if (difficulty >= 0) world->set_difficulty(static_cast<u8>(difficulty));
   const u64 ticks = ticks_override ? ticks_override : (spec.ticks ? spec.ticks : 1200);
   std::vector<double> ms;
   ms.reserve(ticks);
@@ -81,6 +88,54 @@ int main(int argc, char** argv) {
     if (autoplay) bot.step(*world);
     world->tick();
     if (autoplay && world->mission != sim::MissionState::Running) break;
+    if (daily && world->now % kTicksPerDay == kTicksPerDay / 2) {
+      u32 food = 0, nofood = 0, hh = 0, idle = 0, adults = 0, jobs = 0;
+      for (GoodId g : world->food_slots) food += world->econ.city_stock[g.v];
+      for (u32 k = 0; k < world->households.ids.high_water(); ++k)
+        if (world->households.ids.alive_index(k)) {
+          ++hh;
+          if (world->household_food(world->households.h[k]) == 0) ++nofood;
+        }
+      const auto& C = world->citizens;
+      for (u32 i = 0; i < C.ids.high_water(); ++i) {
+        if (!C.ids.alive_index(i)) continue;
+        const u32 a = C.age_years(i, world->now);
+        if (a < 14 || a >= 60) continue;
+        ++adults;
+        if (!C.work[i].valid()) ++idle;
+      }
+      world->buildings.for_each([&](BuildingId, const sim::Building& b) { jobs += b.jobs; });
+      std::printf("day %3u pop %4u mood %3u food %5u hh %3u nofood %3u adults %4u idle %3u jobs %4u treas %6lld imm %u emi %u %s\n",
+                  world->mission_days, world->population(), world->avg_happiness, food, hh, nofood, adults, idle, jobs,
+                  static_cast<long long>(world->econ.treasury), world->immigrants_total, world->emigrants_total,
+                  autoplay ? bot.last_action().c_str() : "");
+      if (verbose) {
+        std::printf("    money:");
+        for (int k = 0; k < econ::kMoneyCount; ++k)
+          if (world->econ.money.yesterday[k])
+            std::printf(" %s %s%lld", econ::money_name(static_cast<econ::Money>(k)),
+                        econ::money_is_income(static_cast<econ::Money>(k)) ? "+" : "-",
+                        static_cast<long long>(world->econ.money.yesterday[k]));
+        std::printf("\n");
+      }
+      for (const auto& r : world->requests)
+        if (r.active && r.kind == 0)
+          std::printf("    request %s %u/%u, %lld days left\n", defs.goods[r.good.v].id.c_str(),
+                      world->stored_amount(r.good), r.amount,
+                      static_cast<long long>((r.deadline - world->now) / kTicksPerDay));
+      if (verbose)
+        for (const auto& r : world->requests)
+          if (r.active && r.kind == 0)
+            world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+              const auto& d = defs.b(b.def);
+              if (!d.recipe.valid()) return;
+              for (const auto& o : defs.recipes[d.recipe.v].outputs)
+                if (o.good == r.good)
+                  std::printf("      %s state %d employed %u/%u present %u has %u free %u\n", d.id.c_str(),
+                              static_cast<int>(b.state), b.employed, b.jobs, b.present, world->econ.amt(b.inv, r.good),
+                              world->econ.free_space(b.inv));
+            });
+    }
     ms.push_back(world->stats.tick_ms);
     decisions += world->stats.decisions;
     path_req += world->stats.path_requests;
@@ -131,6 +186,17 @@ int main(int argc, char** argv) {
                 world->mission == sim::MissionState::Won ? "WON" : world->mission == sim::MissionState::Lost ? "LOST" : "running",
                 world->mission_days, world->population(), world->ratings.culture, world->ratings.prosperity, world->favor,
                 world->lost_reason.empty() ? "" : " - ", world->lost_reason.c_str());
+  if (autoplay || verbose) {
+    const auto& G = world->goals;
+    std::printf("goals:");
+    if (G.population) std::printf(" pop %u/%u", world->population(), G.population);
+    if (G.culture) std::printf(" cul %u/%u", world->ratings.culture, G.culture);
+    if (G.prosperity) std::printf(" pros %u/%u", world->ratings.prosperity, G.prosperity);
+    if (G.security) std::printf(" sec %u/%u", world->ratings.security, G.security);
+    if (G.requests) std::printf(" requests %u/%u (failed %u)", world->requests_fulfilled, G.requests, world->requests_failed);
+    for (const auto& g : G.buildings) std::printf(" %s %u/%u", defs.b(g.def).id.c_str(), world->count_active(g.def), g.count);
+    std::printf("\n");
+  }
   if (verbose) {
     u32 per_side[2] = {}, units_side[2] = {};
     f32 ex = 0, ey = 0;
@@ -250,7 +316,7 @@ int main(int argc, char** argv) {
   if (dump) {
     world->buildings.for_each([&](BuildingId, const sim::Building& b) {
       const auto& d = defs.b(b.def);
-      std::printf("%-14s at %3d,%3d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(), b.x, b.y,
+      std::printf("%-14s at %3d,%3d ent=%d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(), b.x, b.y, b.entrance,
                   static_cast<int>(b.state), b.jobs, b.employed, b.present, b.build_progress, b.build_needed,
                   b.work_progress);
       if (b.inv != econ::kNoInv)
@@ -267,6 +333,23 @@ int main(int argc, char** argv) {
         std::printf("  %s: produced %u consumed %u (yesterday)\n", defs.goods[g].id.c_str(), world->econ.produced_yday[g],
                     world->econ.consumed_yday[g]);
     std::printf("open tasks %u, treasury %lld\n", world->econ.open_tasks, static_cast<long long>(world->econ.treasury));
+    // Why are construction sites unstaffed? Count eligible idle workers that can reach each one.
+    world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+      if (b.state != sim::BState::Construction || b.employed >= b.jobs) return;
+      u32 idle = 0, homeless = 0, leaving = 0, reach = 0;
+      const auto& C = world->citizens;
+      for (u32 i = 0; i < C.ids.high_water(); ++i) {
+        if (!C.ids.alive_index(i) || C.work[i].valid()) continue;
+        const u32 a = C.age_years(i, world->now);
+        if (a < 14 || a >= 60) continue;
+        ++idle;
+        if (!C.home[i].valid() || !world->buildings.alive(C.home[i])) { ++homeless; continue; }
+        if (C.activity[i] == sim::Activity::Leave) { ++leaving; continue; }
+        if (world->nav.connected(world->buildings[C.home[i]].entrance, b.entrance)) ++reach;
+      }
+      std::printf("site %s: ready %d idle %u homeless %u leaving %u can reach %u\n", defs.b(b.def).id.c_str(),
+                  world->site_ready(b), idle, homeless, leaving, reach);
+    });
   }
   if (test) {
     bool ok = true;

@@ -6,6 +6,12 @@
 
 #include "core/types.hpp"
 
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#include <sanitizer/common_interface_defs.h>
+#endif
+#endif
+
 namespace urbs::core::alloc::detail {
 extern std::atomic<bool> g_tick_active;
 extern std::atomic<urbs::u64> g_violations;
@@ -19,7 +25,18 @@ struct Installer {
 
 void* counted_alloc(std::size_t n, std::size_t align) {
   g_total.fetch_add(1, std::memory_order_relaxed);
-  if (g_tick_active.load(std::memory_order_relaxed)) g_violations.fetch_add(1, std::memory_order_relaxed);
+  if (g_tick_active.load(std::memory_order_relaxed)) {
+    if (g_violations.fetch_add(1, std::memory_order_relaxed) == 0 && std::getenv("URBS_ALLOC_TRAP")) {
+      // Debugging aid: print where the first allocation inside tick() happened.
+      g_tick_active.store(false);
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+      __sanitizer_print_stack_trace();
+#endif
+#endif
+      std::abort();
+    }
+  }
   if (n == 0) n = 1;
   void* p = nullptr;
   if (align <= alignof(std::max_align_t)) {

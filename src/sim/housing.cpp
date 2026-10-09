@@ -175,17 +175,17 @@ void World::house_daily(BuildingId id) {
   for (u32 hi = b.first_household; hi != kNoIndex;) {
     Household& h = households.h[hi];
     const u32 next = h.next_in_house;
-    // Taxes on the day's wages, collected where a forum covers the house.
-    if (h.income_today > 0) {
+    // Taxes. The tributum (10% a day of savings above 20) is levied everywhere, so hoarded money returns
+    // to the treasury and wages balance against taxes + sales. The wage tax needs a forum's clerks.
+    {
       ServiceId forum = defs->service("forum");
-      if (forum.valid() && services.ready(forum.v) && services.cost_ticks(forum.v, b.entrance) <= defs->services[forum.v].range) {
-        // Wage tax plus 10% per day of savings above 20: hoarded money returns to the treasury, so
-        // wages and taxes+sales roughly balance and exports pay for the city's growth.
-        const i32 wealth = h.savings > 20 ? (h.savings - 20) / 10 : 0;
-        const i32 tax = std::min<i32>(h.savings, (h.income_today * policy.tax_rate[static_cast<int>(h.cls) % 6] + 50) / 100 + wealth);
-        h.savings -= tax;
-        earn(tax, econ::Money::Taxes);
-      }
+      const bool clerks = forum.valid() && services.ready(forum.v) &&
+                          services.cost_ticks(forum.v, b.entrance) <= defs->services[forum.v].range;
+      const i32 wealth = h.savings > 20 ? (h.savings - 20) / 10 : 0;
+      const i32 wage_tax = clerks ? (h.income_today * policy.tax_rate[static_cast<int>(h.cls) % 6] + 50) / 100 : 0;
+      const i32 tax = std::min<i32>(h.savings, wage_tax + wealth);
+      h.savings -= tax;
+      earn(tax, econ::Money::Taxes);
       h.income_today = 0;
     }
     // Household goods wear out: one unit of each held good every eight days.
@@ -198,8 +198,8 @@ void World::house_daily(BuildingId id) {
     const u32 sum = h.happy_sum, n = h.happy_n;
     h.happy_sum = 0;
     h.happy_n = 0;
-    if (n > 0 && sum / n < 70) {
-      if (++h.unhappy_days >= 3 && stream(rng::StreamId::Immigration).chance(0.35f)) start_emigration(households.ids.id_at(hi));
+    if (n > 0 && sum / n < 55) {
+      if (++h.unhappy_days >= 4 && stream(rng::StreamId::Immigration).chance(0.25f)) start_emigration(households.ids.id_at(hi));
     } else {
       h.unhappy_days = 0;
     }
@@ -277,6 +277,9 @@ World::HappinessParts World::happiness_parts(u32 i) const {
   else p.housing = -25;
   const u32 age = C.age_years(i, now);
   if (age >= 14 && age < 60 && !C.work[i].valid() && C.cls[i] != CitizenClass::Patrician) p.employment = -8;
+  // Workers compare the city's wage with the going rate in Rome (4 denarii a day).
+  if (C.work[i].valid() && C.cls[i] != CitizenClass::Slave)
+    p.employment = static_cast<i16>(std::clamp((static_cast<int>(policy.wage) - 4) * 3, -12, 9));
   p.taxes = static_cast<i16>(-static_cast<int>(policy.tax_rate[static_cast<int>(C.cls[i]) % 6]) / 2);
   if (C.bonus_until[i] > day_index(now)) p.events = C.bonus[i];
   {
@@ -296,7 +299,7 @@ World::HappinessParts World::happiness_parts(u32 i) const {
     const u8 t = C.traits[static_cast<size_t>(i) * kMaxTraits + k];
     if (t < defs->traits.size()) p.traits = static_cast<i16>(p.traits + defs->traits[t].happiness);
   }
-  p.health = static_cast<i16>((static_cast<int>(C.health[i]) - 255) / 8);
+  p.health = static_cast<i16>((static_cast<int>(C.health[i]) - 255) / 14);
   if (C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Eques) {
     p.education = lin(C.need(i, Need::Education, now), -12, 6);
     // Prestige: the elite care about how desirable their neighbourhood is.

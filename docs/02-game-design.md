@@ -308,3 +308,5 @@ Each mission has a designed difficulty, and the player picks a global modifier:
 | **Imperium** (hard) | More frequent and harsher threats, demanding Rome, tighter margins, mission failure conditions |
 
 Early missions lean relaxed and later missions lean challenging, so the campaign itself provides the balance between the two.
+
+Implemented multipliers: threat frequency (fire, collapse, plague, drought, storms) ×0.5 / ×1 / ×1.5; raid size ×0.6 / ×1 / ×1.4; starting treasury ×1.5 / ×1 / ×0.75; favor lost on a failed request ×0.5 / ×1 / ×1.5. Missions fail on lost favor from Civitas up, and also on long debt on Imperium.

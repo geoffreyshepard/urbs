@@ -208,6 +208,14 @@ void World::release_worker(u32 i) {
   }
 }
 
+// A construction site hires builders once its materials are delivered or on the way.
+bool World::site_ready(const Building& b) const {
+  if (b.state != BState::Construction) return true;
+  for (const auto& c : defs->b(b.def).cost_goods)
+    if (b.inv == econ::kNoInv || econ.amt(b.inv, c.good) + econ.rin(b.inv, c.good) < c.amount) return false;
+  return true;
+}
+
 void World::labor_allocate() {
   URBS_ZONE("labor");
   ++labor_hourly_runs;
@@ -236,53 +244,91 @@ void World::labor_allocate() {
     scratch_u32b_[labor_fill_[static_cast<size_t>(nav.chunk_of(he % map.w, he / map.w))]++] = ci;
   }
   // scratch_u32b_ now holds candidates grouped by chunk; a taken candidate is marked kNoIndex.
+  // Hire the nearest reachable candidate for building bi; false if there is none.
+  auto hire_one = [&](u32 bi) -> bool {
+    Building& b = buildings.b[bi];
+    const data::BuildingDef& d = defs->b(b.def);
+    const u8 classes = b.state == BState::Construction ? static_cast<u8>(data::ClassMask::Workers) : d.worker_classes;
+    const i32 bx = b.entrance % map.w, by = b.entrance / map.w;
+    const i32 bcx = bx / kChunkTiles, bcy = by / kChunkTiles;
+    // Search chunk rings outward; take the nearest candidate in the first ring that has one.
+    for (i32 r = 0; r < std::max(cx, cy); ++r) {
+      size_t best = kNoIndex;
+      int best_d = 1 << 30;
+      for (i32 qy = bcy - r; qy <= bcy + r; ++qy)
+        for (i32 qx = bcx - r; qx <= bcx + r; ++qx) {
+          if (qx < 0 || qy < 0 || qx >= cx || qy >= cy) continue;
+          if (std::max(std::abs(qx - bcx), std::abs(qy - bcy)) != r) continue;
+          const i32 q = qy * cx + qx;
+          for (u32 k = labor_head_[static_cast<size_t>(q)]; k < labor_head_[static_cast<size_t>(q) + 1]; ++k) {
+            const u32 ci = scratch_u32b_[k];
+            if (ci == kNoIndex) continue;
+            if (!(classes & data::class_bit(static_cast<int>(C.cls[ci])))) continue;
+            const i32 he = buildings[C.home[ci]].entrance;
+            if (!nav.connected(he, b.entrance)) continue;
+            const int dd = manhattan_tiles(map, he, b.entrance);
+            if (dd < best_d) {
+              best_d = dd;
+              best = k;
+            }
+          }
+        }
+      if (best == kNoIndex) continue;
+      const u32 ci = scratch_u32b_[best];
+      scratch_u32b_[best] = kNoIndex;
+      C.work[ci] = buildings.ids.id_at(bi);
+      ++b.employed;
+      return true;
+    }
+    return false;
+  };
+  // Within a priority level, hire round-robin (one worker per building per round) so every
+  // workplace in a production chain gets some staff before any one is filled.
+  labor_done_.assign(buildings.ids.high_water(), 0);
   u32 assigned = 0;
   const u32 kMaxAssign = 600;
   for (int prio = 1; prio <= 5 && assigned < kMaxAssign; ++prio) {
-    for (u32 bi = 0; bi < buildings.ids.high_water() && assigned < kMaxAssign; ++bi) {
+    for (bool progress = true; progress && assigned < kMaxAssign;) {
+      progress = false;
+      for (u32 bi = 0; bi < buildings.ids.high_water() && assigned < kMaxAssign; ++bi) {
+        if (!buildings.ids.alive_index(bi) || labor_done_[bi]) continue;
+        Building& b = buildings.b[bi];
+        if (b.state != BState::Active && b.state != BState::Construction) continue;
+        if (b.jobs <= b.employed || b.entrance < 0 || !site_ready(b)) continue;
+        if (policy.sector_priority[static_cast<int>(sector_of(b))] != prio) continue;
+        if (hire_one(bi)) {
+          ++assigned;
+          progress = true;
+        } else {
+          labor_done_[bi] = 1;
+        }
+      }
+    }
+  }
+  // Priority: sectors with vacancies take workers from lower-priority sectors (lowest first).
+  u32 moved = 0;
+  for (int prio = 1; prio <= 4 && moved < 60; ++prio) {
+    for (u32 bi = 0; bi < buildings.ids.high_water() && moved < 60; ++bi) {
       if (!buildings.ids.alive_index(bi)) continue;
       Building& b = buildings.b[bi];
-      if (b.state != BState::Active && b.state != BState::Construction) continue;
-      if (b.jobs <= b.employed || b.entrance < 0) continue;
+      if ((b.state != BState::Active && b.state != BState::Construction) || b.jobs <= b.employed || b.entrance < 0) continue;
+      if (!site_ready(b)) continue;
       if (policy.sector_priority[static_cast<int>(sector_of(b))] != prio) continue;
       const data::BuildingDef& d = defs->b(b.def);
       const u8 classes = b.state == BState::Construction ? static_cast<u8>(data::ClassMask::Workers) : d.worker_classes;
-      const i32 bx = b.entrance % map.w, by = b.entrance / map.w;
-      const i32 bcx = bx / kChunkTiles, bcy = by / kChunkTiles;
-      // Search chunk rings outward; take the nearest candidate in the first ring that has one.
-      for (i32 r = 0; r < std::max(cx, cy) && b.employed < b.jobs; ++r) {
-        bool any_in_ring = true;
-        while (b.employed < b.jobs && any_in_ring) {
-          any_in_ring = false;
-          size_t best = kNoIndex;
-          int best_d = 1 << 30;
-          for (i32 qy = bcy - r; qy <= bcy + r; ++qy)
-            for (i32 qx = bcx - r; qx <= bcx + r; ++qx) {
-              if (qx < 0 || qy < 0 || qx >= cx || qy >= cy) continue;
-              if (std::max(std::abs(qx - bcx), std::abs(qy - bcy)) != r) continue;
-              const i32 q = qy * cx + qx;
-              for (u32 k = labor_head_[static_cast<size_t>(q)]; k < labor_head_[static_cast<size_t>(q) + 1]; ++k) {
-                const u32 ci = scratch_u32b_[k];
-                if (ci == kNoIndex) continue;
-                if (!(classes & data::class_bit(static_cast<int>(C.cls[ci])))) continue;
-                const i32 he = buildings[C.home[ci]].entrance;
-                if (!nav.connected(he, b.entrance)) continue;
-                const int dd = manhattan_tiles(map, he, b.entrance);
-                if (dd < best_d) {
-                  best_d = dd;
-                  best = k;
-                }
-              }
-            }
-          if (best == kNoIndex) break;
-          const u32 ci = scratch_u32b_[best];
-          scratch_u32b_[best] = kNoIndex;
+      for (int low = 5; low >= prio + 2 && b.employed < b.jobs; --low)
+        for (u32 ci = 0; ci < C.ids.high_water() && b.employed < b.jobs; ++ci) {
+          if (!C.ids.alive_index(ci) || !C.work[ci].valid() || !buildings.alive(C.work[ci])) continue;
+          const Building& from = buildings[C.work[ci]];
+          if (policy.sector_priority[static_cast<int>(sector_of(from))] != low) continue;
+          if (!(classes & data::class_bit(static_cast<int>(C.cls[ci])))) continue;
+          if (!C.home[ci].valid() || !buildings.alive(C.home[ci]) || !nav.connected(buildings[C.home[ci]].entrance, b.entrance))
+            continue;
+          release_worker(ci);
           C.work[ci] = buildings.ids.id_at(bi);
           ++b.employed;
-          ++assigned;
-          any_in_ring = true;
+          ++moved;
         }
-      }
     }
   }
 }
@@ -396,7 +442,7 @@ void World::match_good(GoodId g) {
       for (const auto& in : defs->recipes[d.recipe.v].inputs)
         if (in.good == g) want = in.amount * 3u;
       prio = 2;
-    } else if (b.state == BState::Active && d.kind == BuildingKind::Market) {
+    } else if (b.state == BState::Active && d.kind == BuildingKind::Market && trade_mode[g.v] != 3) {
       want = econ.target[static_cast<size_t>(b.inv) * econ.goods + g.v];
       prio = 1;
     } else if (b.state == BState::Active && d.kind == BuildingKind::Military && !d.accepts.empty() &&
@@ -404,8 +450,8 @@ void World::match_good(GoodId g) {
       want = defs->goods[g.v].food ? 30 : 40;  // garrison food, weapons and armor
       prio = 2;
     } else if (b.state == BState::Active && d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2 &&
-               econ.city_stock[g.v] > trade_level[g.v]) {
-      want = 40;  // stage export goods at the trade post
+               econ.city_stock[g.v] > trade_level[g.v] && open_route_buys(g, d.needs_water_adjacent)) {
+      want = 80;  // stage export goods at the trade post (only what a visiting partner will buy)
       prio = 0;
     }
     if (want == 0) continue;

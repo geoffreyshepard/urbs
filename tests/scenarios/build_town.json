@@ -81,38 +81,88 @@
         "def": "house_plot",
         "x": 57,
         "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 41,
+        "y": 44
+      },
+      {
+        "def": "house_plot",
+        "x": 41,
+        "y": 47
+      },
+      {
+        "def": "house_plot",
+        "x": 41,
+        "y": 50
+      },
+      {
+        "def": "house_plot",
+        "x": 41,
+        "y": 53
+      },
+      {
+        "def": "well",
+        "x": 42,
+        "y": 39
+      },
+      {
+        "def": "well",
+        "x": 55,
+        "y": 39
       }
     ],
     "households": [
       {
         "building": 2,
-        "count": 2,
-        "members": 4
+        "count": 1,
+        "members": 5
       },
       {
         "building": 3,
-        "count": 2,
-        "members": 4
+        "count": 1,
+        "members": 5
       },
       {
         "building": 4,
-        "count": 2,
-        "members": 4
+        "count": 1,
+        "members": 5
       },
       {
         "building": 5,
-        "count": 2,
-        "members": 4
+        "count": 1,
+        "members": 5
       },
       {
         "building": 6,
-        "count": 2,
-        "members": 4
+        "count": 1,
+        "members": 5
       },
       {
         "building": 7,
-        "count": 2,
-        "members": 4
+        "count": 1,
+        "members": 5
+      },
+      {
+        "building": 8,
+        "count": 1,
+        "members": 5
+      },
+      {
+        "building": 9,
+        "count": 1,
+        "members": 5
+      },
+      {
+        "building": 10,
+        "count": 1,
+        "members": 5
+      },
+      {
+        "building": 11,
+        "count": 1,
+        "members": 5
       }
     ]
   },

@@ -45,6 +45,7 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   water_dirty = desir_dirty = true;
   labor_head_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
   labor_fill_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
+  labor_done_.reserve(static_cast<size_t>(cfg.max_buildings) + 1);
   econ.init(static_cast<u32>(d.goods.size()), cfg.max_buildings, 4096);
   routes.assign(d.partners.size(), TradeRouteState{});
   for (auto& r : routes) {
@@ -131,7 +132,8 @@ void World::update_nav_rect(i32 x, i32 y, i32 w, i32 h) {
 }
 
 void World::compute_entrance(Building& b) {
-  // Perimeter scan: bottom side first (buildings face south), then sides, then top. Prefer roads.
+  // Perimeter scan: bottom side first (buildings face south), then sides, then top. Prefer tiles
+  // connected to the rest of the map (not a pocket cut off by water), then roads.
   i32 best = -1;
   int best_score = -1;
   auto consider = [&](i32 tx, i32 ty, int side_pref) {
@@ -139,6 +141,7 @@ void World::compute_entrance(Building& b) {
     i32 i = map.idx(tx, ty);
     if (nav.cost[static_cast<size_t>(i)] == 0) return;
     int score = side_pref + (map.road[static_cast<size_t>(i)] != Road::None ? 100 : 0);
+    if (entry_tile >= 0 && nav.connected(i, entry_tile)) score += 1000;
     if (score > best_score) {
       best_score = score;
       best = i;
@@ -610,7 +613,7 @@ void World::apply_commands() {
         break;
       case CmdType::SetTrade:
         if (c.def < trade_mode.size()) {
-          trade_mode[c.def] = static_cast<u8>(c.value);
+          trade_mode[c.def] = static_cast<u8>(std::clamp(c.value, 0, 3));
           trade_level[c.def] = static_cast<u16>(std::max(0, c.x0));
         }
         break;

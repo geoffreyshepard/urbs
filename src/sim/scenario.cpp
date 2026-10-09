@@ -324,7 +324,7 @@ void setup_trade(World& w, const data::Defs& defs, const ScenarioSpec& s) {
           w.routes[k].available = 1;
           w.routes[k].next_visit = kTicksPerHour * 8;
         }
-  auto set = [&](const char* key, u8 mode) {
+  auto set = [&](const char* key, u8 mode) {  // "import", "export", "stockpile"
     if (!t.contains(key)) return;
     for (auto& [g, lvl] : t[key].items()) {
       GoodId gid = defs.good(g);
@@ -335,6 +335,7 @@ void setup_trade(World& w, const data::Defs& defs, const ScenarioSpec& s) {
   };
   set("import", 1);
   set("export", 2);
+  set("stockpile", 3);
 }
 
 void setup_orders(const data::Defs& defs, ScenarioSpec& s) {

@@ -22,7 +22,8 @@ class Autoplay {
     i32 x, y;  // top-left interior tile (blocks are 8x8 inside a 9-tile road grid)
     u8 active = 0, bad = 0;
   };
-  bool place(World& w, BuildingDefId def, i32 near_x, i32 near_y, bool painted_block = false);
+  // max_dist > 0: only lots within that many tiles (Manhattan) of (near_x, near_y).
+  bool place(World& w, BuildingDefId def, i32 near_x, i32 near_y, bool painted_block = false, i32 max_dist = 0);
   bool activate_block(World& w, i32 near_x, i32 near_y);
   bool build_for_requirement(World& w, const data::HousingReq& r, i32 cx, i32 cy);
   bool build_producer_of(World& w, GoodId g, i32 cx, i32 cy, int depth);
@@ -34,7 +35,11 @@ class Autoplay {
   std::vector<Block> blocks_;
   std::string last_;
   Tick last_block_ = 0;
-  std::map<u32, Tick> blocker_cooldown_;  // requirement key -> tick when it may be chased again
+  Tick last_enemy_ = 0;  // last hour raiders were on the map
+  Tick water_cooldown_ = 0;
+  GoodId request_good_{};  // a good Rome asked for that we should be producing
+  std::map<u32, Tick> blocker_cooldown_;
+  std::map<u32, Tick> stuck_since_;  // construction site (raw id) -> first hour seen with no builders  // requirement key -> tick when it may be chased again
 };
 
 }  // namespace urbs::sim

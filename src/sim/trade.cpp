@@ -45,6 +45,15 @@ u32 World::trade_price(u32 p, GoodId g, bool buying) const {
   return buying ? base * (120 + sat * 40 / 100) / 100 : base * (100 - sat * 40 / 100) / 100;
 }
 
+bool World::open_route_buys(GoodId g, bool sea) const {
+  for (u32 p = 0; p < routes.size(); ++p) {
+    if (!routes[p].open || defs->partners[p].sea != sea) continue;
+    for (const auto& ga : defs->partners[p].buys)
+      if (ga.good == g && routes[p].sold[g.v] < ga.amount) return true;
+  }
+  return false;
+}
+
 BuildingId World::nearest_trade_post(bool sea, i32 near) const {
   BuildingId best;
   int best_d = 1 << 30;

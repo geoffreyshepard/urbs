@@ -41,6 +41,11 @@ ctest --preset dev          # tests
 ./build/dev/urbs_headless --scenario tests/scenarios/stress_50k.json --ticks 12000
 ./build/dev/bench           # perf benchmarks
 cmake --preset release && cmake --build --preset release
+ctest --preset long         # long soak tests (release build)
+# Mission validation: the autoplay bot plays a mission headless (--daily prints a per-day trace,
+# --verbose adds money/request lines, --dump prints every building at the end).
+./build/release/urbs_headless --scenario data/scenarios/m04_capua/scenario.json --ticks 192000 --autoplay --daily
+URBS_ALLOC_TRAP=1 ./build/dev/urbs_headless ...  # abort with a stack trace at the first allocation inside tick()
 ```
 
 ## Performance targets (Apple Silicon M1 baseline)

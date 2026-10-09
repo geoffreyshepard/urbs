@@ -244,6 +244,8 @@ void World::spawn_raid(UnitDefId def, u16 units, i32 side_hint) {
   rng::Stream& r = stream(rng::StreamId::Military);
   const i32 side = side_hint >= 0 ? side_hint % 4 : static_cast<i32>(r.below(4));
   const i32 target = city_target_tile();
+  // Difficulty: raids are smaller on Otium (x0.6) and larger on Imperium (x1.4).
+  units = static_cast<u16>(std::max(1, static_cast<int>(static_cast<f32>(units) * (difficulty == 0 ? 0.6f : difficulty == 2 ? 1.4f : 1.0f) + 0.5f)));
   for (u16 k = 0; k < units; ++k) {
     // Find a walkable edge tile on that side.
     i32 tile = -1;
@@ -362,6 +364,15 @@ void World::military_tick() {
         }
         un.order = Order::Hold;
         un.field = -1;
+      } else if (un.side == 1 && ff.dist[static_cast<size_t>(t)] == kInf) {
+        // Raiders with no way into the city (cut off by water or cliffs) give up and leave.
+        for (u32 i = 0; i < A.ids.high_water(); ++i)
+          if (A.ids.alive_index(i) && A.unit[i] == u) {
+            A.ids.destroy(A.ids.id_at(i));
+            if (A.deployed > 0) --A.deployed;
+          }
+        un.alive = 0;
+        continue;
       } else {
         // Step toward the lowest neighbour.
         u32 best = ff.dist[static_cast<size_t>(t)];

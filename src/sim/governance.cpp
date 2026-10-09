@@ -95,12 +95,32 @@ u16 World::add_request(u8 kind, GoodId good, u16 amount, u16 days, i32 reward, i
   return 0;
 }
 
+void World::set_difficulty(u8 d) {
+  const u8 old = difficulty;
+  difficulty = std::min<u8>(d, 2);
+  if (now == 0 && old != difficulty) {
+    // Undo the previous scaling, then apply the new one (Otium x1.5, Imperium x0.75).
+    auto scale = [](u8 k) { return k == 0 ? 150 : k == 2 ? 75 : 100; };
+    econ.treasury = econ.treasury * 100 / scale(old) * scale(difficulty) / 100;
+  }
+}
+
+u32 World::stored_amount(GoodId g) const {
+  u32 n = 0;
+  buildings.for_each([&](BuildingId, const Building& b) {
+    if (b.inv == econ::kNoInv || b.state != BState::Active) return;
+    const auto k = defs->b(b.def).kind;
+    if (k == BuildingKind::Storage || k == BuildingKind::TradePost) n += econ.available(b.inv, g);
+  });
+  return n;
+}
+
 bool World::fulfill_request(u16 id) {
   for (auto& r : requests) {
     if (!r.active || r.id != id) continue;
     if (r.kind == 0) {
       // Goods leave from storage buildings.
-      if (econ.city_stock[r.good.v] < r.amount) return false;
+      if (stored_amount(r.good) < r.amount) return false;
       u32 left = r.amount;
       buildings.for_each([&](BuildingId, const Building& b) {
         if (left == 0 || b.inv == econ::kNoInv || b.state != BState::Active) return;
@@ -109,7 +129,7 @@ bool World::fulfill_request(u16 id) {
         left -= econ.take(b.inv, r.good, static_cast<u16>(std::min<u32>(left, econ.available(b.inv, r.good))));
       });
       if (left > 0) return false;
-      econ.city_stock[r.good.v] -= r.amount;
+      econ.city_stock[r.good.v] -= std::min<u32>(econ.city_stock[r.good.v], r.amount);
     } else if (r.kind == 1) {
       if (!pay(r.amount, econ::Money::Other)) return false;
     } else {
@@ -209,7 +229,8 @@ void World::governance_daily() {
     if (!r.active || now < r.deadline) continue;
     r.active = 0;
     ++requests_failed;
-    change_favor(r.favor_lose);
+    // Rome is more forgiving on Otium and less on Imperium.
+    change_favor(static_cast<i32>(static_cast<f32>(r.favor_lose) * threat_scale()));
     add_alert(AlertKind::Request, BuildingId{}, static_cast<u16>(0x8000 | r.id));
     if (script) {
       core::alloc::AllowScope lua;
@@ -240,6 +261,7 @@ void World::governance_daily() {
     return;
   }
   if (difficulty > 0) {
+    core::alloc::AllowScope once;  // the mission ends at most once; setting the reason may allocate
     if (goals.fail_on_favor && favor <= 0) {
       mission = MissionState::Lost;
       lost_reason = "Rome has lost all confidence in you.";

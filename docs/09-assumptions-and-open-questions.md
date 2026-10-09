@@ -18,6 +18,10 @@
 | License | **Decided:** PolyForm Noncommercial 1.0.0 (code), CC BY-NC-SA 4.0 (assets, data, docs) | Free to use and contribute; no commercial resale |
 | Housing gating | Tiers unlock progressively (see catalog "Reachable from") | Fixed contradictions where tiers required buildings that unlock later |
 | Taxes | Forum from mission 1 (the city pays wages, so it must be able to tax); per-class rates are a policy | Playtesting with the autoplay bot showed a city without tax collection always goes bankrupt |
+| Money flow | Closed loop: wages → households → taxes and market sales → treasury. In steady state the treasury's real income is exports (and Rome's rewards) minus construction, so trade matters from mission 2 | Keeps the economy legible: unsold production is wages spent for nothing |
+| Difficulty effects | Otium: threats ×0.5, raids ×0.6, treasury ×1.5, gentler request penalties, no failure. Imperium: threats ×1.5, raids ×1.4, treasury ×0.75, request penalties ×1.5, failure on long debt | docs/02 §15 |
+| Stockpiling | Per-good trade mode "stockpile": markets leave the good in storage (for Rome's requests) | Players otherwise can't gather goods that citizens also consume |
+| Unreachable raiders | Raiders with no path into the city withdraw | They used to wait forever at the map edge |
 
 ## Open questions (decide before the milestone that needs them)
 

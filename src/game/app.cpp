@@ -88,7 +88,7 @@ void App::start_scenario(sim::ScenarioSpec spec) {
     URBS_LOG_ERROR("{}", status_);
     return;
   }
-  w->difficulty = static_cast<u8>(settings_.difficulty);
+  w->set_difficulty(static_cast<u8>(settings_.difficulty));
   world_ = std::move(w);
   after_world_change();
   screen_ = Screen::Playing;
