@@ -648,9 +648,8 @@ def odeon(b):
 
 
 def _oval_arena(b, cx, cgy, rx, ry, z, tiers, rings, arena_frac=0.42, velarium=False):
-    L = b.layer()
-    _ring_facade(b, L, cx, cgy, rx, ry, z, tiers=tiers)
-    b.put(L)
+    # seating bowl first, then arena, then the outer facade (which hides the
+    # south part of the bowl below the wall top, as seen from the south)
     L = b.layer()
     _cavea_rings(b, L, cx, cgy, rx, ry, rings, z, 6, half="all", inner=arena_frac + 0.08)
     b.put(L)
@@ -667,6 +666,9 @@ def _oval_arena(b, cx, cgy, rx, ry, z, tiers, rings, arena_frac=0.42, velarium=F
         gx = int(cx + side * rx * arena_frac) - (2 if side > 0 else 0)
         rect(L, gx, b.sy(cgy) - 4, 3, 4, C.outline)
     b.put(L, ol=False)
+    L = b.layer()
+    _ring_facade(b, L, cx, cgy, rx, ry, z, tiers=tiers)
+    b.put(L)
     if velarium:
         L = b.layer()
         for a in range(0, 360, 10):

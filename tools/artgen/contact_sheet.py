@@ -26,7 +26,7 @@ SPRITES = os.path.join(ROOT, "assets", "sprites")
 BUILD = os.path.join(ROOT, "build")
 TILE = 16
 SCALES = (1, 2, 4)
-FAMILY_ORDER = ["terrain", "road", "obj", "bld", "people", "fx"]
+FAMILY_ORDER = ["terrain", "road", "obj", "bld", "people", "fx", "goods", "ui"]
 BG = (34, 30, 28, 255)
 FG = (230, 222, 205, 255)
 
@@ -69,29 +69,43 @@ def _tiled(tiles, w, h, k):
     return out
 
 
-def _render_cell(im, name, bgs, font):
+def _render_cell(im, name, bgs, font, max_w=2400):
+    """1x, 2x, 4x on each background.  Wide sprites put the paving row
+    under the grass row instead of beside it."""
     pad = 2
-    blocks = []
+    gap = 4
+    label_h = 12
+    rows = []
     for bg in bgs:
+        blocks = []
         for k in SCALES:
             w, h = im.width * k + 2 * pad * k, im.height * k + 2 * pad * k
             b = _tiled(bg, w, h, k)
             s = im.resize((im.width * k, im.height * k), Image.NEAREST)
             b.paste(s, (pad * k, pad * k), s)
             blocks.append(b)
-    gap = 4
-    label_h = 12
-    cw = sum(b.width for b in blocks) + gap * (len(blocks) - 1) + gap * 2
-    ch = max(b.height for b in blocks) + label_h
+        rows.append(blocks)
+    row_w = sum(b.width for b in rows[0]) + gap * (len(SCALES) - 1)
+    stacked = 2 * row_w + gap * 3 > max_w
+    if stacked:
+        cw = row_w
+        ch = label_h + sum(max(b.height for b in r) + gap for r in rows)
+    else:
+        cw = 2 * row_w + gap * 3
+        ch = label_h + max(b.height for b in rows[0])
     lw = int(ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(name, font=font)) + 4
-    cw = max(cw, lw)
-    cell = Image.new("RGBA", (cw, ch), BG)
-    d = ImageDraw.Draw(cell)
-    d.text((0, 0), name, fill=FG, font=font)
-    x = 0
-    for i, b in enumerate(blocks):
-        cell.paste(b, (x, label_h))
-        x += b.width + gap + (gap * 2 if i == len(SCALES) - 1 else 0)
+    cell = Image.new("RGBA", (max(cw, lw), ch), BG)
+    ImageDraw.Draw(cell).text((0, 0), name, fill=FG, font=font)
+    x, y = 0, label_h
+    for ri, r in enumerate(rows):
+        for b in r:
+            cell.paste(b, (x, y))
+            x += b.width + gap
+        if stacked:
+            x = 0
+            y += max(b.height for b in r) + gap
+        else:
+            x += gap * 2
     return cell
 
 
@@ -126,11 +140,12 @@ def contact_sheets(spr, font):
         fams.setdefault(name.split("/")[0], []).append(name)
     os.makedirs(os.path.join(BUILD, "contact"), exist_ok=True)
     sheets = []
-    max_w = 2400
+    widest = max(im.width for im in spr.values())
+    max_w = max(2400, widest * sum(SCALES) + 64)
     for fam in FAMILY_ORDER + sorted(set(fams) - set(FAMILY_ORDER)):
         if fam not in fams:
             continue
-        cells = [_render_cell(spr[n], n, bgs, font) for n in fams[fam]]
+        cells = [_render_cell(spr[n], n, bgs, font, max_w) for n in fams[fam]]
         sh = _flow(cells, max_w, "%s  (%d sprites)" % (fam, len(cells)), font)
         sh.save(os.path.join(BUILD, "contact", fam + ".png"))
         sheets.append(sh)
@@ -348,6 +363,129 @@ def scene(spr, meta, W=24, H=16, k=3):
     return img
 
 
+# ------------------------------------------------------------ city scene
+def city_scene(spr, meta, W=48, H=36, k=2):
+    """A district composited from Phase 2 sprites: fixed buildings, housing
+    tiers, painted farms, line structures, units, carts, ships, fire."""
+    terr = [["grass"] * W for _ in range(H)]
+    for y in range(H):
+        for x in range(43, W):
+            terr[y][x] = "deep" if x in (44, 45) else "shallow"
+        terr[y][42] = "sand" if y < 9 else terr[y][42]
+    roads = {}
+    for x in range(0, 43):
+        roads[(x, 9)] = "paved"
+        roads[(x, 22)] = "paved"
+    for y in range(0, 36):
+        roads[(15, y)] = "paved"
+        roads[(31, y)] = "dirt" if y > 22 else "paved"
+    img = Image.new("RGBA", (W * TILE, H * TILE))
+
+    def put(name, x, y):
+        im = spr[name]
+        img.paste(im, (x, y), im)
+
+    def at(x, y):
+        return terr[y][x] if 0 <= x < W and 0 <= y < H else None
+
+    for y in range(H):
+        for x in range(W):
+            t = terr[y][x]
+            put("terrain/%s_%d" % (t, hash2(x, y, 42) % 4), x * TILE, y * TILE)
+            for T in PRIORITY[PRIO[t] + 1:]:
+                for s, (dx, dy) in NB.items():
+                    if at(x + dx, y + dy) == T:
+                        put("terrain/edge_%s_%s" % (T, s), x * TILE, y * TILE)
+            if t in ("shallow", "deep"):
+                put("terrain/water_shimmer_%d" % (hash2(x, y, 5) % 4), x * TILE, y * TILE)
+    for (x, y), R in sorted(roads.items()):
+        put("road/%s_c" % R, x * TILE, y * TILE)
+        for d in road_links(roads, x, y):
+            put("road/%s_%s" % (R, d), x * TILE, y * TILE)
+    # bridge over the river on the lower road
+    for x in range(43, 47):
+        put("bld/bridge_c", x * TILE, 22 * TILE)
+        put("bld/bridge_e", x * TILE, 22 * TILE)
+        put("bld/bridge_w", x * TILE, 22 * TILE)
+    # painted buildings: farms with huts, garden, plaza, stockpile
+    painted = [("wheat_farm", 0, 24, 4, 4), ("vineyard", 5, 24, 4, 4), ("olive_grove", 10, 24, 4, 4),
+               ("sheep_farm", 0, 29, 4, 4), ("vegetable_garden", 5, 29, 3, 3), ("pig_farm", 9, 29, 3, 3),
+               ("papyrus_marsh", 39, 24, 3, 3), ("garden", 26, 1, 3, 2), ("plaza", 11, 7, 3, 2),
+               ("stockpile", 39, 28, 2, 2)]
+    drawables = []
+
+    def add(name, px_, py_):
+        m = meta.get(name, {"ax": 0, "ay": 0})
+        drawables.append((py_, px_, name, px_ - m["ax"], py_ - m["ay"]))
+
+    for (bid, bx, by, bw, bh) in painted:
+        for yy in range(by, by + bh):
+            for xx in range(bx, bx + bw):
+                put("bld/%s_tile_%d" % (bid, hash2(xx, yy, 3) % 4), xx * TILE, yy * TILE)
+        if "bld/%s_hut" % bid in spr:
+            add("bld/%s_hut" % bid, bx * TILE, (by + bh) * TILE - 1)
+    # pipe and sewer under the street block
+    for x in range(1, 14):
+        put("bld/pipe_c", x * TILE, 21 * TILE)
+        put("bld/pipe_e", x * TILE, 21 * TILE)
+        put("bld/pipe_w", x * TILE, 21 * TILE)
+    for x in range(16, 30, 2):
+        put("bld/sewer_c", x * TILE, 21 * TILE)
+    # aqueduct along the bottom, wall along the right side of the farms
+    for x in range(16, 31):
+        for p in ("c", "e", "w"):
+            add("bld/aqueduct_%s" % p, x * TILE, 35 * TILE + TILE - 1)
+    for y in range(24, 34):
+        for p in ("c", "n", "s"):
+            add("bld/wall_%s" % p, 14 * TILE, y * TILE + TILE - 1)
+    fixed = [("forum", 1, 1), ("temple", 6, 1), ("shrine", 6, 5), ("basilica", 9, 1), ("well", 13, 7),
+             ("fountain", 1, 6), ("statue", 3, 6), ("pantheon", 16, 1), ("thermae", 24, 3),
+             ("granary", 32, 0), ("warehouse", 35, 0), ("market", 32, 5), ("harbor", 39, 5),
+             ("lighthouse", 38, 0),
+             ("house_plot_t0", 0, 10), ("house_plot_t1", 2, 10), ("house_plot_t2", 4, 10),
+             ("house_plot_t3", 6, 10), ("house_plot_t4", 8, 10), ("bakery", 10, 10), ("mill", 12, 10),
+             ("domus_plot_t0", 0, 13), ("domus_plot_t1", 3, 13), ("domus_plot_t2", 6, 13),
+             ("tavern", 9, 13), ("physician", 11, 13), ("school", 12, 13), ("slave_quarters", 0, 17),
+             ("latrina", 3, 17), ("blacksmith", 5, 17), ("potter", 7, 17), ("weaver", 9, 17),
+             ("jeweler", 11, 17), ("vigiles_post", 13, 17), ("house_plot", 0, 19), ("domus_plot", 9, 19),
+             ("colosseum", 17, 10), ("theater", 32, 10), ("odeon", 37, 10), ("fort", 32, 14),
+             ("tower", 38, 14), ("gate", 38, 18), ("barracks", 38, 15) if False else ("guard_post", 40, 17),
+             ("quarry", 17, 23), ("iron_mine", 20, 23), ("lumber_camp", 23, 23), ("brick_kiln", 25, 23),
+             ("sawmill", 27, 23), ("clay_pit", 28, 26), ("smelter", 17, 27), ("lime_kiln", 20, 27),
+             ("marble_quarry", 22, 27), ("dye_works", 25, 27), ("triumphal_arch", 32, 23),
+             ("temple_of_jupiter", 32, 26) if False else ("great_temple", 33, 26),
+             ("salt_works", 39, 32), ("fishing_wharf", 40, 25)]
+    defs = {d["id"]: d["size"] for d in __import__("buildings.fixed", fromlist=["x"]).load_defs()}
+    for (bid, bx, by) in fixed:
+        base = bid.split("_plot")[0] + "_plot" if "_plot" in bid else bid
+        bw, bh = defs[base]
+        add("bld/" + bid, bx * TILE, (by + bh) * TILE - 1)
+    # construction site, fire and smoke
+    for xx in range(20, 22):
+        for yy in range(31, 33):
+            put("fx/foundation", xx * TILE, yy * TILE)
+            put("fx/scaffold_%d" % ((xx + yy) % 4), xx * TILE, yy * TILE)
+    add("fx/fire_1", 7 * TILE, 18 * TILE + 15)
+    add("fx/smoke_2", 7 * TILE + 2, 16 * TILE + 8)
+    # traffic
+    for (n, tx, ty, ox) in (("fx/cart_e", 5, 9, 8), ("fx/cart_w", 26, 22, 8), ("fx/cart_s", 15, 13, 8)):
+        add(n, tx * TILE + ox, ty * TILE + 13)
+    for i, u in enumerate(("legionary_e_0", "legionary_e_1", "legionary_e_2", "legionary_e_3",
+                           "archer_e_1", "cavalry_e_2", "barbarian_w_1", "barbarian_atk_w_1")):
+        add("people/" + u, (34 + i) * TILE + 8 - (i % 2) * 4, 22 * TILE + 12)
+    for i, c in enumerate(("patrician_e_1", "pleb_w_2", "slave_s_0", "eques_e_3", "liberti_n_1",
+                           "soldier_w_0", "child_e_2", "pleb_e_0")):
+        add("people/" + c, (2 + i * 4) * TILE + 6, 9 * TILE + 12 + (i % 2) * 2)
+    add("people/ballista_e", 36 * TILE + 8, 21 * TILE + 15)
+    add("fx/ship_s", 44 * TILE + 12, 12 * TILE + 23)
+    add("fx/ship_n", 45 * TILE + 12, 30 * TILE + 23)
+    for (_, _, name, x, y) in sorted(drawables):
+        put(name, x, y)
+    big = img.resize((img.width * k, img.height * k), Image.NEAREST)
+    big.save(os.path.join(BUILD, "scene_city.png"))
+    return img
+
+
 def main():
     os.makedirs(BUILD, exist_ok=True)
     spr, meta = load_all()
@@ -357,7 +495,8 @@ def main():
         font = ImageFont.load_default()
     full = contact_sheets(spr, font)
     scene(spr, meta)
-    print("wrote build/contact_sheet.png (%dx%d), build/contact/*.png, build/scene_test.png"
+    city_scene(spr, meta)
+    print("wrote build/contact_sheet.png (%dx%d), build/contact/*.png, build/scene_test.png, build/scene_city.png"
           % full.size)
 
 

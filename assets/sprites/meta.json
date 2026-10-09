@@ -1,4 +1,276 @@
 {
+ "bld/academy": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/amphitheater": {
+  "ax": 0,
+  "ay": 147
+ },
+ "bld/aqueduct_c": {
+  "ax": 0,
+  "ay": 33
+ },
+ "bld/aqueduct_e": {
+  "ax": 0,
+  "ay": 33
+ },
+ "bld/aqueduct_n": {
+  "ax": 0,
+  "ay": 33
+ },
+ "bld/aqueduct_s": {
+  "ax": 0,
+  "ay": 33
+ },
+ "bld/aqueduct_w": {
+  "ax": 0,
+  "ay": 33
+ },
+ "bld/armory": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/bakery": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/balneum": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/barracks": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/basilica": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/blacksmith": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/brick_kiln": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/carpenter": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/cart_depot": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/circus": {
+  "ax": 0,
+  "ay": 107
+ },
+ "bld/circus_maximus": {
+  "ax": 0,
+  "ay": 147
+ },
+ "bld/clay_pit": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/colosseum": {
+  "ax": 0,
+  "ay": 207
+ },
+ "bld/concrete_works": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/curia": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t0": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t1": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t2": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/dye_works": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/dyer": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/engineers_post": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/fishing_wharf": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/fort": {
+  "ax": 0,
+  "ay": 127
+ },
+ "bld/forum": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/fountain": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/garum_workshop": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/gate": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/glassworks": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/governor_palace": {
+  "ax": 0,
+  "ay": 107
+ },
+ "bld/granary": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/grand_aqueduct": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/great_temple": {
+  "ax": 0,
+  "ay": 107
+ },
+ "bld/guard_post": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/harbor": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/hospital": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/house_plot": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t0": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t1": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t2": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t3": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t4": {
+  "ax": 0,
+  "ay": 63
+ },
+ "bld/iron_mine": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/jeweler": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/latrina": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/library": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/lighthouse": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/lime_kiln": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/limestone_quarry": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/lumber_camp": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/marble_quarry": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/market": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/militia_post": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/mill": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/mint": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/odeon": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/olive_grove_hut": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/olive_press": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/pantheon": {
+  "ax": 0,
+  "ay": 167
+ },
+ "bld/physician": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/pig_farm_hut": {
+  "ax": 0,
+  "ay": 27
+ },
  "bld/placeholder_1x1": {
   "ax": 0,
   "ay": 27
@@ -63,6 +335,222 @@
   "ax": 0,
   "ay": 87
  },
+ "bld/potter": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/pozzolana_pit": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/quarry": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/reservoir": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/salt_works": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/sand_pit": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/sawmill": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/school": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/scriptorium": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/sculptor": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/sheep_farm_hut": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/shrine": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/siege_workshop": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/silver_mine": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/silver_smelter": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/slave_quarters": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/smelter": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/stables": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/statue": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/stonemason": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/tavern": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/temple": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/temple_of_jupiter": {
+  "ax": 0,
+  "ay": 127
+ },
+ "bld/theater": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/thermae": {
+  "ax": 0,
+  "ay": 127
+ },
+ "bld/tower": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/trade_post": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/training_ground": {
+  "ax": 0,
+  "ay": 107
+ },
+ "bld/triumphal_arch": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/vegetable_garden_hut": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/vigiles_post": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/vineyard_hut": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/wall_c": {
+  "ax": 0,
+  "ay": 25
+ },
+ "bld/wall_e": {
+  "ax": 0,
+  "ay": 25
+ },
+ "bld/wall_n": {
+  "ax": 0,
+  "ay": 25
+ },
+ "bld/wall_s": {
+  "ax": 0,
+  "ay": 25
+ },
+ "bld/wall_w": {
+  "ax": 0,
+  "ay": 25
+ },
+ "bld/warehouse": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/weaver": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/well": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/wheat_farm_hut": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/winery": {
+  "ax": 0,
+  "ay": 47
+ },
+ "fx/cart_e": {
+  "ax": 8,
+  "ay": 11
+ },
+ "fx/cart_n": {
+  "ax": 8,
+  "ay": 11
+ },
+ "fx/cart_s": {
+  "ax": 8,
+  "ay": 11
+ },
+ "fx/cart_w": {
+  "ax": 8,
+  "ay": 11
+ },
+ "fx/fire_0": {
+  "ax": 0,
+  "ay": 23
+ },
+ "fx/fire_1": {
+  "ax": 0,
+  "ay": 23
+ },
+ "fx/fire_2": {
+  "ax": 0,
+  "ay": 23
+ },
+ "fx/fire_3": {
+  "ax": 0,
+  "ay": 23
+ },
+ "fx/ship_e": {
+  "ax": 12,
+  "ay": 23
+ },
+ "fx/ship_n": {
+  "ax": 12,
+  "ay": 23
+ },
+ "fx/ship_s": {
+  "ax": 12,
+  "ay": 23
+ },
+ "fx/ship_w": {
+  "ax": 12,
+  "ay": 23
+ },
  "obj/boulder_0": {
   "ax": 4,
   "ay": 6
@@ -122,6 +610,310 @@
  "obj/tree_5": {
   "ax": 8,
   "ay": 16
+ },
+ "people/archer_atk_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_atk_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/archer_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/ballista_e": {
+  "ax": 8,
+  "ay": 15
+ },
+ "people/ballista_n": {
+  "ax": 8,
+  "ay": 15
+ },
+ "people/ballista_s": {
+  "ax": 8,
+  "ay": 15
+ },
+ "people/ballista_w": {
+  "ax": 8,
+  "ay": 15
+ },
+ "people/barbarian_atk_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_atk_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/barbarian_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/cavalry_atk_e_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_e_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_n_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_n_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_s_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_s_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_w_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_atk_w_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_e_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_e_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_e_2": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_e_3": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_n_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_n_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_n_2": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_n_3": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_s_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_s_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_s_2": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_s_3": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_w_0": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_w_1": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_w_2": {
+  "ax": 6,
+  "ay": 13
+ },
+ "people/cavalry_w_3": {
+  "ax": 6,
+  "ay": 13
  },
  "people/child_e_0": {
   "ax": 4,
@@ -280,6 +1072,102 @@
   "ay": 11
  },
  "people/eques_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_atk_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/legionary_w_3": {
   "ax": 4,
   "ay": 11
  },

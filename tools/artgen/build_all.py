@@ -22,6 +22,11 @@ import objects                                  # noqa: E402
 import people                                   # noqa: E402
 import buildings                                # noqa: E402
 import fx                                       # noqa: E402
+import effects                                  # noqa: E402
+import units                                    # noqa: E402
+import goods                                    # noqa: E402
+import ui                                       # noqa: E402
+from buildings import fixed as bfixed           # noqa: E402
 
 SPRITES_DIR = os.path.join(ROOT, "assets", "sprites")
 
@@ -52,13 +57,56 @@ def required_names():
         n += ["people/child_%s_%d" % (d, f) for f in range(4)]
     n += ["fx/dot", "fx/white"]
     n += ["fx/select_%dx%d" % (w, h) for w in range(1, 5) for h in range(1, 5)]
+    n += phase2_names()
+    return n
+
+
+GOODS = ("wheat vegetables fish meat olives grapes flour bread olive_oil wine salt garum wood "
+         "planks clay bricks stone cut_stone limestone lime pozzolana concrete marble sand "
+         "iron_ore iron silver_ore silver gold tools weapons armor pottery amphorae wool "
+         "clothing dye dyed_clothing furniture glassware papyrus scrolls jewelry statues "
+         "denarii").split()
+GODS = "jupiter juno mars venus ceres neptune mercury minerva vulcan vesta isis serapis divus".split()
+ADVISORS = "engineer quaestor haruspex legate aedile".split()
+LINES = ("wall", "aqueduct", "pipe", "sewer", "bridge")
+
+
+def phase2_names():
+    """Phase 2 contract: buildings, housing, painted, construction, goods,
+    effects, gods/advisors, military units."""
+    n = []
+    defs = bfixed.load_defs()
+    for d in defs:
+        bid = d["id"]
+        if not d.get("painted"):
+            n.append("bld/" + bid)
+        elif bid in LINES:
+            n += ["bld/%s_%s" % (bid, s) for s in ("c", "n", "e", "s", "w")]
+        else:
+            n += ["bld/%s_tile_%d" % (bid, v) for v in range(4)]
+            if d.get("category") == "farm":
+                n.append("bld/%s_hut" % bid)
+    n += ["bld/house_plot_t%d" % t for t in range(5)]
+    n += ["bld/domus_plot_t%d" % t for t in range(3)]
+    n += ["fx/scaffold_%d" % v for v in range(4)] + ["fx/foundation"]
+    for g in GOODS:
+        n += ["goods/" + g, "goods/%s_16" % g]
+    n += ["fx/fire_%d" % f for f in range(4)] + ["fx/smoke_%d" % f for f in range(4)]
+    n += ["fx/rubble_%d" % v for v in range(4)] + ["fx/plague_mark", "fx/alert"]
+    n += ["fx/cart_%s" % d for d in "nesw"] + ["fx/ship_%s" % d for d in "nesw"]
+    n += ["ui/god_" + g for g in GODS] + ["ui/advisor_" + a for a in ADVISORS]
+    for u in ("legionary", "archer", "cavalry", "barbarian"):
+        for d in "nesw":
+            n += ["people/%s_%s_%d" % (u, d, f) for f in range(4)]
+            n += ["people/%s_atk_%s_%d" % (u, d, f) for f in range(2)]
+    n += ["people/ballista_%s" % d for d in "nesw"]
     return n
 
 
 def generate_all():
     """-> list of (name, PIL image, anchor or None), sorted by name."""
     sprites = []
-    for mod in (terrain, roads, objects, people, buildings, fx):
+    for mod in (terrain, roads, objects, people, units, buildings, fx, effects, goods, ui):
         sprites += mod.generate()
     names = [s[0] for s in sprites]
     dup = {x for x in names if names.count(x) > 1}
