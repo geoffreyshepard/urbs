@@ -1,0 +1,7 @@
+build/
+.cpm-cache/
+.DS_Store
+*.swp
+__pycache__/
+/compile_commands.json
+.cache/

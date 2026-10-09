@@ -1,0 +1,5 @@
+file(GLOB URBS_BENCH_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+add_executable(bench ${URBS_BENCH_SOURCES})
+target_link_libraries(bench PRIVATE urbs_sim urbs_alloc_hook)
+target_compile_definitions(bench PRIVATE URBS_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+urbs_warnings(bench)
