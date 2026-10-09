@@ -246,11 +246,13 @@ void draw_building_panel(sim::World& w, Selection& sel) {
     ImGui::TreePop();
   }
   if (d.service.valid()) ImGui::Text("Visitors: %u / %u (served today %u)", b.visitors, d.service_capacity, b.served_today);
-  if (d.kind == data::BuildingKind::Military && !d.accepts.empty() && b.state == sim::BState::Active) {
+  if (d.kind == data::BuildingKind::Military && (!d.accepts.empty() || d.id == "militia_post") &&
+      b.state == sim::BState::Active) {
     ImGui::TextUnformatted("Raise a unit here:");
     for (u16 u = 0; u < D.units.size(); ++u) {
       const auto& ud = D.units[u];
-      if (ud.enemy) continue;
+      if (ud.enemy || !w.is_unlocked_unit(UnitDefId{u})) continue;
+      if (d.id == "militia_post" && ud.id != "militia") continue;
       std::string gear;
       for (const auto& g : ud.gear) gear += " " + std::to_string(g.amount * ud.size) + " " + D.goods[g.good.v].name;
       if (ImGui::Button((ud.name + "##raise" + std::to_string(u)).c_str())) {

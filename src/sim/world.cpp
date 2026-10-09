@@ -108,13 +108,15 @@ bool World::can_place(BuildingDefId def, i32 x, i32 y, i32 w, i32 h) const {
       if (terrain_water(map.terrain[i]) || map.road[i] != Road::None) return false;
       if (static_cast<u8>(map.resource[i]) == bd.resource) has_resource = true;
     }
-  if (!near_water)
-    for (i32 ty = y - 1; ty <= y + h && !near_water; ++ty)
-      for (i32 tx = x - 1; tx <= x + w; ++tx)
-        if (map.in_bounds(tx, ty) && terrain_water(map.terrain[static_cast<size_t>(map.idx(tx, ty))])) {
-          near_water = true;
-          break;
-        }
+  if (!near_water || !has_resource)
+    for (i32 ty = y - 1; ty <= y + h; ++ty)
+      for (i32 tx = x - 1; tx <= x + w; ++tx) {
+        if (!map.in_bounds(tx, ty)) continue;
+        const size_t ri = static_cast<size_t>(map.idx(tx, ty));
+        if (terrain_water(map.terrain[ri])) near_water = true;
+        // Waterside buildings (fishing wharves) use resources in the water next to them.
+        if (bd.needs_water_adjacent && static_cast<u8>(map.resource[ri]) == bd.resource) has_resource = true;
+      }
   return has_resource && near_water;
 }
 
@@ -380,6 +382,8 @@ CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, 
   C.happiness[i] = 140;
   C.health[i] = 255;
   C.carrying[i] = 0;
+  C.carry_amount[i] = 0;
+  C.flags[i] = 0;  // slots are reused: never inherit a previous occupant's flags (visitor, schooled, ...)
   C.task[i] = kNoIndex;
   C.memory_head[i] = 0;
   for (int k = 0; k < kMemoryEntries; ++k) C.memory[static_cast<size_t>(i) * kMemoryEntries + k] = MemoryEntry{};

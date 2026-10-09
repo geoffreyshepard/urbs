@@ -277,19 +277,30 @@ def icon_advisors():
 
 
 def icon_finance():
-    """Stacks of gold denarii and a big coin."""
-    img = new(16, 16)
-    for (x0, n) in ((1, 4), (6, 6)):
+    """Two stacks of gold denarii and a coin standing in front."""
+    out = new(16, 16)
+
+    def stack(x0, w, n, base):
+        lay = new(16, 16)
         for k in range(n):
-            y = 14 - k * 2
-            hline(img, x0, x0 + 4, y, OC[0])
-            hline(img, x0, x0 + 4, y - 1, GOLD if k % 2 == 0 else OC[3])
-            px(img, x0, y - 1, OC[3])
-    _disc(img, 11.5, 10.5, 3.6, (OC[0], OC[1], GOLD, OC[3]))
-    for (x, y) in ((11, 9), (12, 9), (11, 10), (12, 11), (11, 12)):      # profile
-        px(img, x, y, OC[0])
-    px(img, 10, 8, OC[3])
-    return _finish(img)
+            y = base - k * 2
+            hline(lay, x0, x0 + w - 1, y, OC[0])
+            hline(lay, x0, x0 + w - 1, y - 1, GOLD)
+            px(lay, x0, y - 1, OC[3])
+            px(lay, x0 + w - 1, y - 1, OC[1])
+        hline(lay, x0 + 1, x0 + w - 2, base - n * 2 + 1, OC[3])       # lit top face
+        outline(lay, OUT)
+        out.alpha_composite(lay)
+
+    stack(1, 6, 5, 11)
+    stack(7, 6, 6, 13)
+    lay = new(16, 16)
+    _disc(lay, 4.5, 11.5, 3.3, (OC[0], OC[1], GOLD, OC[3]))
+    for (x, y) in ((4, 10), (5, 10), (4, 11), (5, 12), (4, 13)):          # emperor's profile
+        px(lay, x, y, OC[0])
+    outline(lay, OUT)
+    out.alpha_composite(lay)
+    return out
 
 
 def icon_goods():
@@ -551,23 +562,8 @@ def icon_demolish():
 
 def icon_overlay():
     """Three stacked map layers."""
-    img = new(16, 16)
     layers = [(10, (GR[1], GR[2], GR[3])), (7, (SEA[1], SEA[2], SEA[3])), (4, (OC[0], GOLD, OC[3]))]
-    for (cy, ramp) in layers:
-        for y in range(cy - 3, cy + 4):
-            half = 7 - abs(y - cy) * 2
-            for x in range(8 - half, 8 + half):
-                c = ramp[1]
-                if y < cy and x < 8:
-                    c = ramp[2]
-                elif y > cy or x >= 8 + half - 1:
-                    c = ramp[0]
-                px(img, x, y, c)
-        # dark edge under each layer so they separate
-        for x in range(2, 14):
-            if get(img, x, cy + 3)[3] == 0 and get(img, x, cy + 2)[3]:
-                pass
-    # draw layer rims
+    # each layer outlined on its own so the stack separates
     out = new(16, 16)
     for (cy, ramp) in reversed(layers):
         lay = new(16, 16)
@@ -694,20 +690,33 @@ def _letter_shapes(d, ch, x, y, h):
         serif(sx + th / 2, y + h, th + h * 0.22, top=False)
         return w
     if ch == "S":
-        w = h * 0.66
+        w = h * 0.64
         cx = x + w / 2
-        # upper bowl (thin) and lower bowl (thick), joined by a thick spine
-        d.ellipse([x + h * 0.04, y, x + w - h * 0.02, y + h * 0.54], fill=fill)
-        d.ellipse([x + h * 0.04 + th, y + tn, x + w - h * 0.02 - tn * 1.2, y + h * 0.54 - th * 0.8], fill=0)
-        d.ellipse([x, y + h * 0.46, x + w, y + h], fill=fill)
-        d.ellipse([x + tn * 1.2, y + h * 0.46 + th * 0.8, x + w - th, y + h - tn], fill=0)
-        # open the counters: cut away the right of the top bowl, left of the bottom one
-        d.rectangle([cx + h * 0.02, y + h * 0.17, x + w + 2, y + h * 0.43], fill=0)
-        d.rectangle([x - 2, y + h * 0.57, cx - h * 0.06, y + h * 0.82], fill=0)
+        rx = w / 2 - th * 0.35
+        ry = h * 0.25
+        cu, cl = y + ry + tn * 0.5, y + h - ry - tn * 0.5
+
+        def stroke_w(s):
+            # s in 0..1 along the letter; thick in the diagonal spine
+            return tn + (th - tn) * max(0.0, 1 - abs(s - 0.5) / 0.26)
+
+        n = 160
+        for i in range(n + 1):
+            s = i / float(n)
+            if s < 0.5:                       # upper bowl: -30deg -> -270deg
+                t = math.radians(-30 - 240 * (s / 0.5))
+                px_, py_ = cx + rx * math.cos(t), cu + ry * math.sin(t)
+            else:                             # lower bowl: -90deg -> 150deg
+                t = math.radians(-90 + 240 * ((s - 0.5) / 0.5))
+                px_, py_ = cx + rx * math.cos(t), cl + ry * math.sin(t)
+            r = stroke_w(s) / 2
+            d.ellipse([px_ - r, py_ - r, px_ + r, py_ + r], fill=fill)
         # terminal serifs
-        bar(x + w - h * 0.09, y, x + w + h * 0.01, y + h * 0.2)
-        bar(x - h * 0.02, y + h * 0.8, x + h * 0.08, y + h)
-        return w
+        tx = cx + rx * math.cos(math.radians(-30))
+        bar(tx - tn * 0.6, y + h * 0.04, tx + tn * 0.6, y + h * 0.24)
+        bx = cx + rx * math.cos(math.radians(150))
+        bar(bx - tn * 0.6, y + h * 0.76, bx + tn * 0.6, y + h * 0.96)
+        return w + h * 0.04
     raise KeyError(ch)
 
 
@@ -755,37 +764,39 @@ def _chisel(img, pts, ox, oy):
         px(img, ox + x, oy + y, c)
 
 
-def _laurel_branch(layer, pts_curve, flip=False):
-    """Leaves alternating along a polyline; each leaf lit on its upper side."""
+def _laurel_branch(layer, pts_curve):
+    """Pairs of leaves along a polyline; each leaf's up-left half is lit."""
     stem = []
     for i in range(len(pts_curve) - 1):
         (x0, y0), (x1, y1) = pts_curve[i], pts_curve[i + 1]
         line(layer, int(round(x0)), int(round(y0)), int(round(x1)), int(round(y1)), OL[0])
         stem.append(((x0 + x1) / 2, (y0 + y1) / 2, x1 - x0, y1 - y0))
+    L, Wd = 7.5, 3.0
     for k, (sx, sy, dx, dy) in enumerate(stem):
         ln = math.hypot(dx, dy) or 1
         ux, uy = dx / ln, dy / ln
-        side = 1 if k % 2 == 0 else -1
-        # leaf axis: 45 degrees off the stem, forward
-        ax = ux * 0.7 + (-uy) * side * 0.7
-        ay = uy * 0.7 + (ux) * side * 0.7
-        L, Wd = 6.5, 2.4
-        cx, cy = sx + ax * L / 2, sy + ay * L / 2
-        for yy in range(int(cy - L), int(cy + L) + 1):
-            for xx in range(int(cx - L), int(cx + L) + 1):
-                rx, ry = xx + 0.5 - cx, yy + 0.5 - cy
-                along = rx * ax + ry * ay
-                perp = -rx * ay + ry * ax
-                if abs(along) <= L / 2 and abs(perp) <= Wd / 2 * (1 - (2 * along / L) ** 2) + 0.35:
-                    up = perp * (-1 if ax < 0 else 1)
-                    c = GR[3] if (perp < 0) == (ay > 0) else GR[1]
-                    if abs(perp) < 0.5:
+        for side in (1, -1):
+            ax = ux * 0.77 + (-uy) * side * 0.64
+            ay = uy * 0.77 + ux * side * 0.64
+            cx, cy = sx + ax * L / 2, sy + ay * L / 2
+            for yy in range(int(cy - L), int(cy + L) + 1):
+                for xx in range(int(cx - L), int(cx + L) + 1):
+                    rx, ry = xx + 0.5 - cx, yy + 0.5 - cy
+                    along = rx * ax + ry * ay
+                    perp = -rx * ay + ry * ax
+                    if abs(along) > L / 2:
+                        continue
+                    if abs(perp) > Wd / 2 * (1 - (2 * along / L) ** 2) + 0.35:
+                        continue
+                    sgn = 1 if perp > 0 else -1
+                    nx, ny = -ay * sgn, ax * sgn          # outward normal of this half
+                    c = GR[3] if (nx + ny) < 0 else GR[1]
+                    if abs(perp) < 0.45:
                         c = GR[2]
                     px(layer, xx, yy, c)
-    # berries
     for k, (sx, sy, dx, dy) in enumerate(stem):
         if k % 3 == 1:
-            px(layer, int(sx), int(sy) + 1, OC[3])
+            px(layer, int(sx), int(sy) + 2, OC[3])
 
 
 def logo():
@@ -803,8 +814,8 @@ def logo():
     lay = new(Wd, Hd)
     for side in (-1, 1):
         curve = []
-        for i in range(13):
-            t = i / 12.0
+        for i in range(17):
+            t = i / 16.0
             x = Wd / 2 + side * (6 + t * 88)
             y = 55 - 26 * t * t - 4 * t
             curve.append((x, y))

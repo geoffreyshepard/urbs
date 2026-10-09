@@ -374,6 +374,7 @@ struct World {
                    const std::vector<std::string>& options = {}, const std::string& callback = "");
   void answer(u16 message_id, i32 option);
   [[nodiscard]] bool is_unlocked(BuildingDefId d) const { return d.v < unlocked.size() && unlocked[d.v]; }
+  [[nodiscard]] bool is_unlocked_unit(UnitDefId u) const { return u.v < defs->units.size() && defs->units[u.v].unlock <= mission_number; }
   void unlock_up_to(u8 mission);
   [[nodiscard]] u32 count_active(BuildingDefId d) const;
   [[nodiscard]] bool goals_met() const;

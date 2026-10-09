@@ -1,0 +1,17 @@
+{
+  "id": "m02_ostia",
+  "name": "Ostia - River Port",
+  "mission": 2,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {"size": 176, "seed": 2207, "coast": 3, "river": true, "hills": 0.25, "forest": 0.45, "marsh": 0.35},
+  "world": {"max_citizens": 4000, "max_buildings": 1500, "max_households": 1400},
+  "generator": "scripted",
+  "entry_road": 1,
+  "start": {"treasury": 5000},
+  "start_stock": {"wood": 80, "wheat": 60},
+  "gods": ["jupiter", "ceres", "vesta", "neptune", "mercury"],
+  "trade": {"partners": ["latin_villages", "rome", "etruria"]},
+  "goals": {"population": 600, "culture": 20, "prosperity": 25, "requests": 1, "buildings": {"trade_post": 1, "fishing_wharf": 1}},
+  "script": "script.lua"
+}

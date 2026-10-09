@@ -1,0 +1,17 @@
+{
+  "id": "m04_capua",
+  "name": "Capua - Campania",
+  "mission": 4,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {"size": 208, "seed": 4407, "coast": 2, "river": true, "hills": 0.35, "forest": 0.35, "marsh": 0.2},
+  "world": {"max_citizens": 8000, "max_buildings": 2500, "max_households": 3000, "max_soldiers": 1500},
+  "generator": "scripted",
+  "entry_road": 0,
+  "start": {"treasury": 8000},
+  "start_stock": {"wood": 120, "wheat": 100, "pottery": 30},
+  "gods": ["jupiter", "juno", "venus", "ceres", "vesta", "mercury"],
+  "trade": {"partners": ["latin_villages", "rome", "etruria"]},
+  "goals": {"population": 1500, "culture": 40, "prosperity": 40, "requests": 2, "buildings": {"theater": 1, "domus_plot": 2}},
+  "script": "script.lua"
+}

@@ -107,13 +107,14 @@ void App::draw_ui() {
 }
 
 void App::draw_main_menu() {
-  center_next(360, 350);
+  center_next(360, 420);
   ImGui::Begin("##menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-  ImGui::SetWindowFontScale(2.4f);
-  const float tw = ImGui::CalcTextSize("U R B S").x;
-  ImGui::SetCursorPosX((360 - tw) * 0.5f);
-  ImGui::TextUnformatted("U R B S");
-  ImGui::SetWindowFontScale(1.0f);
+  ImGui::SetCursorPosX((360 - 300) * 0.5f);
+  if (!icons_.picture("ui/logo", ImVec2(300, 90))) {
+    ImGui::SetWindowFontScale(2.4f);
+    ImGui::TextUnformatted("U R B S");
+    ImGui::SetWindowFontScale(1.0f);
+  }
   const char* sub = "Build Rome one family at a time";
   ImGui::SetCursorPosX((360 - ImGui::CalcTextSize(sub).x) * 0.5f);
   ImGui::TextDisabled("%s", sub);
@@ -142,29 +143,25 @@ void App::draw_campaign() {
   ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(ds.x - 40, ds.y - 40), ImGuiCond_Always);
   ImGui::Begin("The Province of the Career", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-  const float map_w = (ds.x - 40) * 0.62f, map_h = ds.y - 120;
+  float map_w = (ds.x - 40) * 0.64f, map_h = ds.y - 120;
+  map_h = std::min(map_h, (map_w - 16) * 288.0f / 512.0f + 16);
   // Stylised Mediterranean: sea, land masses as soft blobs, the road of the career between missions.
   ImGui::BeginChild("map", ImVec2(map_w, map_h), true);
   ImDrawList* dl = ImGui::GetWindowDrawList();
   const ImVec2 o = ImGui::GetCursorScreenPos();
   const float W = map_w - 16, H = map_h - 16;
-  dl->AddRectFilled(o, ImVec2(o.x + W, o.y + H), IM_COL32(64, 104, 140, 255));
-  struct Blob {
-    float x, y, rx, ry;
-  };
-  // Rough land masses: Hispania, Gallia, Italia, Germania, Britannia, Graecia, Asia, Africa, Aegyptus.
-  const Blob land[] = {{0.17f, 0.48f, 0.12f, 0.11f}, {0.34f, 0.3f, 0.12f, 0.12f}, {0.47f, 0.37f, 0.035f, 0.1f},
-                       {0.52f, 0.45f, 0.03f, 0.06f}, {0.45f, 0.14f, 0.16f, 0.08f}, {0.3f, 0.09f, 0.05f, 0.06f},
-                       {0.67f, 0.47f, 0.05f, 0.07f}, {0.88f, 0.48f, 0.12f, 0.1f},  {0.5f, 0.79f, 0.5f, 0.12f},
-                       {0.82f, 0.7f, 0.08f, 0.06f},  {0.5f, 0.54f, 0.03f, 0.02f},  {0.62f, 0.3f, 0.12f, 0.08f}};
-  for (const Blob& b : land)
-    dl->AddEllipseFilled(ImVec2(o.x + b.x * W, o.y + b.y * H), ImVec2(b.rx * W, b.ry * H), IM_COL32(196, 170, 112, 255), 0, 32);
+  ImVec2 uv0, uv1;
+  if (icons_.big_uv("ui/province_map", uv0, uv1)) {
+    dl->AddImage(icons_.big_texture(), o, ImVec2(o.x + W, o.y + H), uv0, uv1);
+  } else {
+    dl->AddRectFilled(o, ImVec2(o.x + W, o.y + H), IM_COL32(64, 104, 140, 255));
+  }
   // Path of the career.
   const auto& M = campaign_.missions;
-  for (size_t k = 1; k < M.size(); ++k)
-    dl->AddLine(ImVec2(o.x + M[k - 1].x * W, o.y + M[k - 1].y * H), ImVec2(o.x + M[k].x * W, o.y + M[k].y * H),
-                IM_COL32(120, 60, 40, 120), 2.0f);
   const int next = profile_.next_index(campaign_);
+  for (size_t k = 1; k < M.size() && static_cast<int>(k) <= next; ++k)
+    dl->AddLine(ImVec2(o.x + M[k - 1].x * W, o.y + M[k - 1].y * H), ImVec2(o.x + M[k].x * W, o.y + M[k].y * H),
+                IM_COL32(150, 60, 35, 200), 2.0f);
   for (size_t k = 0; k < M.size(); ++k) {
     const ImVec2 p(o.x + M[k].x * W, o.y + M[k].y * H);
     const bool done = profile_.done(M[k].id), open = static_cast<int>(k) <= next;
@@ -250,7 +247,9 @@ void App::draw_hud() {
   ImGui::SameLine();
   ImGui::Text("%s", with_commas(w.econ.treasury).c_str());
   ImGui::SameLine(0, 20);
-  ImGui::Text("Pop %u", w.population());
+  icons_.image("ui/icon_population", 18);
+  ImGui::SameLine();
+  ImGui::Text("%u", w.population());
   ImGui::SameLine(0, 20);
   ImGui::Text("Day %llu (%s), %02u:00", static_cast<unsigned long long>(sim::day_of_year(w.now) + 1),
               sim::season_name(sim::season(w.now)), sim::hour_of_day(w.now));
@@ -266,22 +265,40 @@ void App::draw_hud() {
     if (on) ImGui::PopStyleColor();
   }
   ImGui::SameLine(0, 20);
-  ImGui::Text("Mood %u  Cul %u  Pros %u  Sec %u  Favor %d", w.avg_happiness, w.ratings.culture, w.ratings.prosperity,
-              w.ratings.security, w.favor);
+  auto stat = [&](const char* icon, int v, const char* tip) {
+    icons_.image(icon, 18);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
+    ImGui::SameLine();
+    ImGui::Text("%d", v);
+    ImGui::SameLine(0, 12);
+  };
+  stat("ui/icon_happiness", w.avg_happiness, "Mood of the people (128 = content)");
+  stat("ui/icon_culture", w.ratings.culture, "Culture rating");
+  stat("ui/icon_prosperity", w.ratings.prosperity, "Prosperity rating");
+  stat("ui/icon_security", w.ratings.security, "Security rating");
+  stat("ui/icon_favor", w.favor, "Favor with Rome");
+  ImGui::NewLine();
   // Panel buttons on the second row.
   struct Btn {
     const char* label;
+    const char* icon;
     bool* flag;
   };
-  Btn btns[] = {{"Build", &show_build_},     {"Rome", &show_rome_},         {"Advisors", &show_advisors_},
-                {"Finance", &show_finance_}, {"Goods", &show_stock_},       {"Trade", &show_trade_},
-                {"Labor", &show_labor_},     {"Religion", &show_religion_}, {"Military", &show_military_},
-                {"Research", &show_research_}, {"Alerts", &show_alerts_},   {"Help", &show_help_}};
+  Btn btns[] = {{"Build", "ui/icon_build", &show_build_},         {"Rome", "ui/icon_rome", &show_rome_},
+                {"Advisors", "ui/icon_advisors", &show_advisors_}, {"Finance", "ui/icon_finance", &show_finance_},
+                {"Goods", "ui/icon_goods", &show_stock_},          {"Trade", "ui/icon_trade", &show_trade_},
+                {"Labor", "ui/icon_labor", &show_labor_},          {"Religion", "ui/icon_religion", &show_religion_},
+                {"Military", "ui/icon_military", &show_military_}, {"Research", "ui/icon_research", &show_research_},
+                {"Alerts", "ui/icon_alerts", &show_alerts_},       {"Help", "ui/icon_help", &show_help_}};
   for (size_t k = 0; k < sizeof(btns) / sizeof(btns[0]); ++k) {
     if (k) ImGui::SameLine();
     const bool on = *btns[k].flag;
     if (on) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+    ImGui::BeginGroup();
+    icons_.image(btns[k].icon, 16);
+    ImGui::SameLine(0, 2);
     if (ImGui::Button(btns[k].label)) *btns[k].flag = !*btns[k].flag;
+    ImGui::EndGroup();
     if (on) ImGui::PopStyleColor();
   }
   ImGui::SameLine(0, 20);

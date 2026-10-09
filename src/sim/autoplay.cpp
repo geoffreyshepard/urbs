@@ -265,6 +265,47 @@ void Autoplay::do_trade_and_requests(World& w) {
 
 void Autoplay::step(World& w) {
   if (w.now % kTicksPerHour != 25) return;
+  // Defence: when raiders appear, raise militia (or legions) and march them on the enemy.
+  {
+    u32 enemies = 0, ours = 0;
+    f32 ex = 0, ey = 0;
+    for (const auto& u : w.army.units)
+      if (u.alive) {
+        if (u.side == 1) {
+          enemies += u.count;
+          ex = u.ax;
+          ey = u.ay;
+        } else {
+          ours += u.count;
+        }
+      }
+    if (enemies > 0) {
+      if (ours < enemies) {
+        BuildingId post;
+        w.buildings.for_each([&](BuildingId id, const Building& b) {
+          const auto& d = w.defs->b(b.def);
+          if (!post.valid() && b.state == BState::Active && (d.id == "militia_post" || d.id == "barracks")) post = id;
+        });
+        if (post.valid()) {
+          Command c;
+          c.type = CmdType::RaiseUnit;
+          c.def = w.defs->b(w.buildings[post].def).id == "barracks" ? w.defs->unit("legionary").v : w.defs->unit("militia").v;
+          c.value = static_cast<i32>(post.raw);
+          w.push(c);
+        }
+      }
+      for (u16 u = 0; u < military::kMaxUnits; ++u)
+        if (w.army.units[u].alive && w.army.units[u].side == 0 && w.army.units[u].order == military::Order::Hold) {
+          Command c;
+          c.type = CmdType::UnitOrder;
+          c.def = u;
+          c.value = static_cast<i32>(military::Order::Move);
+          c.x0 = static_cast<i32>(ex);
+          c.y0 = static_cast<i32>(ey);
+          w.push(c);
+        }
+    }
+  }
   const u32 hour = hour_of_day(w.now);
   if (hour == 6) do_trade_and_requests(w);
   if (w.econ.treasury < 120) return;
@@ -312,6 +353,7 @@ void Autoplay::step(World& w) {
   if (pop >= 80 && ensure("warehouse", 1 + pop / 900)) return;
   if (pop >= 40 && ensure("forum", 1 + pop / 500)) return;
   if (pop >= 120 && ensure("vigiles_post", pop / 250)) return;
+  if (pop >= 150 && w.mission_number >= 3 && ensure("militia_post", 1 + pop / 1500)) return;
   if (pop >= 200 && ensure("engineers_post", pop / 400)) return;
   // 3. Whatever most houses need to grow.
   for (auto it = blockers.begin(); it != blockers.end();)
@@ -327,8 +369,9 @@ void Autoplay::step(World& w) {
     }
   }
   // 4. Mission goal buildings.
-  for (const auto& g : w.goals.buildings)
-    if (w.count_active(g.def) < g.count && place(w, g.def, bx, by)) return;
+  if (pop >= 100)
+    for (const auto& g : w.goals.buildings)
+      if (count(w, w.defs->b(g.def).id.c_str()) < g.count && place(w, g.def, bx, by)) return;
   // 5. Culture and comfort as the city grows.
   if (pop >= 150 && ensure("tavern", pop / 300)) return;
   if (pop >= 150 && ensure("physician", pop / 300)) return;

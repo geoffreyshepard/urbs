@@ -1,0 +1,17 @@
+{
+  "id": "m03_beneventum",
+  "name": "Beneventum - Samnite Frontier",
+  "mission": 3,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {"size": 192, "seed": 3311, "coast": -1, "river": true, "hills": 0.8, "forest": 0.6, "marsh": 0.15},
+  "world": {"max_citizens": 6000, "max_buildings": 2000, "max_households": 2200, "max_soldiers": 1500},
+  "generator": "scripted",
+  "entry_road": 3,
+  "start": {"treasury": 6000},
+  "start_stock": {"wood": 100, "wheat": 80},
+  "gods": ["jupiter", "juno", "mars", "ceres", "vesta"],
+  "trade": {"partners": ["latin_villages", "rome", "etruria"]},
+  "goals": {"population": 1000, "culture": 30, "security": 40, "buildings": {"temple": 1, "militia_post": 1}},
+  "script": "script.lua"
+}
