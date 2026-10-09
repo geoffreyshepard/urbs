@@ -1,6 +1,7 @@
 #include "sim/scenario.hpp"
 
 #include <algorithm>
+#include <cstdio>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <sstream>
@@ -52,8 +53,63 @@ ScenarioSpec load_scenario(const std::string& path) {
     s.expect_min_citizens = t.value("min_citizens", 0u);
     s.expect_max_tick_ms = t.value("max_tick_ms", 0.0);
     s.expect_max_alloc_violations = t.value("max_alloc_violations", 0xFFFFFFFFu);
+    if (t.contains("stock"))
+      for (auto& [k, v] : t["stock"].items()) s.expect_stock.emplace_back(k, v.get<u32>());
+    if (t.contains("produced"))
+      for (auto& [k, v] : t["produced"].items()) s.expect_produced.emplace_back(k, v.get<u32>());
+    if (t.contains("active"))
+      for (auto& [k, v] : t["active"].items()) s.expect_active.emplace_back(k, v.get<u32>());
   }
+  s.map.flat = j.contains("map") && j["map"].value("flat", false);
   return s;
+}
+
+namespace {
+Road parse_road(const std::string& s) {
+  if (s == "dirt") return Road::Dirt;
+  if (s == "bridge") return Road::Bridge;
+  return Road::Paved;
+}
+}  // namespace
+
+void push_due_orders(World& w, const ScenarioSpec& spec) {
+  for (const auto& [t, c] : spec.orders)
+    if (t == w.now + 1) w.push(c);
+}
+
+bool check_expectations(const World& w, const ScenarioSpec& spec) {
+  bool ok = true;
+  for (const auto& [gid, minv] : spec.expect_stock) {
+    GoodId g = w.defs->good(gid);
+    u64 total = 0;
+    w.buildings.for_each([&](BuildingId, const Building& b) {
+      if (b.inv != econ::kNoInv && g.valid()) total += w.econ.amt(b.inv, g);
+    });
+    if (total < minv) {
+      std::fprintf(stderr, "FAIL: stock of %s is %llu < %u\n", gid.c_str(), static_cast<unsigned long long>(total), minv);
+      ok = false;
+    }
+  }
+  for (const auto& [gid, minv] : spec.expect_produced) {
+    GoodId g = w.defs->good(gid);
+    u32 n = g.valid() ? w.econ.produced_yday[g.v] + w.econ.produced_today[g.v] : 0;
+    if (n < minv) {
+      std::fprintf(stderr, "FAIL: produced %s = %u < %u\n", gid.c_str(), n, minv);
+      ok = false;
+    }
+  }
+  for (const auto& [bid, minv] : spec.expect_active) {
+    BuildingDefId d = w.defs->building(bid);
+    u32 n = 0;
+    w.buildings.for_each([&](BuildingId, const Building& b) {
+      if (b.def == d && b.state == BState::Active) ++n;
+    });
+    if (n < minv) {
+      std::fprintf(stderr, "FAIL: active %s = %u < %u\n", bid.c_str(), n, minv);
+      ok = false;
+    }
+  }
+  return ok;
 }
 
 namespace {
@@ -84,10 +140,77 @@ struct Slot {
 
 }  // namespace
 
-void setup_scenario(World& w, const data::Defs& defs, const ScenarioSpec& s) {
+namespace {
+void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
+  json j = json::parse(s.json, nullptr, true, true);
+  if (!j.contains("start")) return;
+  auto& st = j["start"];
+  w.econ.treasury = st.value("treasury", 0);
+  if (st.contains("roads"))
+    for (auto& r : st["roads"])
+      w.place_road_line(r["from"][0], r["from"][1], r["to"][0], r["to"][1], parse_road(r.value("type", "paved")));
+  std::vector<BuildingId> placed;
+  if (st.contains("buildings"))
+    for (auto& b : st["buildings"]) {
+      BuildingDefId d = defs.building(b["def"].get<std::string>());
+      if (!d) throw std::runtime_error("scenario: unknown building " + b["def"].get<std::string>());
+      const auto& bd = defs.b(d);
+      i32 bw = b.contains("size") ? b["size"][0].get<i32>() : bd.w, bh = b.contains("size") ? b["size"][1].get<i32>() : bd.h;
+      BuildingId id = w.place_building(d, b["x"], b["y"], bw, bh, true);
+      if (!id) throw std::runtime_error("scenario: cannot place " + bd.id + " at " + b["x"].dump() + "," + b["y"].dump());
+      if (b.contains("stock"))
+        for (auto& [g, n] : b["stock"].items()) w.add_stock(id, defs.good(g), n.get<u16>());
+      placed.push_back(id);
+    }
+  if (st.contains("households")) {
+    rng::Stream& r = w.stream(rng::StreamId::World);
+    for (auto& h : st["households"]) {
+      BuildingId home = placed.at(h["building"].get<size_t>());
+      u32 count = h.value("count", 1u), members = h.value("members", 4u);
+      for (u32 k = 0; k < count; ++k) {
+        HouseholdId hh = w.create_household(home, CitizenClass::Pleb);
+        w.households[hh].food = static_cast<u16>(h.value("food", 8u));
+        for (u32 m = 0; m < members; ++m) w.spawn_citizen(CitizenClass::Pleb, home, hh, m < 2 ? 20 + r.below(20) : 15 + r.below(30));
+      }
+    }
+  }
+  if (j.contains("orders"))
+    for (auto& o : j["orders"]) {
+      Command c;
+      Tick t = o.value("tick", 1ull);
+      if (o.contains("place")) {
+        BuildingDefId d = defs.building(o["place"].get<std::string>());
+        if (!d) throw std::runtime_error("scenario order: unknown building " + o["place"].get<std::string>());
+        c.type = CmdType::PlaceBuilding;
+        c.def = d.v;
+        c.x0 = o["x"];
+        c.y0 = o["y"];
+        c.x1 = o.value("w", static_cast<i32>(defs.b(d).w));
+        c.y1 = o.value("h", static_cast<i32>(defs.b(d).h));
+      } else if (o.contains("road")) {
+        c.type = CmdType::PlaceRoad;
+        c.def = static_cast<u16>(parse_road(o.value("type", "paved")));
+        c.x0 = o["road"][0];
+        c.y0 = o["road"][1];
+        c.x1 = o["road"][2];
+        c.y1 = o["road"][3];
+      } else if (o.contains("demolish")) {
+        c.type = CmdType::Demolish;
+        c.x0 = o["demolish"][0];
+        c.y0 = o["demolish"][1];
+        c.x1 = o["demolish"][2];
+        c.y1 = o["demolish"][3];
+      }
+      s.orders.emplace_back(t, c);
+    }
+}
+}  // namespace
+
+void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   generate_map(w.map, s.map);
   if (s.generator == "stress_city") build_grid_city(w, defs, s);
   w.init(s.world, defs);
+  if (s.generator == "scripted") setup_scripted(w, defs, s);
   if (s.generator != "stress_city") return;
 
   const BuildingDefId house = defs.building("house_plot");

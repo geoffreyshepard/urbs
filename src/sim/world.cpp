@@ -37,6 +37,25 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   results_.init(std::max<u32>(cfg.path_budget, cfg.max_citizens) + 16);
   scratch_ids_.reserve(cfg.max_buildings);
   scratch_tiles_.reserve(cfg.max_buildings);
+  scratch_u32_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
+  scratch_u32b_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
+  econ.init(static_cast<u32>(d.goods.size()), cfg.max_buildings, 4096);
+  food_slots.clear();
+  hh_goods.clear();
+  good_food_slot.assign(d.goods.size(), -1);
+  good_hh_slot.assign(d.goods.size(), -1);
+  for (u16 g = 0; g < d.goods.size(); ++g)
+    if (d.goods[g].food && food_slots.size() < 8) {
+      good_food_slot[g] = static_cast<i8>(food_slots.size());
+      food_slots.push_back(GoodId{g});
+    }
+  for (const char* n : {"pottery", "clothing", "olive_oil", "wine", "furniture", "glassware", "dyed_clothing", "jewelry"}) {
+    GoodId g = d.good(n);
+    if (g.valid() && hh_goods.size() < 8) {
+      good_hh_slot[g.v] = static_cast<i8>(hh_goods.size());
+      hh_goods.push_back(g);
+    }
+  }
   commands.reserve(1024);
   providers_dirty_ = true;
 }
@@ -121,14 +140,52 @@ BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, 
   update_nav_rect(x, y, w, h);
   compute_entrance(b);
   b.state = BState::Construction;
-  if (instant) complete_construction(id);
+  ++b.token;
+  // Inventory: storage capacity, producer buffer, or construction materials.
+  u32 cost_units = 0;
+  for (const auto& c : bd.cost_goods) cost_units += c.amount;
+  u32 cap = bd.storage ? static_cast<u32>(bd.storage) * (bd.painted ? std::max<u32>(1, area / base_area) : 1) : 0;
+  if (bd.recipe.valid() && cap == 0) cap = 30;
+  if (bd.kind == data::BuildingKind::Market && cap == 0) cap = 200;
+  cap = std::max(cap, cost_units);
+  if (cap > 0) {
+    b.inv = econ.create_inventory(id, static_cast<u16>(std::min<u32>(cap, 60000)));
+    if (b.inv != econ::kNoInv) {
+      if (!bd.accepts.empty())
+        for (u32 g = 0; g < econ.goods; ++g) {
+          bool acc = std::find(bd.accepts.begin(), bd.accepts.end(), GoodId{static_cast<u16>(g)}) != bd.accepts.end();
+          econ.accept[static_cast<size_t>(b.inv) * econ.goods + g] = acc ? 1 : 0;
+        }
+      if (bd.kind == data::BuildingKind::Market) {
+        for (GoodId g : food_slots) econ.target[static_cast<size_t>(b.inv) * econ.goods + g.v] = 40;
+        for (GoodId g : hh_goods) econ.target[static_cast<size_t>(b.inv) * econ.goods + g.v] = 20;
+      }
+    }
+  }
+  if (instant || (b.build_needed == 0 && bd.cost_goods.empty())) {
+    complete_construction(id);
+  } else {
+    b.jobs = static_cast<u16>(std::clamp<u32>(2 + area / 4, 2, 16));
+  }
+  sched.schedule(Event{now + 1 + id.index() % kTicksPerHour, id.index(), static_cast<u16>(BuildingEvent::Hourly), b.token,
+                       EventKind::Building});
   return id;
 }
 
 void World::complete_construction(BuildingId id) {
   Building& b = buildings[id];
+  const data::BuildingDef& bd = defs->b(b.def);
+  // Builders are released; the finished building hires its own workforce.
+  if (b.employed > 0)
+    for (u32 i = 0; i < citizens.ids.high_water(); ++i)
+      if (citizens.ids.alive_index(i) && citizens.work[i] == id) release_worker(i);
   b.state = BState::Active;
   b.build_progress = b.build_needed;
+  b.employed = 0;
+  b.present = 0;
+  const u32 area = static_cast<u32>(b.w * b.h), base_area = static_cast<u32>(bd.w * bd.h);
+  b.jobs = bd.painted ? static_cast<u16>(std::max<u32>(bd.workers ? 1u : 0u, bd.workers * area / std::max<u32>(1, base_area)))
+                      : bd.workers;
   providers_dirty_ = true;
 }
 
@@ -141,7 +198,7 @@ void World::remove_building(BuildingId id) {
   // Evict residents and workers.
   for (u32 i = 0; i < citizens.ids.high_water(); ++i) {
     if (!citizens.ids.alive_index(i)) continue;
-    if (citizens.work[i] == id) citizens.work[i] = BuildingId{};
+    if (citizens.work[i] == id) release_worker(i);
     if (citizens.home[i] == id) citizens.home[i] = BuildingId{};
     if (citizens.loc[i] == id) {
       citizens.loc[i] = BuildingId{};
@@ -151,6 +208,11 @@ void World::remove_building(BuildingId id) {
     }
     if (citizens.dest[i] == id && citizens.activity[i] == Activity::Walk) citizens.dest[i] = BuildingId{};
   }
+  for (u32 t = 0; t < econ.task_ids.high_water(); ++t)
+    if (econ.task_ids.alive_index(t) && (econ.tasks[t].src == id || econ.tasks[t].dst == id)) cancel_task(t, true);
+  econ.destroy_inventory(b.inv);
+  b.inv = econ::kNoInv;
+  ++b.token;
   for (u32 hi = b.first_household; hi != kNoIndex;) {
     Household& hh = households.h[hi];
     u32 next = hh.next_in_house;
@@ -243,7 +305,8 @@ CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, 
   C.cls[i] = cls;
   rng::Stream& r = stream(rng::StreamId::Citizens);
   C.sex[i] = static_cast<u8>(r.below(2));
-  C.born[i] = now - static_cast<Tick>(age_years) * kTicksPerYear - r.below(static_cast<u32>(kTicksPerYear));
+  C.born[i] = static_cast<i64>(now) - static_cast<i64>(age_years) * static_cast<i64>(kTicksPerYear) -
+              static_cast<i64>(r.below(static_cast<u32>(kTicksPerYear)));
   C.need_t0[i] = now;
   for (int n = 0; n < kNeedCount; ++n) {
     C.need_base[static_cast<size_t>(i) * kNeedCount + n] = static_cast<u8>(160 + r.below(80));
@@ -275,9 +338,10 @@ void World::despawn_citizen(CitizenId id) {
     C.path[i] = path::kNoHandle;
     if (walking > 0) --walking;
   }
-  if (C.activity[i] == Activity::Work && C.work[i].valid() && buildings.alive(C.work[i]) &&
-      buildings[C.work[i]].present > 0)
-    --buildings[C.work[i]].present;
+  if (C.task[i] != kNoIndex) cancel_task(C.task[i], true);
+  if ((C.activity[i] == Activity::Work || C.activity[i] == Activity::Build) && C.loc[i].valid() &&
+      buildings.alive(C.loc[i]) && buildings[C.loc[i]].present > 0)
+    --buildings[C.loc[i]].present;
   if (C.work[i].valid() && buildings.alive(C.work[i]) && buildings[C.work[i]].employed > 0)
     --buildings[C.work[i]].employed;
   if (C.home[i].valid() && buildings.alive(C.home[i]) && buildings[C.home[i]].residents > 0)
@@ -364,29 +428,34 @@ void World::start_activity(u32 i, Activity a) {
       rate(Need::Water, -3);
       end = at_hour(5);
       break;
-    case Activity::Work: {
-      Building& w = buildings[C.work[i]];
-      ++w.present;
+    case Activity::Work:
+    case Activity::Build: {
+      if (C.loc[i].valid() && buildings.alive(C.loc[i])) ++buildings[C.loc[i]].present;
       rate(Need::Rest, -12);
       rate(Need::Food, -7);
       end = h < 12 ? at_hour(12) : at_hour(17);
+      // Porters waiting for a task re-check every half hour.
+      if (a == Activity::Work && is_porter_job(C.work[i])) end = std::min<Tick>(end, now + kTicksPerHour / 2);
       break;
     }
+    case Activity::Haul:
+      rate(Need::Rest, -12);
+      rate(Need::Food, -7);
+      haul_step(i);
+      return;
     case Activity::Shop: {
       Household* hh = C.household[i].valid() ? &households[C.household[i]] : nullptr;
       if (hh) {
-        hh->food = static_cast<u16>(std::min<u32>(hh->food + hh->members * 6u, 400u));
+        household_shop(i, C.loc[i]);
         hh->shopper = CitizenId{};
       }
-      end = now + kTicksPerHour;
+      end = now + kTicksPerHour / 2;
       break;
     }
     case Activity::Home: {
       Household* hh = C.household[i].valid() ? &households[C.household[i]] : nullptr;
-      if (hh && hh->food > 0 && C.need(i, Need::Food, now) < 200) {
-        --hh->food;
-        C.set_need(i, Need::Food, 255);
-      }
+      if (hh && C.need(i, Need::Food, now) < 200) household_eat(i);
+      C.carrying[i] = 0;
       C.set_need(i, Need::Water, 255);
       if (h < 5 || h >= 22) end = at_hour(5);
       else if (h < 7) end = at_hour(7);
@@ -407,8 +476,9 @@ void World::decide(u32 i) {
   auto& C = citizens;
   ++stats.decisions;
   // Leave the current activity.
-  if (C.activity[i] == Activity::Work && C.work[i].valid() && buildings.alive(C.work[i])) {
-    Building& w = buildings[C.work[i]];
+  if ((C.activity[i] == Activity::Work || C.activity[i] == Activity::Build) && C.loc[i].valid() &&
+      buildings.alive(C.loc[i])) {
+    Building& w = buildings[C.loc[i]];
     if (w.present > 0) --w.present;
   }
   const u32 h = hour_of_day(now);
@@ -425,10 +495,11 @@ void World::decide(u32 i) {
     act = Activity::Sleep;
   } else if (C.work[i].valid() && buildings.alive(C.work[i]) && h >= 7 && h < 17 && h != 12) {
     target = C.work[i];
-    act = Activity::Work;
+    act = buildings[target].state == BState::Construction ? Activity::Build : Activity::Work;
+    if (act == Activity::Work && is_porter_job(target) && claim_task(i)) return;
   } else if (C.household[i].valid() && h >= 13 && h < 20) {
     Household& hh = households[C.household[i]];
-    if (hh.food < hh.members * 2 && !hh.shopper.valid()) {
+    if (household_food(hh) < hh.members * 2u && !hh.shopper.valid()) {
       ServiceId market = defs->service("market");
       if (market.valid() && services.ready(market.v)) {
         BuildingId m = services.provider(market.v, buildings[home].entrance);
@@ -526,10 +597,22 @@ void World::refresh_service_providers() {
 void World::apply_commands() {
   for (const Command& c : commands) {
     switch (c.type) {
-      case CmdType::PlaceBuilding:
-        place_building(BuildingDefId{c.def}, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
+      case CmdType::PlaceBuilding: {
+        const BuildingDefId d{c.def};
+        if (!can_place(d, c.x0, c.y0, c.x1, c.y1)) break;
+        const auto& bd = defs->b(d);
+        const i64 area = static_cast<i64>(c.x1) * c.y1, base = static_cast<i64>(bd.w) * bd.h;
+        const i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
+        if (!pay(cost)) break;
+        place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
         break;
-      case CmdType::PlaceRoad: place_road_line(c.x0, c.y0, c.x1, c.y1, static_cast<Road>(c.def)); break;
+      }
+      case CmdType::PlaceRoad: {
+        const i64 len = std::max(std::abs(c.x1 - c.x0), std::abs(c.y1 - c.y0)) + 1;
+        if (!pay(len * (static_cast<Road>(c.def) == Road::Paved ? 4 : 1))) break;
+        place_road_line(c.x0, c.y0, c.x1, c.y1, static_cast<Road>(c.def));
+        break;
+      }
       case CmdType::Demolish: demolish(c.x0, c.y0, c.x1, c.y1); break;
       default: break;
     }
@@ -544,6 +627,7 @@ void World::process_events() {
   for (const Event& e : due_) {
     switch (e.kind) {
       case EventKind::Citizen: on_citizen_event(e); break;
+      case EventKind::Building: on_building_event(e); break;
       default: break;
     }
   }
@@ -562,6 +646,13 @@ void World::tick() {
   if (nav.regions_dirty || std::any_of(nav.chunk_dirty.begin(), nav.chunk_dirty.end(), [](u8 d) { return d != 0; }))
     services.mark_all_dirty();
   services.step(nav, cfg.service_budget);
+  if (now % kTicksPerDay == 0) daily_update();
+  if (now % kTicksPerHour == 7) labor_allocate();
+  if (econ.goods > 0) {
+    // Two goods per tick: every good is matched about every 20 ticks.
+    match_good(GoodId{static_cast<u16>((now * 2) % econ.goods)});
+    match_good(GoodId{static_cast<u16>((now * 2 + 1) % econ.goods)});
+  }
   process_events();
   paths.process(now, results_);
   apply_path_results();

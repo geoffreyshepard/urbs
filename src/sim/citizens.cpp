@@ -46,7 +46,8 @@ void Citizens::init(u32 cap) {
 }
 
 u32 Citizens::age_years(u32 i, Tick now) const {
-  return now > born[i] ? static_cast<u32>((now - born[i]) / kTicksPerYear) : 0;
+  const i64 d = static_cast<i64>(now) - born[i];
+  return d > 0 ? static_cast<u32>(d / static_cast<i64>(kTicksPerYear)) : 0;
 }
 
 void Citizens::remember(u32 i, u32 day, u8 kind, u16 arg) {

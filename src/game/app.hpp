@@ -5,7 +5,9 @@
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
 #include "data/defs.hpp"
+#include "game/tools.hpp"
 #include "game/world_view.hpp"
+#include "sim/scenario.hpp"
 #include "sim/world.hpp"
 
 namespace urbs::game {
@@ -36,13 +38,19 @@ class App {
   void draw_debug_ui();
   void new_world(const std::string& scenario);
   void step_sim(f64 dt);
+  void draw_build_menu();
+  void draw_stock_window();
+  [[nodiscard]] Vec2i mouse_tile() const;
 
   AppOptions opt_;
   platform::Window win_;
   render::Renderer renderer_;
   data::Defs defs_;
   std::unique_ptr<sim::World> world_;
+  sim::ScenarioSpec spec_;
   WorldView view_;
+  Tools tools_;
+  bool show_build_ = true, show_stock_ = false;
   sim::MapGenParams gen_;
   int speed_ = 1;  // 0 pause, 1, 2, 4 (index into kSpeeds)
   f64 accum_ = 0;

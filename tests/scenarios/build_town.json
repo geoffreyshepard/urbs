@@ -1,0 +1,173 @@
+{
+  "name": "build_town",
+  "map": {
+    "size": 96,
+    "seed": 2,
+    "flat": true,
+    "river": false
+  },
+  "world": {
+    "max_citizens": 400,
+    "max_buildings": 256,
+    "max_households": 200
+  },
+  "generator": "scripted",
+  "start": {
+    "treasury": 3000,
+    "roads": [
+      {
+        "from": [
+          8,
+          40
+        ],
+        "to": [
+          88,
+          40
+        ],
+        "type": "dirt"
+      },
+      {
+        "from": [
+          40,
+          16
+        ],
+        "to": [
+          40,
+          76
+        ],
+        "type": "dirt"
+      }
+    ],
+    "buildings": [
+      {
+        "def": "warehouse",
+        "x": 30,
+        "y": 41,
+        "stock": {
+          "wood": 80
+        }
+      },
+      {
+        "def": "granary",
+        "x": 34,
+        "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 42,
+        "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 45,
+        "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 48,
+        "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 51,
+        "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 54,
+        "y": 41
+      },
+      {
+        "def": "house_plot",
+        "x": 57,
+        "y": 41
+      }
+    ],
+    "households": [
+      {
+        "building": 2,
+        "count": 2,
+        "members": 4
+      },
+      {
+        "building": 3,
+        "count": 2,
+        "members": 4
+      },
+      {
+        "building": 4,
+        "count": 2,
+        "members": 4
+      },
+      {
+        "building": 5,
+        "count": 2,
+        "members": 4
+      },
+      {
+        "building": 6,
+        "count": 2,
+        "members": 4
+      },
+      {
+        "building": 7,
+        "count": 2,
+        "members": 4
+      }
+    ]
+  },
+  "orders": [
+    {
+      "tick": 2,
+      "place": "wheat_farm",
+      "x": 20,
+      "y": 30,
+      "w": 6,
+      "h": 6
+    },
+    {
+      "tick": 2,
+      "road": [
+        26,
+        33,
+        39,
+        33
+      ],
+      "type": "dirt"
+    },
+    {
+      "tick": 2,
+      "place": "mill",
+      "x": 36,
+      "y": 38
+    },
+    {
+      "tick": 2,
+      "place": "bakery",
+      "x": 44,
+      "y": 38
+    },
+    {
+      "tick": 2,
+      "place": "market",
+      "x": 48,
+      "y": 37
+    }
+  ],
+  "ticks": 4800,
+  "test": {
+    "min_citizens": 40,
+    "max_alloc_violations": 0,
+    "active": {
+      "wheat_farm": 1,
+      "mill": 1,
+      "bakery": 1,
+      "market": 1
+    },
+    "produced": {
+      "bread": 10,
+      "flour": 10,
+      "wheat": 20
+    }
+  }
+}

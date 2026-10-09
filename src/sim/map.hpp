@@ -59,6 +59,7 @@ struct MapGenParams {
   f32 hills = 0.5f;   // 0..1
   f32 forest = 0.5f;  // 0..1
   f32 marsh = 0.3f;   // 0..1
+  bool flat = false;  // test maps: all grass at one height, no water
 };
 
 void generate_map(TileMap& map, const MapGenParams& p);

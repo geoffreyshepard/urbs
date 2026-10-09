@@ -5,6 +5,7 @@
 #include "core/pool.hpp"
 #include "core/rng.hpp"
 #include "data/defs.hpp"
+#include "econ/econ.hpp"
 #include "path/nav.hpp"
 #include "path/path_system.hpp"
 #include "sim/buildings.hpp"
@@ -46,7 +47,7 @@ struct Command {
 };
 
 enum class CitizenEvent : u16 { Decide = 1, Arrive = 2 };
-enum class BuildingEvent : u16 { Produce = 1, Fire = 2 };
+enum class BuildingEvent : u16 { Hourly = 1 };
 
 struct TickStats {
   u32 events = 0, decisions = 0, arrivals = 0, path_requests = 0, path_results = 0;
@@ -68,6 +69,11 @@ struct World {
   Citizens citizens;
   Households households;
   rng::Stream rng[static_cast<size_t>(rng::StreamId::Count)];
+  econ::Econ econ;
+  // Household food slots: index -> GoodId of a food good (resolved from defs at init).
+  std::vector<GoodId> food_slots;
+  std::vector<GoodId> hh_goods;  // household goods slots (pottery, clothing, oil, wine, ...)
+  std::vector<i8> good_food_slot, good_hh_slot;  // per good: slot index or -1
 
   std::vector<Command> commands;  // pending, applied at next tick start
   TickStats stats;
@@ -115,11 +121,29 @@ struct World {
   void schedule_citizen(u32 i, Tick when, CitizenEvent ev);
   void request_walk(u32 i, i32 from_tile, BuildingId to, i32 to_tile, Activity next);
 
+  // --- Economy (sim/economy.cpp) ---
+  bool pay(i64 denarii);
+  [[nodiscard]] bool is_porter_job(BuildingId b) const;
+  void cancel_task(u32 task, bool goods_lost);
+  void household_eat(u32 citizen);
+  void household_shop(u32 citizen, BuildingId market);
+  [[nodiscard]] u32 household_food(const Household& h) const;
+  void add_stock(BuildingId b, GoodId g, u16 n);
+  u32 labor_hourly_runs = 0;
+
  private:
   void apply_commands();
   void process_events();
   void apply_path_results();
   void on_citizen_event(const Event& e);
+  void on_building_event(const Event& e);
+  void building_hourly(BuildingId id);
+  void labor_allocate();
+  void match_good(GoodId g);
+  bool claim_task(u32 i);
+  void haul_step(u32 i);
+  void daily_update();
+  void release_worker(u32 i);
   void decide(u32 i);
   void arrive(u32 i);
   void start_activity(u32 i, Activity a);
@@ -133,6 +157,7 @@ struct World {
   core::FixedVec<path::PathResult> results_;
   std::vector<BuildingId> scratch_ids_;
   std::vector<i32> scratch_tiles_;
+  std::vector<u32> scratch_u32_, scratch_u32b_;
   bool providers_dirty_ = true;
 };
 

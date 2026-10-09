@@ -5,6 +5,8 @@
 #include <imgui_impl_sdlgpu3.h>
 
 #include <chrono>
+#include <cmath>
+#include <string>
 #include <cstdlib>
 #include <cstring>
 
@@ -42,8 +44,8 @@ AppOptions parse_args(int argc, char** argv) {
 void App::new_world(const std::string& scenario) {
   world_ = std::make_unique<sim::World>();
   if (!scenario.empty()) {
-    sim::ScenarioSpec spec = sim::load_scenario(scenario);
-    sim::setup_scenario(*world_, defs_, spec);
+    spec_ = sim::load_scenario(scenario);
+    sim::setup_scenario(*world_, defs_, spec_);
   } else {
     sim::generate_map(world_->map, gen_);
     world_->init(sim::WorldConfig{}, defs_);
@@ -80,7 +82,10 @@ bool App::init(const AppOptions& opt) {
   gen_.seed = opt.seed;
   gen_.coast = 2;
   new_world(opt.scenario);
-  for (int t = 0; t < opt.ticks_before; ++t) world_->tick();
+  for (int t = 0; t < opt.ticks_before; ++t) {
+    sim::push_due_orders(*world_, spec_);
+    world_->tick();
+  }
   auto& cam = renderer_.camera();
   if (opt.cam_x >= 0) cam.center = {opt.cam_x * sim::kTilePx, opt.cam_y * sim::kTilePx};
   if (opt.zoom >= 0) cam.zoom = std::min(opt.zoom, render::kZoomCount - 1);
@@ -108,11 +113,14 @@ void App::handle_event(const SDL_Event& e) {
       break;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
       if (!ui_mouse && (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT)) dragging_ = true;
+      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT) tools_.mouse_down(mouse_tile());
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
       if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) dragging_ = false;
+      if (e.button.button == SDL_BUTTON_LEFT) tools_.mouse_up(mouse_tile(), *world_);
       break;
     case SDL_EVENT_MOUSE_MOTION:
+      tools_.mouse_move(mouse_tile());
       if (dragging_) {
         f32 k = cam.density / cam.scale();
         cam.center = cam.center - Vec2{e.motion.xrel * k, e.motion.yrel * k};
@@ -120,7 +128,14 @@ void App::handle_event(const SDL_Event& e) {
       break;
     case SDL_EVENT_KEY_DOWN:
       if (ImGui::GetIO().WantCaptureKeyboard) break;
-      if (e.key.key == SDLK_ESCAPE) running_ = false;
+      if (e.key.key == SDLK_ESCAPE) {
+        if (tools_.kind != ToolKind::Inspect) tools_.cancel();
+        else running_ = false;
+      }
+      if (e.key.key == SDLK_R) tools_.select_road(sim::Road::Dirt);
+      if (e.key.key == SDLK_X) tools_.select_demolish();
+      if (e.key.key == SDLK_B) show_build_ = !show_build_;
+      if (e.key.key == SDLK_L) show_stock_ = !show_stock_;
       if (e.key.key == SDLK_SPACE) speed_ = speed_ == 0 ? 1 : 0;
       if (e.key.key == SDLK_1) speed_ = 1;
       if (e.key.key == SDLK_2) speed_ = 2;
@@ -153,6 +168,7 @@ void App::step_sim(f64 dt) {
   int n = 0;
   const auto t0 = std::chrono::steady_clock::now();
   while (accum_ >= kTickSeconds && n < 8) {
+    sim::push_due_orders(*world_, spec_);
     world_->tick();
     accum_ -= kTickSeconds;
     ++n;
@@ -160,6 +176,77 @@ void App::step_sim(f64 dt) {
   if (n == 8) accum_ = 0;  // behind: slow down instead of spiralling
   if (n > 0) sim_ms_ = std::chrono::duration<f64, std::milli>(std::chrono::steady_clock::now() - t0).count();
   alpha_ = static_cast<f32>(accum_ / kTickSeconds);
+}
+
+Vec2i App::mouse_tile() const {
+  float mx, my;
+  SDL_GetMouseState(&mx, &my);
+  Vec2 wp = const_cast<render::Renderer&>(renderer_).camera().screen_to_world({mx, my});
+  return {static_cast<i32>(std::floor(wp.x / static_cast<f32>(sim::kTilePx))),
+          static_cast<i32>(std::floor(wp.y / static_cast<f32>(sim::kTilePx)))};
+}
+
+void App::draw_build_menu() {
+  if (!show_build_) return;
+  ImGui::SetNextWindowPos({10, 220}, ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize({260, 480}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Build (B)", &show_build_);
+  ImGui::Text("Treasury: %lld denarii", static_cast<long long>(world_->econ.treasury));
+  if (ImGui::Button("Dirt road (R)")) tools_.select_road(sim::Road::Dirt);
+  ImGui::SameLine();
+  if (ImGui::Button("Paved road")) tools_.select_road(sim::Road::Paved);
+  if (ImGui::Button("Demolish (X)")) tools_.select_demolish();
+  ImGui::SameLine();
+  if (ImGui::Button("Cancel (Esc)")) tools_.cancel();
+  static const char* kCats[] = {"housing", "farm", "food",      "industry", "storage", "water",    "health",
+                                "religion", "entertainment", "education", "safety",   "civic",   "trade",
+                                "infrastructure", "decor", "military", "monument"};
+  for (const char* cat : kCats) {
+    if (!ImGui::CollapsingHeader(cat)) continue;
+    for (u16 i = 0; i < defs_.buildings.size(); ++i) {
+      const auto& d = defs_.buildings[i];
+      if (d.category != cat) continue;
+      const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
+      std::string label = d.name + "  (" + std::to_string(d.cost_denarii) + ")";
+      if (ImGui::Selectable(label.c_str(), sel)) tools_.select_building(BuildingDefId{i});
+      if (ImGui::IsItemHovered()) {
+        std::string tip = std::to_string(d.w) + "x" + std::to_string(d.h) + (d.painted ? " (drag to paint)" : "");
+        for (const auto& c : d.cost_goods) tip += "\n" + std::to_string(c.amount) + " " + defs_.goods[c.good.v].name;
+        if (d.workers) tip += "\nworkers: " + std::to_string(d.workers);
+        ImGui::SetTooltip("%s", tip.c_str());
+      }
+    }
+  }
+  ImGui::End();
+}
+
+void App::draw_stock_window() {
+  if (!show_stock_) return;
+  ImGui::SetNextWindowPos({1300, 10}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Goods (L)", &show_stock_);
+  const auto& e = world_->econ;
+  if (ImGui::BeginTable("goods", 4)) {
+    ImGui::TableSetupColumn("Good");
+    ImGui::TableSetupColumn("Stock");
+    ImGui::TableSetupColumn("Made");
+    ImGui::TableSetupColumn("Used");
+    ImGui::TableHeadersRow();
+    for (u32 g = 0; g < e.goods; ++g) {
+      if (!e.city_stock[g] && !e.produced_yday[g] && !e.consumed_yday[g]) continue;
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::TextUnformatted(defs_.goods[g].name.c_str());
+      ImGui::TableNextColumn();
+      ImGui::Text("%u", e.city_stock[g]);
+      ImGui::TableNextColumn();
+      ImGui::Text("%u", e.produced_yday[g]);
+      ImGui::TableNextColumn();
+      ImGui::Text("%u", e.consumed_yday[g]);
+    }
+    ImGui::EndTable();
+  }
+  ImGui::Text("Open haul tasks: %u", e.open_tasks);
+  ImGui::End();
 }
 
 void App::draw_debug_ui() {
@@ -209,9 +296,12 @@ void App::run() {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
     draw_debug_ui();
+    draw_build_menu();
+    draw_stock_window();
     ImGui::Render();
 
     view_.draw(*world_, renderer_, alpha_);
+    tools_.draw(*world_, view_, renderer_);
     ++frame_;
     if (!opt_.screenshot.empty() && frame_ == opt_.frames) renderer_.request_screenshot(opt_.screenshot);
     renderer_.render(ImGui::GetDrawData());

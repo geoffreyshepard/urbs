@@ -76,6 +76,17 @@ void World::serialize(save::Writer& w) const {
   w.tag("HOUS");
   save::write_slots(w, households.ids);
   w.vec(households.h);
+  w.tag("ECON");
+  save::write_slots(w, econ.inv_ids);
+  w.vec(econ.amount); w.vec(econ.res_in); w.vec(econ.res_out); w.vec(econ.accept); w.vec(econ.target);
+  w.vec(econ.capacity); w.vec(econ.total); w.vec(econ.owner);
+  save::write_slots(w, econ.task_ids);
+  w.vec(econ.tasks);
+  w.pod(econ.open_tasks);
+  w.pod(econ.treasury);
+  w.vec(econ.produced_today); w.vec(econ.consumed_today); w.vec(econ.produced_yday); w.vec(econ.consumed_yday);
+  w.vec(econ.city_stock);
+  w.pod(labor_hourly_runs);
   w.tag("END.");
 }
 
@@ -111,6 +122,17 @@ void World::deserialize(save::Reader& r) {
   r.expect("HOUS");
   save::read_slots(r, households.ids);
   r.vec(households.h);
+  r.expect("ECON");
+  save::read_slots(r, econ.inv_ids);
+  r.vec(econ.amount); r.vec(econ.res_in); r.vec(econ.res_out); r.vec(econ.accept); r.vec(econ.target);
+  r.vec(econ.capacity); r.vec(econ.total); r.vec(econ.owner);
+  save::read_slots(r, econ.task_ids);
+  r.vec(econ.tasks);
+  r.pod(econ.open_tasks);
+  r.pod(econ.treasury);
+  r.vec(econ.produced_today); r.vec(econ.consumed_today); r.vec(econ.produced_yday); r.vec(econ.consumed_yday);
+  r.vec(econ.city_stock);
+  r.pod(labor_hourly_runs);
   r.expect("END.");
 }
 
@@ -267,7 +289,10 @@ u64 world_hash(const sim::World& w) {
     const auto& hh = w.households.h[i];
     u32 v[4] = {hh.food, hh.members, static_cast<u32>(hh.savings), hh.water};
     h = fnv(h, v, sizeof(v));
+    h = fnv(h, hh.fstock, sizeof(hh.fstock));
   }
+  h = fnv_vec(h, w.econ.amount);
+  h = fnv(h, &w.econ.treasury, sizeof(w.econ.treasury));
   for (const auto& s : w.rng) {
     auto st = s.state();
     h = fnv(h, &st, sizeof(st));

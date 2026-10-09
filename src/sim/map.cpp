@@ -233,6 +233,14 @@ void generate_map(TileMap& m, const MapGenParams& p) {
       }
       m.resource[i] = res;
     }
+  if (p.flat) {
+    for (size_t i = 0; i < N; ++i) {
+      m.terrain[i] = m.terrain[i] == Terrain::Fertile ? Terrain::Fertile : Terrain::Grass;
+      m.height[i] = 2;
+      m.resource[i] = Resource::None;
+      m.groundwater[i] = 200;
+    }
+  }
   m.mark_all_dirty();
 }
 

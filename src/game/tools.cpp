@@ -1,0 +1,135 @@
+#include "game/tools.hpp"
+
+#include <algorithm>
+
+#include "game/world_view.hpp"
+
+namespace urbs::game {
+
+bool Tools::mouse_down(Vec2i tile) {
+  if (kind == ToolKind::Inspect) return false;
+  start_ = tile;
+  hover_ = tile;
+  dragging_ = true;
+  return true;
+}
+
+Recti Tools::footprint(const sim::World& w) const {
+  if (kind == ToolKind::Demolish) {
+    Vec2i a = dragging_ ? start_ : hover_, b = hover_;
+    return {std::min(a.x, b.x), std::min(a.y, b.y), std::abs(a.x - b.x) + 1, std::abs(a.y - b.y) + 1};
+  }
+  if (kind != ToolKind::Build || !def.valid()) return {};
+  const auto& d = w.defs->b(def);
+  if (d.painted) {
+    Vec2i a = dragging_ ? start_ : hover_, b = hover_;
+    i32 x0 = std::min(a.x, b.x), y0 = std::min(a.y, b.y);
+    i32 ww = std::clamp(std::abs(a.x - b.x) + 1, static_cast<i32>(d.min_w), static_cast<i32>(d.max_w));
+    i32 hh = std::clamp(std::abs(a.y - b.y) + 1, static_cast<i32>(d.min_h), static_cast<i32>(d.max_h));
+    if (!dragging_) {
+      ww = std::max<i32>(d.min_w, d.w);
+      hh = std::max<i32>(d.min_h, d.h);
+    }
+    return {x0, y0, ww, hh};
+  }
+  return {hover_.x - (d.w - 1) / 2, hover_.y - (d.h - 1) / 2, d.w, d.h};
+}
+
+i64 Tools::cost(const sim::World& w) const {
+  if (kind == ToolKind::Road) {
+    Vec2i a = dragging_ ? start_ : hover_;
+    i64 len = std::max(std::abs(hover_.x - a.x), std::abs(hover_.y - a.y)) + 1;
+    return len * (road == sim::Road::Paved ? 4 : 1);
+  }
+  if (kind != ToolKind::Build || !def.valid()) return 0;
+  const auto& d = w.defs->b(def);
+  Recti f = footprint(w);
+  if (!d.painted) return d.cost_denarii;
+  return std::max<i64>(1, static_cast<i64>(d.cost_denarii) * f.w * f.h / std::max(1, d.w * d.h));
+}
+
+bool Tools::mouse_up(Vec2i tile, sim::World& w) {
+  if (!dragging_) return false;
+  hover_ = tile;
+  sim::Command c;
+  switch (kind) {
+    case ToolKind::Build: {
+      Recti f = footprint(w);
+      c.type = sim::CmdType::PlaceBuilding;
+      c.def = def.v;
+      c.x0 = f.x;
+      c.y0 = f.y;
+      c.x1 = f.w;
+      c.y1 = f.h;
+      w.push(c);
+      break;
+    }
+    case ToolKind::Road:
+      c.type = sim::CmdType::PlaceRoad;
+      c.def = static_cast<u16>(road);
+      c.x0 = start_.x;
+      c.y0 = start_.y;
+      c.x1 = tile.x;
+      c.y1 = tile.y;
+      w.push(c);
+      break;
+    case ToolKind::Demolish: {
+      Recti f = footprint(w);
+      c.type = sim::CmdType::Demolish;
+      c.x0 = f.x;
+      c.y0 = f.y;
+      c.x1 = f.x + f.w - 1;
+      c.y1 = f.y + f.h - 1;
+      w.push(c);
+      break;
+    }
+    default: break;
+  }
+  dragging_ = false;
+  return true;
+}
+
+void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r) const {
+  const f32 T = static_cast<f32>(sim::kTilePx);
+  const u32 ok_col = render::rgba(80, 220, 90, 110), bad_col = render::rgba(230, 60, 50, 120);
+  switch (kind) {
+    case ToolKind::Build: {
+      if (!def.valid()) return;
+      Recti f = footprint(w);
+      const bool ok = w.can_place(def, f.x, f.y, f.w, f.h) && w.econ.treasury >= cost(w);
+      r.push_rect(static_cast<f32>(f.x) * T, static_cast<f32>(f.y) * T, static_cast<f32>(f.w) * T,
+                  static_cast<f32>(f.h) * T, 0.03f, ok ? ok_col : bad_col);
+      const auto& d = w.defs->b(def);
+      if (!d.painted) {
+        const render::Sprite& s = view.building_sprite(def, f.w, f.h);
+        const f32 fw = static_cast<f32>(f.w) * T, foot = static_cast<f32>(f.y + f.h) * T;
+        const f32 sh = static_cast<f32>(s.h) * fw / static_cast<f32>(std::max<u16>(1, s.w));
+        r.push_translucent(render::SpriteInstance{static_cast<f32>(f.x) * T, foot - sh, 0.02f, fw, sh, s.u, s.v, s.w,
+                                                  s.h, render::rgba(255, 255, 255, 170)});
+      }
+      break;
+    }
+    case ToolKind::Road: {
+      Vec2i a = dragging_ ? start_ : hover_, b = hover_;
+      i32 x = a.x, y = a.y;
+      for (int n = 0; n < 2048; ++n) {
+        bool ok = w.map.in_bounds(x, y) && !w.map.building[static_cast<size_t>(w.map.idx(x, y))].valid() &&
+                  !sim::terrain_water(w.map.terrain[static_cast<size_t>(w.map.idx(x, y))]);
+        r.push_rect(static_cast<f32>(x) * T, static_cast<f32>(y) * T, T, T, 0.03f, ok ? ok_col : bad_col);
+        if (x == b.x && y == b.y) break;
+        x += (b.x > x) - (b.x < x);
+        y += (b.y > y) - (b.y < y);
+      }
+      break;
+    }
+    case ToolKind::Demolish: {
+      Recti f = footprint(w);
+      r.push_rect(static_cast<f32>(f.x) * T, static_cast<f32>(f.y) * T, static_cast<f32>(f.w) * T,
+                  static_cast<f32>(f.h) * T, 0.03f, render::rgba(230, 60, 50, 90));
+      break;
+    }
+    default: break;
+  }
+}
+
+}  // namespace urbs::game

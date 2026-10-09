@@ -85,7 +85,7 @@ struct Citizens {
   // --- cold ---
   std::vector<CitizenClass> cls;
   std::vector<u8> sex;  // 0 male, 1 female
-  std::vector<Tick> born;
+  std::vector<i64> born;  // tick of birth; negative = before the scenario started
   std::vector<u16> name0, name1, name2;  // praenomen / nomen / cognomen indices
   std::vector<u8> traits;   // [i * kMaxTraits + k], 0xFF = none
   std::vector<u8> skills;   // [i * kSkillCount + k]
@@ -129,10 +129,10 @@ struct Household {
   u16 members = 0;
   CitizenClass cls = CitizenClass::Pleb;
   i32 savings = 0;
-  u16 food = 0;           // food units in the larder
-  u8 food_kinds = 0;      // bitmask of distinct food types present (variety)
+  u16 food = 0;           // abstract food units (scenario seed stock; eaten before slot food)
+  u16 fstock[8] = {};     // food stock per food slot (World::food_slots)
   u16 water = 0;          // water units at home
-  u16 goods[8] = {};      // household goods stock (pottery, clothing, oil, wine, furniture, ...)
+  u16 goods[8] = {};      // household goods stock per slot (World::hh_goods)
   CitizenId shopper;      // member currently on a shopping errand
   CitizenId owner;        // for slaves: owning household head (servi privati); invalid = public
   u8 flags = 0;

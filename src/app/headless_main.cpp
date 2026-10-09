@@ -27,7 +27,7 @@ std::string data_root() {
 int main(int argc, char** argv) {
   std::string scenario_path;
   u64 ticks_override = 0;
-  bool test = false, verbose = false;
+  bool test = false, verbose = false, dump = false;
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
     else if (is("--ticks") && i + 1 < argc) ticks_override = std::strtoull(argv[++i], nullptr, 10);
     else if (is("--test")) test = true;
     else if (is("--verbose")) verbose = true;
+    else if (is("--dump")) dump = true;
   }
   core::init_logging(verbose);
   if (scenario_path.empty()) {
@@ -67,6 +68,7 @@ int main(int argc, char** argv) {
   u64 decisions = 0, path_req = 0, arrivals = 0;
   u32 max_walking = 0;
   for (u64 t = 0; t < ticks; ++t) {
+    sim::push_due_orders(*world, spec);
     world->tick();
     ms.push_back(world->stats.tick_ms);
     decisions += world->stats.decisions;
@@ -99,6 +101,27 @@ int main(int argc, char** argv) {
       static_cast<unsigned long long>(path_req), static_cast<unsigned long long>(arrivals), max_walking,
       static_cast<unsigned long long>(ps.hits()), static_cast<unsigned long long>(ps.misses()), ps.live_paths(),
       static_cast<unsigned long long>(world->sched.dropped()));
+  if (dump) {
+    world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+      const auto& d = defs.b(b.def);
+      std::printf("%-14s at %3d,%3d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(), b.x, b.y,
+                  static_cast<int>(b.state), b.jobs, b.employed, b.present, b.build_progress, b.build_needed,
+                  b.work_progress);
+      if (b.inv != econ::kNoInv)
+        for (u32 g = 0; g < world->econ.goods; ++g) {
+          GoodId gid{static_cast<u16>(g)};
+          if (world->econ.amt(b.inv, gid) || world->econ.rin(b.inv, gid) || world->econ.rout(b.inv, gid))
+            std::printf(" %s=%u(+%u,-%u)", defs.goods[g].id.c_str(), world->econ.amt(b.inv, gid),
+                        world->econ.rin(b.inv, gid), world->econ.rout(b.inv, gid));
+        }
+      std::printf("\n");
+    });
+    for (u32 g = 0; g < world->econ.goods; ++g)
+      if (world->econ.produced_yday[g] || world->econ.consumed_yday[g])
+        std::printf("  %s: produced %u consumed %u (yesterday)\n", defs.goods[g].id.c_str(), world->econ.produced_yday[g],
+                    world->econ.consumed_yday[g]);
+    std::printf("open tasks %u, treasury %lld\n", world->econ.open_tasks, static_cast<long long>(world->econ.treasury));
+  }
   if (test) {
     bool ok = true;
     if (world->citizens.ids.count() < spec.expect_min_citizens) {
@@ -113,6 +136,7 @@ int main(int argc, char** argv) {
       std::fprintf(stderr, "FAIL: %llu allocations inside tick()\n", static_cast<unsigned long long>(viol));
       ok = false;
     }
+    if (!sim::check_expectations(*world, spec)) ok = false;
     if (world->sched.dropped() > 0) {
       std::fprintf(stderr, "FAIL: scheduler dropped events\n");
       ok = false;
