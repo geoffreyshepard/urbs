@@ -1,13 +1,11 @@
-#include <chrono>
+// Benchmarks: run the stress scenario headless and print JSON. Compare with bench/baseline.json.
 #include <cstdio>
+#include <cstdlib>
+#include <string>
 
-#include "sim/sim.hpp"
-
-int main() {
-  urbs::sim::Sim sim;
-  auto t0 = std::chrono::steady_clock::now();
-  for (int i = 0; i < 1000000; ++i) sim.tick();
-  auto ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
-  std::printf("{\"empty_tick_ms_per_1M\": %.3f}\n", ms);
-  return 0;
+int main(int argc, char** argv) {
+  std::string exe = argc > 0 ? argv[0] : "./bench";
+  std::string dir = exe.substr(0, exe.find_last_of('/') + 1);
+  std::string cmd = dir + "urbs_headless --scenario " URBS_SOURCE_DIR "/tests/scenarios/stress_50k.json --ticks 2400";
+  return std::system(cmd.c_str());
 }

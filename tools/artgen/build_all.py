@@ -1,0 +1,103 @@
+#!/usr/bin/env python3
+"""Generate every URBS sprite into assets/sprites/<family>/<name>.png.
+
+Wipes and recreates assets/sprites, validates every pixel against the
+locked palette, checks the naming contract, and writes
+assets/sprites/meta.json with anchors for sprites whose anchor != (0, 0).
+
+Run from anywhere:  python3 tools/artgen/build_all.py
+"""
+import json
+import os
+import shutil
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+from palette import ROOT, check_image          # noqa: E402
+import terrain                                  # noqa: E402
+import roads                                    # noqa: E402
+import objects                                  # noqa: E402
+import people                                   # noqa: E402
+import buildings                                # noqa: E402
+import fx                                       # noqa: E402
+
+SPRITES_DIR = os.path.join(ROOT, "assets", "sprites")
+
+
+def required_names():
+    """The naming contract the C++ renderer depends on."""
+    n = []
+    for t in terrain.TERRAINS:
+        n += ["terrain/%s_%d" % (t, v) for v in range(4)]
+        n += ["terrain/edge_%s_%s" % (t, s) for s in "nesw"]
+        n += ["terrain/corner_%s_%s" % (t, c) for c in ("ne", "se", "sw", "nw")]
+    n += ["terrain/cliff_s", "terrain/cliff_e", "terrain/cliff_w"]
+    n += ["terrain/water_shimmer_%d" % f for f in range(4)]
+    for r in ("dirt", "paved"):
+        n.append("road/%s_c" % r)
+        n += ["road/%s_%s" % (r, d) for d in ("n", "ne", "e", "se", "s", "sw", "w", "nw")]
+    n += ["obj/tree_%d" % i for i in range(6)]
+    for o in ("bush", "reeds", "boulder"):
+        n += ["obj/%s_%d" % (o, i) for i in range(3)]
+    n += ["obj/res_%s" % r for r in ("clay", "stone", "iron", "silver", "marble",
+                                     "limestone", "pozzolana", "fish")]
+    n += ["bld/placeholder_%dx%d" % (w, h) for w in range(1, 5) for h in range(1, 5)]
+    for k in ("patrician", "eques", "pleb", "liberti", "slave", "soldier"):
+        for d in "nesw":
+            n += ["people/%s_%s_%d" % (k, d, f) for f in range(4)]
+            n.append("people/%s_idle_%s" % (k, d))
+    for d in "nesw":
+        n += ["people/child_%s_%d" % (d, f) for f in range(4)]
+    n += ["fx/dot", "fx/white"]
+    n += ["fx/select_%dx%d" % (w, h) for w in range(1, 5) for h in range(1, 5)]
+    return n
+
+
+def generate_all():
+    """-> list of (name, PIL image, anchor or None), sorted by name."""
+    sprites = []
+    for mod in (terrain, roads, objects, people, buildings, fx):
+        sprites += mod.generate()
+    names = [s[0] for s in sprites]
+    dup = {x for x in names if names.count(x) > 1}
+    if dup:
+        raise SystemExit("duplicate sprite names: %s" % sorted(dup))
+    return sorted(sprites, key=lambda s: s[0])
+
+
+def main():
+    sprites = generate_all()
+    names = {s[0] for s in sprites}
+    missing = [n for n in required_names() if n not in names]
+    if missing:
+        raise SystemExit("naming contract violated, missing: %s" % missing)
+
+    if os.path.isdir(SPRITES_DIR):
+        shutil.rmtree(SPRITES_DIR)
+    os.makedirs(SPRITES_DIR)
+
+    meta = {}
+    for name, img, anchor in sprites:
+        check_image(img, name)
+        path = os.path.join(SPRITES_DIR, name + ".png")
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        img.save(path, optimize=False)
+        if anchor is not None and tuple(anchor) != (0, 0):
+            ax, ay = anchor
+            assert 0 <= ax < img.width and 0 <= ay < img.height, name
+            meta[name] = {"ax": int(ax), "ay": int(ay)}
+
+    with open(os.path.join(SPRITES_DIR, "meta.json"), "w") as f:
+        json.dump(meta, f, indent=1, sort_keys=True)
+        f.write("\n")
+    extra = sorted(names - set(required_names()))
+    print("wrote %d sprites (%d with anchors) to %s" % (len(sprites), len(meta),
+                                                       os.path.relpath(SPRITES_DIR, os.getcwd())))
+    if extra:
+        print("  extras beyond the contract: %s" % ", ".join(extra))
+
+
+if __name__ == "__main__":
+    main()

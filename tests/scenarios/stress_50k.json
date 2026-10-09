@@ -1,0 +1,13 @@
+{
+  "name": "stress_50k",
+  "map": {"size": 768, "seed": 3, "coast": -1, "river": false, "hills": 0.1},
+  "world": {"max_citizens": 52000, "max_buildings": 2048, "max_households": 12000},
+  "generator": "stress_city",
+  "citizens": 50000,
+  "houses": 320,
+  "workplaces": 130,
+  "markets": 50,
+  "house_capacity": 160,
+  "ticks": 3600,
+  "test": {"min_citizens": 50000, "max_tick_ms": 6.0, "max_alloc_violations": 0}
+}

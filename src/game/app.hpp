@@ -1,0 +1,58 @@
+#pragma once
+#include <memory>
+#include <string>
+
+#include "platform/platform.hpp"
+#include "render/renderer.hpp"
+#include "data/defs.hpp"
+#include "game/world_view.hpp"
+#include "sim/world.hpp"
+
+namespace urbs::game {
+
+struct AppOptions {
+  std::string screenshot;  // write a PNG after `frames` frames and quit
+  int frames = 3;
+  int zoom = -1;
+  i32 map_size = 256;
+  u64 seed = 7;
+  f32 cam_x = -1, cam_y = -1;  // tile coordinates
+  std::string scenario;          // headless scenario json to load
+  int speed = 1;
+  int ticks_before = 0;          // run this many ticks before the first frame
+};
+
+AppOptions parse_args(int argc, char** argv);
+
+class App {
+ public:
+  bool init(const AppOptions& opt);
+  void run();
+  void shutdown();
+
+ private:
+  void handle_event(const SDL_Event& e);
+  void update_camera(f32 dt);
+  void draw_debug_ui();
+  void new_world(const std::string& scenario);
+  void step_sim(f64 dt);
+
+  AppOptions opt_;
+  platform::Window win_;
+  render::Renderer renderer_;
+  data::Defs defs_;
+  std::unique_ptr<sim::World> world_;
+  WorldView view_;
+  sim::MapGenParams gen_;
+  int speed_ = 1;  // 0 pause, 1, 2, 4 (index into kSpeeds)
+  f64 accum_ = 0;
+  f32 alpha_ = 0;
+  f64 sim_ms_ = 0;
+  bool running_ = true;
+  bool dragging_ = false;
+  int frame_ = 0;
+  u64 last_counter_ = 0;
+  f32 frame_ms_ = 0;
+};
+
+}  // namespace urbs::game

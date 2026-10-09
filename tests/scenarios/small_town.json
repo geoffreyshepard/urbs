@@ -1,0 +1,13 @@
+{
+  "name": "small_town",
+  "map": {"size": 192, "seed": 5, "coast": -1, "river": false, "hills": 0.1},
+  "world": {"max_citizens": 3000, "max_buildings": 512, "max_households": 1000},
+  "generator": "stress_city",
+  "citizens": 2000,
+  "houses": 30,
+  "workplaces": 12,
+  "markets": 4,
+  "house_capacity": 80,
+  "ticks": 2400,
+  "test": {"min_citizens": 2000, "max_alloc_violations": 0}
+}

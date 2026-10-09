@@ -1,0 +1,121 @@
+#pragma once
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "core/types.hpp"
+
+namespace urbs::data {
+
+enum class GoodCategory : u8 { RawFood, Food, Material, Metal, Crafted, Luxury, Special };
+
+struct GoodDef {
+  std::string id, name, icon;
+  GoodCategory category = GoodCategory::Material;
+  bool food = false;      // counts toward calories / food variety
+  u16 base_price = 5;     // denarii per unit
+  u8 nutrition = 0;       // food units provided per item
+  u8 unlock = 1;
+};
+
+enum class BuildingKind : u8 {
+  House,
+  Farm,
+  Workplace,  // generic producer (workshop, mine, ...)
+  Storage,    // warehouse / granary / stockpile
+  Market,
+  Service,    // visit-based service (temple, baths, tavern, ...)
+  Patrol,     // patrol-based service (vigiles, engineers, guard)
+  Water,      // well, fountain, reservoir
+  Decor,      // garden, statue, plaza
+  Civic,      // forum, palace, basilica, curia
+  Military,   // barracks, fort, walls...
+  Monument,
+  Infrastructure,  // aqueduct, bridge, sewer
+  TradePost,
+  Count
+};
+
+enum class ClassMask : u8 {
+  None = 0,
+  Patrician = 1,
+  Eques = 2,
+  Pleb = 4,
+  Libertus = 8,
+  Slave = 16,
+  Soldier = 32,
+  Free = 1 | 2 | 4 | 8,
+  Workers = 4 | 8 | 16,
+  All = 63
+};
+inline constexpr u8 class_bit(int c) { return static_cast<u8>(1u << c); }
+
+struct GoodAmount {
+  GoodId good;
+  u16 amount = 0;
+};
+
+struct RecipeDef {
+  std::string id;
+  std::vector<GoodAmount> inputs, outputs;
+  u16 work = 100;  // worker-ticks per batch
+};
+
+struct ServiceDef {
+  std::string id, name;
+  bool patrol = false;
+  u16 visit_ticks = 50;  // time a citizen spends inside
+  u16 range = 60;        // max useful travel cost (ticks) for coverage
+};
+
+struct BuildingDef {
+  std::string id, name, category, sprite;
+  BuildingKind kind = BuildingKind::Workplace;
+  u8 w = 1, h = 1;
+  bool painted = false;  // player paints an area; capacity scales with tiles
+  u8 min_w = 1, min_h = 1, max_w = 16, max_h = 16;
+  i32 cost_denarii = 0;
+  std::vector<GoodAmount> cost_goods;
+  u16 build_work = 50;  // builder-ticks
+  u16 workers = 0;      // job slots (per tile for painted buildings: workers_per_10_tiles / 10)
+  u8 worker_classes = static_cast<u8>(ClassMask::Workers);
+  RecipeId recipe;
+  ServiceId service;
+  u16 service_capacity = 0;  // simultaneous visitors
+  u16 housing = 0;           // residents at base tier
+  u8 house_line = 0;         // 0 plebeian, 1 patrician
+  u16 storage = 0;           // goods units
+  std::vector<GoodId> accepts;  // storage/market: goods accepted (empty = all)
+  i8 desirability = 0;
+  u8 desirability_range = 0;
+  u8 fire_risk = 0, collapse_risk = 0;
+  u8 unlock = 1;          // campaign mission that unlocks it
+  u8 resource = 0;        // sim::Resource required under the footprint (0 = none)
+  bool needs_water_adjacent = false;
+  bool needs_road = true;
+  u8 god = 0xFF;          // temples: god index
+  u16 water_radius = 0;   // wells/fountains
+  u8 patrol_range = 0;
+};
+
+struct Defs {
+  std::vector<GoodDef> goods;
+  std::vector<RecipeDef> recipes;
+  std::vector<ServiceDef> services;
+  std::vector<BuildingDef> buildings;
+
+  std::unordered_map<std::string, u16> good_ids, recipe_ids, service_ids, building_ids;
+
+  [[nodiscard]] GoodId good(const std::string& id) const;
+  [[nodiscard]] RecipeId recipe(const std::string& id) const;
+  [[nodiscard]] ServiceId service(const std::string& id) const;
+  [[nodiscard]] BuildingDefId building(const std::string& id) const;
+  [[nodiscard]] const BuildingDef& b(BuildingDefId id) const { return buildings[id.v]; }
+  [[nodiscard]] const GoodDef& g(GoodId id) const { return goods[id.v]; }
+};
+
+// Loads <root>/defs/*.json, then each mod dir's defs/*.json, merging by id.
+// Throws std::runtime_error with file and reason on validation failure (load time only).
+Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod_roots = {});
+
+}  // namespace urbs::data

@@ -1,0 +1,686 @@
+{
+ "bld/placeholder_1x1": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/placeholder_1x2": {
+  "ax": 0,
+  "ay": 43
+ },
+ "bld/placeholder_1x3": {
+  "ax": 0,
+  "ay": 59
+ },
+ "bld/placeholder_1x4": {
+  "ax": 0,
+  "ay": 75
+ },
+ "bld/placeholder_2x1": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/placeholder_2x2": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/placeholder_2x3": {
+  "ax": 0,
+  "ay": 63
+ },
+ "bld/placeholder_2x4": {
+  "ax": 0,
+  "ay": 79
+ },
+ "bld/placeholder_3x1": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/placeholder_3x2": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/placeholder_3x3": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/placeholder_3x4": {
+  "ax": 0,
+  "ay": 83
+ },
+ "bld/placeholder_4x1": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/placeholder_4x2": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/placeholder_4x3": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/placeholder_4x4": {
+  "ax": 0,
+  "ay": 87
+ },
+ "obj/boulder_0": {
+  "ax": 4,
+  "ay": 6
+ },
+ "obj/boulder_1": {
+  "ax": 5,
+  "ay": 7
+ },
+ "obj/boulder_2": {
+  "ax": 3,
+  "ay": 5
+ },
+ "obj/bush_0": {
+  "ax": 5,
+  "ay": 7
+ },
+ "obj/bush_1": {
+  "ax": 5,
+  "ay": 6
+ },
+ "obj/bush_2": {
+  "ax": 4,
+  "ay": 6
+ },
+ "obj/reeds_0": {
+  "ax": 5,
+  "ay": 13
+ },
+ "obj/reeds_1": {
+  "ax": 5,
+  "ay": 11
+ },
+ "obj/reeds_2": {
+  "ax": 4,
+  "ay": 9
+ },
+ "obj/tree_0": {
+  "ax": 8,
+  "ay": 21
+ },
+ "obj/tree_1": {
+  "ax": 4,
+  "ay": 23
+ },
+ "obj/tree_2": {
+  "ax": 8,
+  "ay": 16
+ },
+ "obj/tree_3": {
+  "ax": 8,
+  "ay": 19
+ },
+ "obj/tree_4": {
+  "ax": 4,
+  "ay": 17
+ },
+ "obj/tree_5": {
+  "ax": 8,
+  "ay": 16
+ },
+ "people/child_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/child_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/eques_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/liberti_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/patrician_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/pleb_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/slave_w_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_e_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_e_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_e_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_e_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_idle_e": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_idle_n": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_idle_s": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_idle_w": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_n_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_n_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_n_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_n_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_s_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_s_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_s_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_s_3": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_w_0": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_w_1": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_w_2": {
+  "ax": 4,
+  "ay": 11
+ },
+ "people/soldier_w_3": {
+  "ax": 4,
+  "ay": 11
+ }
+}
