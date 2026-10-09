@@ -15,3 +15,12 @@ foreach(sc ${URBS_SCENARIOS})
     set_tests_properties(scenario_${_n} PROPERTIES LABELS long)
   endif()
 endforeach()
+
+# Campaign balance: the autoplay bot must win each finished mission (long; release builds).
+file(GLOB URBS_MISSIONS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/data/scenarios/m*/scenario.json)
+foreach(sc ${URBS_MISSIONS})
+  get_filename_component(_dir ${sc} DIRECTORY)
+  get_filename_component(_n ${_dir} NAME)
+  add_test(NAME mission_${_n} COMMAND urbs_headless --scenario ${sc} --ticks 192000 --autoplay)
+  set_tests_properties(mission_${_n} PROPERTIES LABELS long PASS_REGULAR_EXPRESSION "mission WON")
+endforeach()

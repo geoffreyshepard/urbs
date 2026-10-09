@@ -472,7 +472,11 @@ void App::draw_help() {
       "Saving: F5 quicksave, F9 quickload, or the menu (Esc).\n\n"
       "Houses grow when their residents have what they need: water, food variety, worship, markets, baths and "
       "more. Click a house to see what it needs next. Workers come from houses, so keep people housed, fed and employed. "
-      "Porters from warehouses, granaries and markets carry goods; farms and workshops need them nearby.");
+      "Porters from warehouses, granaries and markets carry goods; farms and workshops need them nearby.\n\n"
+      "Money: the city pays wages and gets them back through taxes and market sales; its real profit is exports. "
+      "Build a trade post, open routes (Trade) and export surpluses. Food nobody eats is wages spent for nothing.\n"
+      "Rome's requests: set the good to Stockpile in the Trade panel so markets leave it in storage, then Send it "
+      "from the Rome panel.");
   ImGui::End();
 }
 

@@ -12,6 +12,7 @@
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
 #include "sim/scenario.hpp"
+#include "sim/autoplay.hpp"
 #include "sim/world.hpp"
 
 namespace urbs::game {
@@ -30,6 +31,7 @@ struct AppOptions {
   int inspect = -1;      // select (and follow) this citizen index at start
   bool no_ui = false;
   int overlay = 0;
+  bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
 };
 
 AppOptions parse_args(int argc, char** argv);
@@ -81,6 +83,7 @@ class App {
   data::Defs defs_, base_defs_;
   std::string root_, user_dir_;
   std::unique_ptr<sim::World> world_;
+  std::unique_ptr<sim::Autoplay> bot_;  // --autoplay
   sim::ScenarioSpec spec_;
   WorldView view_;
   Tools tools_;

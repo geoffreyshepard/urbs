@@ -39,6 +39,7 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
+    else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -52,6 +53,7 @@ AppOptions parse_args(int argc, char** argv) {
 // ------------------------------------------------------------------------------------------------
 
 void App::after_world_change() {
+  bot_.reset();
   renderer_.set_map(&world_->map);
   sel_ = Selection{};
   tools_.cancel();
@@ -252,8 +254,13 @@ bool App::init(const AppOptions& opt) {
   if (!opt.scenario.empty()) {
     new_world(opt.scenario);
     if (!world_) return false;
+    if (opt.autoplay) {
+      bot_ = std::make_unique<sim::Autoplay>();
+      bot_->init(*world_);
+    }
     for (int t = 0; t < opt.ticks_before; ++t) {
       sim::push_due_orders(*world_, spec_);
+      if (bot_) bot_->step(*world_);
       world_->tick();
     }
   } else {
@@ -412,6 +419,7 @@ void App::step_sim(f64 dt) {
   const auto t0 = std::chrono::steady_clock::now();
   while (accum_ >= kTickSeconds && n < 8) {
     sim::push_due_orders(*world_, spec_);
+    if (bot_) bot_->step(*world_);
     world_->tick();
     accum_ -= kTickSeconds;
     ++n;
@@ -425,7 +433,8 @@ void App::step_sim(f64 dt) {
     salary_day_ = world_->mission_days;
   }
   const u16 day = static_cast<u16>(sim::day_index(world_->now));
-  if (settings_.autosave && day >= last_autosave_day_ + 4) {
+  // Bot demos and screenshot runs never touch the player's saves.
+  if (settings_.autosave && !bot_ && opt_.screenshot.empty() && day >= last_autosave_day_ + 4) {
     last_autosave_day_ = day;
     save_slot("autosave");
     profile_.save(user_dir_);
