@@ -37,6 +37,7 @@ struct Building {
   u32 work_progress = 0;  // production progress in worker-ticks
   i32 money = 0;          // building cash (markets, workplaces)
   u32 extra = 0;          // kind-specific (e.g. god index, patrol counter)
+  u32 skill_sum = 0;      // sum of present workers' skill x work trait (productivity)
 };
 
 struct Buildings {

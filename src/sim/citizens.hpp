@@ -91,6 +91,23 @@ inline constexpr int kMaxTraits = 3;
 inline constexpr int kSkillCount = 6;  // farming, crafting, building, trading, soldiering, scholarship
 inline constexpr int kMemoryEntries = 8;
 
+enum class Memory : u8 { None, Born, Arrived, Married, Child, Widowed, MovedHouse, Freed, GoalAchieved, Robbed,
+                        SurvivedFire, Sick, Recovered, Promoted, Count };
+inline constexpr const char* memory_text(Memory m) {
+  constexpr const char* t[] = {"",          "was born",          "arrived in the city", "married",
+                               "had a child", "was widowed",     "moved house",         "was freed",
+                               "achieved a life goal", "was robbed", "survived a fire",  "fell ill",
+                               "recovered",  "was promoted"};
+  return t[static_cast<int>(m)];
+}
+
+enum class Goal : u8 { None, BetterHome, Marry, Save, Children, Freedom, Prestige, Count };
+inline constexpr const char* goal_text(Goal g) {
+  constexpr const char* t[] = {"none", "move to a better home", "marry", "save 200 denarii", "raise a family",
+                               "earn freedom", "win honour in the city"};
+  return t[static_cast<int>(g)];
+}
+
 struct MemoryEntry {
   u32 day = 0;
   u8 kind = 0;
@@ -137,6 +154,9 @@ struct Citizens {
   std::vector<MemoryEntry> memory;  // [i * kMemoryEntries + k], ring
   std::vector<u8> memory_head;
   std::vector<u8> flags;
+  std::vector<i8> bonus;        // temporary happiness bonus (life events)
+  std::vector<u16> bonus_until; // day index when the bonus expires
+  std::vector<u16> goal_since;  // day index the current goal was set
 
   void init(u32 capacity);
   [[nodiscard]] u32 capacity() const { return ids.capacity(); }
@@ -173,6 +193,7 @@ struct Household {
   u16 food = 0;           // abstract food units (scenario seed stock; eaten before slot food)
   u8 meals = 0;           // meals left from the last opened food unit
   u16 income_today = 0;   // wages earned since the last tax collection
+  u8 city_slaves = 0;     // 1: public slaves (servi publici) of the city
   u16 fstock[8] = {};     // food stock per food slot (World::food_slots)
   u16 water = 0;          // water units at home
   u16 goods[8] = {};      // household goods stock per slot (World::hh_goods)

@@ -96,6 +96,13 @@ struct TradePartnerDef {
   std::vector<GoodAmount> buys, sells;  // amount = yearly cap
 };
 
+struct TraitDef {
+  std::string id, name, desc;
+  f32 religion_rate = 1, rest_rate = 1, entertainment_rate = 1, hygiene_rate = 1, education_rate = 1;
+  f32 work = 1, skill_rate = 1, goal_rate = 1, spend = 1, health = 1, lifespan = 1, crime = 1, fertility = 1;
+  i8 happiness = 0;
+};
+
 struct NameLists {
   std::vector<std::string> praenomina, nomina, cognomina, slave;
 };
@@ -140,6 +147,7 @@ struct Defs {
   std::vector<BuildingDef> buildings;
   std::vector<HousingTierDef> housing;  // ordered by line, tier
   std::vector<TradePartnerDef> partners;
+  std::vector<TraitDef> traits;
   NameLists names;
   [[nodiscard]] const HousingTierDef* tier(u8 line, u8 t) const {
     for (const auto& h : housing)

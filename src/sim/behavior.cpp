@@ -44,7 +44,18 @@ void World::decide(u32 i) {
   // Leave the current activity.
   if (C.loc[i].valid() && buildings.alive(C.loc[i])) {
     Building& lb = buildings[C.loc[i]];
-    if ((C.activity[i] == Activity::Work || C.activity[i] == Activity::Build) && lb.present > 0) --lb.present;
+    if ((C.activity[i] == Activity::Work || C.activity[i] == Activity::Build) && lb.present > 0) {
+      --lb.present;
+      // Skill: what was added on arrival comes off, then experience grows.
+      const int sk = skill_of_sector(sector_of(lb));
+      u8& skill = C.skills[static_cast<size_t>(i) * kSkillCount + sk];
+      const u32 contrib = static_cast<u32>(skill * trait_mul(i, &data::TraitDef::work));
+      lb.skill_sum = lb.skill_sum > contrib ? lb.skill_sum - contrib : 0;
+      const u8 cap = (C.flags[i] & kFlagSchooled) ? 255 : 140;
+      const f32 grow = trait_mul(i, &data::TraitDef::skill_rate);
+      if (skill < cap && stream(rng::StreamId::Decisions).chance(std::min(1.0f, grow * 0.8f))) ++skill;
+      if (lb.present == 0) lb.skill_sum = 0;
+    }
     if ((C.activity[i] == Activity::Visit || C.activity[i] == Activity::School) && lb.visitors > 0) --lb.visitors;
   }
   if (C.activity[i] == Activity::Leave) return;
@@ -196,7 +207,10 @@ void World::start_activity(u32 i, Activity a) {
   rate(Need::Religion, -2);
   rate(Need::Entertainment, -3);
   const bool upper = C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Eques;
-  rate(Need::Education, upper ? -2 : 0);
+  rate(Need::Education, upper ? static_cast<i8>(-2 * trait_mul(i, &data::TraitDef::education_rate)) : 0);
+  rate(Need::Religion, static_cast<i8>(-2 * trait_mul(i, &data::TraitDef::religion_rate)));
+  rate(Need::Hygiene, static_cast<i8>(-4 * trait_mul(i, &data::TraitDef::hygiene_rate)));
+  rate(Need::Entertainment, static_cast<i8>(-3 * trait_mul(i, &data::TraitDef::entertainment_rate)));
   const u32 h = hour_of_day(now);
   Tick end = now + kTicksPerHour;
   const i32 j = jitter(i);
@@ -211,7 +225,13 @@ void World::start_activity(u32 i, Activity a) {
       break;
     case Activity::Work:
     case Activity::Build: {
-      if (C.loc[i].valid() && buildings.alive(C.loc[i])) ++buildings[C.loc[i]].present;
+      if (C.loc[i].valid() && buildings.alive(C.loc[i])) {
+        Building& wb = buildings[C.loc[i]];
+        ++wb.present;
+        const int sk = skill_of_sector(sector_of(wb));
+        wb.skill_sum += static_cast<u32>(C.skills[static_cast<size_t>(i) * kSkillCount + sk] *
+                                         trait_mul(i, &data::TraitDef::work));
+      }
       rate(Need::Rest, -9);
       rate(Need::Food, -7);
       end = h < 12 ? at_hour(12) : at_hour(17);

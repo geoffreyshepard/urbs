@@ -74,6 +74,9 @@ void World::serialize(save::Writer& w) const {
   w.vec(C.goal_progress); w.vec(C.spouse); w.vec(C.mother); w.vec(C.father); w.vec(C.memory); w.vec(C.memory_head);
   w.vec(C.flags);
   w.vec(C.reason);
+  w.vec(C.bonus);
+  w.vec(C.bonus_until);
+  w.vec(C.goal_since);
   w.tag("HOUS");
   save::write_slots(w, households.ids);
   w.vec(households.h);
@@ -107,6 +110,12 @@ void World::serialize(save::Writer& w) const {
   w.vec(trade_mode);
   w.vec(trade_level);
   w.pod(visitors);
+  w.tag("LIFE");
+  for (u32 v : {births_today, deaths_today, marriages_today, crimes_today, crimes_yday, freed_today, births_total,
+                deaths_total, riots_total})
+    w.pod(v);
+  w.pod(static_cast<u8>(water_dirty));
+  w.pod(static_cast<u8>(desir_dirty));
   w.tag("END.");
 }
 
@@ -140,6 +149,9 @@ void World::deserialize(save::Reader& r) {
   r.vec(C.goal_progress); r.vec(C.spouse); r.vec(C.mother); r.vec(C.father); r.vec(C.memory); r.vec(C.memory_head);
   r.vec(C.flags);
   r.vec(C.reason);
+  r.vec(C.bonus);
+  r.vec(C.bonus_until);
+  r.vec(C.goal_since);
   r.expect("HOUS");
   save::read_slots(r, households.ids);
   r.vec(households.h);
@@ -174,6 +186,12 @@ void World::deserialize(save::Reader& r) {
   r.vec(trade_mode);
   r.vec(trade_level);
   r.pod(visitors);
+  r.expect("LIFE");
+  for (u32* v : {&births_today, &deaths_today, &marriages_today, &crimes_today, &crimes_yday, &freed_today,
+                 &births_total, &deaths_total, &riots_total})
+    r.pod(*v);
+  water_dirty = r.pod<u8>() != 0;
+  desir_dirty = r.pod<u8>() != 0;
   r.expect("END.");
 }
 

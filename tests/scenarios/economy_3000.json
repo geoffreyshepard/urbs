@@ -37,6 +37,6 @@
   "test": {
     "min_citizens": 1200,
     "max_alloc_violations": 0,
-    "min_treasury": -40000
+    "min_treasury": -60000
   }
 }

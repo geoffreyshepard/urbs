@@ -276,6 +276,13 @@ World::HappinessParts World::happiness_parts(u32 i) const {
   const u32 age = C.age_years(i, now);
   if (age >= 14 && age < 60 && !C.work[i].valid() && C.cls[i] != CitizenClass::Patrician) p.employment = -8;
   p.taxes = static_cast<i16>(-static_cast<int>(policy.tax_rate[static_cast<int>(C.cls[i]) % 6]) / 2);
+  if (C.bonus_until[i] > day_index(now)) p.events = C.bonus[i];
+  p.safety = static_cast<i16>(-std::min<u32>(12, crimes_yday * 2000 / std::max<u32>(1, population())));
+  if (C.cls[i] == CitizenClass::Slave) p.freedom = static_cast<i16>(policy.slave_treatment == 0 ? -25 : policy.slave_treatment == 1 ? -12 : -4);
+  for (int k = 0; k < kMaxTraits; ++k) {
+    const u8 t = C.traits[static_cast<size_t>(i) * kMaxTraits + k];
+    if (t < defs->traits.size()) p.traits = static_cast<i16>(p.traits + defs->traits[t].happiness);
+  }
   p.health = static_cast<i16>((static_cast<int>(C.health[i]) - 255) / 8);
   if (C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Eques) {
     p.education = lin(C.need(i, Need::Education, now), -12, 6);
@@ -288,9 +295,11 @@ World::HappinessParts World::happiness_parts(u32 i) const {
 
 void World::citizen_daily(u32 i) {
   if (citizens.flags[i] & kFlagVisitor) return;
+  lifecycle_daily(i);
+  if (!citizens.ids.alive_index(i)) return;
   // Wages (paid by the city) and taxes (collected where a forum covers the home).
   Household* hhp = citizens.household[i].valid() && households.ids.alive(citizens.household[i]) ? &households[citizens.household[i]] : nullptr;
-  if (hhp && citizens.work[i].valid() && buildings.alive(citizens.work[i])) {
+  if (hhp && !hhp->city_slaves && citizens.work[i].valid() && buildings.alive(citizens.work[i])) {
     const i32 wage = policy.wage;
     spend(wage, econ::Money::Wages);
     hhp->savings += wage;
@@ -342,26 +351,7 @@ void World::immigration_hourly() {
   a += (static_cast<i32>(avg_happiness) - 128) / 2;
   appeal = std::clamp(a, -100, 100);
   if (appeal <= 0 || free < 3 || !first_house.valid()) return;
-  if (entry_tile < 0 || !nav.connected(entry_tile, buildings[first_house].entrance)) {
-    // Walkable map-edge tile closest to the first house, in the same region.
-    const i32 he = buildings[first_house].entrance;
-    int best_d = 1 << 30;
-    for (i32 k = 0; k < map.w * 2 + map.h * 2; ++k) {
-      i32 x, y;
-      if (k < map.w) x = k, y = 0;
-      else if (k < map.w * 2) x = k - map.w, y = map.h - 1;
-      else if (k < map.w * 2 + map.h) x = 0, y = k - map.w * 2;
-      else x = map.w - 1, y = k - map.w * 2 - map.h;
-      const i32 t = map.idx(x, y);
-      if (!nav.connected(t, he)) continue;
-      int dd = std::abs(x - he % map.w) + std::abs(y - he / map.w) - (map.road[static_cast<size_t>(t)] != Road::None ? 1000 : 0);
-      if (dd < best_d) {
-        best_d = dd;
-        entry_tile = t;
-      }
-    }
-    if (entry_tile < 0) return;
-  }
+  if (!ensure_entry_tile()) return;
   rng::Stream& r = stream(rng::StreamId::Immigration);
   const int n = std::min<int>(6, 1 + appeal / 20 + static_cast<int>(free / 120));
   for (int k = 0; k < n; ++k) {
@@ -404,6 +394,34 @@ void World::immigration_hourly() {
     }
   }
   if (n > 0) add_alert(AlertKind::Immigrants, BuildingId{}, static_cast<u16>(immigrants_today));
+}
+
+bool World::ensure_entry_tile() {
+  BuildingId first_house;
+  buildings.for_each([&](BuildingId id, const Building& b) {
+    if (!first_house.valid() && b.state == BState::Active && defs->b(b.def).kind == BuildingKind::House) first_house = id;
+  });
+  if (!first_house.valid()) return entry_tile >= 0;
+  const i32 he = buildings[first_house].entrance;
+  if (entry_tile >= 0 && nav.connected(entry_tile, he)) return true;
+  // Walkable map-edge tile closest to the first house, in the same region; roads preferred.
+  int best_d = 1 << 30;
+  entry_tile = -1;
+  for (i32 k = 0; k < map.w * 2 + map.h * 2; ++k) {
+    i32 x, y;
+    if (k < map.w) x = k, y = 0;
+    else if (k < map.w * 2) x = k - map.w, y = map.h - 1;
+    else if (k < map.w * 2 + map.h) x = 0, y = k - map.w * 2;
+    else x = map.w - 1, y = k - map.w * 2 - map.h;
+    const i32 t = map.idx(x, y);
+    if (!nav.connected(t, he)) continue;
+    const int dd = std::abs(x - he % map.w) + std::abs(y - he / map.w) - (map.road[static_cast<size_t>(t)] != Road::None ? 1000 : 0);
+    if (dd < best_d) {
+      best_d = dd;
+      entry_tile = t;
+    }
+  }
+  return entry_tile >= 0;
 }
 
 std::string World::citizen_name(u32 i) const {

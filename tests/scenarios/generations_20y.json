@@ -1,0 +1,28 @@
+{
+  "name": "generations_20y",
+  "map": {
+    "size": 160,
+    "seed": 9,
+    "flat": true,
+    "river": false
+  },
+  "world": {
+    "max_citizens": 4000,
+    "max_buildings": 1024,
+    "max_households": 2000
+  },
+  "generator": "town",
+  "houses": 160,
+  "citizens": 700,
+  "ticks": 384000,
+  "test": {
+    "min_citizens": 500,
+    "max_alloc_violations": 0,
+    "min_births": 300,
+    "min_deaths": 50
+  },
+  "start_slaves": 20,
+  "policy": {
+    "manumission": 2
+  }
+}

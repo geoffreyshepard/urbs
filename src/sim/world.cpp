@@ -366,6 +366,11 @@ CitizenId World::spawn_citizen(CitizenClass cls, BuildingId at, HouseholdId hh, 
   C.memory_head[i] = 0;
   for (int k = 0; k < kMemoryEntries; ++k) C.memory[static_cast<size_t>(i) * kMemoryEntries + k] = MemoryEntry{};
   C.spouse[i] = C.mother[i] = C.father[i] = CitizenId{};
+  C.bonus[i] = 0;
+  C.bonus_until[i] = 0;
+  C.goal[i] = 0;
+  assign_traits(i, kNoIndex, kNoIndex);
+  if (age_years >= 16) assign_goal(i);
   if (hh.valid()) {
     Household& h = households[hh];
     if (!h.head.valid()) h.head = id;
@@ -539,6 +544,7 @@ void World::apply_commands() {
         place_underground_line(c.x0, c.y0, c.x1, c.y1, static_cast<u8>(c.def == 2 ? 2 : 1), c.value != 0);
         break;
       }
+      case CmdType::BuySlaves: buy_public_slaves(static_cast<u32>(std::clamp(c.value, 0, 50))); break;
       case CmdType::OpenRoute:
         if (c.def < routes.size() && !routes[c.def].open && routes[c.def].available &&
             pay(defs->partners[c.def].open_cost, econ::Money::Other)) {
@@ -615,6 +621,9 @@ void World::tick() {
   lap(1);
   if (now % kTicksPerDay == 0) {
     daily_update();
+    riot_check();
+    crimes_yday = crimes_today;
+    crimes_today = births_today = deaths_today = marriages_today = freed_today = 0;
     avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;
     happy_sum_today = 0;
     happy_count_today = 0;

@@ -58,6 +58,8 @@ ScenarioSpec load_scenario(const std::string& path) {
     if (t.contains("stock"))
       for (auto& [k, v] : t["stock"].items()) s.expect_stock.emplace_back(k, v.get<u32>());
     s.min_treasury_end = t.value("min_treasury", s.min_treasury_end);
+    s.expect_min_births = t.value("min_births", 0u);
+    s.expect_min_deaths = t.value("min_deaths", 0u);
     if (t.contains("produced"))
       for (auto& [k, v] : t["produced"].items()) s.expect_produced.emplace_back(k, v.get<u32>());
     if (t.contains("active"))
@@ -92,6 +94,11 @@ bool check_expectations(const World& w, const ScenarioSpec& spec) {
       std::fprintf(stderr, "FAIL: stock of %s is %llu < %u\n", gid.c_str(), static_cast<unsigned long long>(total), minv);
       ok = false;
     }
+  }
+  if (w.births_total < spec.expect_min_births || w.deaths_total < spec.expect_min_deaths) {
+    std::fprintf(stderr, "FAIL: births %u (min %u), deaths %u (min %u)\n", w.births_total, spec.expect_min_births,
+                 w.deaths_total, spec.expect_min_deaths);
+    ok = false;
   }
   if (w.econ.treasury < spec.min_treasury_end) {
     std::fprintf(stderr, "FAIL: treasury %lld < %lld\n", static_cast<long long>(w.econ.treasury),
@@ -234,12 +241,13 @@ void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
   const char* small_cycle[] = {"house_plot", "house_plot", "house_plot", "well", "house_plot", "house_plot",
                                "shrine",     "house_plot", "house_plot", "well", "latrina",    "house_plot",
                                "house_plot", "tavern",     "house_plot", "well", "house_plot", "physician"};
-  const char* big_plain[] = {"market", "granary", "warehouse", "bakery", "mill", "market", "temple", "lumber_camp"};
+  const char* big_plain[] = {"market", "granary", "warehouse", "bakery", "mill", "domus_plot", "temple", "lumber_camp",
+                             "market", "slave_quarters", "domus_plot", "forum"};
   const char* big_ind[] = {"market", "granary", "forum",    "potter",   "clay_pit", "trade_post", "potter", "bakery",
                            "mill",   "clay_pit", "warehouse", "temple",  "forum",    "potter",     "weaver", "balneum",
                            "market", "clay_pit", "potter",    "granary", "lumber_camp", "forum",   "sawmill", "school"};
   const char** big_cycle = s.industry ? big_ind : big_plain;
-  const u32 big_n = s.industry ? 24 : 8;
+  const u32 big_n = s.industry ? 24 : 12;
   u32 sc = 0, bc = 0;
   for (i32 by = 0; by < blocks; ++by)
     for (i32 bx = 0; bx < blocks; ++bx) {
@@ -339,6 +347,18 @@ void setup_trade(World& w, const data::Defs& defs, const ScenarioSpec& s) {
   set("import", 1);
   set("export", 2);
 }
+
+void setup_policy(World& w, const ScenarioSpec& s) {
+  json j = json::parse(s.json, nullptr, true, true);
+  if (j.contains("policy")) {
+    auto& p = j["policy"];
+    w.policy.slave_treatment = p.value("slave_treatment", w.policy.slave_treatment);
+    w.policy.manumission = p.value("manumission", w.policy.manumission);
+    w.policy.rations = p.value("rations", w.policy.rations);
+    w.policy.wage = p.value("wage", w.policy.wage);
+  }
+  if (j.contains("start_slaves")) w.buy_public_slaves(j["start_slaves"].get<u32>());
+}
 }  // namespace
 
 void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
@@ -348,6 +368,7 @@ void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
   if (s.generator == "scripted") setup_scripted(w, defs, s);
   if (s.generator == "town") setup_town(w, defs, s);
   setup_trade(w, defs, s);
+  setup_policy(w, s);
   if (s.generator != "stress_city") return;
 
   const BuildingDefId house = defs.building("house_plot");

@@ -193,6 +193,20 @@ int main(int argc, char** argv) {
                   nh ? static_cast<double>(sav) / static_cast<double>(nh) : 0.0, static_cast<unsigned long long>(poor),
                   static_cast<unsigned long long>(nofood));
     }
+    {
+      u32 cls[8] = {}, ages[5] = {}, married = 0;
+      for (u32 i = 0; i < C.ids.high_water(); ++i) {
+        if (!C.ids.alive_index(i) || (C.flags[i] & sim::kFlagVisitor)) continue;
+        ++cls[static_cast<int>(C.cls[i])];
+        const u32 a = C.age_years(i, world->now);
+        ++ages[a < 14 ? 0 : a < 30 ? 1 : a < 50 ? 2 : a < 70 ? 3 : 4];
+        if (C.spouse[i].valid()) ++married;
+      }
+      std::printf("classes: patrician %u eques %u pleb %u libertus %u slave %u | ages <14 %u 14-29 %u 30-49 %u 50-69 %u 70+ %u | married %u\n",
+                  cls[0], cls[1], cls[2], cls[3], cls[4], ages[0], ages[1], ages[2], ages[3], ages[4], married);
+      std::printf("births %u deaths %u riots %u crimes yesterday %u\n", world->births_total, world->deaths_total,
+                  world->riots_total, world->crimes_yday);
+    }
     std::printf("reasons:");
     for (int k = 0; k < static_cast<int>(sim::Reason::Count); ++k)
       if (reasons[k]) std::printf(" [%s]=%u", sim::reason_text(static_cast<sim::Reason>(k)), reasons[k]);

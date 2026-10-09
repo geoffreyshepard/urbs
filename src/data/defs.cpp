@@ -347,6 +347,32 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       d.partners.push_back(std::move(t));
     }
   }
+  // Traits
+  {
+    Merged mt = load_kind(data_root, mods, "traits.json");
+    for (auto& id : mt.order) {
+      const json& j = mt.by_id[id];
+      TraitDef t;
+      t.id = id;
+      t.name = get_or<std::string>(j, "name", id);
+      t.desc = get_or<std::string>(j, "desc", "");
+      t.religion_rate = get_or<f32>(j, "religion_rate", 1);
+      t.rest_rate = get_or<f32>(j, "rest_rate", 1);
+      t.entertainment_rate = get_or<f32>(j, "entertainment_rate", 1);
+      t.hygiene_rate = get_or<f32>(j, "hygiene_rate", 1);
+      t.education_rate = get_or<f32>(j, "education_rate", 1);
+      t.work = get_or<f32>(j, "work", 1);
+      t.skill_rate = get_or<f32>(j, "skill_rate", 1);
+      t.goal_rate = get_or<f32>(j, "goal_rate", 1);
+      t.spend = get_or<f32>(j, "spend", 1);
+      t.health = get_or<f32>(j, "health", 1);
+      t.lifespan = get_or<f32>(j, "lifespan", 1);
+      t.crime = get_or<f32>(j, "crime", 1);
+      t.fertility = get_or<f32>(j, "fertility", 1);
+      t.happiness = get_or<i8>(j, "happiness", 0);
+      d.traits.push_back(std::move(t));
+    }
+  }
   // Names
   {
     fs::path np = fs::path(data_root) / "defs" / "names.json";

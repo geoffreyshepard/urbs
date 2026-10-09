@@ -94,6 +94,23 @@ void draw_citizen_panel(sim::World& w, Selection& sel) {
   ImGui::Text("%s", w.citizen_name(i).c_str());
   ImGui::Text("%s, %u years, %s", C.sex[i] ? "female" : "male", C.age_years(i, w.now), sim::class_name(C.cls[i]));
   ImGui::Checkbox("Follow", &sel.follow);
+  {
+    std::string tr;
+    for (int k = 0; k < sim::kMaxTraits; ++k) {
+      const u8 t = C.traits[static_cast<size_t>(i) * sim::kMaxTraits + k];
+      if (t < w.defs->traits.size()) tr += (tr.empty() ? "" : ", ") + w.defs->traits[t].name;
+    }
+    if (!tr.empty()) ImGui::TextWrapped("Traits: %s", tr.c_str());
+    if (C.goal[i]) ImGui::TextWrapped("Life goal: %s", sim::goal_text(static_cast<sim::Goal>(C.goal[i])));
+    auto person = [&](const char* label, CitizenId c) {
+      if (!c.valid() || !w.citizens.alive(c)) return;
+      std::string t = std::string(label) + ": " + w.citizen_name(c.index()) + "##" + label;
+      if (ImGui::Selectable(t.c_str())) sel.citizen = c;
+    };
+    person("Spouse", C.spouse[i]);
+    person("Mother", C.mother[i]);
+    person("Father", C.father[i]);
+  }
   ImGui::Separator();
   ImGui::TextWrapped("Now: %s", sim::activity_name(C.activity[i]));
   if (C.activity[i] == sim::Activity::Walk && C.next[i] != sim::Activity::None)
@@ -121,6 +138,21 @@ void draw_citizen_panel(sim::World& w, Selection& sel) {
   ImGui::Separator();
   ImGui::TextUnformatted("Needs");
   for (int n = 0; n < sim::kNeedCount; ++n) need_bar(sim::need_name(static_cast<sim::Need>(n)), C.need(i, static_cast<sim::Need>(n), w.now));
+  if (ImGui::TreeNode("Skills")) {
+    const char* sk[] = {"farming", "crafting", "building", "trading", "soldiering", "scholarship"};
+    for (int k = 0; k < sim::kSkillCount; ++k)
+      ImGui::Text("%s %u", sk[k], C.skills[static_cast<size_t>(i) * sim::kSkillCount + k]);
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode("Memories")) {
+    for (int k = 0; k < sim::kMemoryEntries; ++k) {
+      const int idx = (C.memory_head[i] + sim::kMemoryEntries - 1 - k) % sim::kMemoryEntries;
+      const auto& m = C.memory[static_cast<size_t>(i) * sim::kMemoryEntries + idx];
+      if (m.kind == 0) continue;
+      ImGui::Text("Day %u: %s", m.day + 1, sim::memory_text(static_cast<sim::Memory>(m.kind)));
+    }
+    ImGui::TreePop();
+  }
   ImGui::Separator();
   auto p = w.happiness_parts(i);
   ImGui::Text("Happiness: %d (yesterday %u)", std::clamp(p.total(), 0, 255), C.happiness[i]);
@@ -130,7 +162,8 @@ void draw_citizen_panel(sim::World& w, Selection& sel) {
   } parts[] = {{"food", p.food},       {"water", p.water},          {"rest", p.rest},     {"hygiene", p.hygiene},
                {"religion", p.religion}, {"entertainment", p.entertainment}, {"food variety", p.variety},
                {"housing", p.housing}, {"employment", p.employment}, {"taxes", p.taxes},  {"gods", p.gods},
-               {"events", p.events},   {"health", p.health}};
+               {"life events", p.events}, {"health", p.health}, {"education", p.education},
+               {"prestige", p.prestige}, {"safety", p.safety}, {"bondage", p.freedom}, {"temperament", p.traits}};
   for (const Part& pt : parts)
     if (pt.v != 0) {
       ImGui::TextColored(pt.v > 0 ? ImVec4(0.5f, 0.9f, 0.5f, 1) : ImVec4(0.95f, 0.5f, 0.4f, 1), "  %+d %s", pt.v, pt.n);
@@ -302,6 +335,18 @@ void draw_finance_panel(sim::World& w, bool* open) {
   if (ImGui::SliderInt("Tax on equites (%)", &tax_e, 0, 30)) cmd_policy(sim::PolicyId::TaxEques, tax_e);
   int tax_p = w.policy.tax_rate[0];
   if (ImGui::SliderInt("Tax on patricians (%)", &tax_p, 0, 30)) cmd_policy(sim::PolicyId::TaxPatrician, tax_p);
+  const char* treat[] = {"Harsh", "Fair", "Kind"};
+  int st = w.policy.slave_treatment;
+  if (ImGui::Combo("Slave treatment", &st, treat, 3)) cmd_policy(sim::PolicyId::SlaveTreatment, st);
+  const char* manu[] = {"Forbidden", "Occasional", "Encouraged"};
+  int mn = w.policy.manumission;
+  if (ImGui::Combo("Manumission", &mn, manu, 3)) cmd_policy(sim::PolicyId::Manumission, mn);
+  if (ImGui::Button("Buy 5 public slaves (600)")) {
+    sim::Command c;
+    c.type = sim::CmdType::BuySlaves;
+    c.value = 5;
+    w.push(c);
+  }
   const char* dole[] = {"No grain dole", "Grain dole for the poor", "Grain dole for all"};
   int r = w.policy.rations;
   if (ImGui::Combo("Annona", &r, dole, 3)) cmd_policy(sim::PolicyId::Rations, r);

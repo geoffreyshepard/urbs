@@ -151,7 +151,9 @@ void World::building_hourly(BuildingId id) {
       }
     eff = eff * (n ? fert / n : 128) / 128;
   }
-  b.work_progress += static_cast<u32>(b.present) * static_cast<u32>(kTicksPerHour) * eff / 100;
+  // Each present worker contributes 75% plus up to 50% more with skill (and work traits).
+  const u32 effort = static_cast<u32>(b.present) * 75 + b.skill_sum * 50 / 255;
+  b.work_progress += effort * static_cast<u32>(kTicksPerHour) / 100 * eff / 100;
   // Painted buildings: recipe output scales with area via more workers, work per batch is fixed.
   while (b.work_progress >= r.work) {
     bool ok = true;

@@ -44,6 +44,9 @@ void Citizens::init(u32 cap) {
   memory.assign(static_cast<size_t>(cap) * kMemoryEntries, MemoryEntry{});
   memory_head.assign(cap, 0);
   flags.assign(cap, 0);
+  bonus.assign(cap, 0);
+  bonus_until.assign(cap, 0);
+  goal_since.assign(cap, 0);
 }
 
 u32 Citizens::age_years(u32 i, Tick now) const {
