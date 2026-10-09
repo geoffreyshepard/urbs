@@ -39,6 +39,8 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
   scratch_tiles_.reserve(cfg.max_buildings);
   scratch_u32_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
   scratch_u32b_.reserve(std::max(cfg.max_citizens, cfg.max_buildings));
+  labor_head_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
+  labor_fill_.reserve(static_cast<size_t>(map.chunks_x() * map.chunks_y()) + 2);
   econ.init(static_cast<u32>(d.goods.size()), cfg.max_buildings, 4096);
   for (auto& v : need_services) v.clear();
   for (u16 sv = 0; sv < d.services.size(); ++sv)
@@ -377,8 +379,8 @@ void World::despawn_citizen(CitizenId id) {
 }
 
 i32 World::jitter(u32 i) const {
-  // Stable per-citizen offset in [-8, +8] ticks (about +-10 game minutes).
-  return static_cast<i32>(rng::hash64(static_cast<u64>(i) * 0x9E37u + cfg.seed) % 17) - 8;
+  // Stable per-citizen offset in [-24, +24] ticks (about +-30 game minutes) to flatten dawn/shift spikes.
+  return static_cast<i32>(rng::hash64(static_cast<u64>(i) * 0x9E37u + cfg.seed) % 49) - 24;
 }
 
 i32 World::current_tile(u32 i) const {
@@ -525,7 +527,13 @@ void World::process_events() {
 
 void World::tick() {
   URBS_ZONE("tick");
-  const auto t0 = std::chrono::steady_clock::now();
+  using clock = std::chrono::steady_clock;
+  const auto t0 = clock::now();
+  auto lap = [&, last = t0](int k) mutable {
+    const auto t = clock::now();
+    stats.sys_ms[k] = std::chrono::duration<f64, std::milli>(t - last).count();
+    last = t;
+  };
   core::alloc::TickScope no_alloc;
   stats = TickStats{};
   ++now;
@@ -535,7 +543,9 @@ void World::tick() {
   if (providers_dirty_) refresh_service_providers();
   if (nav.regions_dirty || std::any_of(nav.chunk_dirty.begin(), nav.chunk_dirty.end(), [](u8 d) { return d != 0; }))
     services.mark_all_dirty();
+  lap(0);
   services.step(nav, cfg.service_budget);
+  lap(1);
   if (now % kTicksPerDay == 0) {
     daily_update();
     avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;
@@ -543,7 +553,6 @@ void World::tick() {
     happy_count_today = 0;
     immigrants_today = emigrants_today = 0;
   }
-  if (now % kTicksPerHour == 7) labor_allocate();
   if (now % kTicksPerHour == 20) immigration_hourly();
   {
     // Staggered daily passes: each citizen and each building once per game day.
@@ -553,16 +562,22 @@ void World::tick() {
     for (u32 bi = tod; bi < buildings.ids.high_water(); bi += static_cast<u32>(kTicksPerDay))
       if (buildings.ids.alive_index(bi)) house_daily(buildings.ids.id_at(bi));
   }
+  lap(2);
+  if (now % kTicksPerHour == 7) labor_allocate();
+  lap(3);
   if (econ.goods > 0) {
     // Two goods per tick: every good is matched about every 20 ticks.
     match_good(GoodId{static_cast<u16>((now * 2) % econ.goods)});
     match_good(GoodId{static_cast<u16>((now * 2 + 1) % econ.goods)});
   }
+  lap(4);
   process_events();
+  lap(5);
   paths.process(now, results_);
   apply_path_results();
+  lap(6);
   stats.walking = walking;
-  stats.tick_ms = std::chrono::duration<f64, std::milli>(std::chrono::steady_clock::now() - t0).count();
+  stats.tick_ms = std::chrono::duration<f64, std::milli>(clock::now() - t0).count();
 }
 
 }  // namespace urbs::sim

@@ -188,46 +188,76 @@ void World::labor_allocate() {
   URBS_ZONE("labor");
   ++labor_hourly_runs;
   auto& C = citizens;
-  // Unemployed working-age citizens with a home.
+  // Bucket unemployed working-age citizens by the chunk of their home (counting sort, no allocation).
+  const i32 cx = nav.chunks_x(), cy = nav.chunks_y(), nchunks = cx * cy;
+  labor_head_.assign(static_cast<size_t>(nchunks) + 1, 0);
   scratch_u32_.clear();
   for (u32 i = 0; i < C.ids.high_water(); ++i) {
-    if (!C.ids.alive_index(i) || C.work[i].valid() || !C.home[i].valid()) continue;
+    if (!C.ids.alive_index(i) || C.work[i].valid() || !C.home[i].valid() || !buildings.alive(C.home[i])) continue;
     const u32 age = C.age_years(i, now);
     if (age < 14 || age >= 60) continue;
     if (C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Soldier) continue;
+    if (C.activity[i] == Activity::Leave) continue;
+    const i32 he = buildings[C.home[i]].entrance;
+    if (he < 0) continue;
     scratch_u32_.push_back(i);
+    ++labor_head_[static_cast<size_t>(nav.chunk_of(he % map.w, he / map.w)) + 1];
   }
   if (scratch_u32_.empty()) return;
-  for (int prio = 1; prio <= 5 && !scratch_u32_.empty(); ++prio) {
-    for (u32 bi = 0; bi < buildings.ids.high_water() && !scratch_u32_.empty(); ++bi) {
+  for (i32 k = 0; k < nchunks; ++k) labor_head_[static_cast<size_t>(k) + 1] += labor_head_[static_cast<size_t>(k)];
+  labor_fill_.assign(labor_head_.begin(), labor_head_.end() - 1);
+  scratch_u32b_.resize(scratch_u32_.size());
+  for (u32 ci : scratch_u32_) {
+    const i32 he = buildings[C.home[ci]].entrance;
+    scratch_u32b_[labor_fill_[static_cast<size_t>(nav.chunk_of(he % map.w, he / map.w))]++] = ci;
+  }
+  // scratch_u32b_ now holds candidates grouped by chunk; a taken candidate is marked kNoIndex.
+  u32 assigned = 0;
+  const u32 kMaxAssign = 600;
+  for (int prio = 1; prio <= 5 && assigned < kMaxAssign; ++prio) {
+    for (u32 bi = 0; bi < buildings.ids.high_water() && assigned < kMaxAssign; ++bi) {
       if (!buildings.ids.alive_index(bi)) continue;
       Building& b = buildings.b[bi];
       if (b.state != BState::Active && b.state != BState::Construction) continue;
       if (b.jobs <= b.employed || b.entrance < 0) continue;
-      const data::BuildingDef& d = defs->b(b.def);
       if (policy.sector_priority[static_cast<int>(sector_of(b))] != prio) continue;
+      const data::BuildingDef& d = defs->b(b.def);
       const u8 classes = b.state == BState::Construction ? static_cast<u8>(data::ClassMask::Workers) : d.worker_classes;
-      while (b.employed < b.jobs && !scratch_u32_.empty()) {
-        // Nearest suitable unemployed citizen by home distance.
-        size_t best = scratch_u32_.size();
-        int best_d = 1 << 30;
-        for (size_t k = 0; k < scratch_u32_.size(); ++k) {
-          u32 ci = scratch_u32_[k];
-          if (!(classes & data::class_bit(static_cast<int>(C.cls[ci])))) continue;
-          const i32 he = buildings[C.home[ci]].entrance;
-          if (he < 0 || !nav.connected(he, b.entrance)) continue;
-          int dd = manhattan_tiles(map, he, b.entrance);
-          if (dd < best_d) {
-            best_d = dd;
-            best = k;
-          }
+      const i32 bx = b.entrance % map.w, by = b.entrance / map.w;
+      const i32 bcx = bx / kChunkTiles, bcy = by / kChunkTiles;
+      // Search chunk rings outward; take the nearest candidate in the first ring that has one.
+      for (i32 r = 0; r < std::max(cx, cy) && b.employed < b.jobs; ++r) {
+        bool any_in_ring = true;
+        while (b.employed < b.jobs && any_in_ring) {
+          any_in_ring = false;
+          size_t best = kNoIndex;
+          int best_d = 1 << 30;
+          for (i32 qy = bcy - r; qy <= bcy + r; ++qy)
+            for (i32 qx = bcx - r; qx <= bcx + r; ++qx) {
+              if (qx < 0 || qy < 0 || qx >= cx || qy >= cy) continue;
+              if (std::max(std::abs(qx - bcx), std::abs(qy - bcy)) != r) continue;
+              const i32 q = qy * cx + qx;
+              for (u32 k = labor_head_[static_cast<size_t>(q)]; k < labor_head_[static_cast<size_t>(q) + 1]; ++k) {
+                const u32 ci = scratch_u32b_[k];
+                if (ci == kNoIndex) continue;
+                if (!(classes & data::class_bit(static_cast<int>(C.cls[ci])))) continue;
+                const i32 he = buildings[C.home[ci]].entrance;
+                if (!nav.connected(he, b.entrance)) continue;
+                const int dd = manhattan_tiles(map, he, b.entrance);
+                if (dd < best_d) {
+                  best_d = dd;
+                  best = k;
+                }
+              }
+            }
+          if (best == kNoIndex) break;
+          const u32 ci = scratch_u32b_[best];
+          scratch_u32b_[best] = kNoIndex;
+          C.work[ci] = buildings.ids.id_at(bi);
+          ++b.employed;
+          ++assigned;
+          any_in_ring = true;
         }
-        if (best == scratch_u32_.size()) break;
-        const u32 ci = scratch_u32_[best];
-        scratch_u32_[best] = scratch_u32_.back();
-        scratch_u32_.pop_back();
-        C.work[ci] = buildings.ids.id_at(bi);
-        ++b.employed;
       }
     }
   }

@@ -31,8 +31,8 @@ struct WorldConfig {
   u32 max_buildings = 4096;
   u32 max_households = 8192;
   u32 threads = 0;  // 0 = hardware concurrency
-  u32 path_budget = 384;
-  u32 decision_budget = 4000;
+  u32 path_budget = 256;
+  u32 decision_budget = 1200;
   u32 service_budget = 60000;  // tiles settled per tick across service maps
   u64 seed = 1;
 };
@@ -88,6 +88,8 @@ struct TickStats {
   u32 events = 0, decisions = 0, arrivals = 0, path_requests = 0, path_results = 0;
   u32 walking = 0;
   f64 tick_ms = 0;
+  // Per-system time this tick (ms): commands, services, daily passes, labor, matcher, events, paths.
+  f64 sys_ms[8] = {};
 };
 
 struct World {
@@ -228,6 +230,7 @@ struct World {
   std::vector<BuildingId> scratch_ids_;
   std::vector<i32> scratch_tiles_;
   std::vector<u32> scratch_u32_, scratch_u32b_;
+  std::vector<u32> labor_head_, labor_fill_;
   bool providers_dirty_ = true;
 };
 

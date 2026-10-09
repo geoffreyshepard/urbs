@@ -396,16 +396,18 @@ def dome(b, L, cx, cgy, rx, ry, rz, z0, ramp=None, oculus=False, ribs=0, noise=0
                 rr = math.sqrt(max(0.0, 1 - k * k))
                 ny = (y + 0.5 - (base_cy - hgt)) / ry
                 if nx * nx + ny * ny <= rr * rr and rr > 0:
-                    pts[(x, y)] = (nx, ny / max(rr, 0.01) * rr, k)
+                    pts[(x, y)] = (nx, ny, k)
                     break
-    for (x, y), (nx, ny, k) in pts.items():
-        b_ = 0.45 - 0.45 * nx - 0.25 * ny + 0.35 * k
+    lx, ly, lz = -0.48, -0.42, 0.77
+    n_r = len(ramp)
+    for (x, y), (ux, uy, k) in pts.items():
+        d = ux * lx + uy * ly + k * lz
         if noise:
-            b_ += ((hash2(x // 2, y, 77) % 100) / 100.0 - 0.5) * noise
-        i = max(0, min(len(ramp) - 1, int(b_ * len(ramp))))
+            d += ((hash2(x // 2, y, 77) % 100) / 100.0 - 0.5) * noise
+        i = max(0, min(n_r - 1, int((d * 0.5 + 0.5) * n_r * 1.05)))
         c = ramp[i]
         if ribs and k < 0.92:
-            ang = math.atan2(ny, nx)
+            ang = math.atan2(uy, ux)
             if int((ang + 4) * ribs / 3.1416) % 2 == 0 and hash2(x, y, 1) % 3 == 0:
                 c = ramp[max(0, i - 1)]
         px(L, x, y, c)

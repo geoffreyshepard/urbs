@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
   core::alloc::reset_violations();
   u64 decisions = 0, path_req = 0, arrivals = 0;
   u32 max_walking = 0;
+  double sys_max[8] = {}, sys_sum[8] = {};
   for (u64 t = 0; t < ticks; ++t) {
     sim::push_due_orders(*world, spec);
     world->tick();
@@ -75,6 +76,10 @@ int main(int argc, char** argv) {
     path_req += world->stats.path_requests;
     arrivals += world->stats.arrivals;
     max_walking = std::max(max_walking, world->stats.walking);
+    for (int k = 0; k < 8; ++k) {
+      sys_max[k] = std::max(sys_max[k], world->stats.sys_ms[k]);
+      sys_sum[k] += world->stats.sys_ms[k];
+    }
     if (verbose && world->now % kTicksPerHour == 0)
       URBS_LOG_INFO("t={} h={} walking={} events={} pathq={} tick={:.2f}ms", world->now, sim::hour_of_day(world->now),
                     world->stats.walking, world->stats.events, world->paths.pending(), world->stats.tick_ms);
@@ -101,6 +106,12 @@ int main(int argc, char** argv) {
       static_cast<unsigned long long>(path_req), static_cast<unsigned long long>(arrivals), max_walking,
       static_cast<unsigned long long>(ps.hits()), static_cast<unsigned long long>(ps.misses()), ps.live_paths(),
       static_cast<unsigned long long>(world->sched.dropped()));
+  if (verbose) {
+    const char* names[8] = {"commands", "services", "daily", "labor", "matcher", "events", "paths", "-"};
+    std::printf("system ms (avg / max):");
+    for (int k = 0; k < 7; ++k) std::printf(" %s %.3f/%.2f", names[k], sys_sum[k] / static_cast<double>(ticks), sys_max[k]);
+    std::printf("\n");
+  }
   if (dump || verbose) {
     u32 reasons[64] = {}, acts[32] = {}, tiers[8] = {};
     const auto& C = world->citizens;
