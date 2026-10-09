@@ -397,6 +397,10 @@ void World::match_good(GoodId g) {
     } else if (b.state == BState::Active && d.kind == BuildingKind::Market) {
       want = econ.target[static_cast<size_t>(b.inv) * econ.goods + g.v];
       prio = 1;
+    } else if (b.state == BState::Active && d.kind == BuildingKind::Military && !d.accepts.empty() &&
+               econ.accept[static_cast<size_t>(b.inv) * econ.goods + g.v]) {
+      want = defs->goods[g.v].food ? 30 : 40;  // garrison food, weapons and armor
+      prio = 2;
     } else if (b.state == BState::Active && d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2 &&
                econ.city_stock[g.v] > trade_level[g.v]) {
       want = 40;  // stage export goods at the trade post

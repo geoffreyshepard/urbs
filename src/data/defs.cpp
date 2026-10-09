@@ -390,6 +390,31 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       d.gods.push_back(std::move(g));
     }
   }
+  // Units
+  {
+    Merged mu = load_kind(data_root, mods, "units.json");
+    for (auto& id : mu.order) {
+      const json& j = mu.by_id[id];
+      UnitDef u;
+      u.id = id;
+      u.name = get_or<std::string>(j, "name", id);
+      u.sprite = get_or<std::string>(j, "sprite", "legionary");
+      u.enemy = get_or<std::string>(j, "side", "city") == "enemy";
+      u.hp = get_or<u16>(j, "hp", 100);
+      u.attack = get_or<u16>(j, "attack", 10);
+      u.defense = get_or<u16>(j, "defense", 5);
+      u.speed = get_or<f32>(j, "speed", 0.09f);
+      u.range = get_or<f32>(j, "range", 1.2f);
+      u.size = get_or<u16>(j, "size", 32);
+      u.upkeep = get_or<u16>(j, "upkeep", 3);
+      u.gear = goods_list(mu, id, j, "gear");
+      u.morale = get_or<u8>(j, "morale", 60);
+      u.charge = get_or<f32>(j, "charge", 1.0f);
+      u.siege = get_or<f32>(j, "siege", 0.5f);
+      u.unlock = get_or<u8>(j, "unlock", 1);
+      d.units.push_back(std::move(u));
+    }
+  }
   // Names
   {
     fs::path np = fs::path(data_root) / "defs" / "names.json";

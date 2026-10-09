@@ -1,0 +1,12 @@
+[
+  {"id": "militia", "name": "Militia", "side": "city", "sprite": "pleb", "hp": 70, "attack": 7, "defense": 3, "speed": 0.09, "range": 1.2, "size": 24, "upkeep": 2, "gear": {}, "morale": 50, "unlock": 3},
+  {"id": "legionary", "name": "Legionary cohort", "side": "city", "sprite": "legionary", "hp": 110, "attack": 12, "defense": 9, "speed": 0.09, "range": 1.2, "size": 48, "upkeep": 4, "gear": {"weapons": 1, "armor": 1}, "morale": 70, "unlock": 6},
+  {"id": "archer", "name": "Auxiliary archers", "side": "city", "sprite": "archer", "hp": 65, "attack": 8, "defense": 3, "speed": 0.10, "range": 8.0, "size": 32, "upkeep": 3, "gear": {"weapons": 1}, "morale": 55, "unlock": 6},
+  {"id": "cavalry", "name": "Auxiliary cavalry", "side": "city", "sprite": "cavalry", "hp": 120, "attack": 13, "defense": 5, "speed": 0.17, "range": 1.4, "size": 24, "upkeep": 6, "gear": {"weapons": 1, "armor": 1}, "morale": 65, "charge": 2.0, "unlock": 7},
+  {"id": "ballista", "name": "Ballistae", "side": "city", "sprite": "ballista", "hp": 80, "attack": 40, "defense": 2, "speed": 0.05, "range": 14.0, "size": 4, "upkeep": 8, "gear": {"weapons": 2, "planks": 4}, "morale": 60, "siege": 3.0, "unlock": 13},
+  {"id": "barbarian_warrior", "name": "Barbarian warband", "side": "enemy", "sprite": "barbarian", "hp": 90, "attack": 11, "defense": 4, "speed": 0.10, "range": 1.2, "size": 40, "morale": 55, "siege": 1.0},
+  {"id": "barbarian_archer", "name": "Barbarian skirmishers", "side": "enemy", "sprite": "barbarian", "hp": 60, "attack": 7, "defense": 2, "speed": 0.11, "range": 7.0, "size": 24, "morale": 45},
+  {"id": "barbarian_horse", "name": "Barbarian horsemen", "side": "enemy", "sprite": "cavalry", "hp": 110, "attack": 12, "defense": 3, "speed": 0.16, "range": 1.4, "size": 16, "morale": 50, "charge": 1.8},
+  {"id": "punic_infantry", "name": "Punic infantry", "side": "enemy", "sprite": "legionary", "hp": 100, "attack": 11, "defense": 7, "speed": 0.09, "range": 1.2, "size": 48, "morale": 65, "siege": 1.0},
+  {"id": "rebel_slaves", "name": "Rebel slaves", "side": "enemy", "sprite": "slave", "hp": 60, "attack": 8, "defense": 1, "speed": 0.10, "range": 1.2, "size": 30, "morale": 40, "siege": 1.0}
+]

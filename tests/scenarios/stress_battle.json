@@ -1,0 +1,49 @@
+{
+  "name": "battle_10k",
+  "map": {
+    "size": 320,
+    "seed": 4,
+    "flat": true,
+    "river": false
+  },
+  "world": {
+    "max_citizens": 12000,
+    "max_buildings": 2048,
+    "max_households": 4000,
+    "max_soldiers": 4000
+  },
+  "generator": "stress_city",
+  "citizens": 10000,
+  "houses": 100,
+  "workplaces": 40,
+  "markets": 12,
+  "house_capacity": 120,
+  "battle": {
+    "city": [
+      [
+        "legionary",
+        30
+      ],
+      [
+        "archer",
+        12
+      ]
+    ],
+    "enemy": [
+      [
+        "barbarian_warrior",
+        30
+      ],
+      [
+        "barbarian_archer",
+        15
+      ]
+    ],
+    "side": 3
+  },
+  "ticks": 3600,
+  "test": {
+    "min_citizens": 9000,
+    "max_alloc_violations": 0
+  }
+}

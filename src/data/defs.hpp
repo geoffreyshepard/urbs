@@ -108,6 +108,21 @@ struct GodDef {
   u8 festival_day = 0;  // day of year of the god's feast
 };
 
+struct UnitDef {
+  std::string id, name, sprite;
+  bool enemy = false;
+  u16 hp = 100, attack = 10, defense = 5;
+  f32 speed = 0.09f;  // tiles per tick
+  f32 range = 1.2f;   // tiles; > 2 means ranged
+  u16 size = 32;      // soldiers per unit
+  u16 upkeep = 3;     // denarii per soldier per day
+  std::vector<GoodAmount> gear;  // per soldier when raised
+  u8 morale = 60;
+  f32 charge = 1.0f, siege = 0.5f;
+  u8 unlock = 1;
+  [[nodiscard]] bool ranged() const { return range > 2.0f; }
+};
+
 struct NameLists {
   std::vector<std::string> praenomina, nomina, cognomina, slave;
 };
@@ -154,6 +169,12 @@ struct Defs {
   std::vector<TradePartnerDef> partners;
   std::vector<TraitDef> traits;
   std::vector<GodDef> gods;
+  std::vector<UnitDef> units;
+  [[nodiscard]] UnitDefId unit(const std::string& id) const {
+    for (size_t k = 0; k < units.size(); ++k)
+      if (units[k].id == id) return UnitDefId{static_cast<u16>(k)};
+    return UnitDefId{};
+  }
   [[nodiscard]] u8 god(const std::string& id) const {
     for (size_t k = 0; k < gods.size(); ++k)
       if (gods[k].id == id) return static_cast<u8>(k);

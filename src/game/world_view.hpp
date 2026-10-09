@@ -35,6 +35,12 @@ class WorldView {
   render::Sprite scaffold_[4], foundation_;
   render::Sprite ship_[4];
   render::Sprite fire_[4], smoke_[4], rubble_[4], plague_;
+  struct UnitSprites {
+    render::Sprite walk[4][4];
+    render::Sprite atk[4][2];
+  };
+  std::vector<UnitSprites> units_;
+  void draw_army(const sim::World& w, render::Renderer& r, f32 alpha) const;
 };
 
 }  // namespace urbs::game

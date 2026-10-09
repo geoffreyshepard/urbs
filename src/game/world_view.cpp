@@ -52,6 +52,29 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs) {
     rubble_[f] = atlas.find("fx/rubble_" + std::to_string(f));
   }
   plague_ = atlas.find("fx/plague_mark");
+  units_.clear();
+  for (const auto& u : defs.units) {
+    UnitSprites us;
+    std::string base = u.sprite == "pleb" || u.sprite == "slave" ? u.sprite : u.sprite;
+    for (int d = 0; d < 4; ++d) {
+      for (int f = 0; f < 4; ++f) {
+        us.walk[d][f] = atlas.find("people/" + base + "_" + kDirs[d] + "_" + std::to_string(f));
+        if (!us.walk[d][f].valid) us.walk[d][f] = atlas.get("people/soldier_" + std::string(kDirs[d]) + "_" + std::to_string(f));
+      }
+      for (int f = 0; f < 2; ++f) {
+        us.atk[d][f] = atlas.find("people/" + base + "_atk_" + kDirs[d] + "_" + std::to_string(f));
+        if (!us.atk[d][f].valid) us.atk[d][f] = us.walk[d][f];
+      }
+    }
+    if (u.sprite == "ballista") {
+      for (int d = 0; d < 4; ++d) {
+        const render::Sprite s = atlas.get("people/ballista_" + std::string(kDirs[d]));
+        for (int f = 0; f < 4; ++f) us.walk[d][f] = s;
+        for (int f = 0; f < 2; ++f) us.atk[d][f] = s;
+      }
+    }
+    units_.push_back(us);
+  }
   dot = atlas.get("fx/dot");
   white = atlas.get("fx/white");
 }
@@ -220,6 +243,44 @@ void WorldView::draw(const sim::World& w, render::Renderer& r, f32 alpha) {
     }
   }
   (void)T;
+  draw_army(w, r, alpha);
+}
+
+void WorldView::draw_army(const sim::World& w, render::Renderer& r, f32 alpha) const {
+  const auto& A = w.army;
+  if (A.deployed == 0) return;
+  const f32 T = static_cast<f32>(sim::kTilePx);
+  const Recti vis = r.camera().visible_world(32);
+  const f32 map_h = r.map_px_h();
+  const bool far = r.camera().far();
+  for (u32 i = 0; i < A.ids.high_water(); ++i) {
+    if (!A.ids.alive_index(i)) continue;
+    const f32 x = (A.px[i] + (A.x[i] - A.px[i]) * alpha) * T, y = (A.py[i] + (A.y[i] - A.py[i]) * alpha) * T;
+    if (x < static_cast<f32>(vis.x) || y < static_cast<f32>(vis.y) || x > static_cast<f32>(vis.x + vis.w) ||
+        y > static_cast<f32>(vis.y + vis.h))
+      continue;
+    const auto& un = A.units[A.unit[i]];
+    const f32 z = render::depth_for_foot(y, map_h);
+    if (far) {
+      const u32 col = un.side == 0 ? render::rgba(230, 60, 50) : render::rgba(90, 160, 230);
+      r.push(render::SpriteInstance{x - 1, y - 2, z, 2, 2, dot.u, dot.v, dot.w, dot.h, col});
+      continue;
+    }
+    const UnitSprites& us = units_[un.def.v];
+    const int d = A.facing[i] & 3;
+    const Sprite& s = A.attacking[i] ? us.atk[d][(A.attacking[i] / 3) & 1]
+                                     : us.walk[d][static_cast<int>(A.walked[i] * 3.0f) & 3];
+    // Enemy soldiers get a slight cold tint so the sides read apart.
+    r.push_sprite(s, x, y + 4, z, un.side == 1 ? render::rgba(215, 225, 255) : render::kWhite);
+  }
+  for (const auto& p : A.projectiles) {
+    if (!p.alive) continue;
+    const f32 x = p.x * T, y = p.y * T;
+    if (x < static_cast<f32>(vis.x) || y < static_cast<f32>(vis.y) || x > static_cast<f32>(vis.x + vis.w) ||
+        y > static_cast<f32>(vis.y + vis.h))
+      continue;
+    r.push_rect(x - 1, y, 3, 1, 0.03f, render::rgba(70, 50, 30, 255), false);
+  }
 }
 
 }  // namespace urbs::game

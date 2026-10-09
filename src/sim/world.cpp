@@ -51,6 +51,8 @@ void World::init(const WorldConfig& c, const data::Defs& d) {
     r.bought.assign(d.goods.size(), 0);
     r.sold.assign(d.goods.size(), 0);
   }
+  army.init(cfg.max_soldiers, map.w, map.h);
+  field_heap_.init(static_cast<u32>(map.w * map.h));
   req_physician_ = data::HousingReq{data::HousingReq::Service, {d.service("physician"), d.service("hospital")}, {}, 0};
   req_fountain_ = data::HousingReq{data::HousingReq::Service, {d.service("fountain")}, {}, 0};
   god_mood.assign(d.gods.size(), 50);
@@ -113,6 +115,7 @@ bool World::can_place(BuildingDefId def, i32 x, i32 y, i32 w, i32 h) const {
 }
 
 void World::update_nav_rect(i32 x, i32 y, i32 w, i32 h) {
+  nav_changed_tick_ = now;
   for (i32 ty = y; ty < y + h; ++ty)
     for (i32 tx = x; tx < x + w; ++tx)
       if (map.in_bounds(tx, ty)) {
@@ -274,6 +277,7 @@ void World::place_road(i32 x, i32 y, Road type) {
   if (terrain_water(map.terrain[i]) && type != Road::Bridge) return;
   if (map.road[i] == type) return;
   map.road[i] = type;
+  nav_changed_tick_ = now;
   nav.update_tile(map, x, y, now);
   map.mark_dirty(x, y);
 }
@@ -565,6 +569,23 @@ void World::apply_commands() {
       case CmdType::BuySlaves: buy_public_slaves(static_cast<u32>(std::clamp(c.value, 0, 50))); break;
       case CmdType::Festival: hold_festival(static_cast<u8>(c.def), c.value); break;
       case CmdType::Trigger: trigger(static_cast<TriggerId>(c.def), c.x0, c.y0, c.value); break;
+      case CmdType::RaiseUnit: raise_unit(UnitDefId{c.def}, BuildingId{static_cast<u32>(c.value)}); break;
+      case CmdType::UnitOrder:
+        order_unit(c.def, static_cast<military::Order>(c.value), map.in_bounds(c.x0, c.y0) ? map.idx(c.x0, c.y0) : -1);
+        break;
+      case CmdType::UnitFormation:
+        if (c.def < military::kMaxUnits) army.units[c.def].formation = static_cast<military::Formation>(c.value % 4);
+        break;
+      case CmdType::UnitStance:
+        if (c.def < military::kMaxUnits) army.units[c.def].stance = static_cast<military::Stance>(c.value % 2);
+        break;
+      case CmdType::DisbandUnit: disband_unit(c.def); break;
+      case CmdType::Campaign:
+        if (c.def < military::kMaxUnits && army.units[c.def].alive && army.units[c.def].side == 0) {
+          army.units[c.def].campaign_level = static_cast<u8>(std::clamp(c.value, 1, 3));
+          order_unit(c.def, military::Order::Campaign, -1);
+        }
+        break;
       case CmdType::OpenRoute:
         if (c.def < routes.size() && !routes[c.def].open && routes[c.def].available &&
             pay(defs->partners[c.def].open_cost, econ::Money::Other)) {
@@ -645,6 +666,7 @@ void World::tick() {
     religion_daily();
     riot_check();
     revolt_check(false);
+    military_daily();
     crimes_yday = crimes_today;
     crimes_today = births_today = deaths_today = marriages_today = freed_today = 0;
     avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;
@@ -672,6 +694,7 @@ void World::tick() {
   }
   lap(4);
   process_events();
+  military_tick();
   lap(5);
   paths.process(now, results_);
   apply_path_results();

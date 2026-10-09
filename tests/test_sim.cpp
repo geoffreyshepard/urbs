@@ -177,3 +177,29 @@ TEST_CASE("water network: aqueduct flows downhill, fills reservoir, pipes feed a
   // Aqueducts can be walked under.
   CHECK(w.nav.walkable(10, 20));
 }
+
+TEST_CASE("military: raise a cohort at a barracks, repel a raid") {
+  auto spec = sim::load_scenario(scenario("town_1000.json"));
+  auto w = std::make_unique<sim::World>();
+  sim::setup_scenario(*w, defs(), spec);
+  const auto& D = defs();
+  // Barracks with gear on open ground next to the town's entry road.
+  BuildingId bar;
+  for (i32 y = 4; y < w->map.h - 8 && !bar.valid(); y += 3)
+    for (i32 x = 4; x < 40 && !bar.valid(); x += 3)
+      if (w->can_place(D.building("barracks"), x, y, 4, 4)) bar = w->place_building(D.building("barracks"), x, y, 4, 4, true);
+  REQUIRE(bar.valid());
+  w->add_stock(bar, D.good("weapons"), 60);
+  w->add_stock(bar, D.good("armor"), 60);
+  w->policy.conscription = 1;
+  const u32 pop_before = w->population();
+  REQUIRE(w->raise_unit(D.unit("legionary"), bar));
+  CHECK(w->army.deployed >= 24);
+  CHECK(w->population() < pop_before);
+  // A raid arrives and fights; the sim keeps running without allocation.
+  w->spawn_raid(D.unit("barbarian_warrior"), 1, 3);
+  for (u16 u = 0; u < military::kMaxUnits; ++u)
+    if (w->army.units[u].alive && w->army.units[u].side == 0) w->order_unit(u, military::Order::Move, w->city_target_tile());
+  for (int t = 0; t < 3000 && w->enemies_killed_ + w->soldiers_lost_ == 0; ++t) w->tick();
+  CHECK(w->enemies_killed_ + w->soldiers_lost_ > 0);
+}

@@ -345,6 +345,7 @@ void World::trigger(TriggerId t, i32 x, i32 y, i32 value) {
     case TriggerId::Blessing:
       if (value >= 0 && static_cast<size_t>(value) < god_mood.size()) god_blessing(static_cast<u8>(value));
       break;
+    case TriggerId::Raid: spawn_raid(UnitDefId{}, static_cast<u16>(std::max(1, value)), -1); break;
     case TriggerId::Wrath:
       if (value >= 0 && static_cast<size_t>(value) < god_mood.size()) god_wrath(static_cast<u8>(value));
       break;

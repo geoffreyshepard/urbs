@@ -117,6 +117,22 @@ int main(int argc, char** argv) {
     for (int k = 0; k < 7; ++k) std::printf(" %s %.3f/%.2f", names[k], sys_sum[k] / static_cast<double>(ticks), sys_max[k]);
     std::printf("\n");
   }
+  if (verbose) {
+    u32 per_side[2] = {}, units_side[2] = {};
+    f32 ex = 0, ey = 0;
+    for (const auto& u : world->army.units)
+      if (u.alive) {
+        per_side[u.side] += u.count;
+        ++units_side[u.side];
+        if (u.side == 1) {
+          ex = u.ax;
+          ey = u.ay;
+        }
+      }
+    std::printf("army: city %u soldiers in %u units, enemy %u in %u units (one at %.0f,%.0f); lost %u, killed %u\n",
+                per_side[0], units_side[0], per_side[1], units_side[1], static_cast<double>(ex), static_cast<double>(ey),
+                world->soldiers_lost_, world->enemies_killed_);
+  }
   if (dump || verbose) {
     u32 reasons[64] = {}, acts[32] = {}, tiers[8] = {};
     const auto& C = world->citizens;

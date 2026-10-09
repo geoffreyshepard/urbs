@@ -57,7 +57,8 @@ class App {
   WorldView view_;
   Tools tools_;
   bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = true, show_finance_ = false,
-       show_trade_ = false, show_religion_ = false, show_threats_ = false;
+       show_trade_ = false, show_religion_ = false, show_threats_ = false, show_military_ = false;
+  f32 right_drag_ = 0;
   Selection sel_;
   Overlay overlay_ = Overlay::None;
   ServiceId overlay_service_;

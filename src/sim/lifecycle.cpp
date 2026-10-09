@@ -226,7 +226,7 @@ void World::free_slave(u32 i) {
   }
 }
 
-void World::buy_public_slaves(u32 count) {
+void World::buy_public_slaves(u32 count, bool paid) {
   BuildingDefId sq = defs->building("slave_quarters");
   for (u32 n = 0; n < count; ++n) {
     BuildingId q;
@@ -234,7 +234,7 @@ void World::buy_public_slaves(u32 count) {
       if (!q.valid() && b.def == sq && b.state == BState::Active && b.residents < b.capacity) q = id;
     });
     if (!q.valid() || !ensure_entry_tile()) return;
-    if (!pay(120, econ::Money::Other)) return;
+    if (paid && !pay(120, econ::Money::Other)) return;
     // One city-slave household per quarters.
     HouseholdId hh;
     for (u32 hi = buildings[q].first_household; hi != kNoIndex; hi = households.h[hi].next_in_house)

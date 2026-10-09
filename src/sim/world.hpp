@@ -7,8 +7,10 @@
 #include "core/rng.hpp"
 #include "data/defs.hpp"
 #include "econ/econ.hpp"
+#include "military/army.hpp"
 #include "path/nav.hpp"
 #include "path/path_system.hpp"
+#include "path/search.hpp"
 #include "sim/buildings.hpp"
 #include "sim/citizens.hpp"
 #include "sim/map.hpp"
@@ -30,6 +32,7 @@ struct WorldConfig {
   u32 max_citizens = 16384;
   u32 max_buildings = 4096;
   u32 max_households = 8192;
+  u32 max_soldiers = 6000;
   u32 threads = 0;  // 0 = hardware concurrency
   u32 path_budget = 256;
   u32 decision_budget = 1200;
@@ -39,7 +42,8 @@ struct WorldConfig {
 
 // ---- Commands: the only way the outside world mutates the sim (applied at tick start) -----------
 enum class CmdType : u8 { PlaceBuilding, PlaceRoad, Demolish, SetPolicy, OpenRoute, SetTrade, PlaceUnder, BuySlaves,
-                          Festival, Trigger, Debug };
+                          Festival, Trigger, RaiseUnit, UnitOrder, UnitFormation, UnitStance, DisbandUnit, Campaign,
+                          Debug };
 // Trigger ids (Command::def) for debug/scripted threats; Command::x0,y0 = target tile when relevant.
 enum class TriggerId : u16 { Fire, Collapse, Plague, Riot, Revolt, Flood, Earthquake, Drought, Storm, Blight,
                              Blessing, Wrath, Raid, Count };
@@ -158,6 +162,11 @@ struct World {
   i32 appeal = 0;             // last computed city appeal
   std::vector<ServiceId> need_services[8];  // services satisfying each data::NeedKind
 
+  military::Army army;
+  u32 soldiers_lost_ = 0, enemies_killed_ = 0;
+  u16 buy_captives_ = 0;
+  Tick nav_changed_tick_ = 0;
+
   std::vector<Command> commands;  // pending, applied at next tick start
   TickStats stats;
   u32 walking = 0;
@@ -242,7 +251,7 @@ struct World {
       default: return 5;
     }
   }
-  void buy_public_slaves(u32 count);
+  void buy_public_slaves(u32 count, bool paid = true);
   u32 births_today = 0, deaths_today = 0, marriages_today = 0, crimes_today = 0, crimes_yday = 0, freed_today = 0;
   u32 births_total = 0, deaths_total = 0, riots_total = 0;
 
@@ -278,6 +287,34 @@ struct World {
   u32 happy_count_today = 0;
   u8 avg_happiness = 128;
 
+  // Military (sim/military.cpp)
+  [[nodiscard]] u32 field_cost(i32 tile, u8 side) const;
+  void compute_field(military::FlowField& f, i32 target, u8 side);
+  i16 flow_field(i32 target, u8 side);
+  [[nodiscard]] i32 city_target_tile() const;
+  [[nodiscard]] i32 nearest_edge_tile(i32 from) const;
+  u16 spawn_unit(UnitDefId def, u8 side, f32 x, f32 y, u16 count, BuildingId home);
+  bool raise_unit(UnitDefId def, BuildingId barracks);
+  void disband_unit(u16 u);
+  void order_unit(u16 u, military::Order o, i32 tile);
+  void spawn_raid(UnitDefId def, u16 units, i32 side);
+  void military_tick();
+  void military_daily();
+  // Religion and threats (sim/religion.cpp, sim/threats.cpp)
+  void religion_daily();
+  void weather_daily();
+  void hazards_hourly(BuildingId id);
+  void ignite(BuildingId id);
+  void ruin(BuildingId id);
+  void disease_daily(BuildingId id);
+  void revolt_check(bool forced);
+  void trigger(TriggerId t, i32 x, i32 y, i32 value);
+  void hold_festival(u8 god, i32 size);
+  void god_blessing(u8 god);
+  void god_wrath(u8 god);
+  [[nodiscard]] bool effect(Effect e) const { return effect_until[static_cast<int>(e)] > now; }
+  void set_effect(Effect e, Tick duration) { effect_until[static_cast<int>(e)] = now + duration; }
+  [[nodiscard]] bool patrol_covers(const char* service, const Building& b) const;
  private:
   void apply_commands();
   void process_events();
@@ -301,21 +338,6 @@ struct World {
   void assign_goal(u32 i);
   void free_slave(u32 i);
   void riot_check();
-  // Religion and threats (sim/religion.cpp, sim/threats.cpp)
-  void religion_daily();
-  void weather_daily();
-  void hazards_hourly(BuildingId id);
-  void ignite(BuildingId id);
-  void ruin(BuildingId id);
-  void disease_daily(BuildingId id);
-  void revolt_check(bool forced);
-  void trigger(TriggerId t, i32 x, i32 y, i32 value);
-  void hold_festival(u8 god, i32 size);
-  void god_blessing(u8 god);
-  void god_wrath(u8 god);
-  [[nodiscard]] bool effect(Effect e) const { return effect_until[static_cast<int>(e)] > now; }
-  void set_effect(Effect e, Tick duration) { effect_until[static_cast<int>(e)] = now + duration; }
-  [[nodiscard]] bool patrol_covers(const char* service, const Building& b) const;
   void citizen_daily(u32 i);
   void immigration_hourly();
   void finish_leave(u32 i);
@@ -338,6 +360,7 @@ struct World {
   std::vector<u8> reservoir_full_;
   std::vector<i16> desir_acc_;
   data::HousingReq req_physician_, req_fountain_;
+  path::IndexedHeap field_heap_;
   bool providers_dirty_ = true;
 };
 

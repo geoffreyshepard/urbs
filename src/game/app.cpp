@@ -122,16 +122,34 @@ void App::handle_event(const SDL_Event& e) {
       }
       break;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
-      if (!ui_mouse && (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT)) dragging_ = true;
+      if (!ui_mouse && (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT)) {
+        dragging_ = true;
+        right_drag_ = 0;
+      }
       if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT && !tools_.mouse_down(mouse_tile())) pick_at_mouse();
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
-      if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) dragging_ = false;
+      if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) {
+        // A right click (not a drag) with a unit selected orders it to march there.
+        if (e.button.button == SDL_BUTTON_RIGHT && dragging_ && right_drag_ < 5 && !ui_mouse &&
+            sel_.unit < military::kMaxUnits && world_->army.units[sel_.unit].alive && world_->army.units[sel_.unit].side == 0) {
+          const Vec2i t = mouse_tile();
+          sim::Command c;
+          c.type = sim::CmdType::UnitOrder;
+          c.def = sel_.unit;
+          c.value = static_cast<i32>(military::Order::Move);
+          c.x0 = t.x;
+          c.y0 = t.y;
+          world_->push(c);
+        }
+        dragging_ = false;
+      }
       if (e.button.button == SDL_BUTTON_LEFT) tools_.mouse_up(mouse_tile(), *world_);
       break;
     case SDL_EVENT_MOUSE_MOTION:
       tools_.mouse_move(mouse_tile());
       if (dragging_) {
+        right_drag_ += std::fabs(e.motion.xrel) + std::fabs(e.motion.yrel);
         f32 k = cam.density / cam.scale();
         cam.center = cam.center - Vec2{e.motion.xrel * k, e.motion.yrel * k};
       }
@@ -360,6 +378,8 @@ void App::draw_debug_ui() {
   if (ImGui::Button("Religion")) show_religion_ = !show_religion_;
   ImGui::SameLine();
   if (ImGui::Button("Threats")) show_threats_ = !show_threats_;
+  ImGui::SameLine();
+  if (ImGui::Button("Military")) show_military_ = !show_military_;
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
@@ -401,6 +421,7 @@ void App::run() {
     draw_trade_panel(*world_, &show_trade_);
     draw_religion_panel(*world_, &show_religion_);
     draw_threats_panel(*world_, sel_, &show_threats_);
+    draw_military_panel(*world_, sel_, &show_military_);
     if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
       const auto& jb = world_->buildings[jump];
       renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};

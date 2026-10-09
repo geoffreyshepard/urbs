@@ -62,7 +62,7 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
     case sim::AlertKind::Crime: return "Crime near " + bname;
     case sim::AlertKind::Riot: return "Riot!";
     case sim::AlertKind::Revolt: return "Servile revolt!";
-    case sim::AlertKind::Raid: return "Raiders are approaching!";
+    case sim::AlertKind::Raid: return "Raiders are approaching! (" + std::to_string(a.arg) + " warbands)";
     case sim::AlertKind::GodAngry: {
       const u16 g = a.arg & 0xFF;
       if (g >= D.gods.size()) return "The gods stir";
@@ -74,6 +74,10 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
       if (a.arg == 1001) return "Flood! Low ground near the water is inundated.";
       if (a.arg == 1002) return "Earthquake!";
       if (a.arg == 1003) return "Blight withers the crops.";
+      if (a.arg == 1100) return "Not enough weapons and armor in the barracks to raise that unit.";
+      if (a.arg == 1101) return "Not enough recruits: too few men of fighting age are free.";
+      if (a.arg == 1200) return "The legion returns victorious with plunder and captives!";
+      if (a.arg == 1201) return "The campaign failed; the survivors return.";
       if (a.arg < D.gods.size()) return "A festival is held in honour of " + D.gods[a.arg].name;
       return "Event";
     default: return "Event";
@@ -239,6 +243,24 @@ void draw_building_panel(sim::World& w, Selection& sel) {
     ImGui::TreePop();
   }
   if (d.service.valid()) ImGui::Text("Visitors: %u / %u (served today %u)", b.visitors, d.service_capacity, b.served_today);
+  if (d.kind == data::BuildingKind::Military && !d.accepts.empty() && b.state == sim::BState::Active) {
+    ImGui::TextUnformatted("Raise a unit here:");
+    for (u16 u = 0; u < D.units.size(); ++u) {
+      const auto& ud = D.units[u];
+      if (ud.enemy) continue;
+      std::string gear;
+      for (const auto& g : ud.gear) gear += " " + std::to_string(g.amount * ud.size) + " " + D.goods[g.good.v].name;
+      if (ImGui::Button((ud.name + "##raise" + std::to_string(u)).c_str())) {
+        sim::Command c;
+        c.type = sim::CmdType::RaiseUnit;
+        c.def = u;
+        c.value = static_cast<i32>(sel.building.raw);
+        w.push(c);
+      }
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%u soldiers. Needs:%s", ud.size, gear.empty() ? " nothing" : gear.c_str());
+    }
+  }
   if (d.recipe.valid()) {
     const auto& r = D.recipes[d.recipe.v];
     ImGui::Text("Production: %u / %u", std::min<u32>(b.work_progress, r.work), r.work);
@@ -475,6 +497,65 @@ void draw_religion_panel(sim::World& w, bool* open) {
   ImGui::End();
 }
 
+void draw_military_panel(sim::World& w, Selection& sel, bool* open) {
+  if (!*open) return;
+  const auto& D = *w.defs;
+  ImGui::SetNextWindowPos({880, 60}, ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize({380, 420}, ImGuiCond_FirstUseEver);
+  ImGui::Begin("Military", open);
+  ImGui::TextWrapped("Select a unit, then right-click the map to move it. Raise units from a barracks.");
+  const char* consc[] = {"Volunteers only", "Conscript the employed too", "Full levy"};
+  int c = w.policy.conscription;
+  if (ImGui::Combo("Recruitment", &c, consc, 3)) {
+    sim::Command cmd;
+    cmd.type = sim::CmdType::SetPolicy;
+    cmd.def = static_cast<u16>(sim::PolicyId::Conscription);
+    cmd.value = c;
+    w.push(cmd);
+  }
+  ImGui::Text("Soldiers lost %u, enemies slain %u", w.soldiers_lost_, w.enemies_killed_);
+  ImGui::Separator();
+  for (u16 u = 0; u < military::kMaxUnits; ++u) {
+    const auto& un = w.army.units[u];
+    if (!un.alive) continue;
+    const auto& ud = D.units[un.def.v];
+    std::string label = (un.side ? std::string("[enemy] ") : "Cohors " + std::to_string(un.number) + " - ") + ud.name + " (" +
+                        std::to_string(un.count) + ", morale " + std::to_string(un.morale) + ", " +
+                        military::order_name(un.order) + ")##u" + std::to_string(u);
+    if (ImGui::Selectable(label.c_str(), sel.unit == u)) sel.unit = u;
+  }
+  if (sel.unit < military::kMaxUnits && w.army.units[sel.unit].alive && w.army.units[sel.unit].side == 0) {
+    const auto& un = w.army.units[sel.unit];
+    ImGui::Separator();
+    auto cmd = [&](sim::CmdType t, i32 v) {
+      sim::Command k;
+      k.type = t;
+      k.def = sel.unit;
+      k.value = v;
+      w.push(k);
+    };
+    ImGui::Text("Experience %u", un.exp);
+    for (int f = 0; f < 4; ++f) {
+      if (f) ImGui::SameLine();
+      if (ImGui::RadioButton(military::formation_name(static_cast<military::Formation>(f)), static_cast<int>(un.formation) == f))
+        cmd(sim::CmdType::UnitFormation, f);
+    }
+    if (ImGui::RadioButton("aggressive", un.stance == military::Stance::Aggressive)) cmd(sim::CmdType::UnitStance, 0);
+    ImGui::SameLine();
+    if (ImGui::RadioButton("defensive", un.stance == military::Stance::Defensive)) cmd(sim::CmdType::UnitStance, 1);
+    if (ImGui::Button("Return to barracks")) cmd(sim::CmdType::UnitOrder, static_cast<i32>(military::Order::Return));
+    ImGui::SameLine();
+    if (ImGui::Button("Disband")) cmd(sim::CmdType::DisbandUnit, 0);
+    ImGui::TextUnformatted("Off-map campaign (8 days):");
+    for (int lv = 1; lv <= 3; ++lv) {
+      if (lv > 1) ImGui::SameLine();
+      const char* nm[] = {"", "Skirmish", "Campaign", "Conquest"};
+      if (ImGui::Button(nm[lv])) cmd(sim::CmdType::Campaign, lv);
+    }
+  }
+  ImGui::End();
+}
+
 void draw_threats_panel(sim::World& w, const Selection& sel, bool* open) {
   if (!*open) return;
   ImGui::SetNextWindowPos({620, 380}, ImGuiCond_FirstUseEver);
@@ -486,9 +567,9 @@ void draw_threats_panel(sim::World& w, const Selection& sel, bool* open) {
     y = w.buildings[sel.building].y;
   }
   const char* names[] = {"Fire", "Collapse", "Plague", "Riot", "Servile revolt", "Flood", "Earthquake", "Drought",
-                         "Storm", "Blight", "Blessing", "Wrath"};
+                         "Storm", "Blight", "Blessing", "Wrath", "Raid"};
   static int god = 0;
-  for (int t = 0; t < 12; ++t) {
+  for (int t = 0; t < 13; ++t) {
     if (t % 3) ImGui::SameLine();
     if (ImGui::Button(names[t], ImVec2(120, 0))) {
       sim::Command c;
@@ -496,7 +577,7 @@ void draw_threats_panel(sim::World& w, const Selection& sel, bool* open) {
       c.def = static_cast<u16>(t);
       c.x0 = x;
       c.y0 = y;
-      c.value = god;
+      c.value = t == 12 ? 3 : god;
       w.push(c);
     }
   }
@@ -524,6 +605,19 @@ BuildingId draw_alerts_panel(const sim::World& w, bool* open) {
 
 void draw_selection(const sim::World& w, const Selection& sel, render::Renderer& r, f32 alpha) {
   const f32 T = static_cast<f32>(sim::kTilePx);
+  if (sel.unit < military::kMaxUnits && w.army.units[sel.unit].alive) {
+    const auto& A = w.army;
+    for (u32 i = 0; i < A.ids.high_water(); ++i)
+      if (A.ids.alive_index(i) && A.unit[i] == sel.unit) {
+        const f32 x = (A.px[i] + (A.x[i] - A.px[i]) * alpha) * T, y = (A.py[i] + (A.y[i] - A.py[i]) * alpha) * T;
+        r.push_rect(x - 3, y + 3, 6, 1, 0.01f, render::rgba(255, 240, 120, 220));
+      }
+    const auto& un = A.units[sel.unit];
+    if (un.target_tile >= 0) {
+      const f32 tx = static_cast<f32>(un.target_tile % w.map.w) * T, ty = static_cast<f32>(un.target_tile / w.map.w) * T;
+      r.push_rect(tx, ty, T, T, 0.01f, render::rgba(255, 240, 120, 90));
+    }
+  }
   if (sel.building.valid() && w.buildings.alive(sel.building)) {
     const auto& b = w.buildings[sel.building];
     const f32 x = static_cast<f32>(b.x) * T, y = static_cast<f32>(b.y) * T, bw = static_cast<f32>(b.w) * T,

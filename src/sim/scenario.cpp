@@ -384,6 +384,23 @@ void setup_policy(World& w, const ScenarioSpec& s) {
     w.policy.wage = p.value("wage", w.policy.wage);
   }
   if (j.contains("start_slaves")) w.buy_public_slaves(j["start_slaves"].get<u32>());
+  if (j.contains("battle")) {
+    auto& b = j["battle"];
+    const i32 c = w.city_target_tile();
+    i32 k = 0;
+    if (b.contains("city"))
+      for (auto& e : b["city"]) {
+        UnitDefId d = w.defs->unit(e[0].get<std::string>());
+        for (i32 n = 0; n < e[1].get<i32>(); ++n, ++k) {
+          const f32 x = static_cast<f32>(c % w.map.w) + static_cast<f32>((k % 8) * 8 - 28);
+          const f32 y = static_cast<f32>(c / w.map.w) + static_cast<f32>((k / 8) * 6 - 12);
+          w.spawn_unit(d, 0, std::clamp(x, 2.0f, static_cast<f32>(w.map.w - 3)), std::clamp(y, 2.0f, static_cast<f32>(w.map.h - 3)),
+                       w.defs->units[d.v].size, BuildingId{});
+        }
+      }
+    if (b.contains("enemy"))
+      for (auto& e : b["enemy"]) w.spawn_raid(w.defs->unit(e[0].get<std::string>()), e[1].get<u16>(), b.value("side", 3));
+  }
 }
 }  // namespace
 

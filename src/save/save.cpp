@@ -125,6 +125,18 @@ void World::serialize(save::Writer& w) const {
   w.pod(fires_total);
   w.pod(collapses_total);
   w.pod(plague_houses);
+  w.tag("ARMY");
+  save::write_slots(w, army.ids);
+  w.vec(army.x); w.vec(army.y); w.vec(army.px); w.vec(army.py); w.vec(army.hp); w.vec(army.unit); w.vec(army.slot);
+  w.vec(army.cooldown); w.vec(army.target); w.vec(army.facing); w.vec(army.walked); w.vec(army.attacking);
+  for (const auto& u : army.units) w.pod(u);
+  w.vec(army.projectiles);
+  w.pod(army.deployed);
+  w.pod(army.next_number);
+  w.pod(soldiers_lost_);
+  w.pod(enemies_killed_);
+  w.pod(buy_captives_);
+  w.pod(nav_changed_tick_);
   w.pod(static_cast<u8>(water_dirty));
   w.pod(static_cast<u8>(desir_dirty));
   w.tag("END.");
@@ -212,6 +224,21 @@ void World::deserialize(save::Reader& r) {
   r.pod(fires_total);
   r.pod(collapses_total);
   r.pod(plague_houses);
+  r.expect("ARMY");
+  save::read_slots(r, army.ids);
+  r.vec(army.x); r.vec(army.y); r.vec(army.px); r.vec(army.py); r.vec(army.hp); r.vec(army.unit); r.vec(army.slot);
+  r.vec(army.cooldown); r.vec(army.target); r.vec(army.facing); r.vec(army.walked); r.vec(army.attacking);
+  for (auto& u : army.units) {
+    r.pod(u);
+    u.field = -1;  // flow fields are recomputed on demand
+  }
+  r.vec(army.projectiles);
+  r.pod(army.deployed);
+  r.pod(army.next_number);
+  r.pod(soldiers_lost_);
+  r.pod(enemies_killed_);
+  r.pod(buy_captives_);
+  r.pod(nav_changed_tick_);
   water_dirty = r.pod<u8>() != 0;
   desir_dirty = r.pod<u8>() != 0;
   r.expect("END.");
