@@ -33,6 +33,8 @@ int main(int argc, char** argv) {
   int difficulty = -1;
   u64 seed_override = 0;
   std::vector<std::string> mods;
+  i32 ascii[4] = {-1, -1, -1, -1};
+  std::vector<std::string> watch;   // --watch a,b,c: print these goods' city stock in the daily trace  // --ascii x0 y0 x1 y1: print that part of the map at the end
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
@@ -50,6 +52,15 @@ int main(int argc, char** argv) {
     else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
     else if (is("--seed") && i + 1 < argc) seed_override = std::strtoull(argv[++i], nullptr, 10);
     else if (is("--mod") && i + 1 < argc) mods.emplace_back(argv[++i]);
+    else if (is("--watch") && i + 1 < argc) {
+      std::string list = argv[++i];
+      for (size_t a = 0, b; a <= list.size(); a = b + 1) {
+        b = list.find(',', a);
+        if (b == std::string::npos) b = list.size();
+        if (b > a) watch.push_back(list.substr(a, b - a));
+      }
+    } else if (is("--ascii") && i + 4 < argc)
+      for (int k = 0; k < 4; ++k) ascii[k] = std::atoi(argv[++i]);
   }
   core::init_logging(verbose);
   if (scenario_path.empty() && load_path.empty()) {
@@ -87,6 +98,22 @@ int main(int argc, char** argv) {
     for (auto r : world->map.resource) ++res[static_cast<int>(r)];
     std::printf("resource tiles: clay %u stone %u iron %u silver %u marble %u limestone %u pozzolana %u fish %u\n", res[1],
                 res[2], res[3], res[4], res[5], res[6], res[7], res[8]);
+    // Land deposits a town at the entry can reach (a tile in the entry's region, or next to one).
+    u32 reach[static_cast<int>(sim::Resource::Count)] = {};
+    const auto& M = world->map;
+    for (i32 y = 0; y < M.h; ++y)
+      for (i32 x = 0; x < M.w; ++x) {
+        const auto r = static_cast<int>(M.resource[static_cast<size_t>(M.idx(x, y))]);
+        if (r == 0 || world->entry_tile < 0) continue;
+        bool ok = false;
+        for (int d = 0; d < 9 && !ok; ++d) {
+          const i32 nx = x + d % 3 - 1, ny = y + d / 3 - 1;
+          ok = world->nav.walkable(nx, ny) && world->nav.connected(M.idx(nx, ny), world->entry_tile);
+        }
+        if (ok) ++reach[r];
+      }
+    std::printf("  reachable from the entry: clay %u stone %u iron %u silver %u marble %u limestone %u pozzolana %u\n",
+                reach[1], reach[2], reach[3], reach[4], reach[5], reach[6], reach[7]);
   }
   u32 att_present = 0, att_employed = 0;
   sim::Autoplay bot;
@@ -151,9 +178,35 @@ int main(int argc, char** argv) {
                   world->mission_days, world->population(), world->avg_happiness, food, hh, nofood, adults, idle, jobs,
                   static_cast<long long>(world->econ.treasury), world->favor, world->immigrants_total, world->emigrants_total,
                   autoplay ? bot.last_action().c_str() : "");
+      if (!watch.empty()) {
+        std::printf("    stock:");
+        for (const auto& g : watch) {
+          const GoodId gid = defs.good(g);
+          std::printf(" %s %u", g.c_str(), gid.valid() ? world->econ.city_stock[gid.v] : 0u);
+        }
+        std::printf("\n");
+      }
       if (verbose) {
         // Attendance at workshops at the last mid-morning sample.
         std::printf("    attendance at 10:00: %u of %u workshop workers present\n", att_present, att_employed);
+        // Jobless adults and open jobs, split by whether they connect to the entry tile.
+        const auto& C3 = world->citizens;
+        const i32 entry = world->entry_tile;
+        u32 idle_in = 0, idle_out = 0, open_in = 0, open_out = 0;
+        for (u32 i = 0; i < C3.ids.high_water(); ++i) {
+          if (!C3.ids.alive_index(i) || C3.work[i].valid() || !C3.home[i].valid() || !world->buildings.alive(C3.home[i])) continue;
+          const u32 age = C3.age_years(i, world->now);
+          if (age < 14 || age >= 60 || C3.cls[i] == sim::CitizenClass::Patrician || C3.cls[i] == sim::CitizenClass::Soldier) continue;
+          const i32 he = world->buildings[C3.home[i]].entrance;
+          (he >= 0 && entry >= 0 && world->nav.connected(he, entry) ? idle_in : idle_out)++;
+        }
+        world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+          if (b.jobs <= b.employed || (b.state != sim::BState::Active && b.state != sim::BState::Construction)) return;
+          const u32 open = b.jobs - b.employed;
+          (b.entrance >= 0 && entry >= 0 && world->nav.connected(b.entrance, entry) ? open_in : open_out) += open;
+        });
+        std::printf("    jobless %u (+%u cut off from the entry), open jobs %u (+%u cut off), entry %d,%d\n", idle_in, idle_out, open_in,
+                    open_out, entry % world->map.w, entry / world->map.w);
       }
       if (verbose && world->mission_days % 10 == 0) {
         i64 a[13] = {};
@@ -419,10 +472,37 @@ int main(int argc, char** argv) {
                 tiers[1], tiers[2], tiers[3], tiers[4], world->appeal, world->avg_happiness, world->immigrants_total,
                 world->emigrants_total);
   }
+  if (ascii[0] >= 0) {
+    // Map excerpt: ~ water, # road, letters are buildings (first letter of the id, uppercase at the
+    // entrance), . walkable and reachable from the entry, , walkable but cut off, x blocked.
+    const auto& M = world->map;
+    for (i32 y = ascii[1]; y <= ascii[3]; ++y) {
+      std::printf("%3d ", y);
+      for (i32 x = ascii[0]; x <= ascii[2]; ++x) {
+        if (!M.in_bounds(x, y)) continue;
+        const i32 t = M.idx(x, y);
+        const size_t i = static_cast<size_t>(t);
+        const bool reach = world->entry_tile >= 0 && world->nav.walkable(x, y) && world->nav.connected(t, world->entry_tile);
+        char ch = world->nav.walkable(x, y) ? (reach ? '.' : ',') : 'x';
+        if (sim::terrain_water(M.terrain[i])) ch = '~';
+        if (M.road[i] != sim::Road::None) ch = reach ? '#' : '%';
+        if (M.building[i].valid() && world->buildings.alive(M.building[i])) {
+          const auto& b = world->buildings[M.building[i]];
+          ch = world->defs->b(b.def).id[0];
+          if (b.entrance == t) ch = static_cast<char>(ch - 32);
+        }
+        if (t == world->entry_tile) ch = '@';
+        std::putchar(ch);
+      }
+      std::putchar('\n');
+    }
+  }
   if (dump) {
     world->buildings.for_each([&](BuildingId, const sim::Building& b) {
       const auto& d = defs.b(b.def);
-      std::printf("%-14s at %3d,%3d ent=%d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(), b.x, b.y, b.entrance,
+      std::printf("%-14s %s at %3d,%3d ent=%d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(),
+                  b.entrance >= 0 && world->entry_tile >= 0 && !world->nav.connected(b.entrance, world->entry_tile) ? "CUT" : "",
+                  b.x, b.y, b.entrance,
                   static_cast<int>(b.state), b.jobs, b.employed, b.present, b.build_progress, b.build_needed,
                   b.work_progress);
       if (b.inv != econ::kNoInv)
