@@ -61,6 +61,7 @@ void App::after_world_change() {
   renderer_.set_map(&world_->map);
   sel_ = Selection{};
   tools_.cancel();
+  alerts_seen_ = world_->now;
   end_dismissed_ = false;
   last_message_ = 0;
   overlay_ = Overlay::None;
