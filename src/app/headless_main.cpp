@@ -59,12 +59,20 @@ int main(int argc, char** argv) {
         if (b == std::string::npos) b = list.size();
         if (b > a) watch.push_back(list.substr(a, b - a));
       }
-    } else if (is("--ascii") && i + 4 < argc)
+    } else if (is("--ascii") && i + 4 < argc) {
       for (int k = 0; k < 4; ++k) ascii[k] = std::atoi(argv[++i]);
+    } else {
+      // A mistyped or missing-value flag must not pass silently (a CI check once did, for months).
+      std::fprintf(stderr, "urbs_headless: unknown option or missing value: %s\n", argv[i]);
+      return 2;
+    }
   }
   core::init_logging(verbose);
   if (scenario_path.empty() && load_path.empty()) {
-    std::fprintf(stderr, "usage: urbs_headless (--scenario file.json | --load save.urbs) [--ticks N] [--test]\n");
+    std::fprintf(stderr,
+                 "usage: urbs_headless (--scenario file.json | --load save.urbs) [--ticks N] [--test] [--autoplay]\n"
+                 "       [--daily] [--verbose] [--dump] [--difficulty 0-2] [--seed N] [--mod dir]... [--watch goods]\n"
+                 "       [--ascii x0 y0 x1 y1] [--version]\n");
     return 2;
   }
   data::Defs defs;
