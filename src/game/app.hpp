@@ -3,6 +3,7 @@
 #include <string>
 
 #include "data/defs.hpp"
+#include "game/music.hpp"
 #include "game/overlays.hpp"
 #include "game/panels.hpp"
 #include "game/profile.hpp"
@@ -32,6 +33,7 @@ struct AppOptions {
   bool no_ui = false;
   int overlay = 0;
   bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
+  bool mute = false;      // no audio device (screenshot runs are always silent)
 };
 
 AppOptions parse_args(int argc, char** argv);
@@ -106,6 +108,8 @@ class App {
   AppOptions opt_;
   platform::Window win_;
   render::Renderer renderer_;
+  platform::Audio audio_;
+  MusicDirector music_;
   data::Defs defs_, base_defs_;
   std::string root_, user_dir_;
   std::unique_ptr<sim::World> world_;

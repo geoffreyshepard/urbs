@@ -40,6 +40,7 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
+    else if (std::strcmp(argv[i], "--mute") == 0) o.mute = true;
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -96,6 +97,7 @@ void App::start_scenario(sim::ScenarioSpec spec) {
   after_world_change();
   screen_ = Screen::Playing;
   speed_ = 1;
+  music_.mission_started(*world_);
 }
 
 void App::new_world(const std::string& scenario) {
@@ -218,6 +220,7 @@ bool App::load_slot(const std::string& name) {
   after_world_change();
   screen_ = Screen::Playing;
   speed_ = 0;
+  music_.mission_started(*world_);
   status_ = "Loaded (" + name + ").";
   status_time_ = 4;
   return true;
@@ -242,6 +245,8 @@ bool App::init(const AppOptions& opt) {
 
   root_ = platform::data_root();
   if (!renderer_.init(win_, root_)) return false;
+  if (opt.screenshot.empty() && !opt.mute && audio_.init()) audio_.set_volume(settings_.music_volume);
+  music_.init(root_, &audio_);
   set_overlay_colorblind(settings_.colorblind);
   mods_ = find_mods(root_, user_dir_);
   {
@@ -556,6 +561,15 @@ void App::run() {
     while (SDL_PollEvent(&e)) handle_event(e);
     update_camera(static_cast<f32>(dt));
     step_sim(dt);
+    {
+      const MusicContext ctx = screen_ == Screen::Playing    ? MusicContext::Playing
+                               : screen_ == Screen::Menu     ? MusicContext::Menu
+                               : screen_ == Screen::Campaign ? MusicContext::Map
+                                                             : MusicContext::Setup;
+      const bool end_screen = world_->mission != sim::MissionState::Running && !end_dismissed_;
+      music_.update(static_cast<f32>(dt), ctx, screen_ == Screen::Playing ? world_.get() : nullptr, end_screen);
+      audio_.pump();
+    }
     renderer_.time += static_cast<f32>(dt);
     if (status_time_ > 0) status_time_ -= static_cast<f32>(dt);
 
@@ -617,6 +631,7 @@ void App::run() {
 }
 
 void App::shutdown() {
+  audio_.shutdown();
   icons_.shutdown(win_.gpu);
   renderer_.shutdown();
   ImGui_ImplSDL3_Shutdown();

@@ -37,11 +37,33 @@ Loops are rendered seamlessly: the reverb tail is wrapped onto the head of the f
 
 `mix.LOUDNESS` sets a gated-RMS target per kind (city −19 dBFS, battle −16, lament −20, and so on), so a city track never jumps out at the player, while battles feel bigger. A soft limiter above 0.8 keeps peaks below 0.99. The build reports the share of samples limited and flags any track above 0.3%.
 
-## Playback rules (engine)
+## Playback (engine)
 
-- A city track is eligible when its `missions` list contains the mission, or when both `eras` and `regions` match (`default` = a mission without a region). Shuffle by `weight`, doubled in `prefer_seasons`, and never repeat the previous track.
-- Priority: stinger (ducked over everything) > battle > disaster > tension > festival > city. Crossfade 2.5 s (1 s into battle).
-- Music runs entirely in the game/platform layers. The sim never knows about it (CLAUDE.md rule 1). The game layer reads sim state such as threats, battles, festivals and favour.
+Music runs entirely in the presentation layers. The sim never knows about it (CLAUDE.md rule 1).
+
+- **`platform::Audio`** (`src/platform/audio.*`): SDL3 audio stream, stb_vorbis decoding, two crossfading music voices and a stinger voice that ducks the music by `stinger_duck_db`. Decoding and mixing happen on the main thread in `pump()`, which keeps ~250 ms queued, so no state is shared with the audio thread. No audio device means silence and nothing else.
+- **`game::MusicDirector`** (`src/game/music.*`) decides what plays. The rules it uses (manifest loading, which tracks fit, signals, mood priority) are in `src/game/music_rules.*`, which has no SDL dependency and is unit-tested (`tests/test_music.cpp`).
+- **Out of a mission:** main menu → `urbs_aeterna`, province map → `mare_nostrum` (each replays after a 8–20 s silence), setup screens (sandbox, custom, mods, editor) → `senatus`.
+- **In a mission:** a `mission_start` stinger, then the city playlist. A city track is eligible when its `missions` list names the mission, or when both `eras` and `regions` match (`default` = no region). The era comes from the world: `empire`, else Late Republic from mission 9, else Republic. Picks are weighted by `weight`, doubled in `prefer_seasons`, never the same track twice in a row, with 45–150 s of silence between tracks.
+- **Moods**, read from the world every 0.5 s, highest priority first:
+
+| Mood | Cause | Track |
+|---|---|---|
+| Mission over | Won or lost, while the end panel shows | `urbs_aeterna` (won), `senatus` (lost) |
+| Large battle | Fighting with ≥150 enemy soldiers | `rhenus` |
+| Siege | Fighting, no city soldiers in the field (walls and towers alone) | `obsidio` |
+| Skirmish | Any other fighting | `proelium` |
+| Disaster | ≥5 buildings burning, or an earthquake in the last 6 game hours | `incendium` |
+| Raid near | Enemy soldiers on the map, no fighting yet | `hostes` |
+| Unrest | A riot or slave revolt in the last game day, or favor below 20 | `seditio` |
+| Aftermath | After a disaster that lasted ≥30 s (plays once) | `lamentatio` |
+| Festival | A festival is running (plays once per festival) | `saturnalia` (Republic), `ludi` (Empire) |
+| City | Otherwise | playlist |
+
+  Battle music holds 8 s and disaster music 10 s after their cause ends, so the music doesn't flicker. Crossfades are 2.5 s (1 s into battle). When the city returns, the playlist resumes with a new track after a short pause.
+- **Stingers**, from the world's alerts (at most one per 0.5 s poll, each event at most every 20 s, never stacked except the mission outcome): raid sighted, god's blessing or wrath, request from Rome, monument dedicated, festival begins, a won campaign (`s_promotion`), mission won or failed, and a career promotion (on the province map).
+- **Settings:** "Music volume" (`music_volume` in settings.json, default 0.7). `--mute` starts without audio; `--screenshot` runs are always silent.
+- **Testing without speakers:** `SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE=out.raw` writes the mix (f32 stereo 44.1 kHz) to a file. The log prints every mood change and track.
 
 ## Workflow
 

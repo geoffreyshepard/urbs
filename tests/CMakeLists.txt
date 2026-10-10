@@ -1,5 +1,7 @@
 file(GLOB URBS_TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_executable(urbs_tests ${URBS_TEST_SOURCES})
+# Music selection rules live in the game layer but have no SDL dependency.
+target_sources(urbs_tests PRIVATE ${CMAKE_SOURCE_DIR}/src/game/music_rules.cpp)
 target_link_libraries(urbs_tests PRIVATE urbs_sim doctest_lib urbs_alloc_hook)
 target_compile_definitions(urbs_tests PRIVATE URBS_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 urbs_warnings(urbs_tests)

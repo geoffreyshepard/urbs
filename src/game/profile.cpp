@@ -33,13 +33,15 @@ void Settings::load(const std::string& dir) {
   fullscreen = j.value("fullscreen", fullscreen);
   difficulty = j.value("difficulty", difficulty);
   colorblind = j.value("colorblind", colorblind);
+  music_volume = std::clamp(j.value("music_volume", music_volume), 0.0f, 1.0f);
   mods = j.value("mods", mods);
 }
 
 void Settings::save(const std::string& dir) const {
   write_json(dir + "settings.json", json{{"ui_scale", ui_scale}, {"edge_scroll", edge_scroll}, {"autosave", autosave},
                                          {"fullscreen", fullscreen}, {"difficulty", difficulty},
-                                         {"colorblind", colorblind}, {"mods", mods}});
+                                         {"colorblind", colorblind}, {"music_volume", music_volume},
+                                         {"mods", mods}});
 }
 
 std::vector<ModInfo> find_mods(const std::string& data_root, const std::string& user_dir) {

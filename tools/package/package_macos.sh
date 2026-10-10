@@ -17,12 +17,13 @@ mkdir -p "$DIST"
 cp -R build/release/urbs.app "$APP"
 RES="$APP/Contents/Resources"
 mkdir -p "$RES"
-# Game content: definitions, campaign, scenarios, sprite atlas. Generators and sources stay out.
+# Game content: definitions, campaign, scenarios, sprite atlas, music. Generators and sources stay out.
 rsync -a --delete data/ "$RES/data/"
 [ -d mods ] && rsync -a --delete mods/ "$RES/mods/"
 mkdir -p "$RES/assets"
 rsync -a --delete assets/atlas/ "$RES/assets/atlas/"
 [ -d assets/sprites ] && rsync -a --delete assets/sprites/ "$RES/assets/sprites/"
+rsync -a --delete assets/music/ "$RES/assets/music/"
 for f in LICENSE.md LICENSE-ASSETS.txt NOTICE README.md RELEASE_NOTES.md; do
   [ -f "$f" ] && cp "$f" "$RES/"
 done

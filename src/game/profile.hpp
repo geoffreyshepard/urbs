@@ -13,6 +13,7 @@ struct Settings {
   bool fullscreen = false;
   int difficulty = 1;  // 0 Otium, 1 Civitas, 2 Imperium
   bool colorblind = false;          // overlays use a blue-orange scale instead of green-red
+  float music_volume = 0.7f;
   std::vector<std::string> mods;    // enabled mods, by folder name, in load order
   void load(const std::string& dir);
   void save(const std::string& dir) const;

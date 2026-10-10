@@ -70,7 +70,10 @@ void App::draw_ui() {
           if (mission_index_ >= 0) {
             if (big_button("To the province map")) {
               const auto& id = campaign_.missions[static_cast<size_t>(mission_index_)].id;
-              if (!profile_.done(id)) profile_.completed.push_back(id);
+              if (!profile_.done(id)) {
+                profile_.completed.push_back(id);
+                music_.promoted();
+              }
               profile_.save(user_dir_);
               selected_mission_ = profile_.next_index(campaign_);
               menu_background();
@@ -384,13 +387,15 @@ void App::draw_pause() {
 }
 
 void App::draw_settings() {
-  center_next(400, 330);
+  center_next(400, 360);
   ImGui::Begin("Settings", &show_settings_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
   if (ImGui::SliderFloat("UI scale", &settings_.ui_scale, 0.75f, 2.0f, "%.2f")) apply_roman_style(settings_.ui_scale);
   ImGui::Checkbox("Scroll at screen edges", &settings_.edge_scroll);
   ImGui::Checkbox("Autosave every four days", &settings_.autosave);
   if (ImGui::Checkbox("Colour-blind friendly overlays", &settings_.colorblind)) set_overlay_colorblind(settings_.colorblind);
   if (ImGui::Checkbox("Fullscreen", &settings_.fullscreen)) SDL_SetWindowFullscreen(win_.window, settings_.fullscreen);
+  if (ImGui::SliderFloat("Music volume", &settings_.music_volume, 0.0f, 1.0f, "%.2f"))
+    audio_.set_volume(settings_.music_volume);
   ImGui::Combo("Difficulty", &settings_.difficulty, kDifficulty, 3);
   ImGui::TextWrapped("Difficulty applies to newly started missions.");
   if (big_button("Done")) {
@@ -614,6 +619,11 @@ void App::draw_debug_ui() {
   ImGui::Text("citizens %u  walking %u  buildings %u  soldiers %u", w.citizens.ids.count(), w.walking,
               w.buildings.ids.count(), w.army.deployed);
   ImGui::Text("appeal %d", w.appeal);
+  {
+    const std::string& track = audio_.current_music();
+    ImGui::Text("music: %s  %s", music_.mood_name(),
+                track.empty() ? "(silence)" : track.substr(track.rfind('/') + 1).c_str());
+  }
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
