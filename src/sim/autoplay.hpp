@@ -36,9 +36,13 @@ class Autoplay {
   bool build_for_requirement(World& w, const data::HousingReq& r, i32 cx, i32 cy);
   bool build_producer_of(World& w, GoodId g, i32 cx, i32 cy, int depth);
   bool repair_chain(World& w, GoodId g, i32 cx, i32 cy, int depth);
+  bool importable(World& w, GoodId g) const;  // an open trade route sells g
   // Make sure g is produced or imported; true if a building was placed for it.
   bool supply(World& w, GoodId g, u32 amount, i32 x, i32 y);
   int supplying_ = 0;
+  bool site_first_ = false;  // place() may lay out a site whose materials will arrive later
+  bool obtainable(World& w, GoodId g) const;  // made here or sold by an open route
+  bool is_goal(World& w, BuildingDefId d) const;
   std::vector<u16> pending_;  // building defs ordered this hour
   [[nodiscard]] u32 producers_of(World& w, GoodId g) const;
   bool plumb(World& w);

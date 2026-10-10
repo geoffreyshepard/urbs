@@ -14,9 +14,12 @@ constexpr i32 kSp = 9;  // road spacing: 8-tile blocks
 
 void Autoplay::init(World& w) {
   // Origin: the road tile closest to the map centre (the end of the entry road), else the centre.
+  // Only roads that reach the entry count: a stray road elsewhere would put the town out of reach.
+  w.ensure_entry_tile();
   i32 best = -1, bd = 1 << 30;
   for (i32 i = 0; i < w.map.w * w.map.h; ++i) {
     if (w.map.road[static_cast<size_t>(i)] == Road::None) continue;
+    if (w.entry_tile >= 0 && !w.nav.connected(i, w.entry_tile)) continue;
     const i32 d = std::abs(i % w.map.w - w.map.w / 2) + std::abs(i / w.map.w - w.map.h / 2);
     if (d < bd) {
       bd = d;
@@ -80,6 +83,21 @@ u32 Autoplay::producers_of(World& w, GoodId g) const {
   });
   for (u16 p : pending_) n += makes(BuildingDefId{p}) ? 1u : 0u;
   return n;
+}
+
+bool Autoplay::importable(World& w, GoodId g) const {
+  for (u32 p = 0; p < w.routes.size(); ++p)
+    for (const auto& ga : w.defs->partners[p].sells)
+      if (w.routes[p].open && ga.good == g) return true;
+  return false;
+}
+
+bool Autoplay::obtainable(World& w, GoodId g) const { return importable(w, g) || producers_of(w, g) > 0; }
+
+bool Autoplay::is_goal(World& w, BuildingDefId d) const {
+  for (const auto& g : w.goals.buildings)
+    if (g.def == d) return true;
+  return false;
 }
 
 bool Autoplay::supply(World& w, GoodId g, u32 amount, i32 x, i32 y) {
@@ -239,7 +257,7 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
   const i64 reserve = d.kind == BuildingKind::House ? 50 : 100 + std::min<i64>(1500, wages / 2);
   if (w.econ.treasury < cost + reserve) return false;
   // Materials first: a site whose materials nobody makes would stall. Make (or import) them, then build.
-  if (supplying_ < 2)
+  if (supplying_ < 2 && !site_first_)
     for (const auto& c : d.cost_goods) {
       const u32 need = d.kind == BuildingKind::Monument ? (c.amount + 3) / 4 : c.amount;
       if (w.econ.city_stock[c.good.v] >= need) continue;
@@ -382,11 +400,14 @@ bool Autoplay::build_producer_of(World& w, GoodId g, i32 cx, i32 cy, int depth) 
     if (!makes) continue;
     // Build missing inputs first: one input producer for every two consumers is a fair default.
     const u32 consumers = producers_of(w, g);
-    for (const auto& in : r.inputs)
-      if (w.econ.city_stock[in.good.v] < 20 && producers_of(w, in.good) * 2 < consumers + 1 &&
-          build_producer_of(w, in.good, cx, cy, depth + 1))
-        return true;
-    if (place(w, BuildingDefId{k}, cx, cy)) return true;
+    bool starved = false;
+    for (const auto& in : r.inputs) {
+      if (w.econ.city_stock[in.good.v] >= 20) continue;
+      if (producers_of(w, in.good) * 2 < consumers + 1 && build_producer_of(w, in.good, cx, cy, depth + 1)) return true;
+      // An input nobody makes and no open route sells (no deposit within reach): this workshop would only idle.
+      if (producers_of(w, in.good) == 0 && !importable(w, in.good)) starved = true;
+    }
+    if (!starved && place(w, BuildingDefId{k}, cx, cy)) return true;
   }
   return false;
 }
@@ -745,7 +766,7 @@ void Autoplay::act(World& w) {
       c.x1 = b.x + b.w - 1;
       c.y1 = b.y + b.h - 1;
       w.push(c);
-      note("cleared ruins");
+      note("cleared ruins of a " + w.defs->b(b.def).name);
       return;
     }
   }
@@ -813,7 +834,10 @@ void Autoplay::act(World& w) {
   if (fire_cooldown_ <= w.now) {
     i32 fx = -1, fy = -1;
     w.buildings.for_each([&](BuildingId, const Building& b) {
-      if (fx < 0 && b.state == BState::Active && b.fire_risk > 100 && !w.patrol_covers("vigiles", b)) {
+      // Trade posts, harbors and goal buildings (sites too) are worth guarding before any risk shows.
+      const bool key = w.defs->b(b.def).kind == BuildingKind::TradePost || is_goal(w, b.def);
+      if (fx < 0 && (b.state == BState::Active || (key && b.state == BState::Construction)) &&
+          (b.fire_risk > 100 || key) && !w.patrol_covers("vigiles", b)) {
         fx = b.x;
         fy = b.y;
       }
@@ -829,10 +853,19 @@ void Autoplay::act(World& w) {
   BuildingId clear;
   w.buildings.for_each([&](BuildingId id, const Building& b) {
     const auto& sd = w.defs->b(b.def);
-    if (b.state != BState::Construction || sd.kind == BuildingKind::House) return;
+    if (sd.kind == BuildingKind::House) return;
+    // A finished building left with no way in (see World::refresh_entrances) is useless: clear it.
+    if (b.state == BState::Active && (b.flags & kBuildingCutOff)) {
+      bad_spots_.insert((static_cast<u64>(b.def.v) << 32) | (static_cast<u64>(static_cast<u16>(b.x)) << 16) |
+                        static_cast<u16>(b.y));
+      clear = id;
+      return;
+    }
+    if (b.state != BState::Construction) return;
     // A site cut off from the town (its footprint was the only way through): clear it at once and
     // never try that spot again.
-    if (b.entrance >= 0 && !w.nav.connected(b.entrance, w.map.idx(ox_, oy_))) {
+    if (b.entrance >= 0 && (!w.nav.connected(b.entrance, w.map.idx(ox_, oy_)) ||
+                            (w.entry_tile >= 0 && !w.nav.connected(b.entrance, w.entry_tile)))) {
       bad_spots_.insert((static_cast<u64>(b.def.v) << 32) | (static_cast<u64>(static_cast<u16>(b.x)) << 16) |
                         static_cast<u16>(b.y));
       clear = id;
@@ -843,9 +876,13 @@ void Autoplay::act(World& w) {
       // Hopeless (materials the city does not have, or ready but nobody can reach it) after four days;
       // otherwise far sites get time for their deliveries.
       bool hopeless = w.site_ready(b) && b.employed == 0;
+      const bool goal = is_goal(w, b.def);
       for (const auto& c : sd.cost_goods)
-        if (w.econ.city_stock[c.good.v] + (b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0u) < c.amount) hopeless = true;
-      if (!fresh && w.now - it->second > (hopeless ? 4 : 12) * kTicksPerDay) clear = id;
+        if (w.econ.city_stock[c.good.v] + (b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0u) < c.amount &&
+            (!goal || !obtainable(w, c.good)))
+          hopeless = true;
+      // A goal site waits as long as its materials can still come (imports may take weeks).
+      if (!fresh && w.now - it->second > (hopeless ? 4 : goal ? 60 : 12) * kTicksPerDay) clear = id;
     } else {
       stuck_since_.erase(id.raw);
     }
@@ -943,6 +980,16 @@ void Autoplay::act(World& w) {
   if (pop >= 40 && ensure("forum", 1 + pop / 500)) return;
   if (pop >= 120 && ensure("vigiles_post", pop / 250)) return;
   if (pop >= 150 && w.mission_number >= 3 && ensure("militia_post", 1 + pop / 1500)) return;
+  // Towers by the heart of the city (where raiders head) once raids are expected or have come.
+  if (pop >= 400 && (w.goals.security > 0 || (last_enemy_ > 0 && w.now - last_enemy_ < 40 * kTicksPerDay))) {
+    const BuildingDefId tower = w.defs->building("tower");
+    const GoodId stone = w.defs->good("stone");
+    if (tower.valid() && w.is_unlocked(tower) && count(w, "tower") < std::min<u32>(6, 1 + pop / 1500) &&
+        stone.valid() && w.econ.city_stock[stone.v] >= 30) {
+      const i32 t = w.city_target_tile();
+      if (place(w, tower, t % w.map.w, t / w.map.w)) return;
+    }
+  }
   if (pop >= 200 && ensure("engineers_post", pop / 400)) return;
   // Storage: when producers sit on full output piles, the granaries or warehouses are full.
   {
@@ -1019,6 +1066,7 @@ void Autoplay::act(World& w) {
     for (const auto& g : w.goals.buildings) {
       const auto& gd = w.defs->b(g.def);
       if (count(w, gd.id.c_str()) < g.count && w.is_unlocked(g.def) && gd.cost_denarii > 300 &&
+          w.econ.treasury < gd.cost_denarii + gd.cost_denarii / 3 + 3000 &&
           gd.cost_denarii + 3000 - w.econ.treasury < net * 10)
         saving = true;
     }
@@ -1067,9 +1115,11 @@ void Autoplay::act(World& w) {
       for (const auto& c : w.defs->b(g.def).cost_goods)
         if (w.econ.city_stock[c.good.v] < (monument ? (c.amount + 3) / 4 : c.amount)) {
           materials = false;
-          if (repair_chain(w, c.good, bx, by, 0)) return;
-          if (producers_of(w, c.good) < 2 && build_producer_of(w, c.good, bx, by, 0)) return;
-          // Cannot make it here: import it if an open route sells it.
+          // Import it when an open route sells it (quicker than a new chain); otherwise make it here.
+          if (!importable(w, c.good)) {
+            if (repair_chain(w, c.good, bx, by, 0)) return;
+            if (producers_of(w, c.good) < 2 && build_producer_of(w, c.good, bx, by, 0)) return;
+          }
           for (u32 p = 0; p < w.routes.size(); ++p)
             for (const auto& ga : w.defs->partners[p].sells)
               if (w.routes[p].open && ga.good == c.good && w.trade_mode[c.good.v] != 1) {
@@ -1082,6 +1132,18 @@ void Autoplay::act(World& w) {
               }
         }
       if (materials && place(w, g.def, bx, by)) return;
+      // Materials short but on their way (imported or made here): lay out the site now and let deliveries
+      // fill it, rather than waiting for a stockpile that other building keeps eating.
+      if (!materials) {
+        bool all = true;
+        for (const auto& c : w.defs->b(g.def).cost_goods) all &= obtainable(w, c.good);
+        if (all) {
+          site_first_ = true;
+          const bool placed = place(w, g.def, bx, by);
+          site_first_ = false;
+          if (placed) return;
+        }
+      }
     }
   if (saving) {
     idle_ = "saving";
