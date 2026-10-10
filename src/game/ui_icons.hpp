@@ -14,7 +14,7 @@ namespace urbs::game {
 // because the ImGui backend samples linearly.
 class UiIcons {
  public:
-  bool init(SDL_GPUDevice* dev, const render::Atlas& atlas);
+  bool init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs);
   void shutdown(SDL_GPUDevice* dev);
   // Draws the named sprite at `size` points; returns false if missing.
   bool image(const std::string& name, float size) const;

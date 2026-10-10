@@ -269,7 +269,7 @@ bool App::init(const AppOptions& opt) {
   selected_mission_ = profile_.next_index(campaign_);
   view_.init(renderer_.atlas(), defs_);
   icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, std::string());
-  icons_.init(win_.gpu, renderer_.atlas());
+  icons_.init(win_.gpu, renderer_.atlas(), defs_);
   gen_.size = 192;
   gen_.seed = opt.seed;
   gen_.coast = 2;

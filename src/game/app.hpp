@@ -132,7 +132,7 @@ class App {
   int speed_ = 1;  // 0 pause, 1, 2, 3 = 1x 2x 4x
   // Build menu: the open group on the icon rail (-1 = none), where its list pops out, and the HUD's height.
   int build_group_ = -1;
-  float build_fly_y_ = 0, build_fly_h_ = 0, hud_h_ = 64;
+  float build_fly_y_ = 0, build_fly_h_ = 0, hud_h_ = 64, rail_r_ = 64;
   Tick alerts_seen_ = 0;  // alerts newer than this count as new on the HUD badge
   f64 accum_ = 0;
   f32 alpha_ = 0;

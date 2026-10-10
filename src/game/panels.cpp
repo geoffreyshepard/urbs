@@ -3,8 +3,11 @@
 #include <imgui.h>
 
 #include <algorithm>
+#include <cmath>
+#include <vector>
 
 #include "game/advisors.hpp"
+#include "game/panel_kit.hpp"
 #include "game/style.hpp"
 #include "game/ui_icons.hpp"
 
@@ -90,136 +93,94 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
   }
 }
 
-static void need_bar(const char* label, u8 v) {
-  const float f = static_cast<float>(v) / 255.0f;
-  const ImU32 col = f > 0.6f ? kColGood : f > 0.35f ? kColWarn : kColBad;
-  ImGui::PushStyleColor(ImGuiCol_PlotHistogram, col);
-  ImGui::ProgressBar(f, ImVec2(140, 0), "");
-  ImGui::PopStyleColor();
-  ImGui::SameLine();
-  ImGui::TextUnformatted(label);
-}
+namespace {
 
-void draw_citizen_panel(sim::World& w, Selection& sel) {
-  if (!sel.citizen.valid()) return;
-  if (!w.citizens.alive(sel.citizen)) {
-    sel.citizen = CitizenId{};
+// Green when well met, amber when half, red when short (needs, workers, mood).
+ImU32 level_col(float f) { return f > 0.6f ? kColGood : f > 0.35f ? kColWarn : kColBad; }
+
+float frac(u32 v, u32 of) { return of ? static_cast<float>(v) / static_cast<float>(of) : 0.0f; }
+
+std::string pct(u8 v) { return std::to_string(v * 100 / 255) + "%"; }
+
+// What a house needs for its next tier, as a sentence and, for goods and food, picture chips.
+void draw_requirement(const sim::World& w, const UiIcons& icons, const data::HousingReq& r) {
+  const auto& D = *w.defs;
+  const bool goods = r.kind == data::HousingReq::Goods || r.kind == data::HousingReq::Food;
+  if (!goods) {
+    ImGui::TextWrapped("It needs %s.", requirement_text(D, r).c_str());
     return;
   }
-  const u32 i = sel.citizen.index();
-  const auto& C = w.citizens;
-  bool open = true;
-  ImGui::SetNextWindowPos({1220, 300}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({360, 520}, ImGuiCond_FirstUseEver);
-  begin_window("Citizen", &open);
-  ImGui::Text("%s", w.citizen_name(i).c_str());
-  ImGui::Text("%s, %u years, %s", C.sex[i] ? "female" : "male", C.age_years(i, w.now), sim::class_name(C.cls[i]));
-  ImGui::Checkbox("Follow", &sel.follow);
-  {
-    std::string tr;
-    for (int k = 0; k < sim::kMaxTraits; ++k) {
-      const u8 t = C.traits[static_cast<size_t>(i) * sim::kMaxTraits + k];
-      if (t < w.defs->traits.size()) tr += (tr.empty() ? "" : ", ") + w.defs->traits[t].name;
-    }
-    if (!tr.empty()) ImGui::TextWrapped("Traits: %s", tr.c_str());
-    if (C.goal[i]) ImGui::TextWrapped("Life goal: %s", sim::goal_text(static_cast<sim::Goal>(C.goal[i])));
-    auto person = [&](const char* label, CitizenId c) {
-      if (!c.valid() || !w.citizens.alive(c)) return;
-      std::string t = std::string(label) + ": " + w.citizen_name(c.index()) + "##" + label;
-      if (ImGui::Selectable(t.c_str())) sel.citizen = c;
-    };
-    person("Spouse", C.spouse[i]);
-    person("Mother", C.mother[i]);
-    person("Father", C.father[i]);
+  ImGui::TextUnformatted(r.kind == data::HousingReq::Goods ? "It needs household goods:" : "It needs in the larder:");
+  for (size_t k = 0; k < r.goods.size(); ++k) {
+    if (k) ImGui::SameLine();
+    const auto& g = D.goods[r.goods[k].v];
+    good_chip(icons, g.id, g.name);
   }
-  ImGui::Separator();
-  ImGui::TextWrapped("Now: %s", sim::activity_name(C.activity[i]));
-  if (C.activity[i] == sim::Activity::Walk && C.next[i] != sim::Activity::None)
-    ImGui::TextWrapped("Walking, then %s%s%s", sim::activity_name(C.next[i]),
-                       C.dest[i].valid() && w.buildings.alive(C.dest[i]) ? " at " : "",
-                       C.dest[i].valid() && w.buildings.alive(C.dest[i]) ? w.defs->b(w.buildings[C.dest[i]].def).name.c_str() : "");
-  if (C.reason[i] != sim::Reason::None) ImGui::TextWrapped("Why: %s", sim::reason_text(C.reason[i]));
-  if (C.carrying[i]) ImGui::Text("Carrying %u %s", C.carry_amount[i], w.defs->goods[C.carrying[i] - 1u].name.c_str());
-  ImGui::Separator();
-  auto link = [&](const char* label, BuildingId b) {
-    if (!b.valid() || !w.buildings.alive(b)) {
-      ImGui::Text("%s: none", label);
-      return;
-    }
-    std::string t = std::string(label) + ": " + w.defs->b(w.buildings[b].def).name + "##" + label;
-    if (ImGui::Selectable(t.c_str())) sel.building = b;
-  };
-  link("Home", C.home[i]);
-  link("Work", C.work[i]);
-  if (C.household[i].valid() && w.households.ids.alive(C.household[i])) {
-    const auto& h = w.households[C.household[i]];
-    ImGui::Text("Household: %u members, food %u, water %u, %u kinds of food", h.members, w.household_food(h), h.water,
-                w.food_kinds(h));
-  }
-  ImGui::Separator();
-  ImGui::TextUnformatted("Needs");
-  for (int n = 0; n < sim::kNeedCount; ++n) need_bar(sim::need_name(static_cast<sim::Need>(n)), C.need(i, static_cast<sim::Need>(n), w.now));
-  if (ImGui::TreeNode("Skills")) {
-    const char* sk[] = {"farming", "crafting", "building", "trading", "soldiering", "scholarship"};
-    for (int k = 0; k < sim::kSkillCount; ++k)
-      ImGui::Text("%s %u", sk[k], C.skills[static_cast<size_t>(i) * sim::kSkillCount + k]);
-    ImGui::TreePop();
-  }
-  if (ImGui::TreeNode("Memories")) {
-    for (int k = 0; k < sim::kMemoryEntries; ++k) {
-      const int idx = (C.memory_head[i] + sim::kMemoryEntries - 1 - k) % sim::kMemoryEntries;
-      const auto& m = C.memory[static_cast<size_t>(i) * sim::kMemoryEntries + idx];
-      if (m.kind == 0) continue;
-      ImGui::Text("Day %u: %s", m.day + 1, sim::memory_text(static_cast<sim::Memory>(m.kind)));
-    }
-    ImGui::TreePop();
-  }
-  ImGui::Separator();
-  auto p = w.happiness_parts(i);
-  ImGui::Text("Happiness: %d (yesterday %u)", std::clamp(p.total(), 0, 255), C.happiness[i]);
-  struct Part {
-    const char* n;
-    i16 v;
-  } parts[] = {{"food", p.food},       {"water", p.water},          {"rest", p.rest},     {"hygiene", p.hygiene},
-               {"religion", p.religion}, {"entertainment", p.entertainment}, {"food variety", p.variety},
-               {"housing", p.housing}, {"employment", p.employment}, {"taxes", p.taxes},  {"gods", p.gods},
-               {"life events", p.events}, {"health", p.health}, {"education", p.education},
-               {"prestige", p.prestige}, {"safety", p.safety}, {"bondage", p.freedom}, {"temperament", p.traits}};
-  for (const Part& pt : parts)
-    if (pt.v != 0) {
-      ImGui::TextColored(col4(pt.v > 0 ? kColGood : kColBad), "  %+d %s", pt.v, pt.n);
-    }
-  ImGui::End();
-  if (!open) sel.citizen = CitizenId{};
+  ImGui::TextDisabled(
+      "%s", r.kind == data::HousingReq::Goods ? "Markets nearby must stock them." : "A market nearby must sell it.");
 }
 
-void draw_building_panel(sim::World& w, Selection& sel) {
-  if (!sel.building.valid()) return;
-  if (!w.buildings.alive(sel.building)) {
-    sel.building = BuildingId{};
-    return;
-  }
+void draw_building(sim::World& w, Selection& sel, const UiIcons& icons) {
   const auto& b = w.buildings[sel.building];
   const auto& D = *w.defs;
   const auto& d = D.b(b.def);
-  bool open = true;
-  ImGui::SetNextWindowPos({860, 300}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({350, 480}, ImGuiCond_FirstUseEver);
-  begin_window("Building", &open);
-  ImGui::Text("%s", d.name.c_str());
-  const char* states[] = {"under construction", "active", "burning", "ruined"};
-  ImGui::Text("%s", states[static_cast<int>(b.state)]);
+  const bool house = d.kind == data::BuildingKind::House;
+  const auto* tier = house ? D.tier(d.house_line, b.tier) : nullptr;
+  // Header: what it is, and its state in a few words.
+  std::string sub;
+  ImU32 sub_col = 0;
   if (b.state == sim::BState::Construction) {
-    ImGui::ProgressBar(b.build_needed ? static_cast<float>(b.build_progress) / static_cast<float>(b.build_needed) : 0.0f);
+    sub = "Being built";
+  } else if (b.state == sim::BState::Burning) {
+    sub = "On fire!";
+    sub_col = kColBad;
+  } else if (b.state == sim::BState::Ruin) {
+    sub = "In ruins";
+    sub_col = kColBad;
+  } else if (house) {
+    sub = d.name + "  \xC2\xB7  " + std::to_string(b.residents) + " of " + std::to_string(b.capacity) + " residents";
+  } else if (b.jobs) {
+    sub = b.employed == 0 ? "No workers" : b.employed < b.jobs ? "Short of workers" : "Working";
+    if (b.employed < b.jobs) sub_col = b.employed == 0 ? kColBad : 0;
+    sub += "  \xC2\xB7  " + std::to_string(b.employed) + " of " + std::to_string(b.jobs) + " workers";
+  } else {
+    sub = "Standing";
+  }
+  if (!panel_header(icons, d.id, true, tier ? tier->name : d.name, sub, sub_col)) sel = Selection{};
+  if (b.plague || (b.state == sim::BState::Active && b.fire_risk > 150) || b.damage > 150) {
+    bool first = true;
+    auto t = [&](const char* label, ImU32 col) {
+      if (!first) ImGui::SameLine();
+      first = false;
+      tag(label, col);
+    };
+    if (b.plague) t("Plague", kColBad);
+    if (b.state == sim::BState::Active && b.fire_risk > 150) t("Fire risk", kColWarn);
+    if (b.damage > 150) t("Crumbling", kColWarn);
+  }
+
+  // Under construction: progress and materials.
+  if (b.state == sim::BState::Construction) {
     const bool monument = d.kind == data::BuildingKind::Monument;
-    if (monument)
-      ImGui::Text("Stage %u of %u: each stage needs its share of the materials", w.construction_stage(b) + 1,
-                  sim::World::kMonumentStages);
-    for (const auto& c : d.cost_goods)
-      ImGui::Text("  %s: %u / %u%s", D.goods[c.good.v].name.c_str(), b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0,
-                  c.amount, monument ? (" (this stage " + std::to_string(w.materials_needed_now(b, c.amount)) + ")").c_str() : "");
-    if (!w.site_ready(b))
-      ImGui::TextColored(col4(kColBad), "Waiting for materials; builders will come when they arrive.");
+    section(monument ? ("Stage " + std::to_string(w.construction_stage(b) + 1) + " of " +
+                        std::to_string(sim::World::kMonumentStages))
+                           .c_str()
+                     : "Construction");
+    meter_row("Progress", frac(b.build_progress, b.build_needed), kColPlain,
+              std::to_string(b.build_needed ? b.build_progress * 100 / b.build_needed : 0) + "%");
+    for (const auto& c : d.cost_goods) {
+      const u32 have = b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0;
+      const u32 need = monument ? w.materials_needed_now(b, c.amount) : c.amount;
+      good_icon(icons, D.goods[c.good.v].id);
+      ImGui::SameLine();
+      ImGui::TextUnformatted(D.goods[c.good.v].name.c_str());
+      text_right(std::to_string(have) + " / " + std::to_string(need), have >= need ? kColGood : 0);
+    }
+    if (!w.site_ready(b)) {
+      ImGui::PushStyleColor(ImGuiCol_Text, kColBad);
+      ImGui::TextWrapped("Waiting for materials; builders will come when they arrive.");
+      ImGui::PopStyleColor();
+    }
   }
   if (d.kind == data::BuildingKind::Monument) {
     const auto& ded = d.dedication;
@@ -230,52 +191,122 @@ void draw_building_panel(sim::World& w, Selection& sel) {
     if (ded.culture) fx += " culture +" + std::to_string(ded.culture) + ",";
     if (!fx.empty()) {
       fx.pop_back();
-      ImGui::TextWrapped("Dedication:%s", fx.c_str());
+      ImGui::TextWrapped("When dedicated:%s", fx.c_str());
     }
   }
-  if (b.jobs) ImGui::Text("Workers: %u / %u (present %u)", b.employed, b.jobs, b.present);
-  if (b.state == sim::BState::Active || b.state == sim::BState::Burning)
-    ImGui::Text("Fire risk %u%%  structural damage %u%%%s", b.fire_risk * 100 / 255, b.damage * 100 / 255,
-                b.plague ? "  PLAGUE" : "");
-  if (d.service.valid() && D.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine" &&
-      b.extra < D.gods.size())
-    ImGui::Text("Dedicated to %s", D.gods[b.extra].name.c_str());
-  if (d.kind == data::BuildingKind::House) {
-    const auto* t = D.tier(d.house_line, b.tier);
-    ImGui::Text("%s: %u / %u residents", t ? t->name.c_str() : "House", b.residents, b.capacity);
+
+  // Houses: the next tier, then the home itself.
+  if (house) {
     if (const auto* nt = D.tier(d.house_line, static_cast<u8>(b.tier + 1))) {
-      if (b.extra > 0 && b.extra - 1 < nt->reqs.size())
-        ImGui::TextWrapped("To become a %s it needs %s.", nt->name.c_str(), requirement_text(D, nt->reqs[b.extra - 1]).c_str());
-      else if (b.residents > 0)
-        ImGui::TextWrapped("Will become a %s soon.", nt->name.c_str());
-    }
-    if (ImGui::TreeNode("Residents")) {
-      for (u32 i = 0; i < w.citizens.ids.high_water(); ++i)
-        if (w.citizens.ids.alive_index(i) && w.citizens.home[i] == sel.building) {
-          std::string n = w.citizen_name(i) + " (" + std::to_string(w.citizens.age_years(i, w.now)) + ")##" + std::to_string(i);
-          if (ImGui::Selectable(n.c_str())) sel.citizen = w.citizens.ids.id_at(i);
-        }
-      ImGui::TreePop();
-    }
-  }
-  if (b.jobs && ImGui::TreeNode("Workers")) {
-    for (u32 i = 0; i < w.citizens.ids.high_water(); ++i)
-      if (w.citizens.ids.alive_index(i) && w.citizens.work[i] == sel.building) {
-        std::string n = w.citizen_name(i) + " - " + sim::activity_name(w.citizens.activity[i]) + "##" + std::to_string(i);
-        if (ImGui::Selectable(n.c_str())) sel.citizen = w.citizens.ids.id_at(i);
+      section(("To become a " + nt->name).c_str());
+      if (b.extra > 0 && b.extra - 1 < nt->reqs.size()) {
+        draw_requirement(w, icons, nt->reqs[b.extra - 1]);
+      } else if (b.residents > 0) {
+        ImGui::PushStyleColor(ImGuiCol_Text, kColGood);
+        ImGui::TextWrapped("It has everything it needs and will grow soon.");
+        ImGui::PopStyleColor();
+      } else {
+        ImGui::TextDisabled("Nobody lives here yet.");
       }
-    ImGui::TreePop();
+    }
+    section("Home");
+    meter_row("Residents", frac(b.residents, b.capacity), kColGood,
+              std::to_string(b.residents) + " / " + std::to_string(b.capacity));
   }
-  if (d.service.valid()) ImGui::Text("Visitors: %u / %u (served today %u)", b.visitors, d.service_capacity, b.served_today);
+
+  // Production: what goes in and what comes out.
+  if (d.recipe.valid() && b.state == sim::BState::Active) {
+    const auto& r = D.recipes[d.recipe.v];
+    section("Production");
+    const float fs = ImGui::GetFontSize();
+    auto goods_line = [&](const std::vector<data::GoodAmount>& list) {
+      ImGui::BeginGroup();
+      for (const auto& g : list) {
+        const u32 have = b.inv != econ::kNoInv ? w.econ.amt(b.inv, g.good) : 0;
+        const u32 coming = b.inv != econ::kNoInv ? w.econ.rin(b.inv, g.good) : 0;
+        good_icon(icons, D.goods[g.good.v].id, std::round(fs * 1.6f));
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+        ImGui::PushFont(ui_fonts().bold, 0.0f);
+        ImGui::Text("%s  %u", D.goods[g.good.v].name.c_str(), have);
+        ImGui::PopFont();
+        if (coming) ImGui::TextDisabled("+%u on the way", coming);
+        ImGui::EndGroup();
+      }
+      ImGui::EndGroup();
+    };
+    if (!r.inputs.empty()) {
+      goods_line(r.inputs);
+      ImGui::SameLine(0, fs);
+      // An arrow from the inputs to the outputs.
+      const ImVec2 p = ImGui::GetCursorScreenPos();
+      ImDrawList* dl = ImGui::GetWindowDrawList();
+      const float y = std::round(p.y + fs * 0.8f), len = std::round(fs * 2.2f);
+      const ImU32 col = ImGui::GetColorU32(ImGuiCol_Border);
+      dl->AddLine(ImVec2(p.x, y), ImVec2(p.x + len, y), col, 3.0f);
+      dl->AddTriangleFilled(ImVec2(p.x + len, y - fs * 0.35f), ImVec2(p.x + len + fs * 0.5f, y),
+                            ImVec2(p.x + len, y + fs * 0.35f), col);
+      ImGui::Dummy(ImVec2(len + fs * 0.5f, fs * 1.6f));
+      ImGui::SameLine(0, fs);
+    }
+    goods_line(r.outputs);
+    meter_row("Next batch", frac(std::min<u32>(b.work_progress, r.work), r.work),
+              b.work_progress >= r.work ? kColGood : kColPlain,
+              b.work_progress >= r.work ? std::string("ready") : std::to_string(b.work_progress * 100 / r.work) + "%");
+  }
+
+  // Stores and markets: everything held.
+  const bool store = d.kind == data::BuildingKind::Storage || d.kind == data::BuildingKind::Market;
+  if (b.inv != econ::kNoInv && !d.recipe.valid() && b.state != sim::BState::Construction &&
+      (store || w.econ.total[b.inv] > 0)) {
+    section(d.kind == data::BuildingKind::Market ? "On sale" : "Stock");
+    meter_row("Space used", frac(w.econ.total[b.inv], w.econ.capacity[b.inv]), kColPlain,
+              std::to_string(w.econ.total[b.inv]) + " / " + std::to_string(w.econ.capacity[b.inv]));
+    for (u32 g = 0; g < w.econ.goods; ++g) {
+      const GoodId gid{static_cast<u16>(g)};
+      const u32 have = w.econ.amt(b.inv, gid), coming = w.econ.rin(b.inv, gid);
+      if (!have && !coming) continue;
+      good_icon(icons, D.goods[g].id);
+      ImGui::SameLine();
+      ImGui::TextUnformatted(D.goods[g].name.c_str());
+      if (coming) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("+%u coming", coming);
+      }
+      text_right(std::to_string(have));
+    }
+  } else if (d.recipe.valid() && b.inv != econ::kNoInv && b.state == sim::BState::Active) {
+    meter_row("Storage", frac(w.econ.total[b.inv], w.econ.capacity[b.inv]), kColPlain,
+              std::to_string(w.econ.total[b.inv]) + " / " + std::to_string(w.econ.capacity[b.inv]));
+  }
+
+  // Services: who comes, and the god of a temple.
+  if (d.service.valid() && b.state == sim::BState::Active) {
+    section("Visitors");
+    if (D.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine" && b.extra < D.gods.size()) {
+      icons.image("ui/god_" + D.gods[b.extra].id, std::round(ImGui::GetFontSize() * 1.4f));
+      ImGui::SameLine();
+      ImGui::AlignTextToFramePadding();
+      ImGui::Text("Dedicated to %s", D.gods[b.extra].name.c_str());
+    }
+    meter_row("Here now", frac(b.visitors, d.service_capacity), kColPlain,
+              std::to_string(b.visitors) + " / " + std::to_string(d.service_capacity));
+    value_row("Served today", with_commas(b.served_today));
+  }
+
+  // Barracks: raise a unit.
   if (d.kind == data::BuildingKind::Military && (!d.accepts.empty() || d.id == "militia_post") &&
       b.state == sim::BState::Active) {
-    ImGui::TextUnformatted("Raise a unit here:");
+    section("Raise a unit");
+    bool first = true;
     for (u16 u = 0; u < D.units.size(); ++u) {
       const auto& ud = D.units[u];
       if (ud.enemy || !w.is_unlocked_unit(UnitDefId{u})) continue;
       if (d.id == "militia_post" && ud.id != "militia") continue;
+      if (!first) ImGui::SameLine();
+      first = false;
       std::string gear;
-      for (const auto& g : ud.gear) gear += " " + std::to_string(g.amount * ud.size) + " " + D.goods[g.good.v].name;
+      for (const auto& g : ud.gear) gear += "\n  " + std::to_string(g.amount * ud.size) + " " + D.goods[g.good.v].name;
       if (ImGui::Button((ud.name + "##raise" + std::to_string(u)).c_str())) {
         sim::Command c;
         c.type = sim::CmdType::RaiseUnit;
@@ -287,21 +318,195 @@ void draw_building_panel(sim::World& w, Selection& sel) {
         ImGui::SetTooltip("%u soldiers. Needs:%s", ud.size, gear.empty() ? " nothing" : gear.c_str());
     }
   }
-  if (d.recipe.valid()) {
-    const auto& r = D.recipes[d.recipe.v];
-    ImGui::Text("Production: %u / %u", std::min<u32>(b.work_progress, r.work), r.work);
-  }
-  if (b.inv != econ::kNoInv) {
-    ImGui::Text("Stock (%u / %u):", w.econ.total[b.inv], w.econ.capacity[b.inv]);
-    for (u32 g = 0; g < w.econ.goods; ++g) {
-      GoodId gid{static_cast<u16>(g)};
-      if (w.econ.amt(b.inv, gid) || w.econ.rin(b.inv, gid))
-        ImGui::Text("  %s: %u%s", D.goods[g].name.c_str(), w.econ.amt(b.inv, gid),
-                    w.econ.rin(b.inv, gid) ? (" (+" + std::to_string(w.econ.rin(b.inv, gid)) + " coming)").c_str() : "");
+
+  // The building itself: workers and risks.
+  if (b.state == sim::BState::Active || b.state == sim::BState::Burning) {
+    if (!house) section("Building");
+    if (b.jobs) {
+      const std::string tip = std::to_string(b.present) + " at work right now";
+      meter_row("Workers", frac(b.employed, b.jobs), level_col(frac(b.employed, b.jobs)),
+                std::to_string(b.employed) + " / " + std::to_string(b.jobs), -1, tip.c_str());
     }
+    meter_row("Fire risk", frac(b.fire_risk, 255), b.fire_risk > 150 ? kColBad : kColWarn, pct(b.fire_risk), -1,
+              "Engineers' and vigiles' patrols bring it down");
+    meter_row("Wear", frac(b.damage, 255), b.damage > 150 ? kColBad : kColWarn, pct(b.damage), -1,
+              "Engineers' patrols repair it before it collapses");
   }
-  ImGui::End();
-  if (!open) sel.building = BuildingId{};
+
+  // Who lives or works here.
+  auto people = [&](const char* label, bool residents) {
+    u32 n = 0;
+    for (u32 i = 0; i < w.citizens.ids.high_water(); ++i)
+      if (w.citizens.ids.alive_index(i) && (residents ? w.citizens.home[i] : w.citizens.work[i]) == sel.building) ++n;
+    if (!n) return;
+    if (ImGui::TreeNode((std::string(label) + " (" + std::to_string(n) + ")###people").c_str())) {
+      for (u32 i = 0; i < w.citizens.ids.high_water(); ++i)
+        if (w.citizens.ids.alive_index(i) && (residents ? w.citizens.home[i] : w.citizens.work[i]) == sel.building) {
+          std::string t =
+              w.citizen_name(i) + (residents ? " (" + std::to_string(w.citizens.age_years(i, w.now)) + ")"
+                                             : std::string(", ") + sim::activity_name(w.citizens.activity[i]));
+          if (ImGui::Selectable((t + "##" + std::to_string(i)).c_str())) sel.citizen = w.citizens.ids.id_at(i);
+        }
+      ImGui::TreePop();
+    }
+  };
+  if (house) people("Who lives here", true);
+  if (b.jobs) people("Workers", false);
+}
+
+void draw_citizen(sim::World& w, Selection& sel, const UiIcons& icons) {
+  const u32 i = sel.citizen.index();
+  const auto& C = w.citizens;
+  const auto& D = *w.defs;
+  std::string sub = std::string(C.sex[i] ? "Woman" : "Man") + ", " + std::to_string(C.age_years(i, w.now)) +
+                    "  \xC2\xB7  " + sim::class_name(C.cls[i]);
+  if (!panel_header(icons, "ui/icon_population", false, w.citizen_name(i), sub)) sel = Selection{};
+  if (sel.building.valid() && w.buildings.alive(sel.building)) {
+    if (link(("Back to the " + D.b(w.buildings[sel.building].def).name).c_str())) sel.citizen = CitizenId{};
+    ImGui::SameLine();
+  }
+  ImGui::Checkbox("Follow (F)", &sel.follow);
+  {
+    std::string tr;
+    for (int k = 0; k < sim::kMaxTraits; ++k) {
+      const u8 t = C.traits[static_cast<size_t>(i) * sim::kMaxTraits + k];
+      if (t < D.traits.size()) tr += (tr.empty() ? "" : ", ") + D.traits[t].name;
+    }
+    if (!tr.empty()) ImGui::TextWrapped("%s", tr.c_str());
+    if (C.goal[i]) ImGui::TextDisabled("Hopes to %s", sim::goal_text(static_cast<sim::Goal>(C.goal[i])));
+  }
+
+  section("Now");
+  if (C.activity[i] == sim::Activity::Walk && C.next[i] != sim::Activity::None) {
+    const bool to = C.dest[i].valid() && w.buildings.alive(C.dest[i]);
+    ImGui::TextWrapped("Walking, then %s%s%s", sim::activity_name(C.next[i]), to ? " at the " : "",
+                       to ? D.b(w.buildings[C.dest[i]].def).name.c_str() : "");
+  } else {
+    ImGui::TextWrapped("%s", sim::activity_name(C.activity[i]));
+  }
+  if (C.reason[i] != sim::Reason::None) ImGui::TextDisabled("%s", sim::reason_text(C.reason[i]));
+  if (C.carrying[i]) {
+    good_icon(icons, D.goods[C.carrying[i] - 1u].id);
+    ImGui::SameLine();
+    ImGui::Text("Carrying %u %s", C.carry_amount[i], D.goods[C.carrying[i] - 1u].name.c_str());
+  }
+
+  section("Home and work");
+  auto place = [&](const char* label, BuildingId b) {
+    ImGui::TextUnformatted(label);
+    ImGui::SameLine(std::round(ImGui::GetFontSize() * 4));
+    if (!b.valid() || !w.buildings.alive(b)) {
+      ImGui::TextDisabled("none");
+      return;
+    }
+    ImGui::PushID(label);
+    if (link(D.b(w.buildings[b].def).name.c_str())) {
+      sel.building = b;
+      sel.citizen = CitizenId{};
+    }
+    ImGui::PopID();
+  };
+  place("Home", C.home[i]);
+  place("Work", C.work[i]);
+  if (C.household[i].valid() && w.households.ids.alive(C.household[i])) {
+    const auto& h = w.households[C.household[i]];
+    ImGui::TextDisabled("Household of %u: food %u, water %u, %u kinds of food", h.members, w.household_food(h), h.water,
+                        w.food_kinds(h));
+  }
+  auto person = [&](const char* label, CitizenId c) {
+    if (!c.valid() || !w.citizens.alive(c)) return;
+    ImGui::TextUnformatted(label);
+    ImGui::SameLine(std::round(ImGui::GetFontSize() * 4));
+    ImGui::PushID(label);
+    if (link(w.citizen_name(c.index()).c_str())) sel.citizen = c;
+    ImGui::PopID();
+  };
+  person("Spouse", C.spouse[i]);
+  person("Mother", C.mother[i]);
+  person("Father", C.father[i]);
+
+  section("Needs");
+  for (int n = 0; n < sim::kNeedCount; ++n) {
+    const u8 v = C.need(i, static_cast<sim::Need>(n), w.now);
+    const char* name = sim::need_name(static_cast<sim::Need>(n));
+    std::string label = name;
+    if (!label.empty()) label[0] = static_cast<char>(label[0] - (label[0] >= 'a' && label[0] <= 'z' ? 32 : 0));
+    meter_row(label.c_str(), frac(v, 255), level_col(frac(v, 255)), std::to_string(v * 100 / 255) + "%");
+  }
+
+  auto p = w.happiness_parts(i);
+  section("Happiness");
+  const int total = std::clamp(p.total(), 0, 255);
+  meter_row("Mood", frac(static_cast<u32>(total), 255), total >= 128 ? kColGood : kColWarn, std::to_string(total),
+            128.0f / 255.0f, "128 is content");
+  struct Part {
+    const char* n;
+    i16 v;
+  } parts[] = {{"food", p.food},
+               {"water", p.water},
+               {"rest", p.rest},
+               {"hygiene", p.hygiene},
+               {"religion", p.religion},
+               {"entertainment", p.entertainment},
+               {"food variety", p.variety},
+               {"housing", p.housing},
+               {"employment", p.employment},
+               {"taxes", p.taxes},
+               {"gods", p.gods},
+               {"life events", p.events},
+               {"health", p.health},
+               {"education", p.education},
+               {"prestige", p.prestige},
+               {"safety", p.safety},
+               {"bondage", p.freedom},
+               {"temperament", p.traits}};
+  // Two columns: what helps, what hurts.
+  if (ImGui::BeginTable("##parts", 2)) {
+    std::vector<const Part*> up, down;
+    for (const Part& pt : parts) (pt.v > 0 ? up : down).push_back(&pt);
+    std::erase_if(down, [](const Part* q) { return q->v == 0; });
+    const size_t rows = std::max(up.size(), down.size());
+    for (size_t r = 0; r < rows; ++r) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (r < up.size()) ImGui::TextColored(col4(kColGood), "%+d %s", up[r]->v, up[r]->n);
+      ImGui::TableNextColumn();
+      if (r < down.size()) ImGui::TextColored(col4(kColBad), "%+d %s", down[r]->v, down[r]->n);
+    }
+    ImGui::EndTable();
+  }
+  if (ImGui::TreeNode("Skills")) {
+    const char* sk[] = {"farming", "crafting", "building", "trading", "soldiering", "scholarship"};
+    for (int k = 0; k < sim::kSkillCount; ++k)
+      value_row(sk[k], std::to_string(C.skills[static_cast<size_t>(i) * sim::kSkillCount + k]));
+    ImGui::TreePop();
+  }
+  if (ImGui::TreeNode("Memories")) {
+    for (int k = 0; k < sim::kMemoryEntries; ++k) {
+      const int idx = (C.memory_head[i] + sim::kMemoryEntries - 1 - k) % sim::kMemoryEntries;
+      const auto& m = C.memory[static_cast<size_t>(i) * sim::kMemoryEntries + idx];
+      if (m.kind == 0) continue;
+      ImGui::TextDisabled("Day %u", m.day + 1);
+      ImGui::SameLine();
+      ImGui::TextUnformatted(sim::memory_text(static_cast<sim::Memory>(m.kind)));
+    }
+    ImGui::TreePop();
+  }
+}
+
+}  // namespace
+
+void draw_inspector(sim::World& w, Selection& sel, const UiIcons& icons, const Dock& dock) {
+  if (sel.citizen.valid() && !w.citizens.alive(sel.citizen)) sel.citizen = CitizenId{};
+  if (sel.building.valid() && !w.buildings.alive(sel.building)) sel.building = BuildingId{};
+  if (!sel.citizen.valid() && !sel.building.valid()) return;
+  if (begin_panel("##inspector", dock)) {
+    if (sel.citizen.valid())
+      draw_citizen(w, sel, icons);
+    else
+      draw_building(w, sel, icons);
+  }
+  end_panel();
 }
 
 void draw_labor_panel(sim::World& w, bool* open) {

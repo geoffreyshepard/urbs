@@ -9,17 +9,16 @@
 
 namespace urbs::game {
 
-bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas) {
-  // Which sprites to include: advisors, gods, goods icons.
+bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs) {
+  // Which sprites to include: advisors, gods, goods icons, HUD and category icons.
   std::vector<std::string> names;
   for (const char* a : {"engineer", "quaestor", "haruspex", "legate", "aedile"}) names.push_back(std::string("ui/advisor_") + a);
   for (const char* g : {"jupiter", "juno", "mars", "venus", "ceres", "neptune", "mercury", "minerva", "vulcan", "vesta", "isis",
                         "serapis", "divus"})
     names.push_back(std::string("ui/god_") + g);
-  for (const char* g : {"wheat", "vegetables", "fish", "meat", "bread", "olive_oil", "wine", "pottery", "clothing", "wood",
-                        "planks", "bricks", "stone", "tools", "weapons", "armor", "denarii", "furniture", "glassware",
-                        "jewelry", "garum", "salt", "marble", "iron", "silver", "clay", "flour", "olives", "grapes"})
-    names.push_back(std::string("goods/") + g + "_16");
+  names.emplace_back("goods/denarii_16");
+  for (const auto& g : defs.goods)
+    if (atlas.has("goods/" + g.id + "_16")) names.push_back("goods/" + g.id + "_16");
   for (const char* h : {"population", "happiness", "culture", "prosperity", "security", "favor", "build", "rome", "advisors",
                         "finance", "goods", "trade", "labor", "religion", "military", "research", "alerts", "help", "menu",
                         "pause", "play", "fast", "faster", "road", "demolish", "overlay"})

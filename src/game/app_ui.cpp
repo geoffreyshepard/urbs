@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "game/app.hpp"
+#include "game/panel_kit.hpp"
 #include "game/style.hpp"
 #include "save/save.hpp"
 
@@ -23,11 +24,6 @@ void center_next(float w, float h) {
   ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
 }
 bool big_button(const char* label, float w = 260) { return ImGui::Button(label, ImVec2(w, 34)); }
-std::string with_commas(i64 v) {
-  std::string s = std::to_string(v < 0 ? -v : v);
-  for (int i = static_cast<int>(s.size()) - 3; i > 0; i -= 3) s.insert(static_cast<size_t>(i), ",");
-  return (v < 0 ? "-" : "") + s;
-}
 const char* kDifficulty[] = {"Otium (relaxed)", "Civitas (normal)", "Imperium (hard)"};
 }  // namespace
 
@@ -43,8 +39,13 @@ void App::draw_ui() {
       draw_hud();
       draw_build_menu();
       draw_stock_window();
-      draw_citizen_panel(*world_, sel_);
-      draw_building_panel(*world_, sel_);
+      {
+        Dock d;
+        d.pos = ImVec2(rail_r_ + 6, hud_h_ + 8);
+        d.width = std::round(ImGui::GetFontSize() * 25);
+        d.max_h = display().y - d.pos.y - 8;
+        draw_inspector(*world_, sel_, icons_, d);
+      }
       draw_labor_panel(*world_, &show_labor_);
       draw_finance_panel(*world_, &show_finance_);
       draw_trade_panel(*world_, &show_trade_);
@@ -766,7 +767,6 @@ void building_tooltip(const data::Defs& defs, const data::BuildingDef& d) {
 void App::draw_build_menu() {
   const ImVec2 ds = display();
   const sim::World& w = *world_;
-  float rail_right = 8;
   // Which defs are unlocked, per group.
   std::vector<std::vector<u16>> members(kGroupCount + 1);
   for (u16 i = 0; i < defs_.buildings.size(); ++i)
@@ -801,6 +801,8 @@ void App::draw_build_menu() {
         build_group_ = build_group_ == g ? -1 : g;
         build_fly_y_ = y;
         opened = true;
+        sel_.building = BuildingId{};  // the list opens where the inspector sits
+        sel_.citizen = CitizenId{};
       }
       ImGui::PopID();
       if (!any) ImGui::EndDisabled();
@@ -815,7 +817,7 @@ void App::draw_build_menu() {
         ImGui::EndTooltip();
       }
     }
-    rail_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
+    rail_r_ = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
     ImGui::End();
   } else {
     // The rail is hidden (B): one small button brings it back.
@@ -827,14 +829,14 @@ void App::draw_build_menu() {
     if (icons_.icon_button("##showbuild", "ui/icon_build", std::round(ImGui::GetFontSize() * 1.25f), false))
       show_build_ = true;
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Build (B)");
-    rail_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
+    rail_r_ = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
     ImGui::End();
   }
 
   if (build_group_ >= 0) {
     const int g = build_group_;
     const float y = std::clamp(build_fly_y_ - 10, hud_h_ + 8, std::max(hud_h_ + 8, ds.y - build_fly_h_ - 8));
-    ImGui::SetNextWindowPos(ImVec2(rail_right + 6, y), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(rail_r_ + 6, y), ImGuiCond_Always);
     if (opened) ImGui::SetNextWindowFocus();
     begin_window("##buildfly", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
@@ -944,7 +946,7 @@ void App::draw_build_menu() {
                            ? std::string(tools_.road == sim::Road::Paved ? "Paved road" : "Dirt road")
                        : tools_.def.valid() ? defs_.buildings[tools_.def.v].name
                                             : std::string();
-    ImGui::SetNextWindowPos(ImVec2(rail_right + 6, ds.y - 8), ImGuiCond_Always, ImVec2(0, 1));
+    ImGui::SetNextWindowPos(ImVec2(rail_r_ + 6, ds.y - 8), ImGuiCond_Always, ImVec2(0, 1));
     begin_window("##toolchip", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |

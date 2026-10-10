@@ -8,7 +8,7 @@ namespace urbs::game {
 
 class WorldView;
 
-// Inspection and management panels (debug-UI toolkit for now; reskinned in M10/M11).
+// Inspection and management panels, built from the pieces in game/panel_kit.hpp.
 struct Selection {
   CitizenId citizen;
   BuildingId building;
@@ -19,14 +19,15 @@ struct Selection {
 std::string requirement_text(const data::Defs& defs, const data::HousingReq& r);
 std::string alert_text(const sim::World& w, const sim::Alert& a);
 
-void draw_citizen_panel(sim::World& w, Selection& sel);
-void draw_building_panel(sim::World& w, Selection& sel);
+struct Dock;
+class UiIcons;
+// The selected citizen, or else the selected building, in a panel beside the build rail.
+void draw_inspector(sim::World& w, Selection& sel, const UiIcons& icons, const Dock& dock);
 void draw_labor_panel(sim::World& w, bool* open);
 void draw_finance_panel(sim::World& w, bool* open);
 void draw_trade_panel(sim::World& w, bool* open);
 void draw_religion_panel(sim::World& w, bool* open);
 void draw_military_panel(sim::World& w, Selection& sel, bool* open);
-class UiIcons;
 void draw_rome_panel(sim::World& w, bool* open);
 void draw_advisors_panel(const sim::World& w, const UiIcons& icons, int* advisor, bool* open);
 // New messages and choices (shown until read/answered). Returns true if a mission-end window is open.

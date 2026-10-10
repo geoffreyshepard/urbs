@@ -44,6 +44,12 @@ Asclepius, temple front, lyre, SPQR standard, scutum, triumphal arch. The rows t
 sprite. `game/ui_icons.cpp` composes these thumbnails at startup: a 2x2 field with its hut for farms, a three-piece
 run for walls, aqueducts and roads, and the city's regional variant when there is one.
 
+**Panels:** every panel is built from the pieces in `game/panel_kit.hpp`, in the look of the top bar: parchment with
+no title bar, a header with a framed picture (the panel's icon, or the building's own thumbnail), the title in Cinzel
+and one summary line; small-caps section labels between thin rules; the top bar's bars (green when a goal is met,
+amber when short, red when failing, ochre with no goal); goods named with their icons. The building and citizen
+inspector sits beside the build rail, where the build lists pop out, so opening a list closes it.
+
 ## Generator structure
 
 ```
