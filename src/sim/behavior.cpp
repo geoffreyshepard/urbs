@@ -130,14 +130,17 @@ void World::decide(u32 i) {
     BuildingId doc = best_service_for(NeedKind::Health, here, nullptr);
     if (doc.valid()) consider(Activity::Visit, doc, Reason::Healing, 880);
   }
-  const bool shift = h >= 7 && h < 17 && h != 12;
   BuildingId job = C.work[i];
+  // The midday meal at home is only for those who live near their work; the rest eat on the job.
+  const bool near_job = job.valid() && buildings.alive(job) && buildings[job].entrance >= 0 &&
+                        manhattan_tiles(map, home_tile, buildings[job].entrance) < 25;
+  const bool shift = h >= 7 && h < 17 && (h != 12 || !near_job);
   if (adult && job.valid() && buildings.alive(job) && shift) {
     const Building& jb = buildings[job];
     if (jb.state == BState::Construction) consider(Activity::Build, job, Reason::Building, 800);
     else consider(Activity::Work, job, Reason::Shift, 800);
   }
-  if (adult && job.valid() && h == 12) consider(Activity::Home, home, Reason::Midday, 300);
+  if (adult && near_job && h == 12) consider(Activity::Home, home, Reason::Midday, 300);
   // Children go to school in the morning.
   if (age >= 6 && age < 14 && h >= 8 && h < 12) {
     ServiceId school = defs->service("school");

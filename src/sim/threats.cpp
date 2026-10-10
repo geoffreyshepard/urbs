@@ -122,16 +122,24 @@ void World::hazards_hourly(BuildingId id) {
       b.burn = 0;
       return;
     }
-    // Spread to neighbours.
-    f32 spread = 0.12f;
-    if (weather == Weather::Heat || effect(Effect::Drought)) spread *= 2.0f;
+    // Spread: one roll per neighbouring building per hour; vigiles on the scene contain the fire.
+    f32 spread = 0.07f;
+    if (weather == Weather::Heat || effect(Effect::Drought)) spread *= 1.8f;
     if (weather == Weather::Rain) spread *= 0.4f;
     if (effect(Effect::Fireproof)) spread *= 0.3f;
+    if (patrol_covers("vigiles", b)) spread *= 0.3f;
+    spread *= threat_scale();
+    BuildingId seen[24];
+    u32 nseen = 0;
     for (i32 ty = b.y - 1; ty <= b.y + b.h; ++ty)
       for (i32 tx = b.x - 1; tx <= b.x + b.w; ++tx) {
         if (!map.in_bounds(tx, ty)) continue;
         BuildingId nb = map.building[static_cast<size_t>(map.idx(tx, ty))];
         if (!nb.valid() || nb == id || !buildings.alive(nb)) continue;
+        bool dup = false;
+        for (u32 k = 0; k < nseen; ++k) dup |= seen[k] == nb;
+        if (dup) continue;
+        if (nseen < 24) seen[nseen++] = nb;
         const auto& nd = defs->b(buildings[nb].def);
         if (nd.kind == BuildingKind::Decor || nd.kind == BuildingKind::Infrastructure || nd.kind == BuildingKind::Water)
           continue;  // stone wells, fountains, aqueducts and gardens do not burn

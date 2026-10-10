@@ -204,7 +204,7 @@ struct World {
   Weather weather = Weather::Clear;
   u32 fires_total = 0, collapses_total = 0, plague_houses = 0;
   std::vector<TradeRouteState> routes;  // one per data::TradePartnerDef
-  std::vector<u8> trade_mode;           // per good: 0 none, 1 import, 2 export, 3 stockpile (kept in storage)
+  std::vector<u8> trade_mode;           // per good: 0 none, 1 import, 2 export, 3 stockpile (kept in storage: no markets or workshops)
   std::vector<u16> trade_level;         // import below / export above this city stock
   u32 visitors = 0;                     // traders currently in the city
   [[nodiscard]] u32 population() const { return citizens.ids.count() - visitors; }
@@ -378,6 +378,10 @@ struct World {
   u16 add_request(u8 kind, GoodId good, u16 amount, u16 days, i32 reward, i8 favor_win, i8 favor_lose);
   bool fulfill_request(u16 id);
   void dedicate(BuildingId id);  // a monument's completion effects
+  [[nodiscard]] bool reservoir_full(BuildingId id) const {
+    return id.index() < reservoir_full_.size() && reservoir_full_[id.index()] != 0;
+  }
+  [[nodiscard]] bool patrol_covers(const char* service, const Building& b) const;
   void building_hourly(BuildingId id);  // construction, production, hazards (public for tests)
   [[nodiscard]] bool site_ready(const Building& b) const;
   // Monuments rise in kMonumentStages stages; each stage needs its share of the materials.
@@ -438,7 +442,6 @@ struct World {
   void god_wrath(u8 god);
   [[nodiscard]] bool effect(Effect e) const { return effect_until[static_cast<int>(e)] > now; }
   void set_effect(Effect e, Tick duration) { effect_until[static_cast<int>(e)] = now + duration; }
-  [[nodiscard]] bool patrol_covers(const char* service, const Building& b) const;
  private:
   void apply_commands();
   void process_events();

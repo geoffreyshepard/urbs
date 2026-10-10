@@ -71,8 +71,9 @@ void World::compute_ratings() {
   }
   const i32 housing = static_cast<i32>(tier_sum * 100 / (hp * std::max<u32>(1, tier_max)));
   const i32 employ = adults ? static_cast<i32>(employed * 100 / adults) : 0;
-  const i32 money = econ.treasury >= 0 ? std::min<i32>(100, static_cast<i32>(econ.treasury / std::max<i64>(1, population() / 2 + 1)))
-                                       : -50;
+  // Treasury health: ten days of wages in reserve is full marks; debt counts against.
+  const i64 wage_day = std::max<i64>(50, econ.money.yesterday[static_cast<int>(econ::Money::Wages)]);
+  const i32 money = econ.treasury >= 0 ? static_cast<i32>(std::min<i64>(100, econ.treasury * 10 / wage_day)) : -50;
   ratings.prosperity = static_cast<u8>(std::clamp(housing * 55 / 100 + employ * 30 / 100 + money * 15 / 100, 0, 100));
   // Security: crime, recent fires/collapses, defence against raids.
   const i32 crime = static_cast<i32>(std::min<u32>(40, crimes_yday * 4000 / std::max<u32>(1, population())));
@@ -260,7 +261,8 @@ void World::governance_daily() {
   }
   if (econ.treasury < 0) {
     ++debt_days;
-    if (debt_days % 4 == 0) change_favor(-2);
+    // Rome tolerates some debt on Otium; on Imperium it costs twice as much favor.
+    if (debt_days % 4 == 0) change_favor(-static_cast<i32>(difficulty));
   } else {
     debt_days = 0;
   }

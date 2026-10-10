@@ -1,0 +1,69 @@
+{
+  "id": "m09_campania",
+  "name": "Campania - The Servile War",
+  "mission": 9,
+  "era": "late_republic",
+  "start_hour": 7,
+  "map": {
+    "size": 240,
+    "seed": 12923,
+    "coast": 2,
+    "river": true,
+    "hills": 0.55,
+    "forest": 0.3,
+    "marsh": 0.1
+  },
+  "world": {
+    "max_citizens": 13000,
+    "max_buildings": 4200,
+    "max_households": 5000,
+    "max_soldiers": 2500
+  },
+  "generator": "scripted",
+  "entry_road": 0,
+  "start": {
+    "treasury": 14000
+  },
+  "start_stock": {
+    "wood": 200,
+    "wheat": 250,
+    "pottery": 60,
+    "planks": 40,
+    "cut_stone": 60,
+    "weapons": 40,
+    "armor": 40
+  },
+  "start_slaves": 180,
+  "policy": {
+    "slave_treatment": 0
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "ceres",
+    "vesta",
+    "venus",
+    "mercury"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "etruria",
+      "latin_villages",
+      "carthage",
+      "greece"
+    ]
+  },
+  "goals": {
+    "population": 4000,
+    "culture": 50,
+    "security": 50,
+    "buildings": {
+      "amphitheater": 1,
+      "hospital": 1,
+      "curia": 1
+    }
+  },
+  "script": "script.lua"
+}

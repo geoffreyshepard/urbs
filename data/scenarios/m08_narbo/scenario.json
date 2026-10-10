@@ -1,0 +1,65 @@
+{
+  "id": "m08_narbo",
+  "name": "Narbo Martius - Gallia",
+  "mission": 8,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {
+    "size": 240,
+    "seed": 10807,
+    "coast": 2,
+    "river": true,
+    "hills": 0.55,
+    "forest": 0.4,
+    "marsh": 0.2
+  },
+  "world": {
+    "max_citizens": 12000,
+    "max_buildings": 4000,
+    "max_households": 4600,
+    "max_soldiers": 2000
+  },
+  "generator": "scripted",
+  "entry_road": 0,
+  "start": {
+    "treasury": 12000
+  },
+  "start_stock": {
+    "wood": 200,
+    "wheat": 200,
+    "pottery": 60,
+    "planks": 40,
+    "cut_stone": 60
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mercury",
+    "ceres",
+    "vesta",
+    "minerva",
+    "venus"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "massalia",
+      "gallia",
+      "hispania",
+      "etruria"
+    ]
+  },
+  "goals": {
+    "population": 3500,
+    "culture": 50,
+    "prosperity": 40,
+    "requests": 2,
+    "buildings": {
+      "basilica": 1,
+      "library": 1,
+      "cart_depot": 1,
+      "great_temple": 1
+    }
+  },
+  "script": "script.lua"
+}

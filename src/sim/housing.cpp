@@ -323,6 +323,12 @@ void World::citizen_daily(u32 i) {
     hhp->savings += wage;
     hhp->income_today = static_cast<u16>(std::min<i32>(60000, hhp->income_today + wage));
   }
+  // Homeless and unhappy: the family gives up on the city (houses check their own residents).
+  if (hhp && !hhp->leaving && hhp->head == citizens.ids.id_at(i) && !citizens.home[i].valid() && citizens.happiness[i] < 70 &&
+      stream(rng::StreamId::Immigration).chance(0.3f)) {
+    start_emigration(citizens.household[i]);
+    return;
+  }
   // Patricians live off their estates outside the city: income enters the household, not the treasury.
   if (hhp && citizens.cls[i] == CitizenClass::Patrician && citizens.age_years(i, now) >= 16) {
     hhp->savings += 12;
@@ -422,13 +428,16 @@ void World::immigration_hourly() {
 }
 
 bool World::ensure_entry_tile() {
+  // Keep the current entry while any house can be reached from it; otherwise find a new one for the first house.
   BuildingId first_house;
+  bool reachable = false;
   buildings.for_each([&](BuildingId id, const Building& b) {
-    if (!first_house.valid() && b.state == BState::Active && defs->b(b.def).kind == BuildingKind::House) first_house = id;
+    if (b.state != BState::Active || defs->b(b.def).kind != BuildingKind::House || b.entrance < 0) return;
+    if (!first_house.valid()) first_house = id;
+    if (!reachable && entry_tile >= 0 && nav.connected(entry_tile, b.entrance)) reachable = true;
   });
-  if (!first_house.valid()) return entry_tile >= 0;
+  if (!first_house.valid() || reachable) return entry_tile >= 0;
   const i32 he = buildings[first_house].entrance;
-  if (entry_tile >= 0 && nav.connected(entry_tile, he)) return true;
   // Walkable map-edge tile closest to the first house, in the same region; roads preferred.
   int best_d = 1 << 30;
   entry_tile = -1;

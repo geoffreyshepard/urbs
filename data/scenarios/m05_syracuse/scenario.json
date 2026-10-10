@@ -1,0 +1,59 @@
+{
+  "id": "m05_syracuse",
+  "name": "Syracuse - Sicilia",
+  "mission": 5,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {
+    "size": 224,
+    "seed": 6501,
+    "coast": 1,
+    "river": false,
+    "hills": 0.55,
+    "forest": 0.25,
+    "marsh": 0.05
+  },
+  "world": {
+    "max_citizens": 9000,
+    "max_buildings": 3000,
+    "max_households": 3400,
+    "max_soldiers": 1500
+  },
+  "generator": "scripted",
+  "entry_road": 3,
+  "start": {
+    "treasury": 9000
+  },
+  "start_stock": {
+    "wood": 150,
+    "wheat": 150,
+    "pottery": 40
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "neptune",
+    "ceres",
+    "vesta",
+    "mercury"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "carthage",
+      "massalia",
+      "greece"
+    ]
+  },
+  "goals": {
+    "population": 2000,
+    "culture": 40,
+    "prosperity": 35,
+    "requests": 2,
+    "buildings": {
+      "harbor": 1,
+      "garum_workshop": 1
+    }
+  },
+  "script": "script.lua"
+}

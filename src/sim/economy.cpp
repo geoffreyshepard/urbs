@@ -13,10 +13,6 @@ namespace {
 constexpr u32 kMaxOpenTasks = 600;
 constexpr u32 kMaxTasksPerPass = 48;
 
-int manhattan_tiles(const TileMap& m, i32 a, i32 b) {
-  return std::abs(a % m.w - b % m.w) + std::abs(a / m.w - b / m.w);
-}
-
 }  // namespace
 
 bool World::is_porter_job(BuildingId id) const {
@@ -472,7 +468,8 @@ void World::match_good(GoodId g) {
       for (const auto& c : d.cost_goods)
         if (c.good == g) want = c.amount;
       prio = 3;
-    } else if (b.state == BState::Active && d.recipe.valid()) {
+    } else if (b.state == BState::Active && d.recipe.valid() && trade_mode[g.v] != 3) {
+      // Stockpiled goods stay in storage: workshops do not draw on them either.
       for (const auto& in : defs->recipes[d.recipe.v].inputs)
         if (in.good == g) want = in.amount * 3u;
       prio = 2;

@@ -1,5 +1,5 @@
 [
-  {"id": "militia", "name": "Militia", "side": "city", "sprite": "pleb", "hp": 70, "attack": 7, "defense": 3, "speed": 0.09, "range": 1.2, "size": 24, "upkeep": 2, "gear": {}, "morale": 50, "unlock": 3},
+  {"id": "militia", "name": "Militia", "side": "city", "sprite": "pleb", "hp": 80, "attack": 9, "defense": 4, "speed": 0.09, "range": 1.2, "size": 24, "upkeep": 2, "gear": {}, "morale": 50, "unlock": 3},
   {"id": "legionary", "name": "Legionary cohort", "side": "city", "sprite": "legionary", "hp": 110, "attack": 12, "defense": 9, "speed": 0.09, "range": 1.2, "size": 48, "upkeep": 4, "gear": {"weapons": 1, "armor": 1}, "morale": 70, "unlock": 6, "trained_at": ["barracks", "fort"]},
   {"id": "archer", "name": "Auxiliary archers", "side": "city", "sprite": "archer", "hp": 65, "attack": 8, "defense": 3, "speed": 0.10, "range": 8.0, "size": 32, "upkeep": 3, "gear": {"weapons": 1}, "morale": 55, "unlock": 6, "trained_at": ["barracks", "fort", "training_ground"]},
   {"id": "cavalry", "name": "Auxiliary cavalry", "side": "city", "sprite": "cavalry", "hp": 120, "attack": 13, "defense": 5, "speed": 0.17, "range": 1.4, "size": 24, "upkeep": 6, "gear": {"weapons": 1, "armor": 1}, "morale": 65, "charge": 2.0, "unlock": 7, "trained_at": ["stables"]},

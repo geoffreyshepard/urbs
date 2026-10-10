@@ -31,6 +31,14 @@ function on_day(day)
       "A lanista offers to open a gladiator school in Capua. It would bring coin, but such men are dangerous.",
       {"Allow it (+600 denarii)", "Refuse"}, "lanista")
   end
+  -- Rome keeps asking: a new request every 24 days once the scripted ones are done.
+  if S.r2 and day >= (S.next_req or 100000) and not S.open_req then
+    local list = {{"olive_oil", 40, 1200}, {"wine", 40, 1400}, {"pottery", 60, 1000}}
+    local pick = list[(S.nreq or 0) % #list + 1]
+    S.nreq = (S.nreq or 0) + 1
+    S.open_req = urbs.request({kind = "goods", good = pick[1], amount = pick[2], days = 30, reward = pick[3], favor = 6, penalty = -6})
+    urbs.message("Another request", "Rome asks for " .. pick[2] .. " " .. pick[1] .. " within 30 days.", QUAESTOR)
+  end
 end
 
 function lanista(option)
@@ -44,5 +52,7 @@ function lanista(option)
 end
 
 function on_request(id, ok)
+  if id == S.open_req then S.open_req = nil end
+  S.next_req = urbs.mission_day() + 24
   if ok then urbs.message("Rome is pleased", "Campania's riches flow to Rome. Your reputation grows.", QUAESTOR) end
 end

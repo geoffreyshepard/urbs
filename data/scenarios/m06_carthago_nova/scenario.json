@@ -1,0 +1,65 @@
+{
+  "id": "m06_carthago_nova",
+  "name": "Carthago Nova - Hispania",
+  "mission": 6,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {
+    "size": 224,
+    "seed": 6613,
+    "coast": 3,
+    "river": true,
+    "hills": 0.95,
+    "forest": 0.3,
+    "marsh": 0.05
+  },
+  "world": {
+    "max_citizens": 10000,
+    "max_buildings": 3200,
+    "max_households": 3800,
+    "max_soldiers": 2000
+  },
+  "generator": "scripted",
+  "entry_road": 1,
+  "start": {
+    "treasury": 10000
+  },
+  "start_stock": {
+    "wood": 160,
+    "wheat": 160,
+    "pottery": 40,
+    "bricks": 30,
+    "weapons": 50,
+    "armor": 50
+  },
+  "start_slaves": 40,
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "ceres",
+    "vesta",
+    "mercury",
+    "vulcan"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "massalia",
+      "hispania",
+      "latin_villages"
+    ]
+  },
+  "goals": {
+    "population": 2500,
+    "security": 45,
+    "prosperity": 35,
+    "requests": 1,
+    "buildings": {
+      "barracks": 1,
+      "armory": 1,
+      "silver_smelter": 1
+    }
+  },
+  "script": "script.lua"
+}

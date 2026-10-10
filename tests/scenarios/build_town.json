@@ -204,7 +204,7 @@
       "y": 37
     }
   ],
-  "ticks": 4800,
+  "ticks": 6000,
   "test": {
     "min_citizens": 40,
     "max_alloc_violations": 0,

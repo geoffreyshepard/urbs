@@ -416,22 +416,27 @@ namespace {
 // Lays a dirt road from the map edge (side: 0 n, 1 e, 2 s, 3 w) to the most central walkable tile.
 void entry_road(World& w, i32 side) {
   const i32 W = w.map.w, H = w.map.h;
-  i32 start = -1;
-  for (i32 k = 0; k < (side % 2 == 0 ? W : H) / 2 && start < 0; ++k)
-    for (i32 sgn : {1, -1}) {
-      const i32 a = (side % 2 == 0 ? W : H) / 2 + sgn * k;
-      const i32 x = side == 1 ? W - 1 : side == 3 ? 0 : a, y = side == 0 ? 0 : side == 2 ? H - 1 : a;
-      if (w.map.in_bounds(x, y) && w.nav.walkable(x, y)) {
-        start = w.map.idx(x, y);
-        break;
-      }
-    }
+  // The heart of the map: the most central walkable tile.
   i32 goal = -1;
   for (i32 r = 0; r < W / 2 && goal < 0; ++r)
     for (i32 dy = -r; dy <= r && goal < 0; ++dy)
       for (i32 dx = -r; dx <= r && goal < 0; ++dx)
-        if (w.nav.walkable(W / 2 + dx, H / 2 + dy) && start >= 0 && w.nav.connected(start, w.map.idx(W / 2 + dx, H / 2 + dy)))
-          goal = w.map.idx(W / 2 + dx, H / 2 + dy);
+        if (w.nav.walkable(W / 2 + dx, H / 2 + dy)) goal = w.map.idx(W / 2 + dx, H / 2 + dy);
+  // The edge tile nearest the middle of the requested side that is connected to it (never an island);
+  // other sides are tried if that one has none.
+  i32 start = -1;
+  for (i32 s2 = 0; s2 < 4 && start < 0 && goal >= 0; ++s2) {
+    const i32 sd = (side + s2) % 4;
+    for (i32 k = 0; k < (sd % 2 == 0 ? W : H) / 2 && start < 0; ++k)
+      for (i32 sgn : {1, -1}) {
+        const i32 a = (sd % 2 == 0 ? W : H) / 2 + sgn * k;
+        const i32 x = sd == 1 ? W - 1 : sd == 3 ? 0 : a, y = sd == 0 ? 0 : sd == 2 ? H - 1 : a;
+        if (w.map.in_bounds(x, y) && w.nav.walkable(x, y) && w.nav.connected(w.map.idx(x, y), goal)) {
+          start = w.map.idx(x, y);
+          break;
+        }
+      }
+  }
   if (start < 0 || goal < 0) return;
   bool rev = false;
   const u32 h = w.paths.find_now(start, goal, w.now, &rev);

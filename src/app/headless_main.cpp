@@ -116,10 +116,15 @@ int main(int argc, char** argv) {
         if (!C.work[i].valid()) ++idle;
       }
       world->buildings.for_each([&](BuildingId, const sim::Building& b) { jobs += b.jobs; });
-      std::printf("day %3u pop %4u mood %3u food %5u hh %3u nofood %3u adults %4u idle %3u jobs %4u treas %6lld imm %u emi %u %s\n",
+      std::printf("day %3u pop %4u mood %3u food %5u hh %3u nofood %3u adults %4u idle %3u jobs %4u treas %6lld fav %3d imm %u emi %u %s\n",
                   world->mission_days, world->population(), world->avg_happiness, food, hh, nofood, adults, idle, jobs,
-                  static_cast<long long>(world->econ.treasury), world->immigrants_total, world->emigrants_total,
+                  static_cast<long long>(world->econ.treasury), world->favor, world->immigrants_total, world->emigrants_total,
                   autoplay ? bot.last_action().c_str() : "");
+      if (verbose && autoplay) {
+        std::printf("    bot:");
+        for (const auto& a : bot.take_log()) std::printf(" %s;", a.c_str());
+        std::printf("\n");
+      }
       if (verbose) {
         std::printf("    money:");
         for (int k = 0; k < econ::kMoneyCount; ++k)

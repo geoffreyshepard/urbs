@@ -1,0 +1,65 @@
+{
+  "id": "m10_corinth",
+  "name": "Corinth - Refounded",
+  "mission": 10,
+  "era": "late_republic",
+  "start_hour": 7,
+  "map": {
+    "size": 256,
+    "seed": 10061,
+    "coast": 1,
+    "river": false,
+    "hills": 0.7,
+    "forest": 0.25,
+    "marsh": 0.05
+  },
+  "world": {
+    "max_citizens": 14000,
+    "max_buildings": 4600,
+    "max_households": 5400,
+    "max_soldiers": 2000
+  },
+  "generator": "scripted",
+  "entry_road": 3,
+  "start": {
+    "treasury": 15000
+  },
+  "start_stock": {
+    "wood": 200,
+    "wheat": 250,
+    "pottery": 60,
+    "planks": 40,
+    "cut_stone": 80,
+    "marble": 20
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "minerva",
+    "venus",
+    "neptune",
+    "ceres",
+    "vesta",
+    "mercury"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "greece",
+      "alexandria",
+      "massalia"
+    ]
+  },
+  "goals": {
+    "population": 4500,
+    "culture": 60,
+    "prosperity": 40,
+    "requests": 1,
+    "buildings": {
+      "odeon": 1,
+      "academy": 1,
+      "sculptor": 1
+    }
+  },
+  "script": "script.lua"
+}

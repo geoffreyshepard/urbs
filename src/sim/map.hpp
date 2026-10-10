@@ -67,4 +67,9 @@ struct MapGenParams {
 
 void generate_map(TileMap& map, const MapGenParams& p);
 
+// Manhattan distance in tiles between two tile indices.
+inline int manhattan_tiles(const TileMap& m, i32 a, i32 b) {
+  return std::abs(a % m.w - b % m.w) + std::abs(a / m.w - b / m.w);
+}
+
 }  // namespace urbs::sim

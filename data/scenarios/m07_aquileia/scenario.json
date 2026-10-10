@@ -1,0 +1,62 @@
+{
+  "id": "m07_aquileia",
+  "name": "Aquileia - Northern Frontier",
+  "mission": 7,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {
+    "size": 240,
+    "seed": 7741,
+    "coast": -1,
+    "river": true,
+    "hills": 0.75,
+    "forest": 0.5,
+    "marsh": 0.15
+  },
+  "world": {
+    "max_citizens": 11000,
+    "max_buildings": 3600,
+    "max_households": 4200,
+    "max_soldiers": 2000
+  },
+  "generator": "scripted",
+  "entry_road": 2,
+  "start": {
+    "treasury": 12000
+  },
+  "start_stock": {
+    "wood": 200,
+    "wheat": 200,
+    "pottery": 40,
+    "cut_stone": 40,
+    "concrete": 20
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "ceres",
+    "vesta",
+    "mercury",
+    "minerva"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "etruria",
+      "latin_villages",
+      "germania"
+    ]
+  },
+  "goals": {
+    "population": 3000,
+    "culture": 45,
+    "security": 40,
+    "buildings": {
+      "reservoir": 1,
+      "thermae": 1,
+      "fort": 1
+    }
+  },
+  "script": "script.lua"
+}

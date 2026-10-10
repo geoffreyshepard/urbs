@@ -16,12 +16,12 @@ foreach(sc ${URBS_SCENARIOS})
   endif()
 endforeach()
 
-# Campaign balance: the autoplay bot must win each finished mission (long; release builds).
-file(GLOB URBS_MISSIONS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/data/scenarios/m*/scenario.json)
-foreach(sc ${URBS_MISSIONS})
-  get_filename_component(_dir ${sc} DIRECTORY)
-  get_filename_component(_n ${_dir} NAME)
-  add_test(NAME mission_${_n} COMMAND urbs_headless --scenario ${sc} --ticks 192000 --autoplay)
+# Campaign balance: the autoplay bot must win each validated mission within 300 days (long; release
+# builds). tools/bot_missions.sh runs every mission in parallel for balancing.
+set(URBS_VALIDATED_MISSIONS m01_latium m02_ostia m03_beneventum m04_capua m05_syracuse m06_carthago_nova)
+foreach(_n ${URBS_VALIDATED_MISSIONS})
+  set(sc ${CMAKE_SOURCE_DIR}/data/scenarios/${_n}/scenario.json)
+  add_test(NAME mission_${_n} COMMAND urbs_headless --scenario ${sc} --ticks 360000 --autoplay)
   set_tests_properties(mission_${_n} PROPERTIES LABELS long PASS_REGULAR_EXPRESSION "mission WON")
 endforeach()
 

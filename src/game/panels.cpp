@@ -449,7 +449,7 @@ void draw_trade_panel(sim::World& w, bool* open) {
   }
   ImGui::Separator();
   ImGui::TextUnformatted("Goods: import when stock is below the level, export above it.");
-  ImGui::TextUnformatted("Stockpile keeps a good in storage (markets do not take it), e.g. for a request from Rome.");
+  ImGui::TextUnformatted("Stockpile keeps a good in storage (markets and workshops do not take it), e.g. for Rome.");
   if (ImGui::BeginTable("tg", 4)) {
     ImGui::TableSetupColumn("Good");
     ImGui::TableSetupColumn("Stock");
