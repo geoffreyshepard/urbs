@@ -1,0 +1,65 @@
+{
+  "id": "m13_colonia",
+  "name": "Colonia Agrippina - The Rhine",
+  "mission": 13,
+  "era": "empire",
+  "region": "north",
+  "start_hour": 7,
+  "map": {
+    "size": 256,
+    "seed": 13331,
+    "coast": -1,
+    "river": true,
+    "hills": 0.55,
+    "forest": 0.75,
+    "marsh": 0.2
+  },
+  "world": {
+    "max_citizens": 17000,
+    "max_buildings": 6000,
+    "max_households": 7000,
+    "max_soldiers": 4000
+  },
+  "generator": "scripted",
+  "entry_road": 3,
+  "start": {
+    "treasury": 22000
+  },
+  "start_stock": {
+    "wood": 300,
+    "wheat": 400,
+    "pottery": 80,
+    "planks": 80,
+    "cut_stone": 100,
+    "bricks": 80,
+    "weapons": 100,
+    "armor": 100
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "mercury",
+    "ceres",
+    "vesta",
+    "divus"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "gallia",
+      "germania"
+    ]
+  },
+  "goals": {
+    "population": 7000,
+    "culture": 55,
+    "security": 60,
+    "buildings": {
+      "fort": 2,
+      "barracks": 1,
+      "siege_workshop": 1
+    }
+  },
+  "script": "script.lua"
+}

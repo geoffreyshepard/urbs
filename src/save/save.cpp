@@ -103,7 +103,9 @@ void World::serialize(save::Writer& w) const {
   w.vec(econ.price);
   w.vec(econ.imported_today); w.vec(econ.exported_today); w.vec(econ.imported_yday); w.vec(econ.exported_yday);
   w.pod(static_cast<u32>(routes.size()));
-  for (const auto& r : routes) {
+  for (size_t k = 0; k < routes.size(); ++k) {
+    const auto& r = routes[k];
+    w.str(defs->partners[k].id);  // v3: routes are matched by partner id on load
     w.pod(r.open); w.pod(r.available); w.pod(r.next_visit); w.pod(r.ship_until); w.pod(r.ship_at); w.pod(r.caravan_traded);
     w.vec(r.bought);
     w.vec(r.sold);
@@ -130,6 +132,7 @@ void World::serialize(save::Writer& w) const {
   w.pod(ratings);
   w.pod(favor);
   w.pod(empire);
+  w.pod(nile);
   w.vec(requests);
   w.pod(next_request_id);
   w.pod(requests_fulfilled);
@@ -142,6 +145,7 @@ void World::serialize(save::Writer& w) const {
   w.pod(mission);
   w.pod(mission_days);
   w.str(mission_id);
+  w.str(region);
   w.str(lost_reason);
   w.vec(unlocked);
   w.pod(mission_number);
@@ -232,12 +236,53 @@ void World::deserialize(save::Reader& r) {
   r.pod(immigrants_today); r.pod(emigrants_today); r.pod(immigrants_total); r.pod(emigrants_total);
   r.pod(appeal); r.pod(happy_sum_today); r.pod(happy_count_today); r.pod(avg_happiness);
   r.expect("TRAD");
-  r.pod(econ.money);
+  if (r.version >= 3) {
+    r.pod(econ.money);
+  } else {
+    // v1-v2 ledgers had no Mint column (index 4): shift the later columns up by one.
+    struct OldLedger {
+      i64 v[4][econ::kMoneyCount - 1];
+    } ol;
+    r.pod(ol);
+    const auto& old = ol.v;
+    i64* dst[4] = {econ.money.today, econ.money.yesterday, econ.money.year, econ.money.last_year};
+    for (int a = 0; a < 4; ++a)
+      for (int k = 0; k < econ::kMoneyCount - 1; ++k) dst[a][k < 4 ? k : k + 1] = old[a][k];
+  }
   r.vec(econ.price);
   r.vec(econ.imported_today); r.vec(econ.exported_today); r.vec(econ.imported_yday); r.vec(econ.exported_yday);
   const u32 nr = r.pod<u32>();
-  if (nr != routes.size()) throw std::runtime_error("save: trade partner list changed");
-  for (auto& rt : routes) {
+  // The base partner list of v1-v2 saves (Parthia was added in v3); later entries were former cities.
+  static const char* kOldBase[] = {"latin_villages", "rome",   "etruria", "carthage", "massalia",
+                                   "alexandria",     "hispania", "gallia", "greece",   "germania"};
+  u32 former = 0;
+  for (u32 k = 0; k < nr; ++k) {
+    std::string id;
+    if (r.version >= 3) {
+      id = r.str();
+    } else if (k < 10) {
+      id = kOldBase[k];
+    }
+    // Find the route: by id, or (old saves) the k-th partner after the base list.
+    size_t slot = routes.size();
+    for (size_t p = 0; p < defs->partners.size() && slot == routes.size(); ++p)
+      if (!id.empty() && defs->partners[p].id == id) slot = p;
+    if (id.empty()) {
+      size_t seen = 0;
+      for (size_t p = 0; p < defs->partners.size(); ++p) {
+        bool base = defs->partners[p].id == "parthia";
+        for (const char* b : kOldBase) base |= defs->partners[p].id == b;
+        if (!base && seen++ == former) {
+          slot = p;
+          break;
+        }
+      }
+      ++former;
+    }
+    TradeRouteState dummy;
+    dummy.bought.assign(econ.goods, 0);
+    dummy.sold.assign(econ.goods, 0);
+    auto& rt = slot < routes.size() ? routes[slot] : dummy;
     r.pod(rt.open); r.pod(rt.available); r.pod(rt.next_visit); r.pod(rt.ship_until); r.pod(rt.ship_at); r.pod(rt.caravan_traded);
     r.vec(rt.bought);
     r.vec(rt.sold);
@@ -264,6 +309,7 @@ void World::deserialize(save::Reader& r) {
   r.pod(ratings);
   r.pod(favor);
   r.pod(empire);
+  if (r.version >= 3) r.pod(nile);
   r.vec(requests);
   r.pod(next_request_id);
   r.pod(requests_fulfilled);
@@ -276,6 +322,7 @@ void World::deserialize(save::Reader& r) {
   r.pod(mission);
   r.pod(mission_days);
   mission_id = r.str();
+  if (r.version >= 3) region = r.str();
   lost_reason = r.str();
   r.vec(unlocked);
   r.pod(mission_number);

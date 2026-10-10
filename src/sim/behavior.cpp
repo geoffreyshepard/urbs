@@ -151,8 +151,17 @@ void World::decide(u32 i) {
     }
   }
 
-  if (adult && hh && h >= 7 && h < 20) {
-    if (household_food(*hh) < hh->members * 2u && (!hh->shopper.valid() || hh->shopper == C.ids.id_at(i))) {
+  // Errands from dawn to dusk. Adults shop; children of ten and over can fetch water.
+  if (hh && age >= 10 && h >= 6 && h < 21) {
+    // One errand runner per household; anyone goes when the runner is gone or the larder is empty.
+    const CitizenId me = C.ids.id_at(i);
+    const bool may_shop = !hh->shopper.valid() || hh->shopper == me || !C.alive(hh->shopper) || household_food(*hh) == 0;
+    const bool may_fetch = !hh->fetcher.valid() || hh->fetcher == me || !C.alive(hh->fetcher) || hh->water == 0;
+    // Shop when food runs low, or when the family can afford a household good it does not have.
+    bool wants_goods = false;
+    if (hh->savings >= 10)
+      for (size_t k = 0; k < hh_goods.size() && k < 8 && !wants_goods; ++k) wants_goods = hh->goods[k] == 0;
+    if (adult && (household_food(*hh) < hh->members * 2u || wants_goods) && may_shop) {
       ServiceId market = defs->service("market");
       if (market.valid() && services.ready(market.v)) {
         const u16 cost = services.cost_ticks(market.v, home_tile);
@@ -160,7 +169,7 @@ void World::decide(u32 i) {
         if (m.valid() && cost <= defs->services[market.v].range) consider(Activity::Shop, m, Reason::BuyFood, 700);
       }
     }
-    if (hh->water < hh->members && h < 20 && (!hh->fetcher.valid() || hh->fetcher == C.ids.id_at(i))) {
+    if (hh->water < hh->members && may_fetch) {
       BuildingId well = best_service_for(NeedKind::Water, home_tile, nullptr);
       if (well.valid()) consider(Activity::Water, well, Reason::FetchWater, 650);
     }

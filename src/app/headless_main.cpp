@@ -150,6 +150,23 @@ int main(int argc, char** argv) {
         // Attendance at workshops at the last mid-morning sample.
         std::printf("    attendance at 10:00: %u of %u workshop workers present\n", att_present, att_employed);
       }
+      if (verbose && world->mission_days % 10 == 0) {
+        i64 a[13] = {};
+        u32 n = 0;
+        const auto& C2 = world->citizens;
+        for (u32 i = 0; i < C2.ids.high_water(); ++i) {
+          if (!C2.ids.alive_index(i) || (C2.flags[i] & sim::kFlagVisitor)) continue;
+          auto p = world->happiness_parts(i);
+          const i16 v[13] = {p.food, p.water, p.rest, p.hygiene, p.religion, p.entertainment, p.variety, p.housing,
+                             p.employment, p.taxes, p.gods, p.events, p.health};
+          for (int k = 0; k < 13; ++k) a[k] += v[k];
+          ++n;
+        }
+        const char* nm[13] = {"food", "water", "rest", "hyg", "rel", "ent", "var", "house", "emp", "tax", "gods", "ev", "hlth"};
+        std::printf("    mood parts:");
+        for (int k = 0; k < 13; ++k) std::printf(" %s %.0f", nm[k], n ? static_cast<double>(a[k]) / n : 0.0);
+        std::printf("\n");
+      }
       if (verbose && autoplay) {
         std::printf("    bot:");
         for (const auto& a : bot.take_log()) std::printf(" %s;", a.c_str());
@@ -206,15 +223,23 @@ int main(int argc, char** argv) {
   std::sort(steady.begin(), steady.end());
   const double p99 = steady[std::min(steady.size() - 1, steady.size() * 99 / 100)];
   const double mx = steady.back();
+  const double p999 = steady[std::min(steady.size() - 1, steady.size() * 999 / 1000)];
+  u64 over8 = 0, over16 = 0;
+  for (double v : steady) {
+    over8 += v > 8.0 ? 1 : 0;
+    over16 += v > 16.0 ? 1 : 0;
+  }
   const double per_frame_4x = avg * 80.0 / 60.0;
   const u64 viol = core::alloc::violations();
   const auto& ps = world->paths.store();
   std::printf(
       "{\"scenario\":\"%s\",\"ticks\":%llu,\"citizens\":%u,\"avg_tick_ms\":%.3f,\"p99_tick_ms\":%.3f,"
+      "\"p999_tick_ms\":%.3f,\"ticks_over_8ms\":%llu,\"ticks_over_16ms\":%llu,"
       "\"max_tick_ms\":%.3f,\"sim_ms_per_frame_4x\":%.3f,\"alloc_violations\":%llu,\"decisions\":%llu,"
       "\"path_requests\":%llu,\"arrivals\":%llu,\"max_walking\":%u,\"path_cache_hits\":%llu,"
       "\"path_cache_misses\":%llu,\"paths_live\":%u,\"sched_dropped\":%llu}\n",
-      spec.name.c_str(), static_cast<unsigned long long>(ticks), world->citizens.ids.count(), avg, p99, mx,
+      spec.name.c_str(), static_cast<unsigned long long>(ticks), world->citizens.ids.count(), avg, p99, p999,
+      static_cast<unsigned long long>(over8), static_cast<unsigned long long>(over16), mx,
       per_frame_4x, static_cast<unsigned long long>(viol), static_cast<unsigned long long>(decisions),
       static_cast<unsigned long long>(path_req), static_cast<unsigned long long>(arrivals), max_walking,
       static_cast<unsigned long long>(ps.hits()), static_cast<unsigned long long>(ps.misses()), ps.live_paths(),

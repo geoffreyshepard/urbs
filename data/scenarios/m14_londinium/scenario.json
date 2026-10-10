@@ -1,0 +1,62 @@
+{
+  "id": "m14_londinium",
+  "name": "Londinium - Britannia",
+  "mission": 14,
+  "era": "empire",
+  "region": "north",
+  "start_hour": 7,
+  "map": {
+    "size": 256,
+    "seed": 14411,
+    "coast": -1,
+    "river": true,
+    "hills": 0.3,
+    "forest": 0.5,
+    "marsh": 0.3
+  },
+  "world": {
+    "max_citizens": 17000,
+    "max_buildings": 6000,
+    "max_households": 7000,
+    "max_soldiers": 3000
+  },
+  "generator": "scripted",
+  "entry_road": 1,
+  "start": {
+    "treasury": 22000
+  },
+  "start_stock": {
+    "wood": 300,
+    "wheat": 400,
+    "pottery": 80,
+    "planks": 80,
+    "cut_stone": 100,
+    "bricks": 80
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "mercury",
+    "ceres",
+    "vesta",
+    "divus"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "gallia",
+      "germania"
+    ]
+  },
+  "goals": {
+    "population": 7500,
+    "culture": 60,
+    "prosperity": 45,
+    "buildings": {
+      "basilica": 1,
+      "amphitheater": 1
+    }
+  },
+  "script": "script.lua"
+}

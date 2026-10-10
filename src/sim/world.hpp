@@ -221,6 +221,7 @@ struct World {
   Ratings ratings;
   i32 favor = 50;  // 0..100 (Senate in the Republic, Emperor in the Empire)
   u8 empire = 0;
+  u8 nile = 0;  // yearly inundation: low land by the water floods in summer and its soil is renewed
   std::vector<Request> requests;
   u16 next_request_id = 1, requests_fulfilled = 0, requests_failed = 0;
   Loan loan;
@@ -229,6 +230,7 @@ struct World {
   MissionState mission = MissionState::Running;
   u16 mission_days = 0;
   std::string mission_id, lost_reason;
+  std::string region;  // art style of the province: "" (Italy), "north", "east", "egypt"
   std::vector<u8> unlocked;  // per building def
   u8 mission_number = 16;    // buildings with unlock <= this are available
   u8 difficulty = 1;         // 0 Otium, 1 Civitas, 2 Imperium
@@ -433,6 +435,7 @@ struct World {
   void military_daily();
   // Religion and threats (sim/religion.cpp, sim/threats.cpp)
   void religion_daily();
+  void inundation_daily();
   void weather_daily();
   void hazards_hourly(BuildingId id);
   void ignite(BuildingId id);

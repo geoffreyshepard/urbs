@@ -34,6 +34,7 @@ class Autoplay {
   bool activate_block(World& w, i32 near_x, i32 near_y);
   bool build_for_requirement(World& w, const data::HousingReq& r, i32 cx, i32 cy);
   bool build_producer_of(World& w, GoodId g, i32 cx, i32 cy, int depth);
+  bool repair_chain(World& w, GoodId g, i32 cx, i32 cy, int depth);
   // Make sure g is produced or imported; true if a building was placed for it.
   bool supply(World& w, GoodId g, u32 amount, i32 x, i32 y);
   int supplying_ = 0;

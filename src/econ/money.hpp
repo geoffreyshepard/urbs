@@ -3,12 +3,13 @@
 
 namespace urbs::econ {
 
-enum class Money : u8 { Taxes, Sales, Exports, Tribute, Wages, Construction, Imports, Upkeep, Festivals, Military, Other, Count };
+// Income categories first (money_is_income relies on it). Mint was added in save v3.
+enum class Money : u8 { Taxes, Sales, Exports, Tribute, Mint, Wages, Construction, Imports, Upkeep, Festivals, Military, Other, Count };
 inline constexpr int kMoneyCount = static_cast<int>(Money::Count);
-inline constexpr bool money_is_income(Money m) { return m <= Money::Tribute; }
+inline constexpr bool money_is_income(Money m) { return m <= Money::Mint; }
 inline constexpr const char* money_name(Money m) {
-  constexpr const char* n[] = {"Taxes",  "Market sales", "Exports",   "Grants from Rome", "Wages",  "Construction",
-                               "Imports", "Upkeep",      "Festivals", "Military",         "Other"};
+  constexpr const char* n[] = {"Taxes",  "Market sales", "Exports",   "Grants from Rome", "Coins from the mint", "Wages",
+                               "Construction", "Imports", "Upkeep", "Festivals", "Military", "Other"};
   return n[static_cast<int>(m)];
 }
 

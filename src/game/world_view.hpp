@@ -9,7 +9,8 @@ namespace urbs::game {
 // Turns sim state into sprites each frame (buildings, citizens). Read-only view of the world.
 class WorldView {
  public:
-  void init(const render::Atlas& atlas, const data::Defs& defs);
+  // region: a province art style; sprites named "<name>@<region>" replace the Italian ones where they exist.
+  void init(const render::Atlas& atlas, const data::Defs& defs, const std::string& region = {});
   void draw(const sim::World& w, render::Renderer& r, f32 alpha);
 
   [[nodiscard]] const render::Sprite& building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier = 0) const;

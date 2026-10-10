@@ -54,6 +54,7 @@ AppOptions parse_args(int argc, char** argv) {
 
 void App::after_world_change() {
   bot_.reset();
+  view_.init(renderer_.atlas(), defs_, world_->region);
   renderer_.set_map(&world_->map);
   sel_ = Selection{};
   tools_.cancel();

@@ -39,6 +39,7 @@ ScenarioSpec parse_scenario(const std::string& text, const std::string& path) {
     s.map.hills = m.value("hills", 0.5f);
     s.map.forest = m.value("forest", 0.5f);
     s.map.marsh = m.value("marsh", 0.3f);
+    s.map.arid = m.value("arid", 0.0f);
   }
   s.world.seed = j.value("seed", s.map.seed);
   if (j.contains("world")) {
@@ -475,9 +476,11 @@ void setup_mission(World& w, const data::Defs& defs, ScenarioSpec& s) {
       for (auto& [g, n] : j["start_stock"].items()) w.add_stock(id, defs.good(g), n.get<u16>());
   }
   w.mission_id = j.value("id", s.name);
+  w.region = j.value("region", std::string());
   if (j.contains("mission")) w.unlock_up_to(j["mission"].get<u8>());
   w.difficulty = j.value("difficulty", static_cast<u8>(1));
   w.empire = j.value("era", std::string("republic")) == "empire" ? 1 : 0;
+  w.nile = j.value("nile", false) ? 1 : 0;
   w.favor = j.value("favor", 50);
   if (j.contains("unlock"))
     for (auto& b : j["unlock"]) {

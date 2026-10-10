@@ -448,6 +448,7 @@ void World::despawn_citizen(CitizenId id) {
     if (h.members > 0) --h.members;
     if (h.head == id) h.head = CitizenId{};
     if (h.shopper == id) h.shopper = CitizenId{};
+    if (h.fetcher == id) h.fetcher = CitizenId{};
   }
   ++C.token[i];
   C.activity[i] = Activity::Dead;
@@ -529,7 +530,11 @@ void World::apply_path_results() {
       // Unreachable: stay put and try again later.
       C.activity[i] = Activity::Home;
       ++C.token[i];
-      if (C.next[i] == Activity::Shop && C.household[i].valid()) households[C.household[i]].shopper = CitizenId{};
+      if (C.household[i].valid() && households.ids.alive(C.household[i])) {
+        Household& h = households[C.household[i]];
+        if (C.next[i] == Activity::Shop && h.shopper == C.ids.id_at(i)) h.shopper = CitizenId{};
+        if (C.next[i] == Activity::Water && h.fetcher == C.ids.id_at(i)) h.fetcher = CitizenId{};
+      }
       schedule_citizen(i, now + kTicksPerHour, CitizenEvent::Decide);
       continue;
     }
@@ -701,6 +706,7 @@ void World::tick() {
   if (now % kTicksPerDay == 0) {
     daily_update();
     weather_daily();
+    inundation_daily();
     religion_daily();
     riot_check();
     revolt_check(false);

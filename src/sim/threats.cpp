@@ -16,6 +16,26 @@ bool World::patrol_covers(const char* service, const Building& b) const {
   return p.valid() && buildings.alive(p) && buildings[p].employed > 0;
 }
 
+void World::inundation_daily() {
+  if (!nile) return;
+  // The flood comes on the first day of summer: low land within six tiles of the water is soaked,
+  // buildings there are damaged (fields are not), and the soil is renewed.
+  if (day_of_year(now) == kDaysPerSeason) {
+    for (i32 y = 0; y < map.h; ++y)
+      for (i32 x = 0; x < map.w; ++x) {
+        const size_t i = static_cast<size_t>(map.idx(x, y));
+        if (map.height[i] > 2 || terrain_water(map.terrain[i])) continue;
+        bool near = false;
+        for (i32 dy = -6; dy <= 6 && !near; dy += 2)
+          for (i32 dx = -6; dx <= 6 && !near; dx += 2)
+            if (map.in_bounds(x + dx, y + dy) && terrain_water(map.terrain[static_cast<size_t>(map.idx(x + dx, y + dy))]))
+              near = true;
+        if (near) map.fertility[i] = std::max<u8>(map.fertility[i], 240);
+      }
+    trigger(TriggerId::Flood, -1, -1, 0);
+  }
+}
+
 void World::weather_daily() {
   rng::Stream& r = stream(rng::StreamId::Threats);
   const Season s = season(now);
@@ -324,7 +344,7 @@ void World::trigger(TriggerId t, i32 x, i32 y, i32 value) {
             if (map.in_bounds(tx, ty) && terrain_water(map.terrain[static_cast<size_t>(map.idx(tx, ty))]) &&
                 map.height[static_cast<size_t>(map.idx(b.x, b.y))] <= 2)
               wet = true;
-        if (!wet) return;
+        if (!wet || defs->b(b.def).kind == BuildingKind::Farm) return;  // fields are only soaked
         b.damage = static_cast<u8>(std::min(255, b.damage + 90));
         b.work_progress = 0;
       });

@@ -1,0 +1,64 @@
+{
+  "id": "m11_lugdunum",
+  "name": "Lugdunum - Capital of Gaul",
+  "mission": 11,
+  "era": "late_republic",
+  "region": "north",
+  "start_hour": 7,
+  "map": {
+    "size": 240,
+    "seed": 11117,
+    "coast": -1,
+    "river": true,
+    "hills": 0.75,
+    "forest": 0.5,
+    "marsh": 0.1
+  },
+  "world": {
+    "max_citizens": 15000,
+    "max_buildings": 5000,
+    "max_households": 6000,
+    "max_soldiers": 2000
+  },
+  "generator": "scripted",
+  "entry_road": 2,
+  "start": {
+    "treasury": 18000
+  },
+  "start_stock": {
+    "wood": 250,
+    "wheat": 300,
+    "pottery": 60,
+    "planks": 60,
+    "cut_stone": 80,
+    "bricks": 40
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "mercury",
+    "ceres",
+    "vesta",
+    "minerva"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "gallia",
+      "germania",
+      "etruria"
+    ]
+  },
+  "goals": {
+    "population": 5500,
+    "culture": 60,
+    "prosperity": 45,
+    "requests": 1,
+    "buildings": {
+      "mint": 1,
+      "triumphal_arch": 1
+    }
+  },
+  "script": "script.lua"
+}

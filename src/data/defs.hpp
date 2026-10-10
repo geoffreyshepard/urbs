@@ -58,6 +58,7 @@ struct GoodAmount {
 struct RecipeDef {
   std::string id;
   std::vector<GoodAmount> inputs, outputs;
+  i32 coins = 0;  // denarii struck into the treasury per batch (the mint)
   u16 work = 100;  // worker-ticks per batch
 };
 

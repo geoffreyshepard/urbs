@@ -261,7 +261,8 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
     ++actions;
     return true;
   };
-  const bool anywhere = d.resource != 0 || d.needs_water_adjacent || d.kind == BuildingKind::Farm;
+  // Resource sites, waterside buildings, farms, and anything too big for an 8x8 block go on open ground.
+  const bool anywhere = d.resource != 0 || d.needs_water_adjacent || d.kind == BuildingKind::Farm || bw >= 6 || bh >= 6;
   if (anywhere || painted_block) {
     // Spiral search around the town for a valid spot (resources, water edges, fertile fields).
     i32 best_x = -1, best_y = -1, best_score = -(1 << 30);
@@ -319,22 +320,27 @@ static u32 stock_cap(World& w, GoodId g) {
   return w.defs->goods[g.v].food ? 300 + pop * 2 : 150 + pop / 5;
 }
 
+// A producer of g exists but one of its inputs has no producer at all: build that input's producer.
+bool Autoplay::repair_chain(World& w, GoodId g, i32 cx, i32 cy, int depth) {
+  if (depth > 3 || producers_of(w, g) == 0) return false;
+  for (u16 k = 0; k < w.defs->buildings.size(); ++k) {
+    const auto& d = w.defs->buildings[k];
+    if (!d.recipe.valid() || count(w, d.id.c_str()) == 0) continue;
+    bool makes = false;
+    for (const auto& o : w.defs->recipes[d.recipe.v].outputs) makes |= o.good == g;
+    if (!makes) continue;
+    for (const auto& in : w.defs->recipes[d.recipe.v].inputs)
+      if (producers_of(w, in.good) == 0 && w.econ.city_stock[in.good.v] < 20 &&
+          build_producer_of(w, in.good, cx, cy, depth + 1))
+        return true;
+  }
+  return false;
+}
+
 bool Autoplay::build_producer_of(World& w, GoodId g, i32 cx, i32 cy, int depth) {
   if (depth > 3 || !g.valid()) return false;
   if (w.econ.city_stock[g.v] > stock_cap(w, g)) return false;  // enough already
-  // A producer exists but its chain is broken: rebuild the missing input first.
-  if (producers_of(w, g) > 0)
-    for (u16 k = 0; k < w.defs->buildings.size(); ++k) {
-      const auto& d = w.defs->buildings[k];
-      if (!d.recipe.valid() || count(w, d.id.c_str()) == 0) continue;
-      bool makes = false;
-      for (const auto& o : w.defs->recipes[d.recipe.v].outputs) makes |= o.good == g;
-      if (!makes) continue;
-      for (const auto& in : w.defs->recipes[d.recipe.v].inputs)
-        if (producers_of(w, in.good) == 0 && w.econ.city_stock[in.good.v] < 20 &&
-            build_producer_of(w, in.good, cx, cy, depth + 1))
-          return true;
-    }
+  if (repair_chain(w, g, cx, cy, depth)) return true;
   for (u16 k = 0; k < w.defs->buildings.size(); ++k) {
     const auto& d = w.defs->buildings[k];
     if (!d.recipe.valid() || !w.is_unlocked(BuildingDefId{k})) continue;
@@ -438,9 +444,23 @@ void Autoplay::do_trade_and_requests(World& w) {
       c.x0 = 0;
       w.push(c);
     }
+  // Materials for missing goal buildings are kept at home.
+  std::vector<u8> keep(w.econ.goods, 0);
+  for (const auto& gb : w.goals.buildings)
+    if (count(w, w.defs->b(gb.def).id.c_str()) < gb.count)
+      for (const auto& c : w.defs->b(gb.def).cost_goods) keep[c.good.v] = 1;
+  for (u32 g = 0; g < w.econ.goods; ++g)
+    if (keep[g] && w.trade_mode[g] == 2) {
+      Command c;
+      c.type = CmdType::SetTrade;
+      c.def = static_cast<u16>(g);
+      c.value = 0;
+      c.x0 = 0;
+      w.push(c);
+    }
   // Export whatever an open route buys once there is a little stock to spare.
   for (u32 g = 0; g < w.econ.goods; ++g) {
-    if (w.trade_mode[g] != 0 || w.econ.city_stock[g] < 60) continue;
+    if (keep[g] || w.trade_mode[g] != 0 || w.econ.city_stock[g] < 60) continue;
     bool bought = false;
     for (u32 p = 0; p < w.routes.size(); ++p)
       for (const auto& ga : w.defs->partners[p].buys) bought |= w.routes[p].open && ga.good.v == g;
@@ -827,7 +847,9 @@ void Autoplay::act(World& w) {
     return food_stock < pop && place(w, w.defs->building("wheat_farm"), ox_, oy_);
   };
   if (jobless && idle * 100 / adults > 35 && make_jobs()) return;
-  if (pop >= 10 && count(w, "wheat_farm") + count(w, "vegetable_garden") < 1 + pop / 120 && food_stock < 200 + pop) {
+  // Farms: about one per 120 people, more while food runs short (poor soil, desert).
+  const u32 farms_wanted = food_stock < pop / 3 ? 1 + pop / 60 : 1 + pop / 120;
+  if (pop >= 10 && count(w, "wheat_farm") + count(w, "vegetable_garden") < farms_wanted && food_stock < 200 + pop) {
     if (place(w, w.defs->building(count(w, "wheat_farm") <= count(w, "vegetable_garden") ? "wheat_farm" : "vegetable_garden"),
               ox_, oy_))
       return;
@@ -942,9 +964,11 @@ void Autoplay::act(World& w) {
       const i64 gc = w.defs->b(g.def).cost_denarii;
       if (gc > 300 && (pop < w.goals.population / 3 || w.econ.treasury < gc + gc / 3)) continue;
       bool materials = true;
+      const bool monument = w.defs->b(g.def).kind == BuildingKind::Monument;
       for (const auto& c : w.defs->b(g.def).cost_goods)
-        if (w.econ.city_stock[c.good.v] < c.amount) {
+        if (w.econ.city_stock[c.good.v] < (monument ? (c.amount + 3) / 4 : c.amount)) {
           materials = false;
+          if (repair_chain(w, c.good, bx, by, 0)) return;
           if (producers_of(w, c.good) < 2 && build_producer_of(w, c.good, bx, by, 0)) return;
           // Cannot make it here: import it if an open route sells it.
           for (u32 p = 0; p < w.routes.size(); ++p)

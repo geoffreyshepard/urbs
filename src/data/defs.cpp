@@ -168,7 +168,8 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
     r.inputs = goods_list(mr, id, j, "inputs");
     r.outputs = goods_list(mr, id, j, "outputs");
     r.work = get_or<u16>(j, "work", 100);
-    if (r.outputs.empty()) fail(mr, id, "recipe has no outputs");
+    r.coins = get_or<i32>(j, "coins", 0);
+    if (r.outputs.empty() && r.coins == 0) fail(mr, id, "recipe has no outputs");
     d.recipe_ids[id] = static_cast<u16>(d.recipes.size());
     d.recipes.push_back(std::move(r));
   }

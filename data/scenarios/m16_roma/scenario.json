@@ -1,0 +1,70 @@
+{
+  "id": "m16_roma",
+  "name": "Roma - Caput Mundi",
+  "mission": 16,
+  "era": "empire",
+  "start_hour": 7,
+  "map": {
+    "size": 256,
+    "seed": 16661,
+    "coast": -1,
+    "river": true,
+    "hills": 0.6,
+    "forest": 0.25,
+    "marsh": 0.15
+  },
+  "world": {
+    "max_citizens": 20000,
+    "max_buildings": 8000,
+    "max_households": 8500,
+    "max_soldiers": 3000
+  },
+  "generator": "scripted",
+  "entry_road": 2,
+  "start": {
+    "treasury": 40000
+  },
+  "start_stock": {
+    "wood": 400,
+    "wheat": 600,
+    "pottery": 120,
+    "planks": 150,
+    "cut_stone": 200,
+    "bricks": 150,
+    "concrete": 60,
+    "marble": 60
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "mars",
+    "venus",
+    "minerva",
+    "vesta",
+    "ceres",
+    "mercury",
+    "divus"
+  ],
+  "trade": {
+    "partners": [
+      "etruria",
+      "latin_villages",
+      "carthage",
+      "alexandria",
+      "greece",
+      "hispania",
+      "gallia"
+    ]
+  },
+  "goals": {
+    "population": 10000,
+    "culture": 70,
+    "prosperity": 45,
+    "buildings": {
+      "colosseum": 1,
+      "pantheon": 1,
+      "circus_maximus": 1
+    }
+  },
+  "script": "script.lua"
+}

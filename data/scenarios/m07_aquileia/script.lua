@@ -29,7 +29,7 @@ function on_day(day)
   if day >= 25 and S.raids == 0 then raid(2) end
   if day >= 55 and S.raids == 1 then raid(3) end
   if day >= 85 and S.raids == 2 then raid(4) end
-  if urbs.season() == 3 and not S.winter then
+  if urbs.season() == "Winter" and not S.winter then
     S.winter = true
     urbs.message("Winter in the north", "The winters are hard here. Keep the granaries full before the snow.", AEDILE)
   end

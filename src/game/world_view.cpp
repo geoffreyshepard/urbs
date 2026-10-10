@@ -9,7 +9,14 @@ namespace urbs::game {
 
 using render::Sprite;
 
-void WorldView::init(const render::Atlas& atlas, const data::Defs& defs) {
+void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const std::string& region) {
+  auto find = [&](const std::string& name) {
+    if (!region.empty()) {
+      const Sprite v = atlas.find(name + "@" + region);
+      if (v.valid) return v;
+    }
+    return atlas.find(name);
+  };
   for (int w = 1; w <= 4; ++w)
     for (int h = 1; h <= 4; ++h)
       placeholder_[w - 1][h - 1] = atlas.get("bld/placeholder_" + std::to_string(w) + "x" + std::to_string(h));
@@ -17,12 +24,12 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs) {
   static const char* kSides[4] = {"n", "e", "s", "w"};
   for (const auto& b : defs.buildings) {
     DefSprites ds;
-    ds.base = atlas.find(b.sprite);
-    for (int t = 0; t < 5; ++t) ds.tier[t] = atlas.find(b.sprite + "_t" + std::to_string(t));
-    for (int v = 0; v < 4; ++v) ds.tile[v] = atlas.find(b.sprite + "_tile_" + std::to_string(v));
-    ds.hut = atlas.find(b.sprite + "_hut");
-    ds.line_c = atlas.find(b.sprite + "_c");
-    for (int s = 0; s < 4; ++s) ds.line[s] = atlas.find(b.sprite + "_" + kSides[s]);
+    ds.base = find(b.sprite);
+    for (int t = 0; t < 5; ++t) ds.tier[t] = find(b.sprite + "_t" + std::to_string(t));
+    for (int v = 0; v < 4; ++v) ds.tile[v] = find(b.sprite + "_tile_" + std::to_string(v));
+    ds.hut = find(b.sprite + "_hut");
+    ds.line_c = find(b.sprite + "_c");
+    for (int s = 0; s < 4; ++s) ds.line[s] = find(b.sprite + "_" + kSides[s]);
     ds.painted = b.painted;
     ds.line_type = ds.line_c.valid;
     defs_.push_back(ds);

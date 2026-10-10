@@ -80,7 +80,7 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
       if (a.arg == 1003) return "Blight withers the crops.";
       if (a.arg == 1100) return "Not enough weapons and armor in the barracks to raise that unit.";
       if (a.arg == 1101) return "Not enough recruits: too few men of fighting age are free.";
-      if (a.arg == 1102) return "That unit cannot be trained here (cavalry at stables, ballistae at a fort, legions at barracks).";
+      if (a.arg == 1102) return "That unit cannot be trained here (cavalry at stables, ballistae at a siege workshop, legions at barracks).";
       if (a.arg == 1200) return "The legion returns victorious with plunder and captives!";
       if (a.arg == 1201) return "The campaign failed; the survivors return.";
       if (a.arg < D.gods.size()) return "A festival is held in honour of " + D.gods[a.arg].name;

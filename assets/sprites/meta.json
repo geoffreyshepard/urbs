@@ -35,7 +35,31 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/bakery@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/bakery@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/bakery@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/balneum": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/balneum@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/balneum@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/balneum@north": {
   "ax": 0,
   "ay": 67
  },
@@ -43,7 +67,31 @@
   "ax": 0,
   "ay": 87
  },
+ "bld/barracks@east": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/barracks@egypt": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/barracks@north": {
+  "ax": 0,
+  "ay": 87
+ },
  "bld/basilica": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/basilica@east": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/basilica@egypt": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/basilica@north": {
   "ax": 0,
   "ay": 87
  },
@@ -95,11 +143,47 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/domus_plot_t0@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t0@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t0@north": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/domus_plot_t1": {
   "ax": 0,
   "ay": 67
  },
+ "bld/domus_plot_t1@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t1@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t1@north": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/domus_plot_t2": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t2@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t2@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/domus_plot_t2@north": {
   "ax": 0,
   "ay": 67
  },
@@ -115,6 +199,18 @@
   "ax": 0,
   "ay": 27
  },
+ "bld/engineers_post@east": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/engineers_post@egypt": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/engineers_post@north": {
+  "ax": 0,
+  "ay": 27
+ },
  "bld/fishing_wharf": {
   "ax": 0,
   "ay": 47
@@ -124,6 +220,18 @@
   "ay": 127
  },
  "bld/forum": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/forum@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/forum@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/forum@north": {
   "ax": 0,
   "ay": 67
  },
@@ -151,6 +259,18 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/granary@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/granary@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/granary@north": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/grand_aqueduct": {
   "ax": 0,
   "ay": 47
@@ -160,6 +280,18 @@
   "ay": 107
  },
  "bld/guard_post": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/guard_post@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/guard_post@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/guard_post@north": {
   "ax": 0,
   "ay": 47
  },
@@ -179,7 +311,31 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/house_plot_t0@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t0@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t0@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/house_plot_t1": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t1@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t1@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t1@north": {
   "ax": 0,
   "ay": 47
  },
@@ -187,11 +343,47 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/house_plot_t2@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t2@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t2@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/house_plot_t3": {
   "ax": 0,
   "ay": 47
  },
+ "bld/house_plot_t3@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t3@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t3@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/house_plot_t4": {
+  "ax": 0,
+  "ay": 63
+ },
+ "bld/house_plot_t4@east": {
+  "ax": 0,
+  "ay": 63
+ },
+ "bld/house_plot_t4@egypt": {
+  "ax": 0,
+  "ay": 63
+ },
+ "bld/house_plot_t4@north": {
   "ax": 0,
   "ay": 63
  },
@@ -207,7 +399,31 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/latrina@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/latrina@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/latrina@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/library": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/library@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/library@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/library@north": {
   "ax": 0,
   "ay": 67
  },
@@ -235,11 +451,47 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/market@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/market@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/market@north": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/militia_post": {
   "ax": 0,
   "ay": 47
  },
+ "bld/militia_post@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/militia_post@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/militia_post@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/mill": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/mill@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/mill@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/mill@north": {
   "ax": 0,
   "ay": 47
  },
@@ -264,6 +516,18 @@
   "ay": 167
  },
  "bld/physician": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/physician@east": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/physician@egypt": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/physician@north": {
   "ax": 0,
   "ay": 27
  },
@@ -339,6 +603,18 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/potter@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/potter@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/potter@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/pozzolana_pit": {
   "ax": 0,
   "ay": 47
@@ -367,6 +643,18 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/school@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/school@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/school@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/scriptorium": {
   "ax": 0,
   "ay": 47
@@ -380,6 +668,18 @@
   "ay": 27
  },
  "bld/shrine": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/shrine@east": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/shrine@egypt": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/shrine@north": {
   "ax": 0,
   "ay": 27
  },
@@ -419,7 +719,31 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/tavern@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/tavern@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/tavern@north": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/temple": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/temple@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/temple@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/temple@north": {
   "ax": 0,
   "ay": 67
  },
@@ -428,6 +752,18 @@
   "ay": 127
  },
  "bld/theater": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/theater@east": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/theater@egypt": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/theater@north": {
   "ax": 0,
   "ay": 87
  },
@@ -440,6 +776,18 @@
   "ay": 47
  },
  "bld/trade_post": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/trade_post@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/trade_post@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/trade_post@north": {
   "ax": 0,
   "ay": 67
  },
@@ -456,6 +804,18 @@
   "ay": 27
  },
  "bld/vigiles_post": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/vigiles_post@east": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/vigiles_post@egypt": {
+  "ax": 0,
+  "ay": 27
+ },
+ "bld/vigiles_post@north": {
   "ax": 0,
   "ay": 27
  },
@@ -487,7 +847,31 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/warehouse@east": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/warehouse@egypt": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/warehouse@north": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/weaver": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/weaver@east": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/weaver@egypt": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/weaver@north": {
   "ax": 0,
   "ay": 47
  },

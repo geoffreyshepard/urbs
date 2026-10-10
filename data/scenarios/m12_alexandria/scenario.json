@@ -1,0 +1,68 @@
+{
+  "id": "m12_alexandria",
+  "name": "Alexandria - Egypt",
+  "mission": 12,
+  "era": "empire",
+  "region": "egypt",
+  "start_hour": 7,
+  "map": {
+    "size": 256,
+    "seed": 16203,
+    "coast": 0,
+    "river": true,
+    "hills": 0.5,
+    "forest": 0.1,
+    "marsh": 0.35,
+    "arid": 0.85
+  },
+  "nile": true,
+  "world": {
+    "max_citizens": 16000,
+    "max_buildings": 5500,
+    "max_households": 6500,
+    "max_soldiers": 2000
+  },
+  "generator": "scripted",
+  "entry_road": 2,
+  "start": {
+    "treasury": 20000
+  },
+  "start_stock": {
+    "wood": 250,
+    "wheat": 400,
+    "pottery": 80,
+    "planks": 80,
+    "cut_stone": 100,
+    "bricks": 60
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "isis",
+    "serapis",
+    "neptune",
+    "ceres",
+    "divus"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "greece",
+      "carthage",
+      "massalia",
+      "parthia"
+    ]
+  },
+  "goals": {
+    "population": 6500,
+    "culture": 60,
+    "prosperity": 45,
+    "requests": 3,
+    "buildings": {
+      "lighthouse": 1,
+      "circus": 1,
+      "glassworks": 1
+    }
+  },
+  "script": "script.lua"
+}

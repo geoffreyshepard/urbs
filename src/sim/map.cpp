@@ -201,6 +201,10 @@ void generate_map(TileMap& m, const MapGenParams& p) {
       } else if (mo < 0.32f && detail < 0.3f) {
         t = Terrain::Sand;
       }
+      // Arid lands: the desert begins a few tiles from the water.
+      if (p.arid > 0.0f && (t == Terrain::Grass || t == Terrain::Forest || t == Terrain::Marsh) &&
+          dw > 4 + static_cast<i32>((1.0f - p.arid) * 24.0f + detail * 6.0f))
+        t = Terrain::Sand;
       m.terrain[i] = t;
       f32 land = std::clamp((e - sea) / (1.0f - sea), 0.0f, 1.0f);
       m.height[i] = terrain_water(t) ? 0 : static_cast<u8>(std::clamp(1 + static_cast<int>(land * 7.0f), 1, 7));

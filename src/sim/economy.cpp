@@ -193,6 +193,14 @@ void World::building_hourly(BuildingId id) {
       econ.add(b.inv, o.good, o.amount);
       econ.produced_today[o.good.v] += o.amount;
     }
+    earn(r.coins, econ::Money::Mint);
+    // By the Nile, harvests draw down the soil until next year's flood renews it.
+    if (nile && d.kind == BuildingKind::Farm)
+      for (i32 y = b.y; y < b.y + b.h; ++y)
+        for (i32 x = b.x; x < b.x + b.w; ++x) {
+          u8& f = map.fertility[static_cast<size_t>(map.idx(x, y))];
+          f = static_cast<u8>(std::max(60, f - 3));
+        }
     b.work_progress -= r.work;
   }
 }

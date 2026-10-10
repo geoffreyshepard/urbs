@@ -96,6 +96,12 @@ LuaHost::LuaHost(sim::World& w, std::string source, std::string chunk_name)
     for (u16 k = 0; k < 13; ++k)
       if (name == kTrig[k]) W.trigger(static_cast<sim::TriggerId>(k), -1, -1, value.value_or(0));
   };
+  // The Republic becomes an Empire: Rome's favor is now the Emperor's, and the imperial cult begins.
+  u["set_empire"] = [&W, &D]() {
+    W.empire = 1;
+    const u8 divus = D.god("divus");
+    if (divus < W.god_available.size()) W.god_available[divus] = 1;
+  };
   u["unlock"] = [&W, &D](const std::string& b) {
     BuildingDefId d = D.building(b);
     if (d.valid()) W.unlocked[d.v] = 1;

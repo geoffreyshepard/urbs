@@ -1,0 +1,67 @@
+{
+  "id": "m15_antioch",
+  "name": "Antioch - The East",
+  "mission": 15,
+  "era": "empire",
+  "region": "east",
+  "start_hour": 7,
+  "map": {
+    "size": 256,
+    "seed": 15511,
+    "coast": 3,
+    "river": true,
+    "hills": 0.55,
+    "forest": 0.2,
+    "marsh": 0.1,
+    "arid": 0.5
+  },
+  "world": {
+    "max_citizens": 18000,
+    "max_buildings": 6500,
+    "max_households": 7500,
+    "max_soldiers": 3000
+  },
+  "generator": "scripted",
+  "entry_road": 1,
+  "start": {
+    "treasury": 25000
+  },
+  "start_stock": {
+    "wood": 300,
+    "wheat": 400,
+    "pottery": 100,
+    "planks": 100,
+    "cut_stone": 120,
+    "bricks": 80,
+    "marble": 40
+  },
+  "gods": [
+    "jupiter",
+    "juno",
+    "venus",
+    "mercury",
+    "ceres",
+    "isis",
+    "divus"
+  ],
+  "trade": {
+    "partners": [
+      "rome",
+      "parthia",
+      "greece",
+      "alexandria"
+    ]
+  },
+  "goals": {
+    "population": 8500,
+    "culture": 65,
+    "prosperity": 50,
+    "requests": 2,
+    "buildings": {
+      "jeweler": 1,
+      "glassworks": 1,
+      "odeon": 1
+    }
+  },
+  "script": "script.lua"
+}

@@ -62,6 +62,7 @@ struct MapGenParams {
   f32 hills = 0.5f;   // 0..1
   f32 forest = 0.5f;  // 0..1
   f32 marsh = 0.3f;   // 0..1
+  f32 arid = 0.0f;    // 0..1: desert beyond a fertile strip along the water (Egypt, Syria)
   bool flat = false;  // test maps: all grass at one height, no water
 };
 
