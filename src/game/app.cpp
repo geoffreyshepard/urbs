@@ -302,12 +302,10 @@ bool App::init(const AppOptions& opt) {
   overlay_age_ = 1 << 20;
   build_group_ = opt.build_group;
   // Screenshots: open panels and dialogs by name (--show finance,nomsg,bld:temple).
+  const char* kPanelNames[] = {"rome",     "advisors", "finance",  "goods",  "trade", "labor",
+                               "religion", "military", "research", "alerts", "help"};
   const std::pair<const char*, bool*> kShow[] = {
-      {"goods", &show_stock_},       {"labor", &show_labor_},  {"alerts", &show_alerts_},
-      {"finance", &show_finance_},   {"trade", &show_trade_},  {"religion", &show_religion_},
-      {"military", &show_military_}, {"rome", &show_rome_},    {"advisors", &show_advisors_},
-      {"research", &show_research_}, {"help", &show_help_},    {"pause", &paused_menu_},
-      {"settings", &show_settings_}, {"load", &show_saveload_}};
+      {"pause", &paused_menu_}, {"settings", &show_settings_}, {"load", &show_saveload_}};
   for (size_t a = 0; a < opt.show.size();) {
     size_t b = opt.show.find(',', a);
     if (b == std::string::npos) b = opt.show.size();
@@ -315,11 +313,13 @@ bool App::init(const AppOptions& opt) {
     a = b + 1;
     for (const auto& [name, flag] : kShow)
       if (p == name) *flag = true;
+    for (int k = 0; k < kPanelCount; ++k)
+      if (p == kPanelNames[k]) panel_ = static_cast<Panel>(k);
     if (p == "save") show_saveload_ = saveload_saving_ = true;
     if (p == "nobuild") show_build_ = false;
     if (p == "nomsg") last_message_ = 0xffff;  // the mission briefing and other messages stay unread and hidden
-    if (p.rfind("advisor", 0) == 0 && p.size() > 7) {
-      show_advisors_ = true;
+    if (p.rfind("advisor", 0) == 0 && p.size() == 8 && p[7] >= '1' && p[7] <= '5') {  // advisor1..advisor5
+      panel_ = Panel::Advisors;
       advisor_ = std::atoi(p.c_str() + 7);
     }
     if (p.rfind("bld:", 0) == 0)  // select the first building of this def
@@ -421,10 +421,10 @@ void App::handle_event(const SDL_Event& e) {
       if (e.key.key == SDLK_R) tools_.select_road(sim::Road::Dirt);
       if (e.key.key == SDLK_X) tools_.select_demolish();
       if (e.key.key == SDLK_B) show_build_ = !show_build_;
-      if (e.key.key == SDLK_L) show_stock_ = !show_stock_;
-      if (e.key.key == SDLK_J) show_labor_ = !show_labor_;
+      if (e.key.key == SDLK_L) toggle_panel(Panel::Goods);
+      if (e.key.key == SDLK_J) toggle_panel(Panel::Labor);
       if (e.key.key == SDLK_F) sel_.follow = !sel_.follow;
-      if (e.key.key == SDLK_H || e.key.key == SDLK_F1) show_help_ = !show_help_;
+      if (e.key.key == SDLK_H || e.key.key == SDLK_F1) toggle_panel(Panel::Help);
       if (e.key.key == SDLK_F12) show_debug_ = !show_debug_;
       if (e.key.key == SDLK_F5) save_slot("quicksave");
       if (e.key.key == SDLK_F9) load_slot("quicksave");
@@ -531,7 +531,7 @@ void App::pick_at_mouse() {
     }
   }
   if (best < 7.0f * 7.0f) {
-    show_military_ = true;
+    panel_ = Panel::Military;
     return;
   }
   const auto& C = world_->citizens;

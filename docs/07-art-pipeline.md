@@ -48,7 +48,9 @@ run for walls, aqueducts and roads, and the city's regional variant when there i
 no title bar, a header with a framed picture (the panel's icon, or the building's own thumbnail), the title in Cinzel
 and one summary line; small-caps section labels between thin rules; the top bar's bars (green when a goal is met,
 amber when short, red when failing, ochre with no goal); goods named with their icons. The building and citizen
-inspector sits beside the build rail, where the build lists pop out, so opening a list closes it.
+inspector sits beside the build rail, where the build lists pop out, so opening a list closes it. The report panels
+(Rome, Finance, Goods and the rest) hang from their top-bar button at the right edge, with a notch pointing at it, one
+at a time; the latest-news line moves left of an open panel.
 
 ## Generator structure
 

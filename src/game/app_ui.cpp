@@ -38,7 +38,6 @@ void App::draw_ui() {
     case Screen::Playing:
       draw_hud();
       draw_build_menu();
-      draw_stock_window();
       {
         Dock d;
         d.pos = ImVec2(rail_r_ + 6, hud_h_ + 8);
@@ -46,22 +45,56 @@ void App::draw_ui() {
         d.max_h = display().y - d.pos.y - 8;
         draw_inspector(*world_, sel_, icons_, d);
       }
-      draw_labor_panel(*world_, &show_labor_);
-      draw_finance_panel(*world_, &show_finance_);
-      draw_trade_panel(*world_, &show_trade_);
-      draw_religion_panel(*world_, &show_religion_);
       draw_threats_panel(*world_, sel_, &show_threats_);
-      draw_military_panel(*world_, sel_, &show_military_);
-      draw_rome_panel(*world_, &show_rome_);
-      draw_advisors_panel(*world_, icons_, &advisor_, &show_advisors_);
-      draw_research();
-      draw_help();
-      if (show_debug_) draw_debug_ui();
-      if (BuildingId jump = draw_alerts_panel(*world_, &show_alerts_); jump.valid() && world_->buildings.alive(jump)) {
-        const auto& jb = world_->buildings[jump];
-        renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
-        sel_.building = jump;
+      if (panel_ != Panel::None) {
+        const Dock pd = panel_dock(panel_);
+        bool open = true;
+        BuildingId jump;
+        switch (panel_) {
+          case Panel::Rome:
+            draw_rome_panel(*world_, icons_, pd, &open);
+            break;
+          case Panel::Advisors:
+            draw_advisors_panel(*world_, icons_, &advisor_, pd, &open);
+            break;
+          case Panel::Finance:
+            draw_finance_panel(*world_, icons_, pd, &open);
+            break;
+          case Panel::Goods:
+            draw_stock_window(pd, &open);
+            break;
+          case Panel::Trade:
+            draw_trade_panel(*world_, icons_, pd, &open);
+            break;
+          case Panel::Labor:
+            draw_labor_panel(*world_, icons_, pd, &open);
+            break;
+          case Panel::Religion:
+            draw_religion_panel(*world_, icons_, pd, &open);
+            break;
+          case Panel::Military:
+            draw_military_panel(*world_, sel_, icons_, pd, &open);
+            break;
+          case Panel::Research:
+            draw_research(pd, &open);
+            break;
+          case Panel::Alerts:
+            jump = draw_alerts_panel(*world_, icons_, pd, &open);
+            break;
+          case Panel::Help:
+            draw_help(pd, &open);
+            break;
+          case Panel::None:
+            break;
+        }
+        if (!open) panel_ = Panel::None;
+        if (jump.valid() && world_->buildings.alive(jump)) {
+          const auto& jb = world_->buildings[jump];
+          renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
+          sel_.building = jump;
+        }
       }
+      if (show_debug_) draw_debug_ui();
       draw_messages(*world_, icons_, &last_message_);
       if (world_->mission != sim::MissionState::Running && !end_dismissed_) {
         center_next(420, 0);
@@ -400,18 +433,22 @@ void App::draw_hud() {
   // Right: overlay, panels, alerts, help, menu.
   struct Btn {
     const char* icon;
-    bool* flag;
+    Panel panel;
     const char* tip;
   };
-  const Btn panels[] = {{"ui/icon_rome", &show_rome_, "Rome\nFavor, the Senate and the Emperor's requests"},
-                        {"ui/icon_advisors", &show_advisors_, "Advisors\nReports from your five advisors"},
-                        {"ui/icon_finance", &show_finance_, "Finance\nTaxes, wages and the budget"},
-                        {"ui/icon_goods", &show_stock_, "Goods (L)\nWhat the city holds, makes and uses"},
-                        {"ui/icon_trade", &show_trade_, "Trade\nRoutes, imports and exports"},
-                        {"ui/icon_labor", &show_labor_, "Labor (J)\nWorkers, jobs and priorities"},
-                        {"ui/icon_religion", &show_religion_, "Religion\nThe gods' moods and festivals"},
-                        {"ui/icon_military", &show_military_, "Military\nLegions, walls and threats"},
-                        {"ui/icon_research", &show_research_, "Research\nCivic research"}};
+  const Btn panels[] = {{"ui/icon_rome", Panel::Rome, "Rome\nFavor, the Senate and the Emperor's requests"},
+                        {"ui/icon_advisors", Panel::Advisors, "Advisors\nReports from your five advisors"},
+                        {"ui/icon_finance", Panel::Finance, "Finance\nTaxes, wages and the budget"},
+                        {"ui/icon_goods", Panel::Goods, "Goods (L)\nWhat the city holds, makes and uses"},
+                        {"ui/icon_trade", Panel::Trade, "Trade\nRoutes, imports and exports"},
+                        {"ui/icon_labor", Panel::Labor, "Labor (J)\nWorkers, jobs and priorities"},
+                        {"ui/icon_religion", Panel::Religion, "Religion\nThe gods' moods and festivals"},
+                        {"ui/icon_military", Panel::Military, "Military\nLegions, walls and threats"},
+                        {"ui/icon_research", Panel::Research, "Research\nCivic research"}};
+  // Where each panel hangs from: the centre of its button.
+  auto mark = [&](Panel p) {
+    panel_x_[static_cast<int>(p)] = std::round((ImGui::GetItemRectMin().x + ImGui::GetItemRectMax().x) * 0.5f);
+  };
   constexpr int kPanels = static_cast<int>(sizeof(panels) / sizeof(panels[0]));
   const int right_buttons = 1 + kPanels + 3;  // overlay, panels, alerts + help + menu
   const float right_w = static_cast<float>(right_buttons) * (btn + spacing) + 2 * gap;
@@ -454,17 +491,19 @@ void App::draw_hud() {
     for (int k = 0; k < kPanels; ++k) {
       if (k) ImGui::SameLine();
       ImGui::PushID(k);
-      if (icons_.icon_button("##panel", panels[k].icon, icon, *panels[k].flag)) *panels[k].flag = !*panels[k].flag;
+      if (icons_.icon_button("##panel", panels[k].icon, icon, panel_ == panels[k].panel)) toggle_panel(panels[k].panel);
       ImGui::PopID();
+      mark(panels[k].panel);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", panels[k].tip);
     }
     ImGui::SameLine(0, gap);
     // Alerts, with a count of the ones that came in since the panel was last open.
-    if (show_alerts_) alerts_seen_ = w.now;
+    if (panel_ == Panel::Alerts) alerts_seen_ = w.now;
     int unread = 0;
     for (const auto& a : w.alerts)
       if (a.t > alerts_seen_) ++unread;
-    if (icons_.icon_button("##alerts", "ui/icon_alerts", icon, show_alerts_)) show_alerts_ = !show_alerts_;
+    if (icons_.icon_button("##alerts", "ui/icon_alerts", icon, panel_ == Panel::Alerts)) toggle_panel(Panel::Alerts);
+    mark(Panel::Alerts);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip(unread ? "Alerts\n%d new" : "Alerts\nNothing new", unread);
     if (unread) {
       const ImVec2 mx = ImGui::GetItemRectMax(), mn = ImGui::GetItemRectMin();
@@ -478,7 +517,8 @@ void App::draw_hud() {
                   n.c_str());
     }
     ImGui::SameLine();
-    if (icons_.icon_button("##help", "ui/icon_help", icon, show_help_)) show_help_ = !show_help_;
+    if (icons_.icon_button("##help", "ui/icon_help", icon, panel_ == Panel::Help)) toggle_panel(Panel::Help);
+    mark(Panel::Help);
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("How to play (H)");
     ImGui::SameLine();
     if (icons_.icon_button("##menu", "ui/icon_menu", icon, paused_menu_)) paused_menu_ = true;
@@ -490,16 +530,31 @@ void App::draw_hud() {
 
   // The latest news, for a day, under the right end of the bar; a click opens the alerts.
   if (!w.alerts.empty() && w.now - w.alerts.back().t < kTicksPerDay) {
-    ImGui::SetNextWindowPos(ImVec2(ds.x - 8, hud_h_ + 6), ImGuiCond_Always, ImVec2(1, 0));
+    // Left of an open panel, so it does not cover it.
+    const float right = panel_ == Panel::None ? ds.x - 8 : ds.x - 16 - panel_dock(panel_).width;
+    ImGui::SetNextWindowPos(ImVec2(right, hud_h_ + 6), ImGuiCond_Always, ImVec2(1, 0));
     begin_window("##news", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
                      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.15f, 0.08f, 1));
-    if (ImGui::Selectable(alert_text(w, w.alerts.back()).c_str(), false)) show_alerts_ = true;
+    if (ImGui::Selectable(alert_text(w, w.alerts.back()).c_str(), false)) panel_ = Panel::Alerts;
     ImGui::PopStyleColor();
     ImGui::End();
   }
+}
+
+Dock App::panel_dock(Panel p) const {
+  // Widths in font sizes, in top-bar order (Rome .. Help).
+  static constexpr float kWidth[kPanelCount] = {27, 30, 28, 27, 32, 27, 28, 28, 28, 30, 30};
+  const float fs = ImGui::GetFontSize();
+  Dock d;
+  d.right = true;
+  d.width = std::round(fs * kWidth[static_cast<int>(p)]);
+  d.pos = ImVec2(display().x - 8, hud_h_ + std::round(fs * 0.8f));
+  d.max_h = display().y - d.pos.y - 8;
+  d.notch_x = panel_x_[static_cast<int>(p)];
+  return d;
 }
 
 void App::draw_pause() {
@@ -581,14 +636,16 @@ void App::draw_saveload() {
   ImGui::End();
 }
 
-void App::draw_research() {
-  if (!show_research_) return;
-  ImGui::SetNextWindowPos({700, 140}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({420, 380}, ImGuiCond_FirstUseEver);
-  begin_window("Civic research", &show_research_);
+void App::draw_research(const Dock& dock, bool* open) {
+  if (!begin_panel("##research", dock)) {
+    end_panel();
+    return;
+  }
+  if (!panel_header(icons_, "ui/icon_research", false, "Research",
+                    with_commas(world_->scientia) + " scientia to spend"))
+    *open = false;
   ImGui::TextWrapped("Scholars in schools, libraries and academies produce scientia. Spend it on techniques for this city.");
-  ImGui::Text("Scientia: %u", world_->scientia);
-  ImGui::Separator();
+  divider();
   for (u16 t = 0; t < defs_.techniques.size(); ++t) {
     const auto& tech = defs_.techniques[t];
     ImGui::PushID(t);
@@ -621,14 +678,16 @@ void App::draw_research() {
       world_->push(c);
     }
   }
-  ImGui::End();
+  end_panel();
+  ;
 }
 
-void App::draw_help() {
-  if (!show_help_) return;
-  ImGui::SetNextWindowPos({300, 140}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({460, 420}, ImGuiCond_FirstUseEver);
-  begin_window("How to play", &show_help_);
+void App::draw_help(const Dock& dock, bool* open) {
+  if (!begin_panel("##help", dock)) {
+    end_panel();
+    return;
+  }
+  if (!panel_header(icons_, "ui/icon_help", false, "How to play", "Keys, and how the city works")) *open = false;
   ImGui::TextWrapped(
       "Camera: WASD or arrow keys to pan, right- or middle-drag to pan, mouse wheel to zoom.\n"
       "Time: Space pauses, 1/2/3 set speed.\n"
@@ -645,7 +704,8 @@ void App::draw_help() {
       "Build a trade post, open routes (Trade) and export surpluses. Food nobody eats is wages spent for nothing.\n"
       "Rome's requests: set the good to Stockpile in the Trade panel so markets leave it in storage, then Send it "
       "from the Rome panel.");
-  ImGui::End();
+  end_panel();
+  ;
 }
 
 namespace {
@@ -967,11 +1027,13 @@ void App::draw_build_menu() {
   }
 }
 
-void App::draw_stock_window() {
-  if (!show_stock_) return;
-  ImGui::SetNextWindowPos({1200, 70}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({380, 420}, ImGuiCond_FirstUseEver);
-  begin_window("Goods", &show_stock_);
+void App::draw_stock_window(const Dock& dock, bool* open) {
+  if (!begin_panel("##goods", dock)) {
+    end_panel();
+    return;
+  }
+  if (!panel_header(icons_, "ui/icon_goods", false, "Goods", "What the city holds, made and used yesterday"))
+    *open = false;
   const auto& e = world_->econ;
   if (ImGui::BeginTable("goods", 6, ImGuiTableFlags_RowBg)) {
     ImGui::TableSetupColumn("Good");
@@ -1002,7 +1064,8 @@ void App::draw_stock_window() {
     ImGui::EndTable();
   }
   ImGui::TextDisabled("Made, used and traded are yesterday's figures.");
-  ImGui::End();
+  end_panel();
+  ;
 }
 
 void App::draw_debug_ui() {

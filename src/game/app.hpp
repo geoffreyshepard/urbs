@@ -3,17 +3,18 @@
 #include <string>
 
 #include "data/defs.hpp"
-#include "game/overlays.hpp"
-#include "game/panels.hpp"
 #include "game/lighting.hpp"
+#include "game/overlays.hpp"
+#include "game/panel_kit.hpp"
+#include "game/panels.hpp"
 #include "game/profile.hpp"
 #include "game/tools.hpp"
 #include "game/ui_icons.hpp"
 #include "game/world_view.hpp"
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
-#include "sim/scenario.hpp"
 #include "sim/autoplay.hpp"
+#include "sim/scenario.hpp"
 #include "sim/world.hpp"
 
 namespace urbs::game {
@@ -39,6 +40,23 @@ struct AppOptions {
 };
 
 AppOptions parse_args(int argc, char** argv);
+
+// The report panels, in top-bar order. One is open at a time, hanging from its button.
+enum class Panel : u8 {
+  Rome,
+  Advisors,
+  Finance,
+  Goods,
+  Trade,
+  Labor,
+  Religion,
+  Military,
+  Research,
+  Alerts,
+  Help,
+  None
+};
+inline constexpr int kPanelCount = static_cast<int>(Panel::None);
 
 enum class Screen : u8 { Menu, Campaign, Sandbox, Playing, Mods, Custom, Editor };
 
@@ -89,11 +107,14 @@ class App {
   void draw_pause();
   void draw_settings();
   void draw_saveload();
-  void draw_research();
+  void draw_research(const Dock& dock, bool* open);
   void draw_build_menu();
-  void draw_stock_window();
+  void draw_stock_window(const Dock& dock, bool* open);
   void draw_debug_ui();
-  void draw_help();
+  void draw_help(const Dock& dock, bool* open);
+  // The open report panel's place: at the right edge, hanging from its top-bar button.
+  [[nodiscard]] Dock panel_dock(Panel p) const;
+  void toggle_panel(Panel p) { panel_ = panel_ == p ? Panel::None : p; }
   // Mods, custom scenarios, scenario editor (editor.cpp)
   bool reload_defs(std::string* err);
   void draw_mods();
@@ -148,9 +169,10 @@ class App {
   u16 salary_day_ = 0;
 
   // Panels
-  bool show_build_ = true, show_stock_ = false, show_labor_ = false, show_alerts_ = false, show_finance_ = false,
-       show_trade_ = false, show_religion_ = false, show_threats_ = false, show_military_ = false, show_rome_ = false,
-       show_advisors_ = false, show_research_ = false, show_debug_ = false, show_help_ = false;
+  bool show_build_ = true, show_threats_ = false, show_debug_ = false;
+  // The report panel that is open (one at a time), and the screen x of each one's top-bar button.
+  Panel panel_ = Panel::None;
+  float panel_x_[kPanelCount] = {};
   bool paused_menu_ = false, show_settings_ = false, show_saveload_ = false, saveload_saving_ = false;
   bool end_dismissed_ = false;
   int advisor_ = 1;
