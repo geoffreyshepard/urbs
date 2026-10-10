@@ -1,5 +1,6 @@
 #pragma once
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -65,9 +66,11 @@ class Autoplay {
   Tick water_cooldown_ = 0;
   Tick fire_cooldown_ = 0;
   Tick close_cooldown_ = 0;
+  bool no_jobs_possible_ = false;
   GoodId request_good_{};  // a good Rome asked for that we should be producing
   std::map<u32, Tick> blocker_cooldown_;
-  std::map<u32, Tick> stuck_since_;  // construction site (raw id) -> first hour seen with no builders  // requirement key -> tick when it may be chased again
+  std::map<u32, Tick> stuck_since_;
+  std::set<u64> bad_spots_;  // (def, x, y) where a site turned out unreachable  // construction site (raw id) -> first hour seen with no builders  // requirement key -> tick when it may be chased again
 };
 
 }  // namespace urbs::sim

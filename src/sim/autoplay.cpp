@@ -173,17 +173,20 @@ bool Autoplay::activate_block(World& w, i32 nx, i32 ny) {
   i32 bestd = 1 << 30;
   for (Block& b : blocks_) {
     if (b.active || b.bad) continue;
-    u32 ok = 0;
+    u32 ok = 0, fert = 0;
     for (i32 y = b.y; y < b.y + 8; ++y)
       for (i32 x = b.x; x < b.x + 8; ++x) {
         const size_t i = static_cast<size_t>(w.map.idx(x, y));
         if (!terrain_water(w.map.terrain[i]) && !w.map.building[i].valid()) ++ok;
+        fert += w.map.fertility[i];
       }
     if (ok < 40) {
       b.bad = 1;
       continue;
     }
-    const i32 d = std::abs(b.x - nx) + std::abs(b.y - ny) + (std::abs(b.x - ox_) + std::abs(b.y - oy_)) / 2;
+    // By the Nile, keep houses off the floodplain's farmland.
+    const i32 d = std::abs(b.x - nx) + std::abs(b.y - ny) + (std::abs(b.x - ox_) + std::abs(b.y - oy_)) / 2 +
+                  (w.nile ? static_cast<i32>(fert / 128) : 0);
     if (d < bestd) {
       bestd = d;
       pick = &b;
@@ -247,6 +250,10 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
       }
     return false;
   };
+  auto bad = [&](i32 x, i32 y) {
+    return bad_spots_.count((static_cast<u64>(def.v) << 32) | (static_cast<u64>(static_cast<u16>(x)) << 16) |
+                            static_cast<u16>(y)) != 0;
+  };
   auto issue = [&](i32 x, i32 y) {
     Command c;
     c.type = CmdType::PlaceBuilding;
@@ -271,7 +278,7 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
         for (i32 dx = -r; dx <= r; ++dx) {
           if (std::max(std::abs(dx), std::abs(dy)) != r) continue;
           const i32 x = nx + dx, y = ny + dy;
-          if (!w.can_place(def, x, y, bw, bh) || !reachable(x, y)) continue;
+          if (!w.can_place(def, x, y, bw, bh) || !reachable(x, y) || bad(x, y)) continue;
           // Keep farms out of the housing blocks; prefer fertile soil.
           bool in_block = false;
           for (const Block& b : blocks_)
@@ -301,7 +308,7 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
         if (!edge) continue;
         if (!w.can_place(def, x, y, bw, bh)) continue;
         const i32 dd = std::abs(x - nx) + std::abs(y - ny);
-        if (dd >= best_d || !reachable(x, y)) continue;
+        if (dd >= best_d || !reachable(x, y) || bad(x, y)) continue;
         if (dd < best_d) {
           best_d = dd;
           best_x = x;
@@ -317,7 +324,7 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
 // How much of a good the city sensibly keeps; producing beyond it wastes wages.
 static u32 stock_cap(World& w, GoodId g) {
   const u32 pop = w.population();
-  return w.defs->goods[g.v].food ? 300 + pop * 2 : 150 + pop / 5;
+  return w.defs->goods[g.v].food ? 300 + pop * 2 : 150 + pop / 20;
 }
 
 // A producer of g exists but one of its inputs has no producer at all: build that input's producer.
@@ -330,9 +337,25 @@ bool Autoplay::repair_chain(World& w, GoodId g, i32 cx, i32 cy, int depth) {
     for (const auto& o : w.defs->recipes[d.recipe.v].outputs) makes |= o.good == g;
     if (!makes) continue;
     for (const auto& in : w.defs->recipes[d.recipe.v].inputs)
-      if (producers_of(w, in.good) == 0 && w.econ.city_stock[in.good.v] < 20 &&
-          build_producer_of(w, in.good, cx, cy, depth + 1))
-        return true;
+      if (w.econ.city_stock[in.good.v] < 20) {
+        // Short of an input: import it if a partner sells it (a local chain may lack its deposit) ...
+        bool importable = false;
+        for (u32 p = 0; p < w.routes.size(); ++p)
+          for (const auto& ga : w.defs->partners[p].sells)
+            if (w.routes[p].open && ga.good == in.good) {
+              importable = true;
+              if (w.trade_mode[in.good.v] != 1 && w.trade_mode[in.good.v] != 3) {
+                Command c;
+                c.type = CmdType::SetTrade;
+                c.def = in.good.v;
+                c.value = 1;
+                c.x0 = 60;
+                w.push(c);
+              }
+            }
+        // ... and build its producer when there is none.
+        if (!importable && producers_of(w, in.good) == 0 && build_producer_of(w, in.good, cx, cy, depth + 1)) return true;
+      }
   }
   return false;
 }
@@ -391,8 +414,10 @@ bool Autoplay::build_for_requirement(World& w, const HousingReq& r, i32 cx, i32 
       return false;
     }
     case HousingReq::Goods:
+      // Every household wears out its goods (one unit in eight days): production must keep pace with
+      // the number of households, so build while stocks are below what the city should hold.
       for (GoodId g : r.goods)
-        if (w.econ.city_stock[g.v] < 30) return build_producer_of(w, g, cx, cy, 0);
+        if (w.econ.city_stock[g.v] < stock_cap(w, g) && build_producer_of(w, g, cx, cy, 0)) return true;
       return false;
     case HousingReq::Desirability:
       return place(w, first_unlocked(w, {"statue", "garden"}), cx, cy);
@@ -408,7 +433,11 @@ void Autoplay::do_trade_and_requests(World& w) {
       c.type = CmdType::FulfillRequest;
       c.def = r.id;
       w.push(c);
-      if (r.kind == 0 && r.good.valid() && r.good.v < wanted.size()) wanted[r.good.v] = 1;
+      // Chase a goods request (stockpile it) unless it is a food the city cannot spare.
+      u32 food = 0;
+      for (GoodId g : w.food_slots) food += w.econ.city_stock[g.v];
+      const bool hungry_food = r.good.valid() && w.defs->goods[r.good.v].food && food < w.population() + r.amount;
+      if (r.kind == 0 && r.good.valid() && r.good.v < wanted.size() && !hungry_food) wanted[r.good.v] = 1;
     }
   request_good_ = GoodId{};
   // Goods requested by Rome: stockpile them (markets leave them in storage) and make sure they are produced.
@@ -444,6 +473,23 @@ void Autoplay::do_trade_and_requests(World& w) {
       c.x0 = 0;
       w.push(c);
     }
+  // Hungry city: import a food a partner sells (the import stops itself at the level).
+  {
+    u32 food = 0;
+    for (GoodId g : w.food_slots) food += w.econ.city_stock[g.v];
+    if (food < w.population() / 2 && w.econ.treasury > 2000)
+      for (u32 p = 0; p < w.routes.size(); ++p)
+        for (const auto& ga : w.defs->partners[p].sells)
+          if (w.routes[p].open && w.defs->goods[ga.good.v].food && w.trade_mode[ga.good.v] != 1 &&
+              w.trade_mode[ga.good.v] != 3) {
+            Command c;
+            c.type = CmdType::SetTrade;
+            c.def = ga.good.v;
+            c.value = 1;
+            c.x0 = static_cast<i32>(w.population() / 2);
+            w.push(c);
+          }
+  }
   // Materials for missing goal buildings are kept at home.
   std::vector<u8> keep(w.econ.goods, 0);
   for (const auto& gb : w.goals.buildings)
@@ -460,6 +506,16 @@ void Autoplay::do_trade_and_requests(World& w) {
     }
   // Export whatever an open route buys once there is a little stock to spare.
   for (u32 g = 0; g < w.econ.goods; ++g) {
+    // Household goods already exported: raise the level as the city grows.
+    if (w.trade_mode[g] == 2 && w.good_hh_slot[g] >= 0 && w.trade_level[g] < 100 + w.population() / 10) {
+      Command c;
+      c.type = CmdType::SetTrade;
+      c.def = static_cast<u16>(g);
+      c.value = 2;
+      c.x0 = 100 + static_cast<i32>(w.population() / 10);
+      w.push(c);
+      continue;
+    }
     if (keep[g] || w.trade_mode[g] != 0 || w.econ.city_stock[g] < 60) continue;
     bool bought = false;
     for (u32 p = 0; p < w.routes.size(); ++p)
@@ -469,7 +525,10 @@ void Autoplay::do_trade_and_requests(World& w) {
     c.type = CmdType::SetTrade;
     c.def = static_cast<u16>(g);
     c.value = 2;
-    c.x0 = w.defs->goods[g].food ? 100 + static_cast<i32>(w.population()) : 40;
+    // Keep enough food and household goods (what houses need to grow) at home; export the rest.
+    const bool household_good = w.good_hh_slot[g] >= 0;
+    c.x0 = w.defs->goods[g].food ? 100 + static_cast<i32>(w.population())
+                                 : household_good ? 100 + static_cast<i32>(w.population() / 10) : 40;
     w.push(c);
   }
 }
@@ -493,7 +552,9 @@ void Autoplay::step(World& w) {
         }
       }
     if (enemies > 0) last_enemy_ = w.now;
-    const u32 garrison = w.mission_number >= 3 && w.population() >= 300 ? w.population() / 40 : 0;
+    // A standing garrison only where security matters or raiders have already come.
+    const bool threatened = w.goals.security > 0 || (last_enemy_ > 0 && w.now - last_enemy_ < 40 * kTicksPerDay);
+    const u32 garrison = threatened && w.mission_number >= 3 && w.population() >= 300 ? w.population() / 80 : 0;
     const u32 want = enemies > 0 ? std::max(garrison, enemies + enemies / 4) : garrison;
     auto set_conscription = [&](u8 v) {
       if (w.policy.conscription == v) return;
@@ -622,14 +683,8 @@ void Autoplay::step(World& w) {
         w.push(rc);
       }
     }
-    // In debt: pay a little less than Rome's rate until the books balance.
-    if (w.econ.treasury < 0 && w.policy.wage > 3) {
-      Command wc;
-      wc.type = CmdType::SetPolicy;
-      wc.def = static_cast<u16>(PolicyId::Wage);
-      wc.value = 3;
-      w.push(wc);
-    } else if (w.econ.treasury > 5000 && w.policy.wage < 4) {
+    // Wages stay at Rome's rate (cutting them only impoverishes the buyers of the city's goods).
+    if (w.policy.wage < 4) {
       Command wc;
       wc.type = CmdType::SetPolicy;
       wc.def = static_cast<u16>(PolicyId::Wage);
@@ -717,7 +772,7 @@ void Autoplay::act(World& w) {
   // 1. Always keep some vacant housing (unless jobs are what the city lacks).
   // Past the population goal, improve the houses there are rather than sprawl.
   const bool enough = w.goals.population > 0 && pop >= w.goals.population + w.goals.population / 10;
-  if (houses < 6 || (cap - std::min(cap, residents) < std::max<u32>(15, pop / 8) && !(adults > 40 && idle * 100 / adults > 20) && !enough)) {
+  if (houses < 6 || (cap - std::min(cap, residents) < std::max<u32>(15, pop / 8) && !(adults > 40 && idle * 100 / adults > 20 && !no_jobs_possible_) && !enough)) {
     if (place(w, house, bx, by)) return;
   }
   // Water first: a well beside any occupied house that has no water source in reach.
@@ -757,6 +812,14 @@ void Autoplay::act(World& w) {
   w.buildings.for_each([&](BuildingId id, const Building& b) {
     const auto& sd = w.defs->b(b.def);
     if (b.state != BState::Construction || sd.kind == BuildingKind::House) return;
+    // A site cut off from the town (its footprint was the only way through): clear it at once and
+    // never try that spot again.
+    if (b.entrance < 0 || !w.nav.connected(b.entrance, w.map.idx(ox_, oy_))) {
+      bad_spots_.insert((static_cast<u64>(b.def.v) << 32) | (static_cast<u64>(static_cast<u16>(b.x)) << 16) |
+                        static_cast<u16>(b.y));
+      clear = id;
+      return;
+    }
     if (b.build_progress == 0 && b.present == 0) {
       auto [it, fresh] = stuck_since_.try_emplace(id.raw, w.now);
       // Hopeless (materials the city does not have, or ready but nobody can reach it) after four days;
@@ -917,6 +980,7 @@ void Autoplay::act(World& w) {
     if (pick.valid() && export_producers < pop / 150 && build_producer_of(w, pick, bx, by, 0)) return;
   }
   // Rome's request: at least two producers of the requested good.
+  if (request_good_.valid() && repair_chain(w, request_good_, bx, by, 0)) return;
   if (request_good_.valid() && producers_of(w, request_good_) < 2 && build_producer_of(w, request_good_, bx, by, 0)) return;
   // Exports go out through a trade post.
   {
@@ -997,7 +1061,13 @@ void Autoplay::act(World& w) {
   if (pop >= 400 && ensure("theater", pop / 900)) return;
   if (pop >= 300 && ensure("guard_post", pop / 500)) return;
   // 6. Jobs: if many are idle, add a productive workshop (early when unemployment is severe).
-  if (jobless && make_jobs()) return;
+  if (jobless) {
+    if (make_jobs()) {
+      no_jobs_possible_ = false;
+      return;
+    }
+    no_jobs_possible_ = true;  // nothing left to build for jobs: let the city grow anyway
+  }
   idle_ = jobless ? "no job site found" : "nothing to do";
 }
 

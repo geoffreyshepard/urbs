@@ -242,6 +242,9 @@ void World::start_activity(u32 i, Activity a) {
       break;
     case Activity::Work:
     case Activity::Build: {
+      // Workers drink at the street fountains and eat a bite at work: needs fall more slowly.
+      rate(Need::Water, -4);
+      rate(Need::Food, -3);
       C.flags[i] |= kFlagWorked;
       if (C.loc[i].valid() && buildings.alive(C.loc[i])) {
         Building& wb = buildings[C.loc[i]];

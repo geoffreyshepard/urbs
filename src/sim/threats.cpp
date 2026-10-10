@@ -345,7 +345,7 @@ void World::trigger(TriggerId t, i32 x, i32 y, i32 value) {
                 map.height[static_cast<size_t>(map.idx(b.x, b.y))] <= 2)
               wet = true;
         if (!wet || defs->b(b.def).kind == BuildingKind::Farm) return;  // fields are only soaked
-        b.damage = static_cast<u8>(std::min(255, b.damage + 90));
+        b.damage = static_cast<u8>(std::min(255, b.damage + (nile ? 40 : 90)));  // the yearly Nile is gentler
         b.work_progress = 0;
       });
       add_alert(AlertKind::Event, BuildingId{}, 1001);

@@ -3,6 +3,7 @@
   "name": "Corinth - Refounded",
   "mission": 10,
   "era": "late_republic",
+  "region": "east",
   "start_hour": 7,
   "map": {
     "size": 256,

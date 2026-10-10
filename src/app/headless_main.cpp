@@ -31,6 +31,7 @@ int main(int argc, char** argv) {
   u64 ticks_override = 0;
   bool test = false, verbose = false, dump = false, autoplay = false, daily = false;
   int difficulty = -1;
+  u64 seed_override = 0;
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
@@ -46,6 +47,7 @@ int main(int argc, char** argv) {
     else if (is("--autoplay")) autoplay = true;
     else if (is("--daily")) daily = true;
     else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
+    else if (is("--seed") && i + 1 < argc) seed_override = std::strtoull(argv[++i], nullptr, 10);
   }
   core::init_logging(verbose);
   if (scenario_path.empty() && load_path.empty()) {
@@ -57,6 +59,7 @@ int main(int argc, char** argv) {
   try {
     defs = data::load_defs(data_root());
     if (!scenario_path.empty()) spec = sim::load_scenario(scenario_path);
+    if (seed_override) spec.world.seed = seed_override;  // the simulation's randomness, not the map
   } catch (const std::exception& e) {
     std::fprintf(stderr, "error: %s\n", e.what());
     return 1;
@@ -332,6 +335,21 @@ int main(int argc, char** argv) {
         if (!world->requirement_met(b, market)) ++no_market;
       });
       std::printf("occupied houses %u: without water %u, without a market in reach %u\n", occ, no_water, no_market);
+      u32 farms = 0, fert_sum = 0, farm_tiles = 0, farm_workers = 0, farm_present = 0;
+      world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+        if (b.state != sim::BState::Active || defs.b(b.def).kind != data::BuildingKind::Farm) return;
+        ++farms;
+        farm_workers += b.employed;
+        farm_present += b.present;
+        for (i32 y = b.y; y < b.y + b.h; ++y)
+          for (i32 x = b.x; x < b.x + b.w; ++x) {
+            fert_sum += world->map.fertility[static_cast<size_t>(world->map.idx(x, y))];
+            ++farm_tiles;
+          }
+      });
+      std::printf("farms %u (%u tiles, avg fertility %u, workers %u)\n", farms, farm_tiles,
+                  farm_tiles ? fert_sum / farm_tiles : 0, farm_workers);
+      (void)farm_present;
     }
     std::printf("money yesterday:");
     for (int k = 0; k < econ::kMoneyCount; ++k)

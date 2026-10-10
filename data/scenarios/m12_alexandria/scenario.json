@@ -13,7 +13,7 @@
     "hills": 0.5,
     "forest": 0.1,
     "marsh": 0.35,
-    "arid": 0.85
+    "arid": 0.4
   },
   "nile": true,
   "world": {
@@ -25,15 +25,17 @@
   "generator": "scripted",
   "entry_road": 2,
   "start": {
-    "treasury": 20000
+    "treasury": 30000
   },
   "start_stock": {
     "wood": 250,
     "wheat": 400,
     "pottery": 80,
     "planks": 80,
-    "cut_stone": 100,
-    "bricks": 60
+    "cut_stone": 380,
+    "bricks": 60,
+    "stone": 120,
+    "concrete": 160
   },
   "gods": [
     "jupiter",
@@ -54,10 +56,10 @@
     ]
   },
   "goals": {
-    "population": 6500,
+    "population": 5000,
     "culture": 60,
     "prosperity": 45,
-    "requests": 3,
+    "requests": 2,
     "buildings": {
       "lighthouse": 1,
       "circus": 1,

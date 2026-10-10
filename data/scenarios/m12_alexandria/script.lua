@@ -18,25 +18,26 @@ function on_day(day)
   end
   if day == 14 then
     urbs.message("The Pharos", "Ships need a light on Pharos island. The Lighthouse is a monument: it rises in " ..
-      "stages as stone and concrete arrive.", ENGINEER)
+      "stages as stone and concrete arrive. Stone from the old Ptolemaic quarries waits in the warehouses; " ..
+      "Greece sells more.", ENGINEER)
   end
   if pop >= 1500 and not S.r1 then
-    S.r1 = urbs.request({kind = "goods", good = "wheat", amount = 300, days = 30, reward = 3000, favor = 10, penalty = -10})
-    urbs.message("The grain fleet", "The grain fleet sails for Ostia. Fill it: 300 wheat within 30 days.", QUAESTOR)
+    S.r1 = urbs.request({kind = "goods", good = "wheat", amount = 120, days = 30, reward = 2500, favor = 10, penalty = -8})
+    urbs.message("The grain fleet", "The grain fleet sails for Ostia. Fill it: 120 wheat within 30 days.", QUAESTOR)
   end
 
-  -- Rome keeps asking: a new request every 20 days once the scripted ones are done.
+  -- Rome keeps asking: a new request every 30 days once the scripted ones are done.
   if S.r1 and day >= (S.next_req or 100000) and not S.open_req then
-    local list = {{"wheat", 300, 3000}, {"glassware", 30, 3000}, {"wheat", 400, 3600}}
+    local list = {{"glassware", 20, 2500}, {"olive_oil", 40, 2000}, {"wheat", 100, 1800}}
     local pick = list[(S.nreq or 0) % #list + 1]
     S.nreq = (S.nreq or 0) + 1
-    S.open_req = urbs.request({kind = "goods", good = pick[1], amount = pick[2], days = 30, reward = pick[3], favor = 6, penalty = -6})
+    S.open_req = urbs.request({kind = "goods", good = pick[1], amount = pick[2], days = 30, reward = pick[3], favor = 6, penalty = -3})
     urbs.message("Another request", "Rome asks for " .. pick[2] .. " " .. pick[1] .. " within 30 days.", QUAESTOR)
   end
 end
 
 function on_request(id, ok)
   if id == S.open_req then S.open_req = nil end
-  S.next_req = urbs.mission_day() + 20
+  S.next_req = urbs.mission_day() + 30
   if ok then urbs.message("Well done", "The fleet sails full. Rome is fed.", QUAESTOR) end
 end

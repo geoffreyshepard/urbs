@@ -55,7 +55,7 @@
   "goals": {
     "population": 8500,
     "culture": 65,
-    "prosperity": 50,
+    "prosperity": 45,
     "requests": 2,
     "buildings": {
       "jeweler": 1,

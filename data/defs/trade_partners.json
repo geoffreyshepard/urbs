@@ -7,7 +7,7 @@
   {"id": "alexandria", "name": "Alexandria", "route": "sea", "open_cost": 1500, "interval_days": 8, "buys": {"olive_oil": 800, "wine": 800, "silver": 300, "marble": 300}, "sells": {"wheat": 3000, "papyrus": 600, "glassware": 400, "jewelry": 100, "dye": 300}},
   {"id": "hispania", "name": "Hispania", "route": "sea", "open_cost": 900, "interval_days": 7, "buys": {"wine": 600, "pottery": 600, "tools": 300, "clothing": 300}, "sells": {"silver": 400, "iron": 600, "olive_oil": 800, "garum": 400}},
   {"id": "gallia", "name": "Gallia", "route": "land", "open_cost": 800, "interval_days": 6, "buys": {"wine": 1200, "olive_oil": 600, "pottery": 600, "jewelry": 100}, "sells": {"wool": 800, "meat": 600, "wood": 1200, "iron": 400}},
-  {"id": "greece", "name": "Greece", "route": "sea", "open_cost": 1000, "interval_days": 7, "buys": {"wheat": 1000, "olive_oil": 400, "silver": 200}, "sells": {"marble": 600, "statues": 100, "scrolls": 200, "wine": 600, "furniture": 200}},
+  {"id": "greece", "name": "Greece", "route": "sea", "open_cost": 1000, "interval_days": 7, "buys": {"wheat": 1000, "olive_oil": 400, "silver": 200}, "sells": {"marble": 600, "cut_stone": 400, "statues": 100, "scrolls": 200, "wine": 600, "furniture": 200}},
   {"id": "germania", "name": "Germania", "route": "land", "open_cost": 900, "interval_days": 8, "buys": {"wine": 800, "weapons": 200, "jewelry": 100, "glassware": 100}, "sells": {"wood": 1600, "meat": 800, "wool": 600}},
   {"id": "parthia", "name": "Parthia (the Silk Road)", "route": "land", "open_cost": 1500, "interval_days": 8, "buys": {"wine": 800, "olive_oil": 600, "glassware": 300, "dyed_clothing": 200}, "sells": {"silver": 300, "jewelry": 200, "dye": 400, "glassware": 200}}
 ]

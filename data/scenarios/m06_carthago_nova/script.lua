@@ -49,7 +49,7 @@ function on_day(day)
     local list = {{"iron", 40, 1500}, {"silver", 30, 2400}, {"weapons", 30, 2000}}
     local pick = list[(S.nreq or 0) % #list + 1]
     S.nreq = (S.nreq or 0) + 1
-    S.open_req = urbs.request({kind = "goods", good = pick[1], amount = pick[2], days = 30, reward = pick[3], favor = 6, penalty = -6})
+    S.open_req = urbs.request({kind = "goods", good = pick[1], amount = pick[2], days = 30, reward = pick[3], favor = 6, penalty = -3})
     urbs.message("Another request", "Rome asks for " .. pick[2] .. " " .. pick[1] .. " within 30 days.", QUAESTOR)
   end
 end
