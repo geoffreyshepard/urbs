@@ -92,7 +92,7 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
 
 static void need_bar(const char* label, u8 v) {
   const float f = static_cast<float>(v) / 255.0f;
-  ImVec4 col = f > 0.6f ? ImVec4(0.3f, 0.75f, 0.3f, 1) : f > 0.35f ? ImVec4(0.85f, 0.7f, 0.2f, 1) : ImVec4(0.85f, 0.25f, 0.2f, 1);
+  const ImU32 col = f > 0.6f ? kColGood : f > 0.35f ? kColWarn : kColBad;
   ImGui::PushStyleColor(ImGuiCol_PlotHistogram, col);
   ImGui::ProgressBar(f, ImVec2(140, 0), "");
   ImGui::PopStyleColor();
@@ -187,7 +187,7 @@ void draw_citizen_panel(sim::World& w, Selection& sel) {
                {"prestige", p.prestige}, {"safety", p.safety}, {"bondage", p.freedom}, {"temperament", p.traits}};
   for (const Part& pt : parts)
     if (pt.v != 0) {
-      ImGui::TextColored(pt.v > 0 ? ImVec4(0.5f, 0.9f, 0.5f, 1) : ImVec4(0.95f, 0.5f, 0.4f, 1), "  %+d %s", pt.v, pt.n);
+      ImGui::TextColored(col4(pt.v > 0 ? kColGood : kColBad), "  %+d %s", pt.v, pt.n);
     }
   ImGui::End();
   if (!open) sel.citizen = CitizenId{};
@@ -218,7 +218,8 @@ void draw_building_panel(sim::World& w, Selection& sel) {
     for (const auto& c : d.cost_goods)
       ImGui::Text("  %s: %u / %u%s", D.goods[c.good.v].name.c_str(), b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) : 0,
                   c.amount, monument ? (" (this stage " + std::to_string(w.materials_needed_now(b, c.amount)) + ")").c_str() : "");
-    if (!w.site_ready(b)) ImGui::TextColored({0.7f, 0.3f, 0.2f, 1}, "Waiting for materials; builders will come when they arrive.");
+    if (!w.site_ready(b))
+      ImGui::TextColored(col4(kColBad), "Waiting for materials; builders will come when they arrive.");
   }
   if (d.kind == data::BuildingKind::Monument) {
     const auto& ded = d.dedication;
@@ -366,7 +367,7 @@ void draw_finance_panel(sim::World& w, bool* open) {
       if (!L.yesterday[k] && !L.year[k] && !L.last_year[k]) continue;
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::TextColored(s > 0 ? ImVec4(0.5f, 0.9f, 0.5f, 1) : ImVec4(0.95f, 0.6f, 0.5f, 1), "%s", econ::money_name(m));
+      ImGui::TextColored(col4(s > 0 ? kColGood : kColBad), "%s", econ::money_name(m));
       ImGui::TableNextColumn();
       ImGui::Text("%lld", static_cast<long long>(L.yesterday[k]));
       ImGui::TableNextColumn();
@@ -432,7 +433,7 @@ void draw_trade_panel(sim::World& w, bool* open) {
     ImGui::Text("%s (%s)", pd.name.c_str(), pd.sea ? "sea" : "land");
     ImGui::SameLine(260);
     if (rs.open) {
-      ImGui::TextColored(ImVec4(0.5f, 0.9f, 0.5f, 1), "open");
+      ImGui::TextColored(col4(kColGood), "open");
     } else if (ImGui::Button(("Open route (" + std::to_string(pd.open_cost) + ")").c_str())) {
       sim::Command c;
       c.type = sim::CmdType::OpenRoute;
@@ -635,7 +636,8 @@ void draw_rome_panel(sim::World& w, bool* open) {
   ImGui::Separator();
   ImGui::TextUnformatted("Mission goals");
   auto goal = [](bool ok, const std::string& t) {
-    ImGui::TextColored(ok ? ImVec4(0.5f, 0.9f, 0.5f, 1) : ImVec4(0.9f, 0.9f, 0.9f, 1), "%s %s", ok ? "[x]" : "[ ]", t.c_str());
+    ImGui::TextColored(ok ? col4(kColGood) : ImGui::GetStyleColorVec4(ImGuiCol_Text), "%s %s", ok ? "[x]" : "[ ]",
+                       t.c_str());
   };
   if (w.goals.population) goal(w.population() >= w.goals.population, "Population " + std::to_string(w.population()) + " / " + std::to_string(w.goals.population));
   if (w.goals.culture) goal(w.ratings.culture >= w.goals.culture, "Culture " + std::to_string(w.goals.culture));
@@ -657,9 +659,8 @@ void draw_advisors_panel(const sim::World& w, const UiIcons& icons, int* advisor
   for (int a = 1; a <= 5; ++a) {
     if (a > 1) ImGui::SameLine();
     ImGui::PushID(a);
-    if (ImGui::Selectable("##adv", *advisor == a, 0, ImVec2(56, 56))) *advisor = a;
-    ImGui::SameLine(ImGui::GetCursorPosX() - 60);
-    icons.image(kAdvisorSprites[a], 56);
+    if (icons.icon_button("##adv", kAdvisorSprites[a], 56, *advisor == a)) *advisor = a;
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", kAdvisorNames[a]);
     ImGui::PopID();
   }
   ImGui::TextUnformatted(kAdvisorNames[*advisor]);

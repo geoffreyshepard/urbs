@@ -310,11 +310,11 @@ void App::draw_hud() {
     } else if (bar >= 0) {
       const float bw = std::round(fs * 2.6f), bh = std::max(3.0f, std::round(fs * 0.22f));
       const ImVec2 p0(ImGui::GetWindowPos().x + tx, ImGui::GetWindowPos().y + top + btn * 0.5f + fs * 0.35f);
-      dl->AddRectFilled(p0, ImVec2(p0.x + bw, p0.y + bh), IM_COL32(205, 186, 140, 255), bh);
+      dl->AddRectFilled(p0, ImVec2(p0.x + bw, p0.y + bh), kColTrack, bh);
       dl->AddRectFilled(p0, ImVec2(p0.x + bw * std::clamp(bar, 0.0f, 1.0f), p0.y + bh), bar_col, bh);
       if (goal > 0) {
         const float gx = std::round(p0.x + bw * goal);
-        dl->AddLine(ImVec2(gx, p0.y - bh), ImVec2(gx, p0.y + bh * 2), IM_COL32(103, 49, 29, 255), 2.0f);
+        dl->AddLine(ImVec2(gx, p0.y - bh), ImVec2(gx, p0.y + bh * 2), kColTick, 2.0f);
       }
       ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.35f));
       ImGui::Dummy(ImVec2(bw, bh));
@@ -322,8 +322,7 @@ void App::draw_hud() {
     ImGui::EndGroup();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip.c_str());
   };
-  const ImU32 kGreen = IM_COL32(78, 120, 50, 255), kAmber = IM_COL32(214, 150, 40, 255),
-              kOchre = IM_COL32(204, 158, 77, 255), kRed = IM_COL32(170, 40, 24, 255),
+  const ImU32 kGreen = kColGood, kAmber = kColWarn, kOchre = kColPlain, kRed = kColBad,
               kInk2 = ImGui::GetColorU32(ImGuiCol_TextDisabled);
 
   // Left: money, people, the ratings.
