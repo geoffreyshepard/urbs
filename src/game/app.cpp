@@ -242,6 +242,7 @@ bool App::init(const AppOptions& opt) {
   ImGui_ImplSDLGPU3_Init(&ii);
 
   root_ = platform::data_root();
+  load_ui_fonts(root_);
   if (!renderer_.init(win_, root_)) return false;
   set_overlay_colorblind(settings_.colorblind);
   mods_ = find_mods(root_, user_dir_);

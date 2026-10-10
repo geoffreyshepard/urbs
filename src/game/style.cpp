@@ -2,7 +2,46 @@
 
 #include <imgui.h>
 
+#include <filesystem>
+
 namespace urbs::game {
+
+namespace {
+UiFonts g_fonts;
+constexpr float kBodyPx = 17.0f;
+}  // namespace
+
+const UiFonts& ui_fonts() { return g_fonts; }
+
+void load_ui_fonts(const std::string& data_root) {
+  ImGuiIO& io = ImGui::GetIO();
+  auto load = [&](const char* file) -> ImFont* {
+    const std::string path = data_root + "assets/fonts/" + file;
+    if (!std::filesystem::exists(path)) return nullptr;
+    ImFontConfig cfg;
+    cfg.OversampleH = 2;
+    return io.Fonts->AddFontFromFileTTF(path.c_str(), kBodyPx, &cfg);
+  };
+  g_fonts.body = load("AlegreyaSans-Regular.ttf");  // first font added is the default
+  g_fonts.bold = load("AlegreyaSans-Bold.ttf");
+  g_fonts.heading = load("Cinzel.ttf");
+  if (!g_fonts.body) g_fonts.body = io.Fonts->AddFontDefault();
+  if (!g_fonts.bold) g_fonts.bold = g_fonts.body;
+  if (!g_fonts.heading) g_fonts.heading = g_fonts.bold;
+}
+
+bool begin_window(const char* name, bool* open, ImGuiWindowFlags flags) {
+  ImGui::PushFont(g_fonts.heading, 0.0f);
+  const bool r = ImGui::Begin(name, open, flags);
+  ImGui::PopFont();
+  return r;
+}
+
+void heading(const char* text, float scale) {
+  ImGui::PushFont(g_fonts.heading, ImGui::GetStyle().FontSizeBase * scale);
+  ImGui::TextUnformatted(text);
+  ImGui::PopFont();
+}
 
 void apply_roman_style(float scale) {
   ImGuiStyle& s = ImGui::GetStyle();

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "game/advisors.hpp"
+#include "game/style.hpp"
 #include "game/ui_icons.hpp"
 
 namespace urbs::game {
@@ -110,7 +111,7 @@ void draw_citizen_panel(sim::World& w, Selection& sel) {
   bool open = true;
   ImGui::SetNextWindowPos({1220, 300}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({360, 520}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Citizen", &open);
+  begin_window("Citizen", &open);
   ImGui::Text("%s", w.citizen_name(i).c_str());
   ImGui::Text("%s, %u years, %s", C.sex[i] ? "female" : "male", C.age_years(i, w.now), sim::class_name(C.cls[i]));
   ImGui::Checkbox("Follow", &sel.follow);
@@ -204,7 +205,7 @@ void draw_building_panel(sim::World& w, Selection& sel) {
   bool open = true;
   ImGui::SetNextWindowPos({860, 300}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({350, 480}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Building", &open);
+  begin_window("Building", &open);
   ImGui::Text("%s", d.name.c_str());
   const char* states[] = {"under construction", "active", "burning", "ruined"};
   ImGui::Text("%s", states[static_cast<int>(b.state)]);
@@ -305,7 +306,7 @@ void draw_building_panel(sim::World& w, Selection& sel) {
 void draw_labor_panel(sim::World& w, bool* open) {
   if (!*open) return;
   ImGui::SetNextWindowPos({300, 10}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Labor", open);
+  begin_window("Labor", open);
   u32 jobs[sim::kSectorCount] = {}, filled[sim::kSectorCount] = {};
   w.buildings.for_each([&](BuildingId, const sim::Building& b) {
     if (b.jobs == 0) return;
@@ -346,7 +347,7 @@ void draw_labor_panel(sim::World& w, bool* open) {
 void draw_finance_panel(sim::World& w, bool* open) {
   if (!*open) return;
   ImGui::SetNextWindowPos({300, 200}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Finance", open);
+  begin_window("Finance", open);
   const auto& L = w.econ.money;
   ImGui::Text("Treasury: %lld denarii", static_cast<long long>(w.econ.treasury));
   if (ImGui::BeginTable("fin", 4)) {
@@ -421,7 +422,7 @@ void draw_trade_panel(sim::World& w, bool* open) {
   const auto& D = *w.defs;
   ImGui::SetNextWindowPos({500, 120}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({560, 520}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Trade", open);
+  begin_window("Trade", open);
   ImGui::TextUnformatted("Routes");
   for (u32 p = 0; p < w.routes.size(); ++p) {
     const auto& rs = w.routes[p];
@@ -491,7 +492,7 @@ void draw_religion_panel(sim::World& w, bool* open) {
   if (!*open) return;
   const auto& D = *w.defs;
   ImGui::SetNextWindowPos({620, 60}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Religion", open);
+  begin_window("Religion", open);
   ImGui::Text("Weather: %s", sim::weather_name(w.weather));
   for (u32 g = 0; g < D.gods.size(); ++g) {
     if (!w.god_available[g]) continue;
@@ -527,7 +528,7 @@ void draw_military_panel(sim::World& w, Selection& sel, bool* open) {
   const auto& D = *w.defs;
   ImGui::SetNextWindowPos({880, 60}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({380, 420}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Military", open);
+  begin_window("Military", open);
   ImGui::TextWrapped("Select a unit, then right-click the map to move it. Raise units from a barracks.");
   const char* consc[] = {"Volunteers only", "Conscript the employed too", "Full levy"};
   int c = w.policy.conscription;
@@ -586,7 +587,7 @@ void draw_rome_panel(sim::World& w, bool* open) {
   const auto& D = *w.defs;
   ImGui::SetNextWindowPos({420, 120}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({420, 420}, ImGuiCond_FirstUseEver);
-  ImGui::Begin(w.empire ? "Rome (the Emperor)" : "Rome (the Senate)", open);
+  begin_window(w.empire ? "Rome (the Emperor)" : "Rome (the Senate)", open);
   auto bar = [](const char* name, int v, int goal) {
     ImGui::ProgressBar(static_cast<float>(v) / 100.0f, ImVec2(180, 0), std::to_string(v).c_str());
     ImGui::SameLine();
@@ -652,7 +653,7 @@ void draw_advisors_panel(const sim::World& w, const UiIcons& icons, int* advisor
   if (!*open) return;
   ImGui::SetNextWindowPos({420, 560}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({520, 260}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Advisors", open);
+  begin_window("Advisors", open);
   for (int a = 1; a <= 5; ++a) {
     if (a > 1) ImGui::SameLine();
     ImGui::PushID(a);
@@ -674,7 +675,7 @@ void draw_messages(sim::World& w, const UiIcons& icons, u16* last_seen) {
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.35f),
                             ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize({460, 0}, ImGuiCond_Appearing);
-    ImGui::Begin(("##msg" + std::to_string(m.id)).c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    begin_window(("##msg" + std::to_string(m.id)).c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     if (m.advisor > 0 && m.advisor <= 5) {
       icons.image(kAdvisorSprites[m.advisor], 64);
       ImGui::SameLine();
@@ -711,7 +712,7 @@ void draw_mission_end(const sim::World& w, bool* dismissed) {
   if (w.mission == sim::MissionState::Running || *dismissed) return;
   ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.4f), ImGuiCond_Always,
                           ImVec2(0.5f, 0.5f));
-  ImGui::Begin("##end", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
+  begin_window("##end", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
   if (w.mission == sim::MissionState::Won) {
     ImGui::Text("Victory!");
     ImGui::TextWrapped("The Senate is pleased with your work. A greater task awaits.");
@@ -726,7 +727,7 @@ void draw_mission_end(const sim::World& w, bool* dismissed) {
 void draw_threats_panel(sim::World& w, const Selection& sel, bool* open) {
   if (!*open) return;
   ImGui::SetNextWindowPos({620, 380}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Threats (debug)", open);
+  begin_window("Threats (debug)", open);
   ImGui::TextWrapped("Triggers act on the selected building, or a random one.");
   i32 x = -1, y = -1;
   if (sel.building.valid() && w.buildings.alive(sel.building)) {
@@ -759,7 +760,7 @@ BuildingId draw_alerts_panel(const sim::World& w, bool* open) {
   if (!*open) return jump;
   ImGui::SetNextWindowPos({300, 760}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({520, 120}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Alerts", open);
+  begin_window("Alerts", open);
   for (auto it = w.alerts.rbegin(); it != w.alerts.rend(); ++it) {
     std::string t = "Day " + std::to_string(sim::day_index(it->t) + 1) + "  " + alert_text(w, *it);
     if (it->count > 1) t += "  (x" + std::to_string(it->count) + ")";

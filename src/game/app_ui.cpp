@@ -61,7 +61,7 @@ void App::draw_ui() {
       if (world_->mission != sim::MissionState::Running && !end_dismissed_) {
         center_next(420, 0);
         ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Always);
-        ImGui::Begin("##end", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+        begin_window("##end", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
         if (world_->mission == sim::MissionState::Won) {
           ImGui::Text("VICTORIA!");
           ImGui::Separator();
@@ -103,7 +103,7 @@ void App::draw_ui() {
   if (status_time_ > 0 && !status_.empty()) {
     ImGui::SetNextWindowPos(ImVec2(display().x * 0.5f, display().y - 60), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
     ImGui::SetNextWindowBgAlpha(0.9f);
-    ImGui::Begin("##status", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs);
+    begin_window("##status", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs);
     ImGui::TextUnformatted(status_.c_str());
     ImGui::End();
   }
@@ -111,12 +111,10 @@ void App::draw_ui() {
 
 void App::draw_main_menu() {
   center_next(360, 540);
-  ImGui::Begin("##menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
+  begin_window("##menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
   ImGui::SetCursorPosX((360 - 300) * 0.5f);
   if (!icons_.picture("ui/logo", ImVec2(300, 90))) {
-    ImGui::SetWindowFontScale(2.4f);
-    ImGui::TextUnformatted("U R B S");
-    ImGui::SetWindowFontScale(1.0f);
+    heading("U R B S", 2.4f);
   }
   const char* sub = "Build Rome one family at a time";
   ImGui::SetCursorPosX((360 - ImGui::CalcTextSize(sub).x) * 0.5f);
@@ -151,7 +149,7 @@ void App::draw_campaign() {
   const ImVec2 ds = display();
   ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(ds.x - 40, ds.y - 40), ImGuiCond_Always);
-  ImGui::Begin("The Province of the Career", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  begin_window("The Province of the Career", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   float map_w = (ds.x - 40) * 0.64f, map_h = ds.y - 120;
   map_h = std::min(map_h, (map_w - 16) * 288.0f / 512.0f + 16);
   // Stylised Mediterranean: sea, land masses as soft blobs, the road of the career between missions.
@@ -188,9 +186,7 @@ void App::draw_campaign() {
   ImGui::BeginChild("brief", ImVec2(0, map_h), true);
   if (selected_mission_ >= 0 && selected_mission_ < static_cast<int>(M.size())) {
     const auto& m = M[static_cast<size_t>(selected_mission_)];
-    ImGui::SetWindowFontScale(1.5f);
-    ImGui::TextWrapped("%d. %s", selected_mission_ + 1, m.name.c_str());
-    ImGui::SetWindowFontScale(1.0f);
+    heading((std::to_string(selected_mission_ + 1) + ". " + m.name).c_str(), 1.5f);
     ImGui::TextDisabled("%s  -  rank: %s  -  salary %d/day", m.region.c_str(), m.rank.c_str(), m.salary);
     ImGui::Separator();
     ImGui::TextWrapped("%s", m.blurb.c_str());
@@ -223,7 +219,7 @@ void App::draw_campaign() {
 
 void App::draw_sandbox_setup() {
   center_next(420, 440);
-  ImGui::Begin("Sandbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  begin_window("Sandbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   ImGui::TextWrapped("A free city with every building unlocked and 15,000 denarii.");
   int size = gen_.size, seed = static_cast<int>(gen_.seed);
   const char* sizes[] = {"Small (128)", "Medium (192)", "Large (256)", "Huge (384)"};
@@ -261,7 +257,7 @@ void App::draw_hud() {
   const ImVec2 ds = display();
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(ds.x, 0), ImGuiCond_Always);
-  ImGui::Begin("##hud", nullptr,
+  begin_window("##hud", nullptr,
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar);
   icons_.image("goods/denarii_16", 18);
   ImGui::SameLine();
@@ -357,7 +353,7 @@ void App::draw_hud() {
 
 void App::draw_pause() {
   center_next(320, 330);
-  ImGui::Begin("Paused", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  begin_window("Paused", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   const float x = (320 - 260) * 0.5f;
   ImGui::SetCursorPosX(x);
   if (big_button("Resume")) paused_menu_ = false;
@@ -385,7 +381,7 @@ void App::draw_pause() {
 
 void App::draw_settings() {
   center_next(400, 330);
-  ImGui::Begin("Settings", &show_settings_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  begin_window("Settings", &show_settings_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
   if (ImGui::SliderFloat("UI scale", &settings_.ui_scale, 0.75f, 2.0f, "%.2f")) apply_roman_style(settings_.ui_scale);
   ImGui::Checkbox("Scroll at screen edges", &settings_.edge_scroll);
   ImGui::Checkbox("Autosave every four days", &settings_.autosave);
@@ -402,7 +398,7 @@ void App::draw_settings() {
 
 void App::draw_saveload() {
   center_next(460, 420);
-  ImGui::Begin(saveload_saving_ ? "Save game" : "Load game", &show_saveload_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  begin_window(saveload_saving_ ? "Save game" : "Load game", &show_saveload_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
   const char* slots[] = {"autosave", "quicksave", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"};
   for (const char* s : slots) {
     if (saveload_saving_ && (std::string(s) == "autosave")) continue;
@@ -438,7 +434,7 @@ void App::draw_research() {
   if (!show_research_) return;
   ImGui::SetNextWindowPos({700, 140}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({420, 380}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Civic research", &show_research_);
+  begin_window("Civic research", &show_research_);
   ImGui::TextWrapped("Scholars in schools, libraries and academies produce scientia. Spend it on techniques for this city.");
   ImGui::Text("Scientia: %u", world_->scientia);
   ImGui::Separator();
@@ -481,7 +477,7 @@ void App::draw_help() {
   if (!show_help_) return;
   ImGui::SetNextWindowPos({300, 140}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({460, 420}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("How to play", &show_help_);
+  begin_window("How to play", &show_help_);
   ImGui::TextWrapped(
       "Camera: WASD or arrow keys to pan, right- or middle-drag to pan, mouse wheel to zoom.\n"
       "Time: Space pauses, 1/2/3 set speed.\n"
@@ -505,7 +501,7 @@ void App::draw_build_menu() {
   if (!show_build_) return;
   ImGui::SetNextWindowPos({10, 70}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({280, 560}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Build", &show_build_);
+  begin_window("Build", &show_build_);
   if (ImGui::Button("Dirt road (R)")) tools_.select_road(sim::Road::Dirt);
   ImGui::SameLine();
   if (world_->is_unlocked(defs_.building("plaza")) && ImGui::Button("Paved road")) tools_.select_road(sim::Road::Paved);
@@ -570,7 +566,7 @@ void App::draw_stock_window() {
   if (!show_stock_) return;
   ImGui::SetNextWindowPos({1200, 70}, ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize({380, 420}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Goods", &show_stock_);
+  begin_window("Goods", &show_stock_);
   const auto& e = world_->econ;
   if (ImGui::BeginTable("goods", 6, ImGuiTableFlags_RowBg)) {
     ImGui::TableSetupColumn("Good");
@@ -608,7 +604,7 @@ void App::draw_debug_ui() {
   auto& cam = renderer_.camera();
   const sim::World& w = *world_;
   ImGui::SetNextWindowPos({10, 640}, ImGuiCond_FirstUseEver);
-  ImGui::Begin("Debug (F12)", &show_debug_);
+  begin_window("Debug (F12)", &show_debug_);
   ImGui::Text("%.1f FPS  (%.2f ms)  sim %.2f ms", static_cast<double>(ImGui::GetIO().Framerate),
               static_cast<double>(frame_ms_), sim_ms_);
   ImGui::Text("citizens %u  walking %u  buildings %u  soldiers %u", w.citizens.ids.count(), w.walking,

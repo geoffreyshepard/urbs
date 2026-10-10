@@ -33,6 +33,10 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 | Slaves | Plain gray tunic |
 | Soldiers | Roman red with metal gray |
 
+**UI type:** Alegreya Sans for all UI text and Cinzel (Roman inscriptional capitals) for window titles and headings,
+both SIL OFL fonts in `assets/fonts` (the one exception to "art is code"). `game/style.cpp` loads them;
+`begin_window()` and `heading()` apply the title face.
+
 ## Generator structure
 
 ```

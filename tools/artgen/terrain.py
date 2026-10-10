@@ -335,8 +335,8 @@ def dual_layers(terrain_at, x, y, variant=0):
 # Height steps use the dual grid too: terrain/hc_<mask> (mask bits as for dg_, set for corners on
 # the higher level) is drawn along the same noisy contour as the terrain overlays, so cliffs follow
 # coastlines.  Where the high ground lies to the north the step shows a face of earth strata below
-# the contour (lit when it turns west, dark when it turns east); elsewhere it is a lip: a light rim
-# on the high side where the slope faces the top-left light, a dark one where it faces away.
+# the contour (lit when it turns west, dark when it turns east).  Other steps draw nothing: the
+# ground shader's smooth height shading shows them.
 def height_cliff(mask):
     img = new(T, T)
     e = C.earth
@@ -365,11 +365,6 @@ def height_cliff(mask):
                     elif gx < -0.45:
                         c = e[3] if (x + y) % 2 else e[2]
                 px(img, x, y, c)
-            elif 0 <= d < 1.0 and face <= 0.25:
-                lit = gx + gy > 0.2                # slope faces away from the top-left light?
-                px(img, x, y, C.earth[1] if not lit else C.travertine[1])
-            elif -1.0 <= d < 0 and face <= 0.25 and (x + y) % 2 == 0:
-                px(img, x, y, C.earth[1])
     return img
 
 
