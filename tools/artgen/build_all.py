@@ -29,6 +29,7 @@ import ui                                       # noqa: E402
 import hud                                      # noqa: E402
 import worldmap                                 # noqa: E402
 import regions                                 # noqa: E402
+import outlines                                 # noqa: E402
 from buildings import fixed as bfixed           # noqa: E402
 
 SPRITES_DIR = os.path.join(ROOT, "assets", "sprites")
@@ -126,6 +127,7 @@ def generate_all():
     for mod in (terrain, roads, objects, people, units, buildings, fx, effects, goods, ui,
                 hud, worldmap):
         sprites += mod.generate()
+    outlines.apply(sprites)
     sprites += regions.variants(sprites)
     names = [s[0] for s in sprites]
     dup = {x for x in names if names.count(x) > 1}

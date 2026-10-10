@@ -17,9 +17,9 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 | Camera | Fixed top-down with a slight 3/4 tilt for buildings (front faces visible), as in Songs of Syx |
 | Tile size | 16×16 px |
 | Citizen size | About 6×10 px; readable silhouette at 2×, a colored dot at far zoom |
-| Light | From the top-left; one highlight shade and one shadow shade per material |
-| Outlines | Dark outline on buildings and units only; terrain has none |
-| Palette | 48-color locked palette (`assets/palettes/urbs.pal`) built on a Mediterranean feel: terracotta, ochre, travertine, marble white, olive and cypress greens, sea blues, sun-baked earth, Roman red, Tyrian purple |
+| Light | From the top-left; one highlight shade and one shadow shade per material. The renderer adds cast shadows, ground shading and a colour grade on top; those are not palette colours |
+| Outlines | Dark outline on buildings and units only; terrain has none. The outer silhouette uses the dark partner of the material it borders (selective outline, `outlines.py`); interior detail lines stay near-black |
+| Palette | 56-color locked palette (v2: hue-shifted ramps with cool shadows and warm lights, sun-baked sage grass, plus 8 dark outline partners) (`assets/palettes/urbs.pal`) built on a Mediterranean feel: terracotta, ochre, travertine, marble white, olive and cypress greens, sea blues, sun-baked earth, Roman red, Tyrian purple |
 | Animation | Citizens: 4 directions × 4-frame walk, plus a work loop and idle. Water and fire use palette cycling. |
 
 **Class readability:** clothing color encodes class at a glance.

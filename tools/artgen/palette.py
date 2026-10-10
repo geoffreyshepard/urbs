@@ -1,6 +1,6 @@
 """URBS locked palette.
 
-Loads assets/palettes/urbs.pal (JASC-PAL, 48 colors) and exposes named color
+Loads assets/palettes/urbs.pal (JASC-PAL, 56 colors) and exposes named color
 roles.  Every ramp is ordered dark -> light, so ``ramp[0]`` is the shadow and
 ``ramp[-1]`` the highlight.  Colors are RGBA tuples ready for Pillow.
 
@@ -33,7 +33,7 @@ def load_pal(path=PAL_PATH):
 
 
 COLORS = load_pal()
-assert len(COLORS) == 48, "URBS palette must have exactly 48 colors"
+assert len(COLORS) == 56, "URBS palette must have exactly 56 colors"
 PALETTE_SET = frozenset(COLORS)
 
 # role name -> palette indices (dark -> light)
@@ -54,6 +54,9 @@ ROLES = {
     "tyrian": (42, 43),
     "skin": (44, 45, 46),
     "gold": 47,
+    # dark outline partners, one per material family (see outlines.py)
+    "ol_warm": 48, "ol_earth": 49, "ol_green": 50, "ol_stone": 51,
+    "ol_blue": 52, "ol_purple": 53, "ol_light": 54, "ol_gold": 55,
 }
 
 

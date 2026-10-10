@@ -242,7 +242,7 @@ void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 
   // settled snow follows the weather in sim time.
   static constexpr f32 kSeasonGround[4][3] = {
       {0.00f, 0.25f, 0.00f},  // spring
-      {0.10f, 0.45f, 0.00f},  // summer
+      {0.08f, 0.35f, 0.00f},  // summer
       {0.06f, 0.35f, 0.18f},  // autumn
       {0.00f, 0.20f, 0.40f},  // winter
   };
