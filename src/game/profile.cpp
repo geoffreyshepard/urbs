@@ -1,6 +1,7 @@
 #include "game/profile.hpp"
 
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 
@@ -31,11 +32,48 @@ void Settings::load(const std::string& dir) {
   autosave = j.value("autosave", autosave);
   fullscreen = j.value("fullscreen", fullscreen);
   difficulty = j.value("difficulty", difficulty);
+  colorblind = j.value("colorblind", colorblind);
+  mods = j.value("mods", mods);
 }
 
 void Settings::save(const std::string& dir) const {
   write_json(dir + "settings.json", json{{"ui_scale", ui_scale}, {"edge_scroll", edge_scroll}, {"autosave", autosave},
-                                         {"fullscreen", fullscreen}, {"difficulty", difficulty}});
+                                         {"fullscreen", fullscreen}, {"difficulty", difficulty},
+                                         {"colorblind", colorblind}, {"mods", mods}});
+}
+
+std::vector<ModInfo> find_mods(const std::string& data_root, const std::string& user_dir) {
+  namespace fs = std::filesystem;
+  std::vector<ModInfo> out;
+  for (const std::string& base : {data_root + "mods", user_dir + "mods"}) {
+    std::error_code ec;
+    if (!fs::is_directory(base, ec)) continue;
+    std::vector<fs::path> dirs;
+    for (const auto& e : fs::directory_iterator(base, ec))
+      if (e.is_directory()) dirs.push_back(e.path());
+    std::sort(dirs.begin(), dirs.end());
+    for (const auto& d : dirs) {
+      ModInfo m;
+      m.name = d.filename().string();
+      m.dir = d.string();
+      json j = read_json((d / "mod.json").string());
+      m.title = j.value("name", m.name);
+      m.version = j.value("version", std::string());
+      m.description = j.value("description", std::string());
+      bool dup = false;
+      for (const auto& o : out) dup |= o.name == m.name;  // a user copy never shadows a shipped mod silently
+      if (!dup) out.push_back(m);
+    }
+  }
+  return out;
+}
+
+std::vector<std::string> enabled_mod_dirs(const Settings& s, const std::vector<ModInfo>& all) {
+  std::vector<std::string> out;
+  for (const auto& name : s.mods)
+    for (const auto& m : all)
+      if (m.name == name) out.push_back(m.dir);
+  return out;
 }
 
 bool CampaignDef::load(const std::string& root) {

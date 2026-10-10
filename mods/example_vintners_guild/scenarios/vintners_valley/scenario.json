@@ -1,0 +1,17 @@
+{
+  "id": "vintners_valley",
+  "name": "The Vintners' Valley (example mod)",
+  "mission": 6,
+  "era": "republic",
+  "start_hour": 7,
+  "map": {"size": 160, "seed": 777, "coast": -1, "river": true, "hills": 0.4, "forest": 0.4, "marsh": 0.1},
+  "world": {"max_citizens": 6000, "max_buildings": 2000, "max_households": 2200, "max_soldiers": 1000},
+  "generator": "scripted",
+  "entry_road": 2,
+  "start": {"treasury": 10000},
+  "start_stock": {"wood": 150, "wheat": 150, "bricks": 30},
+  "gods": ["jupiter", "juno", "ceres", "vesta", "mercury", "venus"],
+  "trade": {"partners": ["rome", "rhodes"]},
+  "goals": {"population": 1500, "culture": 40, "buildings": {"vintner": 1}},
+  "script": "script.lua"
+}

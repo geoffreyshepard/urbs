@@ -1,0 +1,3 @@
+[
+  {"id": "age_amber_wine", "inputs": {"wine": 2, "amphorae": 1}, "outputs": {"amber_wine": 1}, "work": 220}
+]

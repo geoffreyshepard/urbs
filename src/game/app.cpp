@@ -172,7 +172,13 @@ void App::start_sandbox() {
   std::string j = R"({"name":"Sandbox","id":"sandbox","mission":16,"difficulty":0,"start_hour":7,)";
   j += R"("map":{"size":)" + std::to_string(gen_.size) + R"(,"seed":)" + std::to_string(gen_.seed) +
        R"(,"coast":)" + std::to_string(gen_.coast) + R"(,"river":)" + (gen_.river ? "true" : "false") +
-       R"(,"hills":)" + std::to_string(gen_.hills) + R"(,"forest":)" + std::to_string(gen_.forest) + R"(},)";
+       R"(,"hills":)" + std::to_string(gen_.hills) + R"(,"forest":)" + std::to_string(gen_.forest) +
+       R"(,"arid":)" + std::to_string(gen_.arid) + R"(},)";
+  {
+    const char* styles[] = {"", "north", "east", "egypt"};
+    j += R"("region":")" + std::string(styles[std::clamp(sandbox_region_, 0, 3)]) + R"(",)";
+    if (sandbox_nile_) j += R"("nile":true,)";
+  }
   j += R"("world":{"max_citizens":16000,"max_buildings":4096,"max_households":5000},)";
   j += R"("generator":"scripted","entry_road":3,"start":{"treasury":15000},)";
   j += R"("gods":["jupiter","juno","mars","venus","ceres","neptune","mercury","minerva","vulcan","vesta"],)";
@@ -236,13 +242,22 @@ bool App::init(const AppOptions& opt) {
 
   root_ = platform::data_root();
   if (!renderer_.init(win_, root_)) return false;
-  try {
-    base_defs_ = data::load_defs(root_ + "data");
-  } catch (const std::exception& e) {
-    URBS_LOG_ERROR("defs: {}", e.what());
-    return false;
+  set_overlay_colorblind(settings_.colorblind);
+  mods_ = find_mods(root_, user_dir_);
+  {
+    std::string err;
+    if (!reload_defs(&err)) {
+      // A broken mod must not lock the player out: start without mods and say why.
+      URBS_LOG_ERROR("defs with mods: {}", err);
+      settings_.mods.clear();
+      if (!reload_defs(&err)) {
+        URBS_LOG_ERROR("defs: {}", err);
+        return false;
+      }
+      status_ = "Mods disabled: " + err;
+      status_time_ = 12;
+    }
   }
-  defs_ = base_defs_;
   campaign_.load(root_);
   profile_.load(user_dir_);
   selected_mission_ = profile_.next_index(campaign_);
@@ -266,7 +281,11 @@ bool App::init(const AppOptions& opt) {
     }
   } else {
     menu_background();
-    screen_ = opt.screen == "campaign" ? Screen::Campaign : Screen::Menu;
+    screen_ = opt.screen == "campaign" ? Screen::Campaign
+              : opt.screen == "mods"   ? Screen::Mods
+              : opt.screen == "custom" ? Screen::Custom
+                                       : Screen::Menu;
+    if (opt.screen == "editor") editor_new();
   }
   auto& cam = renderer_.camera();
   if (opt.cam_x >= 0) cam.center = {opt.cam_x * sim::kTilePx, opt.cam_y * sim::kTilePx};
@@ -291,6 +310,10 @@ void App::handle_event(const SDL_Event& e) {
   ImGui_ImplSDL3_ProcessEvent(&e);
   if (e.type == SDL_EVENT_QUIT) {
     running_ = false;
+    return;
+  }
+  if (screen_ == Screen::Editor) {
+    editor_event(e);
     return;
   }
   if (screen_ != Screen::Playing) return;
@@ -378,7 +401,7 @@ void App::handle_event(const SDL_Event& e) {
 
 void App::update_camera(f32 dt) {
   auto& cam = renderer_.camera();
-  if (screen_ != Screen::Playing) {
+  if (screen_ != Screen::Playing && screen_ != Screen::Editor) {
     // Slow drift behind the menus.
     cam.center.x += dt * 6.0f;
     if (cam.center.x > static_cast<f32>(world_->map.w * sim::kTilePx) * 0.8f) cam.center.x = static_cast<f32>(world_->map.w * sim::kTilePx) * 0.2f;

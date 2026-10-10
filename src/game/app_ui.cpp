@@ -32,6 +32,9 @@ void App::draw_ui() {
     case Screen::Menu: draw_main_menu(); break;
     case Screen::Campaign: draw_campaign(); break;
     case Screen::Sandbox: draw_sandbox_setup(); break;
+    case Screen::Mods: draw_mods(); break;
+    case Screen::Custom: draw_custom(); break;
+    case Screen::Editor: draw_editor(); break;
     case Screen::Playing:
       draw_hud();
       draw_build_menu();
@@ -107,7 +110,7 @@ void App::draw_ui() {
 }
 
 void App::draw_main_menu() {
-  center_next(360, 420);
+  center_next(360, 540);
   ImGui::Begin("##menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
   ImGui::SetCursorPosX((360 - 300) * 0.5f);
   if (!icons_.picture("ui/logo", ImVec2(300, 90))) {
@@ -125,6 +128,12 @@ void App::draw_main_menu() {
   ImGui::SetCursorPosX(x);
   if (big_button("Sandbox")) screen_ = Screen::Sandbox;
   ImGui::SetCursorPosX(x);
+  if (big_button("Custom scenarios")) screen_ = Screen::Custom;
+  ImGui::SetCursorPosX(x);
+  if (big_button("Scenario editor")) editor_new();
+  ImGui::SetCursorPosX(x);
+  if (big_button("Mods")) screen_ = Screen::Mods;
+  ImGui::SetCursorPosX(x);
   if (big_button("Load game")) {
     show_saveload_ = true;
     saveload_saving_ = false;
@@ -134,7 +143,7 @@ void App::draw_main_menu() {
   ImGui::SetCursorPosX(x);
   if (big_button("Quit")) running_ = false;
   ImGui::Dummy(ImVec2(0, 10));
-  ImGui::TextDisabled("v0.1  -  noncommercial, source available");
+  ImGui::TextDisabled("v%s  -  noncommercial, source available", URBS_VERSION);
   ImGui::End();
 }
 
@@ -213,7 +222,7 @@ void App::draw_campaign() {
 }
 
 void App::draw_sandbox_setup() {
-  center_next(420, 360);
+  center_next(420, 440);
   ImGui::Begin("Sandbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   ImGui::TextWrapped("A free city with every building unlocked and 15,000 denarii.");
   int size = gen_.size, seed = static_cast<int>(gen_.seed);
@@ -230,6 +239,17 @@ void App::draw_sandbox_setup() {
   ImGui::Checkbox("River", &gen_.river);
   ImGui::SliderFloat("Hills", &gen_.hills, 0.0f, 1.0f);
   ImGui::SliderFloat("Forest", &gen_.forest, 0.0f, 1.0f);
+  ImGui::SliderFloat("Desert", &gen_.arid, 0.0f, 1.0f);
+  ImGui::Checkbox("Yearly Nile flood", &sandbox_nile_);
+  const char* styles[] = {"Italy", "North", "East", "Egypt"};
+  ImGui::Combo("Building style", &sandbox_region_, styles, 4);
+  if (ImGui::Button("Random map")) {
+    gen_.seed = static_cast<u64>(SDL_GetTicksNS() % 1000000);
+    gen_.coast = static_cast<i32>(gen_.seed % 5) - 1;
+    gen_.hills = static_cast<f32>((gen_.seed / 5) % 10) / 10.0f;
+    gen_.forest = static_cast<f32>((gen_.seed / 50) % 10) / 10.0f;
+    gen_.river = (gen_.seed / 500) % 4 != 0;
+  }
   ImGui::Spacing();
   if (big_button("Found the city")) start_sandbox();
   if (big_button("Back")) screen_ = Screen::Menu;
@@ -364,11 +384,12 @@ void App::draw_pause() {
 }
 
 void App::draw_settings() {
-  center_next(380, 300);
+  center_next(400, 330);
   ImGui::Begin("Settings", &show_settings_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
   if (ImGui::SliderFloat("UI scale", &settings_.ui_scale, 0.75f, 2.0f, "%.2f")) apply_roman_style(settings_.ui_scale);
   ImGui::Checkbox("Scroll at screen edges", &settings_.edge_scroll);
   ImGui::Checkbox("Autosave every four days", &settings_.autosave);
+  if (ImGui::Checkbox("Colour-blind friendly overlays", &settings_.colorblind)) set_overlay_colorblind(settings_.colorblind);
   if (ImGui::Checkbox("Fullscreen", &settings_.fullscreen)) SDL_SetWindowFullscreen(win_.window, settings_.fullscreen);
   ImGui::Combo("Difficulty", &settings_.difficulty, kDifficulty, 3);
   ImGui::TextWrapped("Difficulty applies to newly started missions.");

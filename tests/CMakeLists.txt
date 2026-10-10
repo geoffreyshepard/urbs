@@ -34,3 +34,9 @@ foreach(sv ${URBS_OLD_SAVES})
   add_test(NAME save_${_n} COMMAND urbs_headless --load ${sv} --ticks 1200)
   set_tests_properties(save_${_n} PROPERTIES PASS_REGULAR_EXPRESSION "loaded .*alloc_violations\":0")
 endforeach()
+
+# The example mod loads and its scenario runs.
+add_test(NAME mod_example COMMAND urbs_headless --mod ${CMAKE_SOURCE_DIR}/mods/example_vintners_guild
+         --scenario ${CMAKE_SOURCE_DIR}/mods/example_vintners_guild/scenarios/vintners_valley/scenario.json
+         --ticks 6000 --autoplay)
+set_tests_properties(mod_example PROPERTIES PASS_REGULAR_EXPRESSION "alloc_violations\":0")

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include "save/save.hpp"
 #include "script/lua_host.hpp"
 #include <cmath>
 #include <cstdio>
@@ -75,6 +76,8 @@ ScenarioSpec parse_scenario(const std::string& text, const std::string& path) {
       for (auto& [k, v] : t["active"].items()) s.expect_active.emplace_back(k, v.get<u32>());
   }
   s.map.flat = j.contains("map") && j["map"].value("flat", false);
+  if (j.contains("map_file"))
+    s.map_file = (std::filesystem::path(path).parent_path() / j["map_file"].get<std::string>()).string();
   return s;
 }
 
@@ -528,7 +531,13 @@ void setup_mission(World& w, const data::Defs& defs, ScenarioSpec& s) {
 }  // namespace
 
 void setup_scenario(World& w, const data::Defs& defs, ScenarioSpec& s) {
-  generate_map(w.map, s.map);
+  if (!s.map_file.empty()) {
+    std::string err;
+    if (!save::load_map(w.map, s.map_file, &err)) throw std::runtime_error("scenario map: " + err);
+    s.map.size = w.map.w;
+  } else {
+    generate_map(w.map, s.map);
+  }
   {
     json j = json::parse(s.json, nullptr, true, true);
     w.now = static_cast<Tick>(j.value("start_hour", 0)) * kTicksPerHour;

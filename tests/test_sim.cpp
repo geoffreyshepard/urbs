@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <memory>
 
 #include "data/defs.hpp"
@@ -272,4 +273,41 @@ TEST_CASE("monuments rise in stages as materials arrive, and dedication applies 
   for (int h = 0; h < 400 && w.buildings[m].state == sim::BState::Construction; ++h) w.building_hourly(m);
   CHECK(w.buildings[m].state == sim::BState::Active);
   CHECK(w.favor == std::min(100, favor0 + D.b(tj).dedication.favor));
+}
+
+TEST_CASE("map files round-trip and scenarios can load a painted map") {
+  sim::TileMap m;
+  sim::MapGenParams p;
+  p.size = 64;
+  p.seed = 42;
+  sim::generate_map(m, p);
+  // Paint something recognisable.
+  for (i32 x = 10; x < 20; ++x) {
+    m.terrain[static_cast<size_t>(m.idx(x, 30))] = sim::Terrain::Rock;
+    m.resource[static_cast<size_t>(m.idx(x, 30))] = sim::Resource::Marble;
+    m.road[static_cast<size_t>(m.idx(x, 31))] = sim::Road::Dirt;
+  }
+  const std::string dir = (std::filesystem::temp_directory_path() / "urbs_map_test").string();
+  std::filesystem::create_directories(dir);
+  std::string err;
+  REQUIRE(save::save_map(m, dir + "/map.urbsmap", &err));
+  sim::TileMap back;
+  REQUIRE(save::load_map(back, dir + "/map.urbsmap", &err));
+  CHECK(back.w == m.w);
+  CHECK(back.terrain == m.terrain);
+  CHECK(back.height == m.height);
+  CHECK(back.resource == m.resource);
+  CHECK(back.road == m.road);
+  // A scenario referring to the map file starts on it.
+  {
+    std::ofstream f(dir + "/scenario.json");
+    f << R"({"name": "painted", "map_file": "map.urbsmap", "generator": "scripted", "entry_road": 2,
+             "start": {"treasury": 1000}})";
+  }
+  sim::ScenarioSpec spec = sim::load_scenario(dir + "/scenario.json");
+  sim::World w;
+  sim::setup_scenario(w, defs(), spec);
+  CHECK(w.map.w == 64);
+  CHECK(w.map.resource[static_cast<size_t>(w.map.idx(15, 30))] == sim::Resource::Marble);
+  std::filesystem::remove_all(dir);
 }

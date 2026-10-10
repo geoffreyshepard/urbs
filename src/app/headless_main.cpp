@@ -32,10 +32,11 @@ int main(int argc, char** argv) {
   bool test = false, verbose = false, dump = false, autoplay = false, daily = false;
   int difficulty = -1;
   u64 seed_override = 0;
+  std::vector<std::string> mods;
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
-      std::printf("urbs_headless 0.1.0\n");
+      std::printf("urbs_headless %s\n", URBS_VERSION);
       return 0;
     }
     if (is("--scenario") && i + 1 < argc) scenario_path = argv[++i];
@@ -48,6 +49,7 @@ int main(int argc, char** argv) {
     else if (is("--daily")) daily = true;
     else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
     else if (is("--seed") && i + 1 < argc) seed_override = std::strtoull(argv[++i], nullptr, 10);
+    else if (is("--mod") && i + 1 < argc) mods.emplace_back(argv[++i]);
   }
   core::init_logging(verbose);
   if (scenario_path.empty() && load_path.empty()) {
@@ -57,7 +59,7 @@ int main(int argc, char** argv) {
   data::Defs defs;
   sim::ScenarioSpec spec;
   try {
-    defs = data::load_defs(data_root());
+    defs = data::load_defs(data_root(), mods);
     if (!scenario_path.empty()) spec = sim::load_scenario(scenario_path);
     if (seed_override) spec.world.seed = seed_override;  // the simulation's randomness, not the map
   } catch (const std::exception& e) {

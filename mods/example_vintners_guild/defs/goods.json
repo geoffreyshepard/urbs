@@ -1,0 +1,4 @@
+[
+  {"id": "amber_wine", "name": "Amber wine", "category": "luxury", "price": 14, "unlock": 4},
+  {"id": "wine", "price": 9}
+]

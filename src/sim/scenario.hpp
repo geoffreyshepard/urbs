@@ -9,6 +9,7 @@ namespace urbs::sim {
 
 struct ScenarioSpec {
   std::string name;
+  std::string map_file;  // painted map (scenario editor), absolute path; empty = generate from `map`
   MapGenParams map;
   WorldConfig world;
   std::string generator;  // "stress_city", "empty", "town"

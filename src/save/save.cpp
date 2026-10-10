@@ -544,4 +544,74 @@ u64 world_hash(const sim::World& w) {
   return h;
 }
 
+namespace {
+constexpr u32 kMapMagic = 0x4D425255;  // "URBM"
+constexpr u32 kMapVersion = 1;
+}  // namespace
+
+bool save_map(const sim::TileMap& m, const std::string& path, std::string* err) {
+  Writer body;
+  body.pod(m.w);
+  body.pod(m.h);
+  body.vec(m.terrain);
+  body.vec(m.height);
+  body.vec(m.groundwater);
+  body.vec(m.fertility);
+  body.vec(m.resource);
+  body.vec(m.road);
+  body.vec(m.variant);
+  const auto& raw = body.data();
+  std::vector<u8> comp(ZSTD_compressBound(raw.size()));
+  const size_t n = ZSTD_compress(comp.data(), comp.size(), raw.data(), raw.size(), 9);
+  if (ZSTD_isError(n)) {
+    if (err) *err = ZSTD_getErrorName(n);
+    return false;
+  }
+  std::ofstream f(path, std::ios::binary);
+  if (!f) {
+    if (err) *err = "cannot write " + path;
+    return false;
+  }
+  Writer head;
+  head.pod(kMapMagic);
+  head.pod(kMapVersion);
+  head.pod(static_cast<u64>(raw.size()));
+  f.write(reinterpret_cast<const char*>(head.data().data()), static_cast<std::streamsize>(head.data().size()));
+  f.write(reinterpret_cast<const char*>(comp.data()), static_cast<std::streamsize>(n));
+  return static_cast<bool>(f);
+}
+
+bool load_map(sim::TileMap& m, const std::string& path, std::string* err) {
+  std::vector<u8> file;
+  if (!read_file(path, file)) {
+    if (err) *err = "cannot read " + path;
+    return false;
+  }
+  try {
+    Reader h(file.data(), file.size());
+    if (h.pod<u32>() != kMapMagic) throw std::runtime_error("not an Urbs map");
+    if (h.pod<u32>() > kMapVersion) throw std::runtime_error("map made by a newer version");
+    const u64 raw_size = h.pod<u64>();
+    const size_t head = 4 + 4 + 8;
+    std::vector<u8> raw(raw_size);
+    const size_t n = ZSTD_decompress(raw.data(), raw.size(), file.data() + head, file.size() - head);
+    if (ZSTD_isError(n) || n != raw_size) throw std::runtime_error("corrupt map");
+    Reader r(raw.data(), raw.size());
+    const i32 w = r.pod<i32>(), hh = r.pod<i32>();
+    m.resize(w, hh);
+    r.vec(m.terrain);
+    r.vec(m.height);
+    r.vec(m.groundwater);
+    r.vec(m.fertility);
+    r.vec(m.resource);
+    r.vec(m.road);
+    r.vec(m.variant);
+    m.mark_all_dirty();
+  } catch (const std::exception& e) {
+    if (err) *err = e.what();
+    return false;
+  }
+  return true;
+}
+
 }  // namespace urbs::save

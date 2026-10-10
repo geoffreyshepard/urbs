@@ -12,9 +12,20 @@ struct Settings {
   bool autosave = true;
   bool fullscreen = false;
   int difficulty = 1;  // 0 Otium, 1 Civitas, 2 Imperium
+  bool colorblind = false;          // overlays use a blue-orange scale instead of green-red
+  std::vector<std::string> mods;    // enabled mods, by folder name, in load order
   void load(const std::string& dir);
   void save(const std::string& dir) const;
 };
+
+// A mod folder: <root>/mods/<name>/ with mod.json and defs/ (and optionally scenarios/).
+struct ModInfo {
+  std::string name, dir, title, version, description;
+};
+// Mods shipped next to the game data and in the user data folder.
+std::vector<ModInfo> find_mods(const std::string& data_root, const std::string& user_dir);
+// Folders of the enabled mods, in the order given by settings.
+std::vector<std::string> enabled_mod_dirs(const Settings& s, const std::vector<ModInfo>& all);
 
 struct MissionInfo {
   std::string id, name, rank, region, blurb;

@@ -1,0 +1,4 @@
+[
+  {"id": "rhodes", "name": "Rhodes", "route": "land", "open_cost": 600, "interval_days": 5,
+   "buys": {"amber_wine": 300, "wine": 300, "olive_oil": 200}, "sells": {"dye": 100, "glassware": 100}}
+]

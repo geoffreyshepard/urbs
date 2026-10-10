@@ -8,7 +8,7 @@
 namespace urbs::save {
 
 // Bump on any change to saved state; add a migration in load_world or reject with a clear error.
-// Version history: 1 = v0.1.0; 2 = civic crime cut (M12); 3 = mint ledger column, Nile flag (M13).
+// Version history: 1 = v0.1.0; 2 = civic crime cut (M12); 3 = mint ledger column, Nile flag (M13); v1.0.0 writes 3.
 // Older versions still load.
 inline constexpr u32 kSaveVersion = 3;
 inline constexpr u32 kOldestSaveVersion = 1;
@@ -26,6 +26,10 @@ bool save_world(const sim::World& w, const std::string& path, const std::string&
 // Loads into a fresh (uninitialised) World. Returns false and sets err on failure.
 bool load_world(sim::World& w, const data::Defs& defs, const std::string& path, std::string* err);
 bool read_info(const std::string& path, SaveInfo& out);
+
+// Map files (scenario editor): terrain, height, groundwater, fertility, resources, roads, variants.
+bool save_map(const sim::TileMap& m, const std::string& path, std::string* err);
+bool load_map(sim::TileMap& m, const std::string& path, std::string* err);
 
 // Hash of the simulation state, for determinism and round-trip tests.
 u64 world_hash(const sim::World& w);

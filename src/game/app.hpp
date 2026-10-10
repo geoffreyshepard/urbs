@@ -36,7 +36,22 @@ struct AppOptions {
 
 AppOptions parse_args(int argc, char** argv);
 
-enum class Screen : u8 { Menu, Campaign, Sandbox, Playing };
+enum class Screen : u8 { Menu, Campaign, Sandbox, Playing, Mods, Custom, Editor };
+
+// Scenario editor state (src/game/editor.cpp).
+struct EditorState {
+  std::string id = "my_scenario", name = "My scenario", path;  // path: folder of the scenario being edited
+  int brush = 0;       // 0 terrain, 1 raise, 2 lower, 3 resource, 4 clear resource, 5 road, 6 erase road
+  int terrain = 0;     // sim::Terrain
+  int resource = 1;    // sim::Resource
+  int size = 2;        // brush radius
+  int mission = 16, era = 0, region = 0, entry = 2, start_hour = 7;
+  int treasury = 15000, population = 2000, culture = 0, prosperity = 0, security = 0;
+  int wood = 200, wheat = 200;
+  std::vector<u8> gods, partners;
+  std::string status;
+  bool painting = false;
+};
 
 class App {
  public:
@@ -76,6 +91,17 @@ class App {
   void draw_stock_window();
   void draw_debug_ui();
   void draw_help();
+  // Mods, custom scenarios, scenario editor (editor.cpp)
+  bool reload_defs(std::string* err);
+  void draw_mods();
+  void draw_custom();
+  void draw_editor();
+  void editor_new();
+  void editor_open(const std::string& dir);
+  bool editor_save();
+  void editor_event(const SDL_Event& e);
+  void editor_paint(Vec2i t);
+  [[nodiscard]] std::vector<std::pair<std::string, std::string>> custom_scenarios() const;  // (title, folder)
 
   AppOptions opt_;
   platform::Window win_;
@@ -95,6 +121,10 @@ class App {
   int mission_index_ = -1;  // campaign mission being played
   int selected_mission_ = 0;
   sim::MapGenParams gen_;
+  int sandbox_region_ = 0;
+  bool sandbox_nile_ = false;
+  std::vector<ModInfo> mods_;
+  EditorState ed_;
 
   int speed_ = 1;  // 0 pause, 1, 2, 3 = 1x 2x 4x
   f64 accum_ = 0;
