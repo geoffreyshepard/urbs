@@ -182,7 +182,9 @@ void App::start_sandbox() {
     if (sandbox_nile_) j += R"("nile":true,)";
   }
   j += R"("world":{"max_citizens":16000,"max_buildings":4096,"max_households":5000},)";
-  j += R"("generator":"scripted","entry_road":3,"start":{"treasury":15000},)";
+  // A cart of timber and grain at the end of the road, as in the first campaign mission: without any
+  // store the first market and granary wait on wood that nobody has hauled anywhere yet.
+  j += R"("generator":"scripted","entry_road":3,"start":{"treasury":15000},"start_stock":{"wood":80,"wheat":60},)";
   j += R"("gods":["jupiter","juno","mars","venus","ceres","neptune","mercury","minerva","vulcan","vesta"],)";
   j += R"("trade":{"partners":["latin_villages","rome","etruria","carthage","massalia","gallia","greece"]}})";
   start_scenario(sim::parse_scenario(j, root_ + "data/scenarios/sandbox.json"));

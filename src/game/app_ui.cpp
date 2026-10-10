@@ -227,7 +227,7 @@ void App::draw_campaign() {
 void App::draw_sandbox_setup() {
   center_next(420, 440);
   ImGui::Begin("Sandbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-  ImGui::TextWrapped("A free city with every building unlocked and 15,000 denarii.");
+  ImGui::TextWrapped("A free city with every building unlocked, 15,000 denarii and a cart of timber and grain.");
   int size = gen_.size, seed = static_cast<int>(gen_.seed);
   const char* sizes[] = {"Small (128)", "Medium (192)", "Large (256)", "Huge (384)"};
   const int size_vals[] = {128, 192, 256, 384};

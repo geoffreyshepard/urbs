@@ -911,6 +911,15 @@ void Autoplay::act(World& w) {
     if (!d.valid() || !w.is_unlocked(d) || count(w, id) >= want) return false;
     return place(w, d, bx, by);
   };
+  // Somewhere to keep things: materials are counted in storage, so a city without any cannot plan.
+  {
+    u32 stores = 0;
+    w.buildings.for_each([&](BuildingId, const Building& b) {
+      if (w.defs->b(b.def).kind == BuildingKind::Storage) ++stores;
+    });
+    for (u16 p : pending_) stores += w.defs->b(BuildingDefId{p}).kind == BuildingKind::Storage ? 1u : 0u;
+    if (stores == 0 && ensure("stockpile", 1)) return;
+  }
   if (pop >= 5 && ensure("lumber_camp", 1)) return;
   // Wood builds everything: more camps while it runs short.
   if (pop >= 100 && w.econ.city_stock[w.defs->good("wood").v] < 40 && ensure("lumber_camp", 2 + pop / 400)) return;
