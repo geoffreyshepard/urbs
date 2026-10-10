@@ -34,6 +34,7 @@ struct AppOptions {
   std::string weather;         // screenshots: show this weather (presentation only, the sim is untouched)
   int overlay = 0;
   int build_group = -1;   // screenshots: open this build-menu group's list (0 = roads)
+  std::string show;       // screenshots: comma-separated panels to open (finance,labor,...)
   bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
 };
 

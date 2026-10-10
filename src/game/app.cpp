@@ -39,6 +39,7 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
     else if (arg("--build-group")) o.build_group = std::atoi(argv[++i]);
+    else if (arg("--show")) o.show = argv[++i];
     else if (arg("--weather")) o.weather = argv[++i];
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
@@ -300,6 +301,32 @@ bool App::init(const AppOptions& opt) {
   overlay_ = static_cast<Overlay>(std::clamp(opt.overlay, 0, static_cast<int>(Overlay::Count) - 1));
   overlay_age_ = 1 << 20;
   build_group_ = opt.build_group;
+  // Screenshots: open panels and dialogs by name (--show finance,nomsg,bld:temple).
+  const std::pair<const char*, bool*> kShow[] = {
+      {"goods", &show_stock_},       {"labor", &show_labor_},  {"alerts", &show_alerts_},
+      {"finance", &show_finance_},   {"trade", &show_trade_},  {"religion", &show_religion_},
+      {"military", &show_military_}, {"rome", &show_rome_},    {"advisors", &show_advisors_},
+      {"research", &show_research_}, {"help", &show_help_},    {"pause", &paused_menu_},
+      {"settings", &show_settings_}, {"load", &show_saveload_}};
+  for (size_t a = 0; a < opt.show.size();) {
+    size_t b = opt.show.find(',', a);
+    if (b == std::string::npos) b = opt.show.size();
+    const std::string p = opt.show.substr(a, b - a);
+    a = b + 1;
+    for (const auto& [name, flag] : kShow)
+      if (p == name) *flag = true;
+    if (p == "save") show_saveload_ = saveload_saving_ = true;
+    if (p == "nobuild") show_build_ = false;
+    if (p == "nomsg") last_message_ = 0xffff;  // the mission briefing and other messages stay unread and hidden
+    if (p.rfind("advisor", 0) == 0 && p.size() > 7) {
+      show_advisors_ = true;
+      advisor_ = std::atoi(p.c_str() + 7);
+    }
+    if (p.rfind("bld:", 0) == 0)  // select the first building of this def
+      world_->buildings.for_each([&](BuildingId id, const sim::Building& bd) {
+        if (!sel_.building.valid() && world_->defs->b(bd.def).id == p.substr(4)) sel_.building = id;
+      });
+  }
   build_fly_y_ = 100 + 50.0f * static_cast<float>(std::max(0, opt.build_group));
   if (opt.inspect >= 0 && world_->citizens.ids.alive_index(static_cast<u32>(opt.inspect))) {
     sel_.citizen = world_->citizens.ids.id_at(static_cast<u32>(opt.inspect));
