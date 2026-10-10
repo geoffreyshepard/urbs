@@ -27,6 +27,7 @@ import units                                    # noqa: E402
 import goods                                    # noqa: E402
 import ui                                       # noqa: E402
 import hud                                      # noqa: E402
+import categories                               # noqa: E402
 import worldmap                                 # noqa: E402
 import regions                                 # noqa: E402
 import outlines                                 # noqa: E402
@@ -77,7 +78,7 @@ PLACES = ["Rome", "Ostia", "Beneventum", "Capua", "Syracuse", "Carthago Nova", "
 
 def phase3_names():
     return (["ui/province_map", "ui/logo", "ui/panel_corner", "ui/divider"] +
-            ["ui/icon_" + i for i in HUD_ICONS])
+            ["ui/icon_" + i for i in HUD_ICONS] + ["ui/cat_" + c for c in categories.CATEGORIES])
 
 
 GOODS = ("wheat vegetables fish meat olives grapes flour bread olive_oil wine salt garum wood "
@@ -126,7 +127,7 @@ def generate_all():
     """-> list of (name, PIL image, anchor or None), sorted by name."""
     sprites = []
     for mod in (terrain, roads, objects, people, units, buildings, fx, effects, goods, ui,
-                hud, worldmap):
+                hud, categories, worldmap):
         sprites += mod.generate()
     lit = lights.generate(sprites)          # before sel-out: windows are still C.outline
     outlines.apply(sprites)

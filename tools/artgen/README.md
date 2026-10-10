@@ -121,3 +121,4 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
   - Each place is snapped onto land, so it never sits in the sea.
 - `ui/logo` (about 200x60), `ui/panel_corner` (8x8, drawn as the top-left corner; mirror it for the others) and `ui/divider` (64x6, tileable).
 - `ui/icon_<name>`: 16x16 HUD icons.
+- `ui/cat_<id>`: 24x24 build-menu category icons (`categories.py`): roads, housing, farms, food, industry, storage, water, health, religion, culture, civic, military, monument.

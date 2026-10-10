@@ -37,6 +37,7 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 both SIL OFL fonts in `assets/fonts` (the one exception to "art is code"). `game/style.cpp` loads them;
 `begin_window()` and `heading()` apply the title face.
 
+
 ## Generator structure
 
 ```
@@ -48,6 +49,8 @@ tools/artgen/
 ├── people.py           # body template × clothing palette × pose × direction × frame
 ├── units.py            # soldiers, cavalry, siege
 ├── goods.py            # carried-goods icons and UI icons
+├── hud.py              # HUD icons (16x16), logo, panel ornaments
+├── categories.py       # build-menu category icons (24x24)
 ├── ui.py               # panels, buttons, frames, fonts (bitmap)
 └── build_all.py        # generates everything → assets/sprites/
 tools/atlas/            # packs sprites into atlases + JSON metadata (stb_rect_pack)
