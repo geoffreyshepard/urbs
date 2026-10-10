@@ -199,7 +199,7 @@ void World::building_hourly(BuildingId id) {
       for (i32 y = b.y; y < b.y + b.h; ++y)
         for (i32 x = b.x; x < b.x + b.w; ++x) {
           u8& f = map.fertility[static_cast<size_t>(map.idx(x, y))];
-          f = static_cast<u8>(std::max(60, f - 3));
+          f = static_cast<u8>(std::max(60, f - 1));
         }
     b.work_progress -= r.work;
   }

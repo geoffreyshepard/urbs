@@ -46,6 +46,14 @@ BuildingDefId Autoplay::first_unlocked(World& w, std::initializer_list<const cha
   return BuildingDefId{};
 }
 
+u32 Autoplay::active_count(World& w, BuildingDefId d) const {
+  u32 n = 0;
+  w.buildings.for_each([&](BuildingId, const Building& b) {
+    if (b.def == d && b.state == BState::Active) ++n;
+  });
+  return n;
+}
+
 u32 Autoplay::count(World& w, const char* id) const {
   BuildingDefId d = w.defs->building(id);
   if (!d.valid()) return 0;
@@ -493,7 +501,7 @@ void Autoplay::do_trade_and_requests(World& w) {
   // Materials for missing goal buildings are kept at home.
   std::vector<u8> keep(w.econ.goods, 0);
   for (const auto& gb : w.goals.buildings)
-    if (count(w, w.defs->b(gb.def).id.c_str()) < gb.count)
+    if (count(w, w.defs->b(gb.def).id.c_str()) < gb.count || active_count(w, gb.def) < gb.count)
       for (const auto& c : w.defs->b(gb.def).cost_goods) keep[c.good.v] = 1;
   for (u32 g = 0; g < w.econ.goods; ++g)
     if (keep[g] && w.trade_mode[g] == 2) {
@@ -554,7 +562,9 @@ void Autoplay::step(World& w) {
     if (enemies > 0) last_enemy_ = w.now;
     // A standing garrison only where security matters or raiders have already come.
     const bool threatened = w.goals.security > 0 || (last_enemy_ > 0 && w.now - last_enemy_ < 40 * kTicksPerDay);
-    const u32 garrison = threatened && w.mission_number >= 3 && w.population() >= 300 ? w.population() / 80 : 0;
+    const u32 garrison = threatened && w.mission_number >= 3 && w.population() >= 300
+                             ? w.population() / (w.goals.security >= 50 ? 40 : 80)
+                             : 0;
     const u32 want = enemies > 0 ? std::max(garrison, enemies + enemies / 4) : garrison;
     auto set_conscription = [&](u8 v) {
       if (w.policy.conscription == v) return;
@@ -682,6 +692,14 @@ void Autoplay::step(World& w) {
         rc.value = want;
         w.push(rc);
       }
+    }
+    // Broke after a disaster: borrow from Rome to rebuild (one loan at a time).
+    if (w.econ.treasury < -500 && w.loan.remaining == 0 && w.favor > 40) {
+      Command lc;
+      lc.type = CmdType::TakeLoan;
+      lc.value = static_cast<i32>(std::min<i64>(20000, 2000 + w.econ.money.yesterday[static_cast<int>(econ::Money::Wages)] * 3));
+      w.push(lc);
+      note("took a loan");
     }
     // Wages stay at Rome's rate (cutting them only impoverishes the buyers of the city's goods).
     if (w.policy.wage < 4) {
@@ -814,7 +832,7 @@ void Autoplay::act(World& w) {
     if (b.state != BState::Construction || sd.kind == BuildingKind::House) return;
     // A site cut off from the town (its footprint was the only way through): clear it at once and
     // never try that spot again.
-    if (b.entrance < 0 || !w.nav.connected(b.entrance, w.map.idx(ox_, oy_))) {
+    if (b.entrance >= 0 && !w.nav.connected(b.entrance, w.map.idx(ox_, oy_))) {
       bad_spots_.insert((static_cast<u64>(b.def.v) << 32) | (static_cast<u64>(static_cast<u16>(b.x)) << 16) |
                         static_cast<u16>(b.y));
       clear = id;
@@ -843,7 +861,7 @@ void Autoplay::act(World& w) {
     c.x1 = b.x + b.w - 1;
     c.y1 = b.y + b.h - 1;
     w.push(c);
-    note("cleared a stalled site");
+    note("cleared a stalled " + w.defs->b(b.def).name);
     return;
   }
   if (sites >= 2 + pop / 400) {
@@ -1017,6 +1035,23 @@ void Autoplay::act(World& w) {
         blocker_cooldown_[top->first] = w.now + kTicksPerDay;
         const auto at = blocked_at.count(top->first) ? blocked_at[top->first] : std::pair<i32, i32>{bx, by};
         if (build_for_requirement(w, td->reqs[top->first & 0xFF], at.first, at.second)) return;
+      }
+    }
+  }
+  // Goal buildings already under construction: make sure their remaining materials come.
+  if (supply_cooldown_ <= w.now) {
+    supply_cooldown_ = w.now + kTicksPerHour * 6;
+    BuildingId site;
+    w.buildings.for_each([&](BuildingId id, const Building& b) {
+      if (site.valid() || b.state != BState::Construction) return;
+      for (const auto& g : w.goals.buildings)
+        if (g.def == b.def) site = id;
+    });
+    if (site.valid()) {
+      const Building& b = w.buildings[site];
+      for (const auto& c : w.defs->b(b.def).cost_goods) {
+        const u32 have = b.inv != econ::kNoInv ? w.econ.amt(b.inv, c.good) + w.econ.rin(b.inv, c.good) : 0;
+        if (have + w.econ.city_stock[c.good.v] < c.amount && supply(w, c.good, c.amount, bx, by)) return;
       }
     }
   }

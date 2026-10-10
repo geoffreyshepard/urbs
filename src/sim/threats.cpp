@@ -24,7 +24,7 @@ void World::inundation_daily() {
     for (i32 y = 0; y < map.h; ++y)
       for (i32 x = 0; x < map.w; ++x) {
         const size_t i = static_cast<size_t>(map.idx(x, y));
-        if (map.height[i] > 2 || terrain_water(map.terrain[i])) continue;
+        if (map.height[i] > 3 || terrain_water(map.terrain[i])) continue;
         bool near = false;
         for (i32 dy = -6; dy <= 6 && !near; dy += 2)
           for (i32 dx = -6; dx <= 6 && !near; dx += 2)

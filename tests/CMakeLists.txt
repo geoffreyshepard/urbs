@@ -19,7 +19,8 @@ endforeach()
 # Campaign balance: the autoplay bot must win each validated mission within 300 days (long; release
 # builds). tools/bot_missions.sh runs every mission in parallel for balancing.
 set(URBS_VALIDATED_MISSIONS m01_latium m02_ostia m03_beneventum m04_capua m05_syracuse m06_carthago_nova
-                            m07_aquileia m08_narbo m09_campania m10_corinth)
+                            m07_aquileia m08_narbo m09_campania m10_corinth m11_lugdunum m12_alexandria
+                            m14_londinium m16_roma)
 foreach(_n ${URBS_VALIDATED_MISSIONS})
   set(sc ${CMAKE_SOURCE_DIR}/data/scenarios/${_n}/scenario.json)
   add_test(NAME mission_${_n} COMMAND urbs_headless --scenario ${sc} --ticks 360000 --autoplay)

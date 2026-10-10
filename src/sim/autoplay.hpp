@@ -48,6 +48,8 @@ class Autoplay {
   void act(World& w);       // one decision; at most one action
   BuildingDefId first_unlocked(World& w, std::initializer_list<const char*> ids) const;
   u32 count(World& w, const char* id) const;
+  u32 active_count(World& w, BuildingDefId d) const;
+  Tick supply_cooldown_ = 0;
   void do_trade_and_requests(World& w);
 
   i32 ox_ = 0, oy_ = 0;  // grid origin
