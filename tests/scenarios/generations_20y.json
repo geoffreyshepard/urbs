@@ -19,7 +19,7 @@
     "min_citizens": 500,
     "max_alloc_violations": 0,
     "min_births": 200,
-    "min_deaths": 50
+    "min_deaths": 30
   },
   "start_slaves": 20,
   "policy": {

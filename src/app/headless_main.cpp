@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
     std::printf("resource tiles: clay %u stone %u iron %u silver %u marble %u limestone %u pozzolana %u fish %u\n", res[1],
                 res[2], res[3], res[4], res[5], res[6], res[7], res[8]);
   }
+  u32 att_present = 0, att_employed = 0;
   sim::Autoplay bot;
   if (autoplay) bot.init(*world);
   if (difficulty >= 0) world->set_difficulty(static_cast<u8>(difficulty));
@@ -99,6 +100,31 @@ int main(int argc, char** argv) {
     if (autoplay) bot.step(*world);
     world->tick();
     if (autoplay && world->mission != sim::MissionState::Running) break;
+    if (world->now % kTicksPerDay == kTicksPerHour * 10) {
+      att_present = att_employed = 0;
+      if (verbose && world->mission_days % 20 == 10) {
+        u32 acts[32] = {}, reasons[64] = {};
+        const auto& C = world->citizens;
+        for (u32 i = 0; i < C.ids.high_water(); ++i)
+          if (C.ids.alive_index(i) && C.work[i].valid()) {
+            ++acts[static_cast<int>(C.activity[i])];
+            ++reasons[static_cast<int>(C.reason[i])];
+          }
+        std::printf("    employed at 10:00 by activity:");
+        for (int k = 0; k < static_cast<int>(sim::Activity::Count); ++k)
+          if (acts[k]) std::printf(" %s=%u", sim::activity_name(static_cast<sim::Activity>(k)), acts[k]);
+        std::printf("\n    by reason:");
+        for (int k = 0; k < static_cast<int>(sim::Reason::Count); ++k)
+          if (reasons[k] > 5) std::printf(" [%s]=%u", sim::reason_text(static_cast<sim::Reason>(k)), reasons[k]);
+        std::printf("\n");
+      }
+      world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+        if (b.state == sim::BState::Active && defs.b(b.def).recipe.valid()) {
+          att_present += b.present;
+          att_employed += b.employed;
+        }
+      });
+    }
     if (daily && world->now % kTicksPerDay == kTicksPerDay / 2) {
       u32 food = 0, nofood = 0, hh = 0, idle = 0, adults = 0, jobs = 0;
       for (GoodId g : world->food_slots) food += world->econ.city_stock[g.v];
@@ -120,6 +146,10 @@ int main(int argc, char** argv) {
                   world->mission_days, world->population(), world->avg_happiness, food, hh, nofood, adults, idle, jobs,
                   static_cast<long long>(world->econ.treasury), world->favor, world->immigrants_total, world->emigrants_total,
                   autoplay ? bot.last_action().c_str() : "");
+      if (verbose) {
+        // Attendance at workshops at the last mid-morning sample.
+        std::printf("    attendance at 10:00: %u of %u workshop workers present\n", att_present, att_employed);
+      }
       if (verbose && autoplay) {
         std::printf("    bot:");
         for (const auto& a : bot.take_log()) std::printf(" %s;", a.c_str());
@@ -265,6 +295,19 @@ int main(int argc, char** argv) {
         if (unmet[k]) std::printf(" #%d=%u", k, unmet[k]);
       std::printf("\n");
     }
+    {
+      // Coverage of occupied houses by the basic services.
+      const data::HousingReq water{data::HousingReq::Service, {defs.service("well"), defs.service("fountain")}, {}, 0};
+      const data::HousingReq market{data::HousingReq::Service, {defs.service("market")}, {}, 0};
+      u32 occ = 0, no_water = 0, no_market = 0;
+      world->buildings.for_each([&](BuildingId, const sim::Building& b) {
+        if (defs.b(b.def).kind != data::BuildingKind::House || b.residents == 0) return;
+        ++occ;
+        if (!world->requirement_met(b, water)) ++no_water;
+        if (!world->requirement_met(b, market)) ++no_market;
+      });
+      std::printf("occupied houses %u: without water %u, without a market in reach %u\n", occ, no_water, no_market);
+    }
     std::printf("money yesterday:");
     for (int k = 0; k < econ::kMoneyCount; ++k)
       if (world->econ.money.yesterday[k])
@@ -274,7 +317,9 @@ int main(int argc, char** argv) {
     std::printf("goods (stock/made/used/imp/exp/price):");
     for (u32 g = 0; g < world->econ.goods; ++g)
       if (world->econ.city_stock[g] || world->econ.produced_yday[g] || world->econ.consumed_yday[g])
-        std::printf(" %s %u/%u/%u/%u/%u/%.1f", defs.goods[g].id.c_str(), world->econ.city_stock[g],
+        std::printf(" %s%s %u/%u/%u/%u/%u/%.1f", defs.goods[g].id.c_str(),
+                    world->trade_mode[g] == 1 ? "[imp]" : world->trade_mode[g] == 2 ? "[exp]" : world->trade_mode[g] == 3 ? "[pile]" : "",
+                    world->econ.city_stock[g],
                     world->econ.produced_yday[g], world->econ.consumed_yday[g], world->econ.imported_yday[g],
                     world->econ.exported_yday[g], world->econ.price[g] / 10.0);
     std::printf("\n");

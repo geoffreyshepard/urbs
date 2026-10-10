@@ -360,7 +360,7 @@ void World::lifecycle_daily(u32 i) {
     if (poor) p *= 2.0f;
     ServiceId guard = defs->service("guard");
     const bool watched = guard.valid() && C.home[i].valid() && buildings.alive(C.home[i]) && services.ready(guard.v) &&
-                         services.cost_ticks(guard.v, buildings[C.home[i]].entrance) <= 120;
+                         services.cost_ticks(guard.v, buildings[C.home[i]].entrance) <= kPatrolReachTicks;
     if (watched) p *= 0.3f;
     p *= static_cast<f32>(100 - crime_cut_) / 100.0f;
     if (r.chance(p)) {
@@ -417,7 +417,7 @@ void World::riot_check() {
   ++riots_total;
   ServiceId guard = defs->service("guard");
   Building& tb = buildings[target];
-  const bool suppressed = guard.valid() && services.ready(guard.v) && services.cost_ticks(guard.v, tb.entrance) <= 120;
+  const bool suppressed = guard.valid() && services.ready(guard.v) && services.cost_ticks(guard.v, tb.entrance) <= kPatrolReachTicks;
   if (suppressed) {
     add_alert(AlertKind::Riot, target, 1);
     return;

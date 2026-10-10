@@ -51,7 +51,7 @@ Scoring is a small weighted utility function over candidate activities. Candidat
 
 ## 6. Pathfinding
 
-The grid has per-tile move costs (paved road < dirt road < open ground; impassable for water and walls, with gates as conditional passage).
+The grid has per-tile move costs (paved road < dirt road < open ground; impassable for water and walls, with gates as conditional passage). Costs are in tenths of a tick per tile: paved road 10, dirt road 15, grass 50, forest 70, marsh 85. A game hour is 50 ticks, so a dirt road covers about 33 tiles an hour. Roads must be fast: with 3 ticks a tile, commutes took 40% of the working day and cities stalled around 2,000 people. Service ranges and patrol reach (`kPatrolReachTicks`) are measured in walking ticks.
 
 1. **Connectivity regions:** flood-filled walkable components, updated incrementally when buildings and walls change. An unreachable destination is rejected in O(1) before any search, as Dwarf Fortress does.
 2. **Hierarchical A\* (HPA\*):** 32×32 chunks with portal nodes on their borders. Search the abstract graph, then refine each chunk segment lazily, only when the agent enters that chunk (and only for visible agents; off-screen agents need only the abstract path length and timing).
@@ -82,6 +82,7 @@ Citizens don't collide with each other; they overlap visually, like Songs of Syx
 - Each workplace has job slots by skill or class. A **labor allocator** runs once per game hour: it ranks vacancies by the player's sector priorities and assigns unemployed or underemployed citizens, preferring short commutes and matching skills.
 - Within one priority level, hiring is round-robin (one worker per workplace per round), so every link of a production chain gets some staff before any one workplace is full. A sector with vacancies takes workers from sectors at least two priority levels lower.
 - Construction sites hire builders only once their materials are delivered or on the way.
+- Workers who live within 25 tiles go home for the midday meal; the rest eat at work.
 - Wages compare with the going rate in Rome (4 denarii a day): each denarius above or below moves worker happiness by 3 (capped at −12 / +9).
 - Production is computed per work interval (the event-scheduled end of a work block), not per tick: `output = f(workers present × skill × tools × efficiency × inputs)`.
 

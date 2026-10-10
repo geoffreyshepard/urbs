@@ -137,6 +137,9 @@ struct Loan {
   i64 installment = 0;
 };
 
+// How far (walking ticks) patrols of vigiles, engineers and the guard cover.
+inline constexpr u16 kPatrolReachTicks = 70;
+
 struct Goals {
   u32 population = 0;
   u8 culture = 0, prosperity = 0, security = 0, favor = 0;

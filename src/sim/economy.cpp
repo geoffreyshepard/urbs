@@ -405,7 +405,8 @@ void World::match_good(GoodId g) {
     const data::BuildingDef& d = defs->b(b.def);
     if (b.state == BState::Construction) continue;
     const bool storage = d.kind == BuildingKind::Storage || d.kind == BuildingKind::TradePost;
-    bool supplies = storage;
+    // Goods staged for export stay at the trade post (imports there are handed out as usual).
+    bool supplies = storage && !(d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2);
     if (!storage && d.recipe.valid())
       for (const auto& o : defs->recipes[d.recipe.v].outputs)
         if (o.good == g) supplies = true;

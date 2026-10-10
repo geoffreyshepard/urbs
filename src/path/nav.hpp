@@ -12,8 +12,8 @@ namespace urbs::path {
 // Diagonal steps are only allowed when both orthogonal neighbours are walkable, so
 // connectivity equals 4-connectivity.
 inline constexpr u8 kBlocked = 0;
-inline constexpr u8 kCostPaved = 25;
-inline constexpr u8 kCostDirt = 30;
+inline constexpr u8 kCostPaved = 10;
+inline constexpr u8 kCostDirt = 15;
 inline constexpr u8 kCostMin = 25;
 
 struct NavGrid {

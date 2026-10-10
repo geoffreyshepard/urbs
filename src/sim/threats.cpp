@@ -11,7 +11,7 @@ using data::BuildingKind;
 bool World::patrol_covers(const char* service, const Building& b) const {
   ServiceId s = defs->service(service);
   if (!s.valid() || !services.ready(s.v) || b.entrance < 0) return false;
-  if (services.cost_ticks(s.v, b.entrance) > 110) return false;
+  if (services.cost_ticks(s.v, b.entrance) > kPatrolReachTicks) return false;
   BuildingId p = services.provider(s.v, b.entrance);
   return p.valid() && buildings.alive(p) && buildings[p].employed > 0;
 }

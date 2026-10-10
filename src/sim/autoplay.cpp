@@ -585,6 +585,23 @@ void Autoplay::step(World& w) {
     Command c;
     c.type = CmdType::SetPolicy;
     c.def = static_cast<u16>(PolicyId::TaxPleb);
+    // The annona: free staples for poor households while many are poor.
+    {
+      u32 hh = 0, poor = 0;
+      for (u32 k = 0; k < w.households.ids.high_water(); ++k)
+        if (w.households.ids.alive_index(k)) {
+          ++hh;
+          if (w.households.h[k].savings < 10) ++poor;
+        }
+      const i32 want = hh > 50 && poor * 10 > hh ? 1 : 0;
+      if (w.policy.rations != want && (want == 1 || poor * 20 < hh)) {
+        Command rc;
+        rc.type = CmdType::SetPolicy;
+        rc.def = static_cast<u16>(PolicyId::Rations);
+        rc.value = want;
+        w.push(rc);
+      }
+    }
     // In debt: pay a little less than Rome's rate until the books balance.
     if (w.econ.treasury < 0 && w.policy.wage > 3) {
       Command wc;
@@ -731,7 +748,7 @@ void Autoplay::act(World& w) {
     } else {
       stuck_since_.erase(id.raw);
     }
-    if (sd.build_work > 20) ++sites;
+    if (sd.build_work > 20 && w.site_ready(b)) ++sites;  // sites waiting for materials hire no builders
   });
   if (clear.valid()) {
     const Building& b = w.buildings[clear];
@@ -787,7 +804,9 @@ void Autoplay::act(World& w) {
           const auto& r = w.defs->recipes[d.recipe.v];
           bool uses = false;
           for (const auto& in : r.inputs) uses |= in.good == pile;
-          if (uses && !r.outputs.empty() && build_producer_of(w, r.outputs[0].good, bx, by, 0)) return true;
+          if (uses && !r.outputs.empty() && producers_of(w, r.outputs[0].good) < 2 + pop / 500 &&
+              build_producer_of(w, r.outputs[0].good, bx, by, 0))
+            return true;
         }
     }
     // Prefer goods a trading partner buys (exports bring money into the city), fewest producers first.
@@ -843,32 +862,37 @@ void Autoplay::act(World& w) {
       if (stuck_other >= 2 && place(w, w.defs->building("warehouse"), bx, by)) return;
     }
   }
-  // Exports are the city's real income: keep about one producer of a sellable good per 300 people.
+  // Exports are the city's real income: keep about one producer of a sellable good per 150 people,
+  // favouring valuable goods partners still want (production must exceed what the markets absorb).
   if (pop >= 150) {
     u32 export_producers = 0;
     GoodId pick{};
-    u32 pick_n = ~0u;
+    i64 pick_score = 0;
     for (u32 g = 0; g < w.econ.goods; ++g) {
-      bool sold = false;
+      i64 demand = 0;  // denarii a partner would still pay this year (tenths)
       for (u32 p = 0; p < w.routes.size(); ++p)
-        for (const auto& ga : w.defs->partners[p].buys) sold |= w.routes[p].open && ga.good.v == g;
-      if (!sold || w.defs->goods[g].food) continue;
-      const u32 n = producers_of(w, GoodId{static_cast<u16>(g)});
+        if (w.routes[p].open)
+          for (const auto& ga : w.defs->partners[p].buys)
+            if (ga.good.v == g && ga.amount > w.routes[p].sold[g])
+              demand += static_cast<i64>(ga.amount - w.routes[p].sold[g]) * w.trade_price(p, ga.good, false);
+      if (demand == 0 || w.defs->goods[g].food) continue;  // food exports come from the farms' surplus
+      const GoodId gid{static_cast<u16>(g)};
+      const u32 n = producers_of(w, gid);
       export_producers += n;
-      if (n < pick_n && w.econ.city_stock[g] < stock_cap(w, GoodId{static_cast<u16>(g)})) {
-        bool makeable = false;  // something unlocked makes it
-        for (u16 k = 0; k < w.defs->buildings.size() && !makeable; ++k) {
-          const auto& d = w.defs->buildings[k];
-          if (!d.recipe.valid() || !w.is_unlocked(BuildingDefId{k})) continue;
-          for (const auto& o : w.defs->recipes[d.recipe.v].outputs) makeable |= o.good.v == g;
-        }
-        if (makeable) {
-          pick_n = n;
-          pick = GoodId{static_cast<u16>(g)};
-        }
+      if (w.econ.city_stock[g] >= stock_cap(w, gid)) continue;
+      bool makeable = false;  // something unlocked makes it
+      for (u16 k = 0; k < w.defs->buildings.size() && !makeable; ++k) {
+        const auto& d = w.defs->buildings[k];
+        if (!d.recipe.valid() || !w.is_unlocked(BuildingDefId{k})) continue;
+        for (const auto& o : w.defs->recipes[d.recipe.v].outputs) makeable |= o.good.v == g;
+      }
+      const i64 score = demand / (1 + static_cast<i64>(n));
+      if (makeable && score > pick_score) {
+        pick_score = score;
+        pick = gid;
       }
     }
-    if (pick.valid() && export_producers < pop / 300 && build_producer_of(w, pick, bx, by, 0)) return;
+    if (pick.valid() && export_producers < pop / 150 && build_producer_of(w, pick, bx, by, 0)) return;
   }
   // Rome's request: at least two producers of the requested good.
   if (request_good_.valid() && producers_of(w, request_good_) < 2 && build_producer_of(w, request_good_, bx, by, 0)) return;
@@ -921,7 +945,7 @@ void Autoplay::act(World& w) {
       for (const auto& c : w.defs->b(g.def).cost_goods)
         if (w.econ.city_stock[c.good.v] < c.amount) {
           materials = false;
-          if (build_producer_of(w, c.good, bx, by, 0)) return;
+          if (producers_of(w, c.good) < 2 && build_producer_of(w, c.good, bx, by, 0)) return;
           // Cannot make it here: import it if an open route sells it.
           for (u32 p = 0; p < w.routes.size(); ++p)
             for (const auto& ga : w.defs->partners[p].sells)

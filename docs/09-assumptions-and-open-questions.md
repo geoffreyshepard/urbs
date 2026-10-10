@@ -22,6 +22,9 @@
 | Difficulty effects | Otium: threats ×0.5, raids ×0.6, treasury ×1.5, gentler request penalties, no failure. Imperium: threats ×1.5, raids ×1.4, treasury ×0.75, request penalties ×1.5, failure on long debt | docs/02 §15 |
 | Stockpiling | Per-good trade mode "stockpile": markets leave the good in storage (for Rome's requests) | Players otherwise can't gather goods that citizens also consume |
 | Unreachable raiders | Raiders with no path into the city withdraw | They used to wait forever at the map edge |
+| Walking speed | Roads are fast (dirt 1.5, paved 1 tick per tile) | Commutes otherwise ate the working day; the autoplay bot could not grow past ~2,000 |
+| Exports at the trade post | Goods staged for export are not handed back out to markets | Markets drained the staged goods and caravans found nothing |
+| Housing devolution | After three failed daily checks (was two) | Single-day hiccups caused eviction cascades |
 
 ## Open questions (decide before the milestone that needs them)
 

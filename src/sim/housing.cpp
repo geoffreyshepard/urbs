@@ -57,7 +57,7 @@ bool World::requirement_met(const Building& b, const HousingReq& r) const {
       return false;
     case HousingReq::Patrol:
       for (ServiceId s : r.services)
-        if (services.ready(s.v) && services.cost_ticks(s.v, b.entrance) <= 120) return true;
+        if (services.ready(s.v) && services.cost_ticks(s.v, b.entrance) <= kPatrolReachTicks) return true;
       return false;
     case HousingReq::FoodKinds: {
       u32 sum = 0, n = 0;
@@ -213,12 +213,12 @@ void World::house_daily(BuildingId id) {
     return;
   }
   u8 t = b.tier;
-  // Devolve after two consecutive failed checks of the current tier.
+  // Devolve after three consecutive failed checks of the current tier (a day's hiccup is forgiven).
   const int unmet_cur = t > 0 ? first_unmet(b, t) : -1;
   u8 counter = b.flags & 0x3;
   if (unmet_cur >= 0) {
     counter = static_cast<u8>(std::min(3, counter + 1));
-    if (counter >= 2) {
+    if (counter >= 3) {
       --t;
       counter = 0;
       add_alert(AlertKind::HouseDevolved, id, static_cast<u16>(unmet_cur));
@@ -323,11 +323,13 @@ void World::citizen_daily(u32 i) {
     hhp->savings += wage;
     hhp->income_today = static_cast<u16>(std::min<i32>(60000, hhp->income_today + wage));
   }
-  // Homeless and unhappy: the family gives up on the city (houses check their own residents).
-  if (hhp && !hhp->leaving && hhp->head == citizens.ids.id_at(i) && !citizens.home[i].valid() && citizens.happiness[i] < 70 &&
-      stream(rng::StreamId::Immigration).chance(0.3f)) {
-    start_emigration(citizens.household[i]);
-    return;
+  // Homeless and unhappy for four days: the family gives up on the city (houses check their own residents).
+  if (hhp && !hhp->leaving && hhp->head == citizens.ids.id_at(i) && !citizens.home[i].valid()) {
+    hhp->unhappy_days = citizens.happiness[i] < 70 ? static_cast<u8>(std::min(255, hhp->unhappy_days + 1)) : 0;
+    if (hhp->unhappy_days >= 4 && stream(rng::StreamId::Immigration).chance(0.3f)) {
+      start_emigration(citizens.household[i]);
+      return;
+    }
   }
   // Patricians live off their estates outside the city: income enters the household, not the treasury.
   if (hhp && citizens.cls[i] == CitizenClass::Patrician && citizens.age_years(i, now) >= 16) {
