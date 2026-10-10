@@ -11,6 +11,7 @@ The complete game: the full sixteen-mission campaign from a hamlet in Latium to 
   - Londinium and Boudica's revolt.
   - Antioch and the Silk Road.
   - Rome itself, with 10,000 fully simulated citizens.
+- **Goldsmiths:** gold imported from Alexandria or Hispania becomes jewelry. Scrolls and statues sell to Rome.
 - **More to build:**
   - Monuments that rise in stages and are dedicated to the gods.
   - Sea trade, harbors and lighthouses.
@@ -25,6 +26,8 @@ The complete game: the full sixteen-mission campaign from a hamlet in Latium to 
 - **Accessibility:** UI scale and colour-blind-friendly overlays (Settings).
 - **Under the hood:**
   - Many simulation fixes: errands, shopping, fire spread, housing decline, emigration.
+  - Buildings whose entrance gets blocked find a new one; a building with no way in shows a "no road access" alert.
+  - Deliveries can no longer get stuck forever, which used to stall monuments at their last stage.
   - Faster roads.
   - Save format v3; v0.1 saves still load.
 
@@ -49,6 +52,6 @@ Saves, settings, custom scenarios and user mods live in the user data folder (`~
 Play it, modify it, share it and contribute; don't sell it. See LICENSE.md, LICENSE-ASSETS.txt and NOTICE.
 
 ## Known limitations
-- There is no audio yet.
+- **Music:** a generated soundtrack (24 tracks, 10 stingers) that follows the city: era, region, raids, battles, disasters and festivals (see docs/11-music.md). There are no sound effects yet.
 - Mods cannot ship their own sprites yet; new buildings use a placeholder of their size.
-- Missions 13 (Colonia Agrippina) and 15 (Antioch) are the hardest in the campaign and the least playtested.
+- **Playtesting:** the campaign has been played through by the autoplay bot: every mission on every difficulty, 143 of 144 runs won. It has had little human play yet, so pacing and clarity reports are welcome (docs/playtest-checklist.md).
