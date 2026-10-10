@@ -38,6 +38,7 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--ticks")) o.ticks_before = std::atoi(argv[++i]);
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
+    else if (arg("--build-group")) o.build_group = std::atoi(argv[++i]);
     else if (arg("--weather")) o.weather = argv[++i];
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
@@ -56,6 +57,7 @@ AppOptions parse_args(int argc, char** argv) {
 void App::after_world_change() {
   bot_.reset();
   view_.init(renderer_.atlas(), defs_, world_->region);
+  icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, world_->region);
   renderer_.set_map(&world_->map);
   sel_ = Selection{};
   tools_.cancel();
@@ -264,6 +266,7 @@ bool App::init(const AppOptions& opt) {
   profile_.load(user_dir_);
   selected_mission_ = profile_.next_index(campaign_);
   view_.init(renderer_.atlas(), defs_);
+  icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, std::string());
   icons_.init(win_.gpu, renderer_.atlas());
   gen_.size = 192;
   gen_.seed = opt.seed;
@@ -295,6 +298,8 @@ bool App::init(const AppOptions& opt) {
   speed_ = std::clamp(opt.speed, 0, 3);
   overlay_ = static_cast<Overlay>(std::clamp(opt.overlay, 0, static_cast<int>(Overlay::Count) - 1));
   overlay_age_ = 1 << 20;
+  build_group_ = opt.build_group;
+  build_fly_y_ = 100 + 50.0f * static_cast<float>(std::max(0, opt.build_group));
   if (opt.inspect >= 0 && world_->citizens.ids.alive_index(static_cast<u32>(opt.inspect))) {
     sel_.citizen = world_->citizens.ids.id_at(static_cast<u32>(opt.inspect));
     sel_.follow = true;
@@ -339,7 +344,10 @@ void App::handle_event(const SDL_Event& e) {
         dragging_ = true;
         right_drag_ = 0;
       }
-      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT && !tools_.mouse_down(mouse_tile())) pick_at_mouse();
+      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT) {
+        build_group_ = -1;  // the build list gets out of the way once the player works on the map
+        if (!tools_.mouse_down(mouse_tile())) pick_at_mouse();
+      }
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
       if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) {
@@ -356,6 +364,7 @@ void App::handle_event(const SDL_Event& e) {
             world_->push(c);
           } else {
             tools_.cancel();
+            build_group_ = -1;
           }
         }
         dragging_ = false;
@@ -373,8 +382,11 @@ void App::handle_event(const SDL_Event& e) {
     case SDL_EVENT_KEY_DOWN:
       if (ImGui::GetIO().WantCaptureKeyboard) break;
       if (e.key.key == SDLK_ESCAPE) {
-        if (tools_.kind != ToolKind::Inspect) tools_.cancel();
-        else if (sel_.building.valid() || sel_.citizen.valid() || sel_.unit != 0xFFFF) sel_ = Selection{};
+        if (tools_.kind != ToolKind::Inspect || build_group_ >= 0) {
+          tools_.cancel();
+          build_group_ = -1;
+        } else if (sel_.building.valid() || sel_.citizen.valid() || sel_.unit != 0xFFFF)
+          sel_ = Selection{};
         else paused_menu_ = !paused_menu_;
       }
       if (paused_menu_) break;

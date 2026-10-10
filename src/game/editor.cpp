@@ -65,6 +65,7 @@ bool App::reload_defs(std::string* err) {
     base_defs_ = std::move(d);
     defs_ = base_defs_;
     view_.init(renderer_.atlas(), defs_, world_ ? world_->region : std::string());
+    icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, world_ ? world_->region : std::string());
     return true;
   } catch (const std::exception& e) {
     if (err) *err = e.what();

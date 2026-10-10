@@ -3,8 +3,11 @@
 #include <imgui.h>
 
 #include <algorithm>
+#include <cfloat>
+#include <cmath>
 #include <filesystem>
 #include <string>
+#include <vector>
 
 #include "game/app.hpp"
 #include "game/style.hpp"
@@ -348,6 +351,7 @@ void App::draw_hud() {
     const auto& a = w.alerts.back();
     if (w.now - a.t < kTicksPerDay) ImGui::TextColored(ImVec4(0.55f, 0.15f, 0.08f, 1), "%s", alert_text(w, a).c_str());
   }
+  hud_h_ = ImGui::GetWindowHeight();
   ImGui::End();
 }
 
@@ -497,69 +501,312 @@ void App::draw_help() {
   ImGui::End();
 }
 
-void App::draw_build_menu() {
-  if (!show_build_) return;
-  ImGui::SetNextWindowPos({10, 70}, ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize({280, 560}, ImGuiCond_FirstUseEver);
-  begin_window("Build", &show_build_);
-  if (ImGui::Button("Dirt road (R)")) tools_.select_road(sim::Road::Dirt);
-  ImGui::SameLine();
-  if (world_->is_unlocked(defs_.building("plaza")) && ImGui::Button("Paved road")) tools_.select_road(sim::Road::Paved);
-  if (ImGui::Button("Demolish (X)")) tools_.select_demolish();
-  ImGui::SameLine();
-  if (ImGui::Button("Cancel")) tools_.cancel();
-  if (tools_.kind != ToolKind::Inspect) {
-    const i64 cost = tools_.cost(*world_);
-    ImGui::Text("Cost: %lld", static_cast<long long>(cost));
+namespace {
+
+// Build-menu groups: the rail shows one picture button per group, each holding one or more building categories
+// (the `category` field in data/defs/buildings.json). Small categories share a button so the rail stays short.
+struct BuildGroup {
+  const char* id;  // icon: ui/cat_<id>
+  const char* name;
+  const char* blurb;
+  const char* cats[3];
+};
+constexpr BuildGroup kGroups[] = {
+    {"roads", "Roads & works", "Roads, bridges, engineers, demolish", {"infrastructure"}},
+    {"housing", "Housing", "Plots where families settle", {"housing"}},
+    {"farms", "Farms", "Grain, vegetables, livestock, groves, vines", {"farm"}},
+    {"food", "Food", "Fishing, mills, bakeries, presses, wineries", {"food"}},
+    {"industry", "Industry", "Raw materials and workshops", {"industry"}},
+    {"storage", "Storage & trade", "Warehouses, granaries, markets, harbors", {"storage", "trade"}},
+    {"water", "Water", "Wells, fountains, aqueducts, sewers", {"water"}},
+    {"health", "Health & safety", "Physicians, baths, vigiles, guards", {"health", "safety"}},
+    {"religion", "Religion", "Shrines and temples", {"religion"}},
+    {"culture", "Culture", "Taverns, theaters, schools, libraries", {"entertainment", "education"}},
+    {"civic", "Government & decor", "Forum, palace, basilica, gardens, statues", {"civic", "decor"}},
+    {"military", "Military", "Walls, barracks, forts", {"military"}},
+    {"monument", "Monuments", "Great works that win favor", {"monument"}},
+};
+constexpr int kGroupCount = static_cast<int>(sizeof(kGroups) / sizeof(kGroups[0]));
+constexpr int kOtherGroup = kGroupCount;  // categories no group claims (e.g. from mods)
+
+int group_of(const std::string& cat) {
+  for (int g = 0; g < kGroupCount; ++g)
+    for (const char* c : kGroups[g].cats)
+      if (c && cat == c) return g;
+  return kOtherGroup;
+}
+
+const char* kResourceNames[] = {"",       "clay",      "stone",     "iron ore", "silver ore",
+                                "marble", "limestone", "pozzolana", "fish"};
+
+// A good's name as it reads mid-sentence ("Cut stone" -> "cut stone").
+std::string lower_first(std::string s) {
+  if (!s.empty() && s[0] >= 'A' && s[0] <= 'Z') s[0] = static_cast<char>(s[0] - 'A' + 'a');
+  return s;
+}
+
+// One short line under a building's name: its size and the one fact that matters most when choosing it.
+std::string build_hint(const data::Defs& defs, const data::BuildingDef& d) {
+  std::vector<std::string> parts;
+  if (d.painted)
+    parts.emplace_back(d.max_w == 1 || d.max_h == 1 ? "drag to lay" : "drag to paint");
+  else
+    parts.push_back(std::to_string(d.w) + "\xC3\x97" + std::to_string(d.h));
+  std::string made;
+  if (d.recipe.valid()) {
+    const auto& r = defs.recipes[d.recipe.v];
+    std::string m = "makes";
+    for (size_t k = 0; k < r.outputs.size() && k < 2; ++k)
+      m += (k ? ", " : " ") + lower_first(defs.goods[r.outputs[k].good.v].name);
+    if (!r.outputs.empty()) made = lower_first(defs.goods[r.outputs[0].good.v].name);
+    if (!r.inputs.empty()) m += " from " + lower_first(defs.goods[r.inputs[0].good.v].name);
+    parts.push_back(m);
+  } else if (d.water_radius) {
+    parts.push_back("water within " + std::to_string(d.water_radius) + " tiles");
+  } else if (d.service.valid()) {
+    static const char* kNeed[] = {"food", "water", "rest", "hygiene", "faith", "entertainment", "health", "education"};
+    const auto& sv = defs.services[d.service.v];
+    if (sv.patrol)
+      parts.emplace_back("patrols the streets");
+    else if (sv.need != data::NeedKind::None)
+      parts.push_back(std::string(kNeed[static_cast<int>(sv.need)]) + " for homes nearby");
+  } else if (d.housing) {
+    parts.push_back("homes for " + std::to_string(d.housing));
+  } else if ((d.kind == data::BuildingKind::Storage || d.kind == data::BuildingKind::Market) && d.storage) {
+    parts.push_back("holds " + std::to_string(d.storage) + " goods");
+  } else if (d.kind == data::BuildingKind::Decor && d.desirability > 0) {
+    parts.emplace_back("makes the area more desirable");
+  } else if (d.crime_cut) {
+    parts.emplace_back("cuts crime city-wide");
+  } else if (d.favor_days) {
+    parts.emplace_back("wins favor with Rome");
+  } else if (d.workers) {
+    parts.push_back(std::to_string(d.workers) + " workers");
   }
-  static const char* kCats[] = {"housing", "farm", "food",      "industry", "storage", "water",    "health",
-                                "religion", "entertainment", "education", "safety",   "civic",   "trade",
-                                "infrastructure", "decor", "military", "monument"};
-  static const char* kCatNames[] = {"Housing", "Farms", "Food", "Industry", "Storage & markets", "Water", "Health",
-                                    "Religion", "Entertainment", "Education", "Safety", "Government", "Trade",
-                                    "Infrastructure", "Decoration", "Military", "Monuments"};
-  for (size_t ci = 0; ci < 17; ++ci) {
-    bool any = false;
-    for (u16 i = 0; i < defs_.buildings.size(); ++i)
-      if (defs_.buildings[i].category == kCats[ci] && world_->is_unlocked(BuildingDefId{i})) any = true;
-    if (!any || !ImGui::CollapsingHeader(kCatNames[ci])) continue;
-    for (u16 i = 0; i < defs_.buildings.size(); ++i) {
-      const auto& d = defs_.buildings[i];
-      if (d.category != kCats[ci] || !world_->is_unlocked(BuildingDefId{i})) continue;
-      const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
-      std::string label = d.name + "  (" + std::to_string(d.cost_denarii) + ")";
-      if (ImGui::Selectable(label.c_str(), sel)) tools_.select_building(BuildingDefId{i});
-      if (ImGui::IsItemHovered()) {
-        std::string tip = std::to_string(d.w) + "x" + std::to_string(d.h) + (d.painted ? " (drag to paint an area)" : "");
-        for (const auto& c : d.cost_goods) tip += "\n" + std::to_string(c.amount) + " " + defs_.goods[c.good.v].name;
-        if (d.workers) tip += "\nWorkers: " + std::to_string(d.workers);
-        if (d.recipe.valid()) {
-          const auto& r = defs_.recipes[d.recipe.v];
-          tip += "\nMakes:";
-          for (const auto& o : r.outputs) tip += " " + defs_.goods[o.good.v].name;
-          if (!r.inputs.empty()) {
-            tip += "\nFrom:";
-            for (const auto& in : r.inputs) tip += " " + defs_.goods[in.good.v].name;
-          }
-        }
-        if (d.resource) {
-          static const char* kRes[] = {"", "clay", "stone", "iron ore", "silver ore", "marble", "limestone", "pozzolana", "fish"};
-          tip += std::string("\nMust be built on ") + kRes[d.resource] + " deposits";
-        }
-        if (d.needs_water_adjacent) tip += "\nMust be next to water";
-        ImGui::SetTooltip("%s", tip.c_str());
+  if (d.needs_pipe) parts.emplace_back("needs a pipe");
+  if (d.resource && d.resource < sizeof(kResourceNames) / sizeof(kResourceNames[0]) &&
+      made != kResourceNames[d.resource])
+    parts.push_back(std::string("on ") + kResourceNames[d.resource]);
+  if (d.needs_water_adjacent) parts.emplace_back("beside water");
+  std::string s;
+  for (const auto& p : parts) s += (s.empty() ? "" : " \xC2\xB7 ") + p;
+  return s;
+}
+
+void building_tooltip(const data::Defs& defs, const data::BuildingDef& d) {
+  std::string tip =
+      d.name + "\n" + std::to_string(d.w) + "x" + std::to_string(d.h) + (d.painted ? " (drag to paint an area)" : "");
+  for (const auto& c : d.cost_goods) tip += "\n" + std::to_string(c.amount) + " " + defs.goods[c.good.v].name;
+  if (d.workers) tip += "\nWorkers: " + std::to_string(d.workers);
+  if (d.recipe.valid()) {
+    const auto& r = defs.recipes[d.recipe.v];
+    tip += "\nMakes:";
+    for (const auto& o : r.outputs) tip += " " + defs.goods[o.good.v].name;
+    if (!r.inputs.empty()) {
+      tip += "\nFrom:";
+      for (const auto& in : r.inputs) tip += " " + defs.goods[in.good.v].name;
+    }
+  }
+  if (d.resource && d.resource < sizeof(kResourceNames) / sizeof(kResourceNames[0]))
+    tip += std::string("\nMust be built on ") + kResourceNames[d.resource] + " deposits";
+  if (d.needs_water_adjacent) tip += "\nMust be next to water";
+  ImGui::SetTooltip("%s", tip.c_str());
+}
+
+}  // namespace
+
+// The build menu: a rail of picture buttons down the left edge; clicking one pops out its buildings as a list of
+// rows (picture, name, hint, cost). The list closes on a click on the map, on Esc, or on its button again.
+void App::draw_build_menu() {
+  const ImVec2 ds = display();
+  const sim::World& w = *world_;
+  float rail_right = 8;
+  // Which defs are unlocked, per group.
+  std::vector<std::vector<u16>> members(kGroupCount + 1);
+  for (u16 i = 0; i < defs_.buildings.size(); ++i)
+    if (w.is_unlocked(BuildingDefId{i}))
+      members[static_cast<size_t>(group_of(defs_.buildings[i].category))].push_back(i);
+  int active = -1;  // the group of the tool in hand
+  if (tools_.kind == ToolKind::Road || tools_.kind == ToolKind::Demolish) active = 0;
+  if (tools_.kind == ToolKind::Build && tools_.def.valid()) active = group_of(defs_.buildings[tools_.def.v].category);
+  if (build_group_ > kGroupCount || (build_group_ == kOtherGroup && members[kOtherGroup].empty())) build_group_ = -1;
+  bool opened = false;  // a list popped out this frame: raise it above other windows
+
+  if (show_build_) {
+    const int buttons = kGroupCount + (members[kOtherGroup].empty() ? 0 : 1);
+    const ImGuiStyle& st = ImGui::GetStyle();
+    const float per = st.FramePadding.y * 2 + st.ItemSpacing.y;
+    const float avail = ds.y - hud_h_ - 16 - st.WindowPadding.y * 2;
+    const float icon = std::clamp(avail / static_cast<float>(buttons) - per, 24.0f, 48.0f);
+    ImGui::SetNextWindowPos(ImVec2(8, hud_h_ + 8), ImGuiCond_Always);
+    begin_window("##buildrail", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar |
+                     ImGuiWindowFlags_NoSavedSettings);
+    for (int g = 0; g < buttons; ++g) {
+      const bool other = g == kOtherGroup;
+      const bool roads = g == 0;
+      const bool any = roads || !members[static_cast<size_t>(g)].empty();
+      const float y = ImGui::GetCursorScreenPos().y;
+      if (!any) ImGui::BeginDisabled();
+      const std::string icon_name = other ? std::string("ui/icon_build") : std::string("ui/cat_") + kGroups[g].id;
+      ImGui::PushID(g);
+      if (icons_.icon_button("##grp", icon_name, icon, build_group_ == g || active == g)) {
+        build_group_ = build_group_ == g ? -1 : g;
+        build_fly_y_ = y;
+        opened = true;
       }
-      if (sel && d.service.valid() && defs_.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine") {
-        ImGui::TextDisabled("  Dedicate to:");
-        for (u8 g = 0; g < defs_.gods.size(); ++g) {
-          if (!world_->god_available[g]) continue;
+      ImGui::PopID();
+      if (!any) ImGui::EndDisabled();
+      if (build_group_ != g && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        ImGui::BeginTooltip();
+        ImGui::PushFont(ui_fonts().bold, 0.0f);
+        ImGui::TextUnformatted(other ? "Other" : kGroups[g].name);
+        ImGui::PopFont();
+        ImGui::TextDisabled("%s", !any    ? "Nothing here is unlocked yet"
+                                  : other ? "Buildings added by mods"
+                                          : kGroups[g].blurb);
+        ImGui::EndTooltip();
+      }
+    }
+    rail_right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
+    ImGui::End();
+  } else {
+    build_group_ = -1;
+  }
+
+  if (build_group_ >= 0) {
+    const int g = build_group_;
+    const float y = std::clamp(build_fly_y_ - 10, hud_h_ + 8, std::max(hud_h_ + 8, ds.y - build_fly_h_ - 8));
+    ImGui::SetNextWindowPos(ImVec2(rail_right + 6, y), ImGuiCond_Always);
+    if (opened) ImGui::SetNextWindowFocus();
+    begin_window("##buildfly", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar |
+                     ImGuiWindowFlags_NoSavedSettings);
+    heading(g == kOtherGroup ? "Other" : kGroups[g].name, 1.25f);
+    ImGui::Separator();
+
+    const UiFonts& f = ui_fonts();
+    const float fs = ImGui::GetFontSize();
+    const float rh = std::round(fs * 2.7f), thumb = rh - 4, row_w = std::round(fs * 19);
+    // One row: picture, name, hint, cost (red when the treasury is short). Returns true when clicked.
+    auto row = [&](const std::string& key, const std::string& name, const std::string& hint, i64 cost, bool sel) {
+      const ImVec2 p = ImGui::GetCursorScreenPos();
+      ImGui::PushID(key.c_str());
+      const bool clicked = ImGui::Selectable("##row", sel, 0, ImVec2(row_w, rh));
+      ImGui::PopID();
+      ImDrawList* dl = ImGui::GetWindowDrawList();
+      dl->PushClipRect(p, ImVec2(p.x + row_w, p.y + rh), true);
+      dl->AddRectFilled(ImVec2(p.x + 1, p.y + 2), ImVec2(p.x + 1 + thumb, p.y + 2 + thumb),
+                        ImGui::GetColorU32(ImGuiCol_FrameBg), 3);
+      icons_.draw_thumb(key, ImVec2(p.x + 1, p.y + 2), thumb);
+      const float tx = p.x + thumb + 10;
+      float cost_w = 0;
+      if (cost > 0) {
+        const std::string c = std::to_string(cost);
+        cost_w = f.body->CalcTextSizeA(fs, FLT_MAX, 0, c.c_str()).x + fs + 6;
+        const ImU32 col = w.econ.treasury < cost ? IM_COL32(170, 40, 24, 255) : ImGui::GetColorU32(ImGuiCol_Text);
+        icons_.draw_icon("goods/denarii_16", ImVec2(p.x + row_w - cost_w, p.y + rh * 0.28f - fs * 0.5f + 2), fs);
+        dl->AddText(f.body, fs, ImVec2(p.x + row_w - cost_w + fs + 4, p.y + rh * 0.28f - fs * 0.5f), col, c.c_str());
+      }
+      dl->AddText(f.bold, fs, ImVec2(tx, p.y + rh * 0.28f - fs * 0.5f), ImGui::GetColorU32(ImGuiCol_Text),
+                  name.c_str());
+      dl->AddText(f.body, fs * 0.86f, ImVec2(tx, p.y + rh * 0.70f - fs * 0.43f),
+                  ImGui::GetColorU32(ImGuiCol_TextDisabled), hint.c_str());
+      dl->PopClipRect();
+      return clicked;
+    };
+
+    if (g == 0) {  // tools before the buildings
+      if (row("tool:dirt", "Dirt road  (R)", "drag to lay", 0,
+              tools_.kind == ToolKind::Road && tools_.road == sim::Road::Dirt))
+        tools_.select_road(sim::Road::Dirt);
+      if (w.is_unlocked(defs_.building("plaza")) &&
+          row("tool:paved", "Paved road", "drag to lay \xC2\xB7 stone paving", 0,
+              tools_.kind == ToolKind::Road && tools_.road == sim::Road::Paved))
+        tools_.select_road(sim::Road::Paved);
+      if (row("tool:demolish", "Demolish  (X)", "click or drag to clear", 0, tools_.kind == ToolKind::Demolish))
+        tools_.select_demolish();
+    }
+    // Big groups split into raw materials and workshops (inputs or none), then into columns as tall as the screen
+    // allows.
+    const auto& mem = members[static_cast<size_t>(g)];
+    std::vector<std::pair<const char*, std::vector<u16>>> sections;
+    const float row_step = rh + ImGui::GetStyle().ItemSpacing.y;
+    const size_t kRows = static_cast<size_t>(std::max(6.0f, std::floor((ds.y - hud_h_ - fs * 6) / row_step)));
+    if (mem.size() > 12) {
+      std::vector<u16> raw, made;
+      for (u16 i : mem) {
+        const auto& d = defs_.buildings[i];
+        (d.recipe.valid() && !defs_.recipes[d.recipe.v].inputs.empty() ? made : raw).push_back(i);
+      }
+      if (!raw.empty()) sections.emplace_back("Raw materials", std::move(raw));
+      if (!made.empty()) sections.emplace_back("Workshops", std::move(made));
+    } else {
+      sections.emplace_back(nullptr, mem);
+    }
+    bool first_col = true;
+    for (const auto& [title, ids] : sections) {
+      const size_t cols = (ids.size() + kRows - 1) / kRows, per = (ids.size() + cols - 1) / std::max<size_t>(1, cols);
+      for (size_t c0 = 0; c0 < ids.size(); c0 += per) {
+        if (!first_col) ImGui::SameLine(0, 12);
+        first_col = false;
+        ImGui::BeginGroup();
+        if (sections.size() > 1) ImGui::TextDisabled("%s", c0 == 0 ? title : " ");
+        for (size_t k = c0; k < ids.size() && k < c0 + per; ++k) {
+          const u16 i = ids[k];
+          const auto& d = defs_.buildings[i];
+          const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
+          if (row(d.id, d.name, build_hint(defs_, d), d.cost_denarii, sel)) tools_.select_building(BuildingDefId{i});
+          if (ImGui::IsItemHovered()) building_tooltip(defs_, d);
+        }
+        ImGui::EndGroup();
+      }
+    }
+    // Temples: which god the new temple is dedicated to.
+    if (tools_.kind == ToolKind::Build && tools_.def.valid() && group_of(defs_.buildings[tools_.def.v].category) == g) {
+      const auto& d = defs_.buildings[tools_.def.v];
+      if (d.service.valid() && defs_.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine") {
+        ImGui::Separator();
+        ImGui::TextDisabled("Dedicate to:");
+        for (u8 gd = 0; gd < defs_.gods.size(); ++gd) {
+          if (!w.god_available[gd]) continue;
           ImGui::SameLine();
-          if (ImGui::RadioButton(defs_.gods[g].name.c_str(), tools_.god == g)) tools_.god = g;
+          if (ImGui::RadioButton(defs_.gods[gd].name.c_str(), tools_.god == gd)) tools_.god = gd;
         }
       }
     }
+    build_fly_h_ = ImGui::GetWindowHeight();
+    ImGui::End();
   }
-  ImGui::End();
+
+  // The tool in hand, its cost, and how to put it down.
+  if (tools_.kind != ToolKind::Inspect) {
+    std::string what = tools_.kind == ToolKind::Demolish ? std::string("Demolish")
+                       : tools_.kind == ToolKind::Road
+                           ? std::string(tools_.road == sim::Road::Paved ? "Paved road" : "Dirt road")
+                       : tools_.def.valid() ? defs_.buildings[tools_.def.v].name
+                                            : std::string();
+    ImGui::SetNextWindowPos(ImVec2(rail_right + 6, ds.y - 8), ImGuiCond_Always, ImVec2(0, 1));
+    begin_window("##toolchip", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoInputs);
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
+    ImGui::TextUnformatted(what.c_str());
+    ImGui::PopFont();
+    const i64 cost = tools_.cost(*world_);
+    if (cost > 0) {
+      ImGui::SameLine(0, 12);
+      icons_.image("goods/denarii_16", ImGui::GetFontSize());
+      ImGui::SameLine(0, 4);
+      ImGui::Text("%lld", static_cast<long long>(cost));
+    }
+    ImGui::SameLine(0, 16);
+    ImGui::TextDisabled("Right-click or Esc to stop");
+    ImGui::End();
+  }
 }
 
 void App::draw_stock_window() {

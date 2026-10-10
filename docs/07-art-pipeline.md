@@ -37,6 +37,12 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 both SIL OFL fonts in `assets/fonts` (the one exception to "art is code"). `game/style.cpp` loads them;
 `begin_window()` and `heading()` apply the title face.
 
+**Build menu:** the left-hand rail shows one 24x24 picture per building group (`ui/cat_<id>` from
+`tools/artgen/categories.py`). Each symbol has a distinct shape and a dominant colour, so the rail reads without text:
+basalt road, terracotta house, golden wheat sheaf, Roman loaf, iron anvil, amphora and crate, water drop, rod of
+Asclepius, temple front, lyre, SPQR standard, scutum, triumphal arch. The rows that pop out show each building's own
+sprite. `game/ui_icons.cpp` composes these thumbnails at startup: a 2x2 field with its hut for farms, a three-piece
+run for walls, aqueducts and roads, and the city's regional variant when there is one.
 
 ## Generator structure
 

@@ -33,6 +33,7 @@ struct AppOptions {
   bool no_ui = false;
   std::string weather;         // screenshots: show this weather (presentation only, the sim is untouched)
   int overlay = 0;
+  int build_group = -1;   // screenshots: open this build-menu group's list (0 = roads)
   bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
 };
 
@@ -128,6 +129,9 @@ class App {
   EditorState ed_;
 
   int speed_ = 1;  // 0 pause, 1, 2, 3 = 1x 2x 4x
+  // Build menu: the open group on the icon rail (-1 = none), where its list pops out, and the HUD's height.
+  int build_group_ = -1;
+  float build_fly_y_ = 0, build_fly_h_ = 0, hud_h_ = 64;
   f64 accum_ = 0;
   f32 alpha_ = 0;
   Lighting lighting_;

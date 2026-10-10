@@ -15,6 +15,7 @@
 | Scripting | Lua 5.4 for missions, events and mods | Modding = yes |
 | Audio / localization | Not built; architecture leaves hooks | "Not right now" |
 | Art style v2 (2026-10-10) | Palette grown 48 → 56 (hue-shifted ramps, sage grass, outline partners); selective outlines; renderer cast shadows, ground shading and colour grade | Owner asked for a less retro, more cohesive look and approved the recommended changes |
+| Build menu (2026-10-10) | A rail of 13 picture buttons down the left edge; each pops out its buildings as rows (picture, name, one-line hint, cost). Small categories share a button (Storage & trade, Health & safety, Culture, Government & decor) | Owner found the text-only list slow to scan and picked the Caesar III-style rail from five mocked-up options |
 | Minimum spec | Apple Silicon M1, 8 GB; comparable Windows/Linux PCs | "Whatever my Mac runs well" |
 | License | **Decided:** PolyForm Noncommercial 1.0.0 (code), CC BY-NC-SA 4.0 (assets, data, docs) | Free to use and contribute; no commercial resale |
 | Housing gating | Tiers unlock progressively (see catalog "Reachable from") | Fixed contradictions where tiers required buildings that unlock later |
