@@ -569,42 +569,74 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
                       net >= 0 ? kColGood : kColBad))
       *open = false;
   }
+  // The ledger: income and spending for yesterday, this year and last year.
   const auto& L = w.econ.money;
-  ImGui::Text("Treasury: %lld denarii", static_cast<long long>(w.econ.treasury));
-  if (ImGui::BeginTable("fin", 4)) {
-    ImGui::TableSetupColumn("");
-    ImGui::TableSetupColumn("Yesterday");
-    ImGui::TableSetupColumn("This year");
-    ImGui::TableSetupColumn("Last year");
-    ImGui::TableHeadersRow();
+  const float fs = ImGui::GetFontSize();
+  auto right_cell = [](const std::string& t, ImU32 col, bool bold) {
+    ImGui::PushFont(bold ? ui_fonts().bold : ui_fonts().body, 0.0f);
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(t.c_str()).x);
+    if (col) ImGui::PushStyleColor(ImGuiCol_Text, col);
+    ImGui::TextUnformatted(t.c_str());
+    if (col) ImGui::PopStyleColor();
+    ImGui::PopFont();
+  };
+  if (ImGui::BeginTable("##ledger", 4)) {
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
+    for (const char* h : {"Yesterday", "This year", "Last year"})
+      ImGui::TableSetupColumn(h, ImGuiTableColumnFlags_WidthFixed, std::round(fs * 5.2f));
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    for (const char* h : {"Yesterday", "This year", "Last year"}) {
+      ImGui::TableNextColumn();
+      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+      right_cell(h, 0, false);
+      ImGui::PopStyleColor();
+    }
     i64 net[3] = {};
-    for (int k = 0; k < econ::kMoneyCount; ++k) {
-      const auto m = static_cast<econ::Money>(k);
-      const i64 s = econ::money_is_income(m) ? 1 : -1;
-      net[0] += s * L.yesterday[k];
-      net[1] += s * L.year[k];
-      net[2] += s * L.last_year[k];
-      if (!L.yesterday[k] && !L.year[k] && !L.last_year[k]) continue;
+    for (int income = 1; income >= 0; --income) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::TextColored(col4(s > 0 ? kColGood : kColBad), "%s", econ::money_name(m));
-      ImGui::TableNextColumn();
-      ImGui::Text("%lld", static_cast<long long>(L.yesterday[k]));
-      ImGui::TableNextColumn();
-      ImGui::Text("%lld", static_cast<long long>(L.year[k]));
-      ImGui::TableNextColumn();
-      ImGui::Text("%lld", static_cast<long long>(L.last_year[k]));
+      ImGui::PushFont(ui_fonts().heading, std::round(fs * 0.82f));
+      ImGui::TextDisabled("%s", income ? "Income" : "Spending");
+      ImGui::PopFont();
+      for (int k = 0; k < econ::kMoneyCount; ++k) {
+        const auto m = static_cast<econ::Money>(k);
+        if (econ::money_is_income(m) != (income == 1)) continue;
+        const i64 sgn = income ? 1 : -1;
+        net[0] += sgn * L.yesterday[k];
+        net[1] += sgn * L.year[k];
+        net[2] += sgn * L.last_year[k];
+        if (!L.yesterday[k] && !L.year[k] && !L.last_year[k]) continue;
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(econ::money_name(m));
+        for (i64 v : {L.yesterday[k], L.year[k], L.last_year[k]}) {
+          ImGui::TableNextColumn();
+          right_cell(with_commas(v), 0, false);
+        }
+      }
     }
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
+    {
+      // A rule above the net line.
+      const ImVec2 p = ImGui::GetCursorScreenPos();
+      const float x1 = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x;
+      ImGui::GetWindowDrawList()->AddLine(ImVec2(p.x, p.y + 1), ImVec2(x1, p.y + 1),
+                                          ImGui::GetColorU32(ImGuiCol_Border), 1.5f);
+      ImGui::Dummy(ImVec2(0, 3));
+    }
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
     ImGui::TextUnformatted("Net");
+    ImGui::PopFont();
     for (i64 v : net) {
       ImGui::TableNextColumn();
-      ImGui::Text("%+lld", static_cast<long long>(v));
+      ImGui::Dummy(ImVec2(0, 3));
+      right_cell(signed_commas(v), v >= 0 ? kColGood : kColBad, true);
     }
     ImGui::EndTable();
   }
-  ImGui::Separator();
+
   auto cmd_policy = [&](sim::PolicyId id, int v) {
     sim::Command c;
     c.type = sim::CmdType::SetPolicy;
@@ -612,29 +644,58 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
     c.value = v;
     w.push(c);
   };
-  int wage = w.policy.wage;
-  if (ImGui::SliderInt("Wage (per worker/day)", &wage, 1, 20)) cmd_policy(sim::PolicyId::Wage, wage);
-  int tax = w.policy.tax_rate[2];
-  if (ImGui::SliderInt("Tax on plebeians (%)", &tax, 0, 30)) cmd_policy(sim::PolicyId::TaxPleb, tax);
-  int tax_e = w.policy.tax_rate[1];
-  if (ImGui::SliderInt("Tax on equites (%)", &tax_e, 0, 30)) cmd_policy(sim::PolicyId::TaxEques, tax_e);
-  int tax_p = w.policy.tax_rate[0];
-  if (ImGui::SliderInt("Tax on patricians (%)", &tax_p, 0, 30)) cmd_policy(sim::PolicyId::TaxPatrician, tax_p);
+  auto tip = [](const char* t) {
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", t);
+  };
+  section("Wages and taxes");
+  struct Rate {
+    const char* label;
+    int v, lo, hi;
+    const char* unit;
+    sim::PolicyId id;
+    const char* tip;
+  } rates[] = {{"Wage per worker a day", w.policy.wage, 1, 20, "", sim::PolicyId::Wage,
+                "Better pay draws workers and cheers them; the city pays it every day"},
+               {"Tax on plebeians", w.policy.tax_rate[2], 0, 30, "%", sim::PolicyId::TaxPleb,
+                "Higher taxes earn more but make people unhappy"},
+               {"Tax on equites", w.policy.tax_rate[1], 0, 30, "%", sim::PolicyId::TaxEques,
+                "Higher taxes earn more but make people unhappy"},
+               {"Tax on patricians", w.policy.tax_rate[0], 0, 30, "%", sim::PolicyId::TaxPatrician,
+                "Higher taxes earn more but make people unhappy"}};
+  for (Rate& r : rates) {
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(r.label);
+    tip(r.tip);
+    if (stepper(r.label, &r.v, r.lo, r.hi, r.unit)) cmd_policy(r.id, r.v);
+  }
+
+  section("Slaves and the poor");
   const char* treat[] = {"Harsh", "Fair", "Kind"};
-  int st = w.policy.slave_treatment;
-  if (ImGui::Combo("Slave treatment", &st, treat, 3)) cmd_policy(sim::PolicyId::SlaveTreatment, st);
-  const char* manu[] = {"Forbidden", "Occasional", "Encouraged"};
-  int mn = w.policy.manumission;
-  if (ImGui::Combo("Manumission", &mn, manu, 3)) cmd_policy(sim::PolicyId::Manumission, mn);
-  if (ImGui::Button("Buy 5 public slaves (600)")) {
+  const char* manu[] = {"Never", "Sometimes", "Often"};
+  const char* dole[] = {"None", "The poor", "Everyone"};
+  const float each = std::round(fs * 5.4f);
+  int st = w.policy.slave_treatment, mn = w.policy.manumission, ra = w.policy.rations;
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted("Treatment");
+  tip("How public and private slaves are treated: harsh treatment risks revolt");
+  if (choice("##treat", &st, treat, 3, each)) cmd_policy(sim::PolicyId::SlaveTreatment, st);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted("Manumission");
+  tip("How often masters free their slaves, who become freedmen");
+  if (choice("##manu", &mn, manu, 3, each)) cmd_policy(sim::PolicyId::Manumission, mn);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted("Grain dole");
+  tip("The annona: free grain from the granaries for the poor, or for everyone");
+  if (choice("##dole", &ra, dole, 3, each)) cmd_policy(sim::PolicyId::Rations, ra);
+  ImGui::Spacing();
+  if (coin_button(icons, "Buy 5 public slaves", 600, w.econ.treasury >= 600)) {
     sim::Command c;
     c.type = sim::CmdType::BuySlaves;
     c.value = 5;
     w.push(c);
   }
-  const char* dole[] = {"No grain dole", "Grain dole for the poor", "Grain dole for all"};
-  int r = w.policy.rations;
-  if (ImGui::Combo("Annona", &r, dole, 3)) cmd_policy(sim::PolicyId::Rations, r);
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+    ImGui::SetTooltip("120 denarii each; they need room in slave quarters");
   end_panel();
 }
 
@@ -847,65 +908,151 @@ void draw_rome_panel(sim::World& w, const UiIcons& icons, const Dock& dock, bool
           icons, "ui/icon_rome", false, "Rome",
           std::string(w.empire ? "The Emperor" : "The Senate") + "  \xC2\xB7  favor " + std::to_string(w.favor)))
     *open = false;
-  auto bar = [](const char* name, int v, int goal) {
-    ImGui::ProgressBar(static_cast<float>(v) / 100.0f, ImVec2(180, 0), std::to_string(v).c_str());
+  const float fs = ImGui::GetFontSize();
+  // One goal: a tick, its picture, its name, a bar towards it and where the city stands.
+  auto goal_row = [&](bool ok, auto&& picture, const std::string& name, float frac, float tick,
+                      const std::string& value) {
+    ImGui::BeginGroup();
+    check_mark(ok);
     ImGui::SameLine();
-    if (goal > 0) ImGui::Text("%s (goal %d)", name, goal);
-    else ImGui::TextUnformatted(name);
+    picture();
+    ImGui::SameLine();
+    ImGui::TextUnformatted(name.c_str());
+    if (frac >= 0) {
+      ImGui::SameLine(0, 0);
+      const float bx = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - fs * 13;
+      ImGui::SetCursorScreenPos(ImVec2(bx, ImGui::GetCursorScreenPos().y));
+      bar(fs * 8, frac, ok ? kColGood : kColWarn, tick);
+    }
+    text_right(value, ok ? kColGood : 0);
+    ImGui::EndGroup();
   };
-  bar("Culture", w.ratings.culture, w.goals.culture);
-  bar("Prosperity", w.ratings.prosperity, w.goals.prosperity);
-  bar("Security", w.ratings.security, w.goals.security);
-  bar("Favor", w.favor, w.goals.favor);
-  ImGui::Separator();
-  ImGui::TextUnformatted("Requests");
+  auto icon = [&](const char* name) { return [&icons, name]() { inline_icon(icons, name); }; };
+  struct Rating {
+    const char* name;
+    const char* icon;
+    int v, goal;
+  } ratings[] = {{"Culture", "ui/icon_culture", w.ratings.culture, w.goals.culture},
+                 {"Prosperity", "ui/icon_prosperity", w.ratings.prosperity, w.goals.prosperity},
+                 {"Security", "ui/icon_security", w.ratings.security, w.goals.security},
+                 {"Favor", "ui/icon_favor", w.favor, w.goals.favor}};
+  int goals = 0, met = 0;
+  auto count = [&](bool want, bool ok) {
+    goals += want ? 1 : 0;
+    met += want && ok ? 1 : 0;
+  };
+  const u32 pop = w.population();
+  count(w.goals.population > 0, pop >= w.goals.population);
+  for (const Rating& r : ratings) count(r.goal > 0, r.v >= r.goal);
+  count(w.goals.requests > 0, w.requests_fulfilled >= w.goals.requests);
+  count(w.goals.survive_days > 0, w.mission_days >= w.goals.survive_days);
+  for (const auto& g : w.goals.buildings) count(true, w.count_active(g.def) >= g.count);
+
+  if (goals) {
+    section(("Mission goals  \xC2\xB7  " + std::to_string(met) + " of " + std::to_string(goals) + " met").c_str());
+    if (w.goals.population)
+      goal_row(pop >= w.goals.population, icon("ui/icon_population"), "Population", frac(pop, w.goals.population), -1,
+               with_commas(pop) + " / " + with_commas(w.goals.population));
+    for (const Rating& r : ratings)
+      if (r.goal)
+        goal_row(r.v >= r.goal, icon(r.icon), r.name, static_cast<float>(r.v) / 100.0f,
+                 static_cast<float>(r.goal) / 100.0f, std::to_string(r.v) + " / " + std::to_string(r.goal));
+    if (w.goals.requests)
+      goal_row(w.requests_fulfilled >= w.goals.requests, icon("ui/icon_rome"), "Requests sent",
+               frac(w.requests_fulfilled, w.goals.requests), -1,
+               std::to_string(w.requests_fulfilled) + " / " + std::to_string(w.goals.requests));
+    if (w.goals.survive_days)
+      goal_row(w.mission_days >= w.goals.survive_days, icon("ui/icon_play"), "Days endured",
+               frac(w.mission_days, w.goals.survive_days), -1,
+               std::to_string(w.mission_days) + " / " + std::to_string(w.goals.survive_days));
+    for (const auto& g : w.goals.buildings) {
+      const u32 have = w.count_active(g.def);
+      const std::string id = D.b(g.def).id;
+      goal_row(
+          have >= g.count, [&icons, id]() { inline_thumb(icons, id); },
+          std::to_string(g.count) + " \xC3\x97 " + D.b(g.def).name, -1, -1,
+          have >= g.count ? std::string("built") : std::to_string(have) + " / " + std::to_string(g.count));
+    }
+  }
+  // Ratings the mission does not ask for.
+  bool others = false;
+  for (const Rating& r : ratings) others |= r.goal == 0;
+  if (others) {
+    section("Standing");
+    for (const Rating& r : ratings) {
+      if (r.goal) continue;
+      ImGui::BeginGroup();
+      inline_icon(icons, r.icon);
+      ImGui::SameLine();
+      ImGui::TextUnformatted(r.name);
+      ImGui::SameLine(0, 0);
+      const float bx = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - fs * 13;
+      ImGui::SetCursorScreenPos(ImVec2(bx, ImGui::GetCursorScreenPos().y));
+      bar(fs * 8, static_cast<float>(r.v) / 100.0f, kColPlain);
+      text_right(std::to_string(r.v));
+      ImGui::EndGroup();
+    }
+  }
+
+  section("Requests from Rome");
   bool any = false;
   for (const auto& r : w.requests) {
     if (!r.active) continue;
     any = true;
     const u64 days = r.deadline > w.now ? (r.deadline - w.now) / kTicksPerDay : 0;
-    std::string what = r.kind == 0 ? std::to_string(r.amount) + " " + D.goods[r.good.v].name
-                                   : r.kind == 1 ? std::to_string(r.amount) + " denarii"
-                                                 : "a unit of " + std::to_string(r.amount) + " soldiers";
-    ImGui::Text("Send %s within %llu days", what.c_str(), static_cast<unsigned long long>(days));
-    if (r.kind == 0) {
-      ImGui::SameLine();
-      ImGui::TextDisabled("(%u in storage)", w.stored_amount(r.good));
-    }
+    ImGui::PushID(r.id);
+    ImGui::BeginGroup();
+    if (r.kind == 0)
+      good_icon(icons, D.goods[r.good.v].id, std::round(fs * 1.6f));
+    else
+      inline_icon(icons, r.kind == 1 ? "goods/denarii_16" : "ui/icon_military", std::round(fs * 1.6f));
     ImGui::SameLine();
-    if (ImGui::SmallButton(("Send##r" + std::to_string(r.id)).c_str())) {
+    ImGui::BeginGroup();
+    const std::string what = r.kind == 0   ? with_commas(r.amount) + " " + D.goods[r.good.v].name
+                             : r.kind == 1 ? with_commas(r.amount) + " denarii"
+                                           : "A unit of " + std::to_string(r.amount) + " soldiers";
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
+    ImGui::TextUnformatted(what.c_str());
+    ImGui::PopFont();
+    std::string when = "within " + std::to_string(days) + (days == 1 ? " day" : " days");
+    if (r.kind == 0) when += "  \xC2\xB7  " + with_commas(w.stored_amount(r.good)) + " in storage";
+    if (r.reward > 0) when += "  \xC2\xB7  pays " + with_commas(r.reward);
+    ImGui::PushStyleColor(ImGuiCol_Text, days <= 2 ? col4(kColBad) : ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+    ImGui::TextUnformatted(when.c_str());
+    ImGui::PopStyleColor();
+    ImGui::EndGroup();
+    ImGui::EndGroup();
+    ImGui::SameLine(0, 0);
+    const float bw = std::round(fs * 4.2f);
+    ImGui::SetCursorScreenPos(
+        ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - bw,
+               ImGui::GetCursorScreenPos().y + fs * 0.3f));
+    if (ImGui::Button("Send", ImVec2(bw, 0))) {
       sim::Command c;
       c.type = sim::CmdType::FulfillRequest;
       c.def = r.id;
       w.push(c);
     }
+    ImGui::PopID();
   }
-  if (!any) ImGui::TextDisabled("No outstanding requests.");
-  ImGui::Text("Fulfilled %u, failed %u", w.requests_fulfilled, w.requests_failed);
-  ImGui::Separator();
+  if (!any) ImGui::TextUnformatted("Nothing is asked of us now.");
+  ImGui::TextDisabled("%u sent  \xC2\xB7  %u missed", w.requests_fulfilled, w.requests_failed);
+
+  section("Loan");
   if (w.loan.remaining > 0) {
-    ImGui::Text("Loan outstanding: %lld denarii", static_cast<long long>(w.loan.remaining));
-  } else if (ImGui::Button("Ask Rome for a loan of 2000 denarii (20% interest)")) {
-    sim::Command c;
-    c.type = sim::CmdType::TakeLoan;
-    c.value = 2000;
-    w.push(c);
+    value_row("Still owed", with_commas(w.loan.remaining) + " denarii");
+    ImGui::TextDisabled("Repaid at %s a day", with_commas(w.loan.installment).c_str());
+  } else {
+    if (coin_button(icons, "Borrow", 2000, true)) {
+      sim::Command c;
+      c.type = sim::CmdType::TakeLoan;
+      c.value = 2000;
+      w.push(c);
+    }
+    ImGui::SameLine();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("repaid with 20%% interest; costs some favor");
   }
-  ImGui::Separator();
-  ImGui::TextUnformatted("Mission goals");
-  auto goal = [](bool ok, const std::string& t) {
-    ImGui::TextColored(ok ? col4(kColGood) : ImGui::GetStyleColorVec4(ImGuiCol_Text), "%s %s", ok ? "[x]" : "[ ]",
-                       t.c_str());
-  };
-  if (w.goals.population) goal(w.population() >= w.goals.population, "Population " + std::to_string(w.population()) + " / " + std::to_string(w.goals.population));
-  if (w.goals.culture) goal(w.ratings.culture >= w.goals.culture, "Culture " + std::to_string(w.goals.culture));
-  if (w.goals.prosperity) goal(w.ratings.prosperity >= w.goals.prosperity, "Prosperity " + std::to_string(w.goals.prosperity));
-  if (w.goals.security) goal(w.ratings.security >= w.goals.security, "Security " + std::to_string(w.goals.security));
-  if (w.goals.favor) goal(w.favor >= w.goals.favor, "Favor " + std::to_string(w.goals.favor));
-  if (w.goals.requests) goal(w.requests_fulfilled >= w.goals.requests, "Requests fulfilled " + std::to_string(w.goals.requests));
-  if (w.goals.survive_days) goal(w.mission_days >= w.goals.survive_days, "Endure " + std::to_string(w.goals.survive_days) + " days");
-  for (const auto& g : w.goals.buildings)
-    goal(w.count_active(g.def) >= g.count, std::to_string(g.count) + " x " + D.b(g.def).name);
   end_panel();
 }
 

@@ -54,6 +54,9 @@ bool choice(const char* id, int* v, const char* const* options, int n, float eac
 bool coin_button(const UiIcons& icons, const char* label, i64 cost, bool afford);
 // A tick in a green circle (done) or an empty circle.
 void check_mark(bool ok);
+// An icon (any cached sprite) or a building thumbnail on the current line, centred on the text line.
+void inline_icon(const UiIcons& icons, const std::string& sprite, float size = 0);
+void inline_thumb(const UiIcons& icons, const std::string& def_id, float size = 0);
 // A goods icon on the current line, and a framed icon + name chip.
 void good_icon(const UiIcons& icons, const std::string& good_id, float size = 0);
 void good_chip(const UiIcons& icons, const std::string& good_id, const std::string& name);

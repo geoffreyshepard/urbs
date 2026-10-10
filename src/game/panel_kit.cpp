@@ -280,12 +280,22 @@ void check_mark(bool ok) {
   ImGui::Dummy(ImVec2(s, ImGui::GetTextLineHeight()));
 }
 
-void good_icon(const UiIcons& icons, const std::string& good_id, float size) {
+void inline_icon(const UiIcons& icons, const std::string& sprite, float size) {
   const float s = size > 0 ? size : std::round(ImGui::GetFontSize() * 1.2f);
   const ImVec2 p = ImGui::GetCursorScreenPos();
-  icons.draw_icon("goods/" + good_id + "_16", ImVec2(p.x, std::round(p.y + (ImGui::GetTextLineHeight() - s) * 0.5f)),
-                  s);
+  icons.draw_icon(sprite, ImVec2(p.x, std::round(p.y + (ImGui::GetTextLineHeight() - s) * 0.5f)), s);
   ImGui::Dummy(ImVec2(s, std::max(s, ImGui::GetTextLineHeight())));
+}
+
+void inline_thumb(const UiIcons& icons, const std::string& def_id, float size) {
+  const float s = size > 0 ? size : std::round(ImGui::GetFontSize() * 1.8f);
+  const ImVec2 p = ImGui::GetCursorScreenPos();
+  icons.draw_thumb(def_id, ImVec2(p.x, std::round(p.y + (ImGui::GetTextLineHeight() - s) * 0.5f)), s);
+  ImGui::Dummy(ImVec2(s, std::max(s, ImGui::GetTextLineHeight())));
+}
+
+void good_icon(const UiIcons& icons, const std::string& good_id, float size) {
+  inline_icon(icons, "goods/" + good_id + "_16", size);
 }
 
 void good_chip(const UiIcons& icons, const std::string& good_id, const std::string& name) {
