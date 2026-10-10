@@ -145,7 +145,10 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
           continue;
         }
         if (ds->line_type) {
-          const f32 z = render::depth_for_foot(y + T - 1, map_h);
+          // Flat line pieces (pipes, sewers, bridge decks) lie on the ground; tall ones (walls,
+          // aqueducts) are y-sorted and cast shadows.
+          const bool flat = ds->line_c.h <= sim::kTilePx;
+          const f32 z = flat ? render::kDepthRoad - 0.0004f : render::depth_for_foot(y + T - 1, map_h);
           r.push_sprite(ds->line_c, x, y + T - 1, z, tint);
           for (int s = 0; s < 4; ++s) {
             i32 nx = tx + kDir4X[s], ny = ty + kDir4Y[s];

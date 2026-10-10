@@ -33,6 +33,11 @@ int terrain_priority(sim::Terrain t);
 inline f32 depth_for_foot(f32 foot_y, f32 map_px_h) { return 0.9f - 0.8f * (foot_y / (map_px_h + 64.0f)); }
 inline constexpr f32 kDepthTerrain = 0.999f;
 inline constexpr f32 kDepthRoad = 0.998f;
+// Cast shadows sit between the ground layers and the farthest y-sorted sprite (depth_for_foot <= 0.9).
+// Instances at or beyond kDepthShadow are ground (never cast); at or below kDepthOverlayMax they are
+// screen overlays such as smoke, rain and selection marks (never cast either).
+inline constexpr f32 kDepthShadow = 0.95f;
+inline constexpr f32 kDepthOverlayMax = 0.08f;
 
 // Appends all static instances (terrain, blends, cliffs, roads, decorations) of one chunk.
 void build_chunk(const sim::TileMap& map, const TerrainSprites& ts, int cx, int cy, std::vector<SpriteInstance>& out);

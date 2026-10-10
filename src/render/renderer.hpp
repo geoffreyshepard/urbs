@@ -55,7 +55,19 @@ class Renderer {
   }
 
   f32 time = 0;
-  f32 light[4] = {1, 1, 1, 1};  // global light tint for the world (day/night, season, weather)
+  // Colour grade applied to the world layer after it is drawn (layout matches shaders/post.frag).
+  struct Grade {
+    f32 shadow_tint[4] = {1, 1, 1, 1};  // rgb; a = exposure
+    f32 light_tint[4] = {1, 1, 1, 1};   // rgb; a = saturation
+    f32 lift[4] = {0, 0, 0, 0};         // rgb; a = vignette
+    f32 params[4] = {1, 0, 0, 0};       // contrast, time, night, unused
+  } grade;
+  // Cast shadows (see shaders/shadow.vert). shear: x/y offset per px of height, then constant x/y.
+  struct Shadows {
+    bool enabled = true;
+    f32 shear[4] = {0.22f, 0.08f, 2.0f, 1.0f};
+    f32 color[4] = {0.62f, 0.64f, 0.78f, 1.0f};  // multiplies the ground under a shadow
+  } shadows;
 
  private:
   struct Chunk {
@@ -68,16 +80,21 @@ class Renderer {
   void upload_far_texture(SDL_GPUCopyPass* pass);
   void draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, SDL_GPUBuffer* buf, u32 count,
                       SDL_GPUTexture* tex, u32 tex_w, u32 tex_h);
+  void draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool count_stats);
   void save_screenshot(SDL_GPUCommandBuffer* cmd);
 
   platform::Window* win_ = nullptr;
   SDL_GPUDevice* dev_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_opaque_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_translucent_ = nullptr;
+  SDL_GPUGraphicsPipeline* pipe_shadow_ = nullptr;
+  SDL_GPUGraphicsPipeline* pipe_post_ = nullptr;
   SDL_GPUSampler* sampler_ = nullptr;
   SDL_GPUTexture* scene_ = nullptr;
   SDL_GPUTexture* depth_ = nullptr;
+  SDL_GPUTexture* final_ = nullptr;  // graded world (+ UI for screenshots); blitted to the swapchain
   SDL_GPUTextureFormat depth_format_ = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+  bool has_stencil_ = false;  // stencil keeps overlapping shadows from darkening twice
   u32 target_w_ = 0, target_h_ = 0;
 
   Atlas atlas_;

@@ -9,6 +9,10 @@
 
 #include "core/log.hpp"
 #include "core/profile.hpp"
+#include "shaders/post_frag.h"
+#include "shaders/post_vert.h"
+#include "shaders/shadow_frag.h"
+#include "shaders/shadow_vert.h"
 #include "shaders/sprite_frag.h"
 #include "shaders/sprite_vert.h"
 
@@ -18,15 +22,33 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   win_ = &win;
   dev_ = win.gpu;
 
-  if (!SDL_GPUTextureSupportsFormat(dev_, depth_format_, SDL_GPU_TEXTURETYPE_2D,
-                                    SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET))
+  // Prefer a depth format with stencil (shadows use it); fall back to plain depth.
+  auto supports = [&](SDL_GPUTextureFormat f) {
+    return SDL_GPUTextureSupportsFormat(dev_, f, SDL_GPU_TEXTURETYPE_2D, SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET);
+  };
+  if (supports(SDL_GPU_TEXTUREFORMAT_D32_FLOAT_S8_UINT)) {
+    depth_format_ = SDL_GPU_TEXTUREFORMAT_D32_FLOAT_S8_UINT;
+    has_stencil_ = true;
+  } else if (supports(SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT)) {
+    depth_format_ = SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT;
+    has_stencil_ = true;
+  } else if (!supports(depth_format_)) {
     depth_format_ = SDL_GPU_TEXTUREFORMAT_D16_UNORM;
+  }
 
   SDL_GPUShader* vs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, sprite_vert_spv, sprite_vert_spv_size,
                                   sprite_vert_msl, sprite_vert_msl_size, 0, 1);
   SDL_GPUShader* fs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, sprite_frag_spv, sprite_frag_spv_size,
-                                  sprite_frag_msl, sprite_frag_msl_size, 1, 1);
-  if (!vs || !fs) return false;
+                                  sprite_frag_msl, sprite_frag_msl_size, 1, 0);
+  SDL_GPUShader* svs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, shadow_vert_spv, shadow_vert_spv_size,
+                                   shadow_vert_msl, shadow_vert_msl_size, 0, 2);
+  SDL_GPUShader* sfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, shadow_frag_spv, shadow_frag_spv_size,
+                                   shadow_frag_msl, shadow_frag_msl_size, 1, 1);
+  SDL_GPUShader* pvs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, post_vert_spv, post_vert_spv_size, post_vert_msl,
+                                   post_vert_msl_size, 0, 0);
+  SDL_GPUShader* pfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, post_frag_spv, post_frag_spv_size,
+                                   post_frag_msl, post_frag_msl_size, 1, 1);
+  if (!vs || !fs || !svs || !sfs || !pvs || !pfs) return false;
 
   SDL_GPUVertexBufferDescription vbd{};
   vbd.slot = 0;
@@ -67,9 +89,47 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   pipe_opaque_ = SDL_CreateGPUGraphicsPipeline(dev_, &pi);
   pi.depth_stencil_state.enable_depth_write = false;
   pipe_translucent_ = SDL_CreateGPUGraphicsPipeline(dev_, &pi);
-  SDL_ReleaseGPUShader(dev_, vs);
-  SDL_ReleaseGPUShader(dev_, fs);
-  if (!pipe_opaque_ || !pipe_translucent_) {
+
+  // Shadows: multiply the ground (dst * src), depth-tested against what is already drawn so a
+  // shadow never lands on a sprite in front of it; the stencil lets each pixel darken only once.
+  SDL_GPUGraphicsPipelineCreateInfo spi = pi;
+  SDL_GPUColorTargetDescription sctd = ctd;
+  sctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_DST_COLOR;
+  sctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+  sctd.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+  sctd.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+  spi.target_info.color_target_descriptions = &sctd;
+  spi.vertex_shader = svs;
+  spi.fragment_shader = sfs;
+  spi.depth_stencil_state.enable_depth_write = false;
+  if (has_stencil_) {
+    SDL_GPUStencilOpState so{};
+    so.compare_op = SDL_GPU_COMPAREOP_EQUAL;  // reference 0: not yet shadowed
+    so.pass_op = SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP;
+    so.fail_op = SDL_GPU_STENCILOP_KEEP;
+    so.depth_fail_op = SDL_GPU_STENCILOP_KEEP;
+    spi.depth_stencil_state.enable_stencil_test = true;
+    spi.depth_stencil_state.front_stencil_state = so;
+    spi.depth_stencil_state.back_stencil_state = so;
+    spi.depth_stencil_state.compare_mask = 0xFF;
+    spi.depth_stencil_state.write_mask = 0xFF;
+  }
+  pipe_shadow_ = SDL_CreateGPUGraphicsPipeline(dev_, &spi);
+
+  // Post: fullscreen triangle, scene texture -> graded final texture.
+  SDL_GPUGraphicsPipelineCreateInfo ppi{};
+  SDL_GPUColorTargetDescription pctd{};
+  pctd.format = win.swapchain_format;
+  ppi.vertex_shader = pvs;
+  ppi.fragment_shader = pfs;
+  ppi.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
+  ppi.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+  ppi.target_info.color_target_descriptions = &pctd;
+  ppi.target_info.num_color_targets = 1;
+  pipe_post_ = SDL_CreateGPUGraphicsPipeline(dev_, &ppi);
+
+  for (SDL_GPUShader* sh : {vs, fs, svs, sfs, pvs, pfs}) SDL_ReleaseGPUShader(dev_, sh);
+  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_shadow_ || !pipe_post_) {
     URBS_LOG_ERROR("pipeline creation failed: {}", SDL_GetError());
     return false;
   }
@@ -104,12 +164,12 @@ void Renderer::shutdown() {
   dyn_buf_.release(dev_);
   trans_buf_.release(dev_);
   quad_buf_.release(dev_);
-  for (auto* t : {scene_, depth_, far_tex_, overlay_tex_})
+  for (auto* t : {scene_, depth_, final_, far_tex_, overlay_tex_})
     if (t) SDL_ReleaseGPUTexture(dev_, t);
   atlas_.release(dev_);
   if (sampler_) SDL_ReleaseGPUSampler(dev_, sampler_);
-  if (pipe_opaque_) SDL_ReleaseGPUGraphicsPipeline(dev_, pipe_opaque_);
-  if (pipe_translucent_) SDL_ReleaseGPUGraphicsPipeline(dev_, pipe_translucent_);
+  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_shadow_, pipe_post_})
+    if (p) SDL_ReleaseGPUGraphicsPipeline(dev_, p);
   dev_ = nullptr;
 }
 
@@ -151,8 +211,8 @@ void Renderer::push_rect(f32 x, f32 y, f32 w, f32 h, f32 z, u32 color, bool tran
 
 void Renderer::ensure_targets(u32 w, u32 h) {
   if (scene_ && w == target_w_ && h == target_h_) return;
-  if (scene_) SDL_ReleaseGPUTexture(dev_, scene_);
-  if (depth_) SDL_ReleaseGPUTexture(dev_, depth_);
+  for (auto* t : {scene_, depth_, final_})
+    if (t) SDL_ReleaseGPUTexture(dev_, t);
   SDL_GPUTextureCreateInfo ti{};
   ti.type = SDL_GPU_TEXTURETYPE_2D;
   ti.format = win_->swapchain_format;
@@ -162,6 +222,7 @@ void Renderer::ensure_targets(u32 w, u32 h) {
   ti.layer_count_or_depth = 1;
   ti.num_levels = 1;
   scene_ = SDL_CreateGPUTexture(dev_, &ti);
+  final_ = SDL_CreateGPUTexture(dev_, &ti);
   ti.format = depth_format_;
   ti.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
   depth_ = SDL_CreateGPUTexture(dev_, &ti);
@@ -276,6 +337,24 @@ void Renderer::draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, 
   SDL_DrawGPUPrimitives(rp, 6, count, 0, 0);
 }
 
+void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool count_stats) {
+  const Recti vis = cam_.visible_world(64);
+  const i32 cpx = sim::kChunkTiles * sim::kTilePx;
+  int cx0 = std::max(0, vis.x / cpx), cy0 = std::max(0, vis.y / cpx);
+  int cx1 = std::min(map_->chunks_x() - 1, (vis.x + vis.w) / cpx);
+  int cy1 = std::min(map_->chunks_y() - 1, (vis.y + vis.h) / cpx);
+  for (int cy = cy0; cy <= cy1; ++cy)
+    for (int cx = cx0; cx <= cx1; ++cx) {
+      const Chunk& c = chunks_[static_cast<size_t>(cy * map_->chunks_x() + cx)];
+      if (!c.buf || c.count == 0) continue;
+      draw_instances(rp, cmd, c.buf, c.count, atlas_.texture(), atlas_.width(), atlas_.height());
+      if (count_stats) {
+        ++stats_.chunks_drawn;
+        stats_.chunk_instances += c.count;
+      }
+    }
+}
+
 void Renderer::render(ImDrawData* draw_data) {
   URBS_ZONE("render");
   stats_ = {};
@@ -321,36 +400,33 @@ void Renderer::render(ImDrawData* draw_data) {
   dt.clear_depth = 1.0f;
   dt.load_op = SDL_GPU_LOADOP_CLEAR;
   dt.store_op = SDL_GPU_STOREOP_DONT_CARE;
-  dt.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
+  dt.stencil_load_op = has_stencil_ ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_DONT_CARE;
   dt.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
+  dt.clear_stencil = 0;
   SDL_GPURenderPass* rp = SDL_BeginGPURenderPass(cmd, &ct, 1, &dt);
   SDL_BindGPUGraphicsPipeline(rp, pipe_opaque_);
-  SDL_PushGPUFragmentUniformData(cmd, 0, light, sizeof(light));
   if (map_) {
     if (cam_.far()) {
       draw_instances(rp, cmd, quad_buf_.buf, 1, far_tex_, static_cast<u32>(map_->w), static_cast<u32>(map_->h));
     } else {
-      const Recti vis = cam_.visible_world(64);
-      const i32 cpx = sim::kChunkTiles * sim::kTilePx;
-      int cx0 = std::max(0, vis.x / cpx), cy0 = std::max(0, vis.y / cpx);
-      int cx1 = std::min(map_->chunks_x() - 1, (vis.x + vis.w) / cpx);
-      int cy1 = std::min(map_->chunks_y() - 1, (vis.y + vis.h) / cpx);
-      for (int cy = cy0; cy <= cy1; ++cy)
-        for (int cx = cx0; cx <= cx1; ++cx) {
-          const Chunk& c = chunks_[static_cast<size_t>(cy * map_->chunks_x() + cx)];
-          if (!c.buf || c.count == 0) continue;
-          draw_instances(rp, cmd, c.buf, c.count, atlas_.texture(), atlas_.width(), atlas_.height());
-          ++stats_.chunks_drawn;
-          stats_.chunk_instances += c.count;
-        }
+      draw_visible_chunks(rp, cmd, true);
     }
   }
   draw_instances(rp, cmd, dyn_buf_.buf, n_dyn, atlas_.texture(), atlas_.width(), atlas_.height());
+  if (map_ && shadows.enabled && !cam_.far()) {
+    // Same instance buffers again; the shadow vertex shader keeps only y-sorted casters.
+    SDL_BindGPUGraphicsPipeline(rp, pipe_shadow_);
+    if (has_stencil_) SDL_SetGPUStencilReference(rp, 0);
+    const f32 sp[8] = {shadows.shear[0], shadows.shear[1], shadows.shear[2], shadows.shear[3],
+                       kDepthShadow,     kDepthShadow,     kDepthOverlayMax, 0.0f};
+    SDL_PushGPUVertexUniformData(cmd, 1, sp, sizeof(sp));
+    SDL_PushGPUFragmentUniformData(cmd, 0, shadows.color, sizeof(shadows.color));
+    draw_visible_chunks(rp, cmd, false);
+    draw_instances(rp, cmd, dyn_buf_.buf, n_dyn, atlas_.texture(), atlas_.width(), atlas_.height());
+  }
   SDL_BindGPUGraphicsPipeline(rp, pipe_translucent_);
   draw_instances(rp, cmd, trans_buf_.buf, n_trans, atlas_.texture(), atlas_.width(), atlas_.height());
   if (map_ && overlay_pixels_) {
-    const f32 white[4] = {1, 1, 1, 1};
-    SDL_PushGPUFragmentUniformData(cmd, 0, white, sizeof(white));
     // Second quad instance (offset 32 bytes) is the overlay.
     Vec2 o = cam_.origin();
     CameraUniform u{{o.x, o.y},
@@ -369,20 +445,36 @@ void Renderer::render(ImDrawData* draw_data) {
   dynamic_.clear();
   translucent_.clear();
 
-  // UI into the scene texture when a screenshot wants it (so the PNG shows panels).
-  const bool ui_in_scene = draw_data && !screenshot_path_.empty() && screenshot_ui_;
-  if (ui_in_scene) {
+  // --- Grade: scene -> final ---
+  {
+    SDL_GPUColorTargetInfo gt{};
+    gt.texture = final_;
+    gt.load_op = SDL_GPU_LOADOP_DONT_CARE;
+    gt.store_op = SDL_GPU_STOREOP_STORE;
+    SDL_GPURenderPass* gp = SDL_BeginGPURenderPass(cmd, &gt, 1, nullptr);
+    SDL_BindGPUGraphicsPipeline(gp, pipe_post_);
+    grade.params[1] = time;
+    SDL_PushGPUFragmentUniformData(cmd, 0, &grade, sizeof(grade));
+    SDL_GPUTextureSamplerBinding tsb{scene_, sampler_};
+    SDL_BindGPUFragmentSamplers(gp, 0, &tsb, 1);
+    SDL_DrawGPUPrimitives(gp, 3, 1, 0, 0);
+    SDL_EndGPURenderPass(gp);
+  }
+
+  // UI into the final texture when a screenshot wants it (so the PNG shows panels).
+  const bool ui_in_final = draw_data && !screenshot_path_.empty() && screenshot_ui_;
+  if (ui_in_final) {
     SDL_GPUColorTargetInfo ut{};
-    ut.texture = scene_;
+    ut.texture = final_;
     ut.load_op = SDL_GPU_LOADOP_LOAD;
     ut.store_op = SDL_GPU_STOREOP_STORE;
     SDL_GPURenderPass* up = SDL_BeginGPURenderPass(cmd, &ut, 1, nullptr);
     ImGui_ImplSDLGPU3_RenderDrawData(draw_data, cmd, up);
     SDL_EndGPURenderPass(up);
   }
-  // --- Present: blit scene to swapchain, then UI on top ---
+  // --- Present: blit final to swapchain, then UI on top ---
   SDL_GPUBlitInfo bi{};
-  bi.source.texture = scene_;
+  bi.source.texture = final_;
   bi.source.w = sw;
   bi.source.h = sh;
   bi.destination.texture = swap;
@@ -391,7 +483,7 @@ void Renderer::render(ImDrawData* draw_data) {
   bi.load_op = SDL_GPU_LOADOP_DONT_CARE;
   bi.filter = SDL_GPU_FILTER_NEAREST;
   SDL_BlitGPUTexture(cmd, &bi);
-  if (draw_data && !ui_in_scene) {
+  if (draw_data && !ui_in_final) {
     SDL_GPUColorTargetInfo ut{};
     ut.texture = swap;
     ut.load_op = SDL_GPU_LOADOP_LOAD;
@@ -415,7 +507,7 @@ void Renderer::save_screenshot(SDL_GPUCommandBuffer* cmd) {
   SDL_GPUTransferBuffer* xb = SDL_CreateGPUTransferBuffer(dev_, &xi);
   SDL_GPUCopyPass* cp = SDL_BeginGPUCopyPass(cmd);
   SDL_GPUTextureRegion src{};
-  src.texture = scene_;
+  src.texture = final_;
   src.w = target_w_;
   src.h = target_h_;
   src.d = 1;

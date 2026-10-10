@@ -104,7 +104,17 @@ No multiplayer, so bit-exact cross-platform determinism is **not** required. The
 - **Static layers** (terrain, roads, buildings) are baked per 32×32 chunk into GPU vertex buffers and rebuilt only when dirty.
 - **Dynamic sprites** (agents, carried goods, effects) are culled by chunk and drawn as instanced quads from one per-frame instance buffer; tens of thousands of instances is cheap.
 - **Overlays** are per-tile color layers uploaded as a texture and blended in a shader.
-- Day/night tint, seasonal palette shifts and simple lights at night (lamps, fires) are cheap shader effects.
+- **Frame passes** (`render/renderer.cpp`): world pass into a scene texture (terrain chunks, dynamic sprites, then
+  cast shadows, then translucent sprites and overlays) → grade pass into a final texture → blit to the swapchain →
+  UI. The UI is never graded.
+- **Cast shadows:** every y-sorted sprite (depth between `kDepthOverlayMax` and `kDepthShadow`) is drawn a second time
+  as its silhouette, sheared away from the top-left light (`shaders/shadow.vert`), multiplying the ground. It is
+  depth-tested against what is already drawn, so shadows never cover a sprite in front of them, and a stencil test lets
+  each pixel darken once. Ground-level sprite pixels are flagged with alpha 254 by the art generators and cast nothing.
+  Shadows lengthen toward dawn and dusk and fade under cloud and at night. Far zooms skip them.
+- **Colour grade** (`shaders/post.frag`): split toning (cool shadows, warm light), exposure, saturation, contrast,
+  lifted blacks and a light vignette. `game/lighting.cpp` keys these by hour (night, dawn, morning, day, golden hour,
+  dusk) and adjusts for season and weather, easing between states so weather changes fade in.
 
 ## Cross-platform notes
 

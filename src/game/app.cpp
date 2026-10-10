@@ -38,6 +38,7 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--ticks")) o.ticks_before = std::atoi(argv[++i]);
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
+    else if (arg("--weather")) o.weather = argv[++i];
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
     else if (arg("--cam")) {
@@ -517,34 +518,6 @@ void App::pick_at_mouse() {
   }
 }
 
-void App::update_light() {
-  // Light: day/night cycle from the sim clock; season and weather colour it.
-  const f32 tod = (static_cast<f32>(sim::tick_of_day(world_->now)) + alpha_) / static_cast<f32>(kTicksPerDay) * 24.0f;
-  f32 day = 1.0f;
-  if (tod < 4.5f || tod > 21.5f) day = 0.0f;
-  else if (tod < 7.0f) day = (tod - 4.5f) / 2.5f;
-  else if (tod > 19.0f) day = (21.5f - tod) / 2.5f;
-  f32 rr = 0.42f + 0.58f * day, gg = 0.46f + 0.54f * day, bb = 0.70f + 0.30f * day;
-  if (tod > 17.5f && tod < 21.0f) {  // warm sunset
-    rr = std::min(1.0f, rr + 0.08f);
-    bb *= 0.92f;
-  }
-  switch (sim::season(world_->now)) {
-    case sim::Season::Winter: rr *= 0.93f; gg *= 0.96f; break;
-    case sim::Season::Autumn: bb *= 0.93f; break;
-    case sim::Season::Summer: rr = std::min(1.0f, rr * 1.03f); break;
-    default: break;
-  }
-  if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm) {
-    rr *= 0.85f;
-    gg *= 0.87f;
-    bb *= 0.92f;
-  }
-  renderer_.light[0] = rr;
-  renderer_.light[1] = gg;
-  renderer_.light[2] = bb;
-}
-
 void App::run() {
   while (running_) {
     URBS_FRAME_MARK;
@@ -587,14 +560,18 @@ void App::run() {
     } else {
       renderer_.set_overlay(nullptr);
     }
-    update_light();
+    sim::Weather weather = world_->weather;
+    for (int k = 0; k < static_cast<int>(sim::Weather::Count); ++k)
+      if (opt_.weather == sim::weather_name(static_cast<sim::Weather>(k))) weather = static_cast<sim::Weather>(k);
+    lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt));
+    renderer_.grade = lighting_.grade;
+    renderer_.shadows = lighting_.shadows;
     view_.draw(*world_, renderer_, alpha_);
-    if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm ||
-        world_->weather == sim::Weather::Snow) {
+    if (weather == sim::Weather::Rain || weather == sim::Weather::Storm || weather == sim::Weather::Snow) {
       // Rain streaks / snowflakes over the visible area.
       const Recti vis = renderer_.camera().visible_world(0);
-      const bool snow = world_->weather == sim::Weather::Snow;
-      const int n = world_->weather == sim::Weather::Storm ? 500 : 280;
+      const bool snow = weather == sim::Weather::Snow;
+      const int n = weather == sim::Weather::Storm ? 500 : 280;
       for (int k = 0; k < n; ++k) {
         const u32 hsh = static_cast<u32>(k) * 2654435761u;
         const f32 fx = static_cast<f32>(hsh % 10007) / 10007.0f, fy0 = static_cast<f32>((hsh >> 12) % 9973) / 9973.0f;

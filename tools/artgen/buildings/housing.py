@@ -14,7 +14,7 @@ paths -- no outline, like terrain) and a structure layer that gets the dark
 outline, then the structure is pasted over the ground.
 """
 from palette import C
-from primitives import new, px, rect, hline, vline, rng, outline, roof, ellipse_mask, line
+from primitives import new, px, rect, hline, vline, rng, outline, roof, ellipse_mask, line, flat, paste_exact
 from buildings.placeholder import _wall, _door, _window, _compluvium, extra_height
 import objects
 
@@ -31,7 +31,8 @@ def _canvas(w, h, more=0):
 def _merge(ground, struct, c=None):
     """Outline the structure layer and paste it over the ground layer."""
     outline(struct, c or C.outline)
-    ground.paste(struct, (0, 0), struct)
+    flat(ground)  # yards and lawns cast no shadow
+    paste_exact(ground, struct)
     return ground
 
 

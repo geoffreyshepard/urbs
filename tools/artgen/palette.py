@@ -81,14 +81,15 @@ C = _Roles()
 
 def bad_pixels(img, limit=10):
     """Return up to `limit` (x, y, rgba) pixels that are neither fully
-    transparent nor exact palette colors."""
+    transparent nor exact palette colors (alpha 255, or 254 for ground pixels)."""
     img = img.convert("RGBA")
     w, _ = img.size
     out = []
     for i, p in enumerate(img.getdata()):
         if p[3] == 0:
             continue
-        if p not in PALETTE_SET:
+        # alpha 254 = opaque ground-level pixel (see primitives.flat)
+        if p[3] not in (254, 255) or p[:3] + (255,) not in PALETTE_SET:
             out.append((i % w, i // w, p))
             if len(out) >= limit:
                 break

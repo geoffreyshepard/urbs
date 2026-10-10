@@ -5,6 +5,7 @@
 #include "data/defs.hpp"
 #include "game/overlays.hpp"
 #include "game/panels.hpp"
+#include "game/lighting.hpp"
 #include "game/profile.hpp"
 #include "game/tools.hpp"
 #include "game/ui_icons.hpp"
@@ -30,6 +31,7 @@ struct AppOptions {
   int ticks_before = 0;  // run this many ticks before the first frame
   int inspect = -1;      // select (and follow) this citizen index at start
   bool no_ui = false;
+  std::string weather;         // screenshots: show this weather (presentation only, the sim is untouched)
   int overlay = 0;
   bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
 };
@@ -75,7 +77,6 @@ class App {
   [[nodiscard]] std::string save_path(const std::string& name) const;
   [[nodiscard]] Vec2i mouse_tile() const;
   void pick_at_mouse();
-  void update_light();
 
   // UI
   void draw_ui();
@@ -129,6 +130,7 @@ class App {
   int speed_ = 1;  // 0 pause, 1, 2, 3 = 1x 2x 4x
   f64 accum_ = 0;
   f32 alpha_ = 0;
+  Lighting lighting_;
   f64 sim_ms_ = 0;
   bool running_ = true;
   bool dragging_ = false;

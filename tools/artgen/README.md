@@ -92,6 +92,9 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
 
 - Tiles are 16x16. Light comes from the top-left. Each material uses one highlight shade and one shadow shade.
 - Buildings, units and objects get a dark outline (`C.outline`). Terrain never has an outline.
+- Ground surfaces inside a building sprite (yards, lawns, paving plates: the layers put with `ol=False`, and the
+  housing ground layer) are stored with alpha 254 (`primitives.flat`). They look the same; the renderer's cast-shadow
+  pass skips them, so only raised parts throw shadows. `check_image` accepts alpha 0, 254 and 255.
 - Class reads from clothing:
   - Patrician: white toga with a purple border.
   - Eques: off-white tunic with narrow purple stripes.

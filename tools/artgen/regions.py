@@ -31,7 +31,8 @@ def _ramp(role):
 def _map_ramp(src, dst):
     """Map each colour of ramp src onto ramp dst, keeping relative lightness."""
     s, d = _ramp(src), _ramp(dst)
-    return {COLORS[s[i]]: COLORS[d[min(len(d) - 1, round(i * (len(d) - 1) / max(1, len(s) - 1)))]] for i in range(len(s))}
+    return {COLORS[s[i]][:3]: COLORS[d[min(len(d) - 1, round(i * (len(d) - 1) / max(1, len(s) - 1)))]][:3]
+            for i in range(len(s))}
 
 
 def _remap_for(region):
@@ -63,7 +64,7 @@ def variants(sprites):
             for y in range(v.height):
                 for x in range(v.width):
                     c = px[x, y]
-                    if c[3] and c in remap:
-                        px[x, y] = remap[c]
+                    if c[3] and c[:3] in remap:
+                        px[x, y] = remap[c[:3]] + (c[3],)  # keep the ground flag
             out.append(("%s@%s" % (base, region), v, anchor))
     return out
