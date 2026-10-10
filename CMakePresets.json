@@ -93,6 +93,11 @@
       "configurePreset": "ci",
       "output": {
         "outputOnFailure": true
+      },
+      "filter": {
+        "exclude": {
+          "label": "long"
+        }
       }
     },
     {

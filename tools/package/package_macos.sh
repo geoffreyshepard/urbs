@@ -19,6 +19,7 @@ RES="$APP/Contents/Resources"
 mkdir -p "$RES"
 # Game content: definitions, campaign, scenarios, sprite atlas. Generators and sources stay out.
 rsync -a --delete data/ "$RES/data/"
+[ -d mods ] && rsync -a --delete mods/ "$RES/mods/"
 mkdir -p "$RES/assets"
 rsync -a --delete assets/atlas/ "$RES/assets/atlas/"
 [ -d assets/sprites ] && rsync -a --delete assets/sprites/ "$RES/assets/sprites/"

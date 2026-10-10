@@ -27,6 +27,8 @@ jobs:
         run: cmake --build --preset ci
       - name: Test
         run: ctest --preset ci
+      # Shortened stress run: 50k citizens must tick without heap allocation. Timing is not gated here
+      # (shared runners are noisy); compare against bench/baseline.json on a quiet machine.
       - name: Stress (shortened)
-        if: runner.os == 'macOS' && hashFiles('tests/scenarios/stress_50k.json') != ''
-        run: ./build/ci/urbs_headless --scenario tests/scenarios/stress_50k.json --ticks 2400 --perf-check bench/baseline.json
+        if: runner.os == 'macOS'
+        run: ./build/ci/urbs_headless --scenario tests/scenarios/stress_50k.json --ticks 2400 | tee stress.json && grep -q '"alloc_violations":0' stress.json

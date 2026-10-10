@@ -13,6 +13,41 @@ A Roman city-building and management game in the tradition of *Caesar III* and *
 
 > "Urbs" is a placeholder (Latin for "the city"). Rename freely; the code namespace is `urbs`.
 
+## Status
+
+**v1.0.0**, which includes:
+- the full 16-mission campaign;
+- a sandbox with generated maps;
+- a scenario editor;
+- mod support.
+
+See [RELEASE_NOTES.md](RELEASE_NOTES.md).
+
+## Playing
+
+Download a release archive, or build from source and run `urbs`. On a Mac, `tools/package/package_macos.sh` builds `dist/Urbs.app` and a zip.
+
+## Building
+
+Needs CMake 3.25+, Ninja and a C++20 compiler. Dependencies are fetched by CPM on first configure.
+
+```bash
+cmake --preset release && cmake --build --preset release
+ctest --preset dev        # quick tests (use the dev preset build)
+ctest --preset long       # campaign missions played by the autoplay bot, stress runs (release build)
+./build/release/urbs_headless --scenario data/scenarios/m01_latium/scenario.json --ticks 360000 --autoplay --daily
+```
+
+On macOS, set `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` if CMake picks the command-line tools.
+
+## Modding
+
+Goods, buildings, housing, gods, units, trade partners and scenarios are JSON and Lua. Enable mods under **Main menu → Mods**. See [docs/10-modding.md](docs/10-modding.md) and the example in `mods/example_vintners_guild/`.
+
+## Contributing
+
+Contributions are welcome. Read [CLAUDE.md](CLAUDE.md) for the engineering rules (deterministic simulation, no allocation in the tick, data-driven content, versioned saves). Run `ctest --preset dev` before sending changes. Changes to simulation or balance should also pass `ctest --preset long`.
+
 ## Documents
 
 | File | What it covers |
@@ -27,6 +62,8 @@ A Roman city-building and management game in the tradition of *Caesar III* and *
 | [docs/07-art-pipeline.md](docs/07-art-pipeline.md) | Generating consistent pixel art with Claude Code; style guide |
 | [docs/08-roadmap.md](docs/08-roadmap.md) | Milestones M0–M14 with exit criteria |
 | [docs/09-assumptions-and-open-questions.md](docs/09-assumptions-and-open-questions.md) | Decisions defaulted on your behalf, and what is still open |
+| [docs/10-modding.md](docs/10-modding.md) | Modding guide: definition files, scenarios, the Lua API |
+| [docs/milestones/](docs/milestones/) | What each milestone delivered, M0–M14 |
 
 ## How to use these docs with Claude Code
 

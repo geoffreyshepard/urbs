@@ -1,46 +1,54 @@
-# Urbs v0.1.0 — "Campaign vertical slice"
+# Urbs v1.0.0
 
-The first playable release: the opening four missions of the campaign.
+The complete game: the full sixteen-mission campaign from a hamlet in Latium to the rebuilding of Rome, plus a sandbox, a scenario editor and mod support.
 
-## What's in it
-- **Four campaign missions:** Latium, Ostia, Beneventum and Capua, from a hamlet of tents to a Campanian town of olive presses, wineries, patrician houses and a theater.
-- **Every citizen is simulated:** names, homes, jobs, errands, needs, families, ageing, traits and memories. Click anyone to follow them.
-- **Economy:**
-  - Production chains and porters that carry goods.
-  - Markets, dynamic prices, taxes and wages.
-  - Land trade routes with import, export and stockpile settings.
-- **Housing and services:** housing that grows with water, food, religion, hygiene, entertainment and goods, plus fire, collapse and disease.
-- **Gods:** gods with moods, festivals and offerings.
-- **Rome:** requests, favor, loans and civic research.
-- **Military:** militia and legions, formations, raids and walls.
-- **Interface:** advisors with portraits and plain-language reports; overlays for desirability, fire, crime, disease, water and coverage.
-- **Difficulty:** Otium (relaxed), Civitas (normal) and Imperium (hard).
-- **Sandbox mode** with generated maps.
+## What's new since v0.1
+- **Missions 5–16:**
+  - Syracuse, Carthago Nova, Aquileia, Narbo, Campania, Corinth.
+  - Lugdunum, where the Republic becomes an Empire.
+  - Alexandria and the Nile flood.
+  - Colonia Agrippina on the Rhine frontier.
+  - Londinium and Boudica's revolt.
+  - Antioch and the Silk Road.
+  - Rome itself, with 10,000 fully simulated citizens.
+- **More to build:**
+  - Monuments that rise in stages and are dedicated to the gods.
+  - Sea trade, harbors and lighthouses.
+  - Aqueducts, pipes and sewers.
+  - Mints, siege workshops and cart depots.
+  - Civic institutions.
+- **Imperial politics:** the Emperor, the imperial cult, grants, plague, earthquakes and revolts.
+- **Regional building styles:** Italy, the north, the east and Egypt.
+- **Sandbox:** desert maps, the Nile flood and a choice of building style.
+- **Scenario editor:** paint a map, set goals, gods and trade, save and play. Scenarios live in your user folder and can be shared.
+- **Mods:** add or change goods, recipes, buildings, housing, gods, units and trade partners with JSON, and add scenarios with Lua. See `docs/10-modding.md` and the example mod in `mods/`.
+- **Accessibility:** UI scale and colour-blind-friendly overlays (Settings).
+- **Under the hood:**
+  - Many simulation fixes: errands, shopping, fire spread, housing decline, emigration.
+  - Faster roads.
+  - Save format v3; v0.1 saves still load.
 
 ## Requirements
-macOS 13 or later on Apple Silicon (M1 or newer).
+- **macOS:** 13 or later on Apple Silicon. The app is ad-hoc signed, not notarized. Open it the first time with right-click → **Open**, or run `xattr -dr com.apple.quarantine Urbs.app`.
+- **Windows and Linux:** archives are built by CI. They are less tested than the Mac build; please report problems.
 
-The app is ad-hoc signed, not notarized. To run it:
-1. Open it once by right-clicking (or Control-clicking) and choosing **Open**.
-2. Or clear the quarantine flag: `xattr -dr com.apple.quarantine Urbs.app`.
-
-Saves and settings live in `~/Library/Application Support/urbs/`.
+Saves, settings, custom scenarios and user mods live in the user data folder (`~/Library/Application Support/urbs/urbs/` on macOS).
 
 ## Controls
-- **Camera:** WASD or arrow keys, or drag with the right or middle mouse button. Scroll the wheel to zoom.
+- **Camera:** WASD or arrow keys, or drag with the right or middle mouse button. Scroll to zoom.
 - **Speed:** Space pauses; 1, 2 and 3 set the speed.
 - **Building:** B opens the build menu, R places roads, X demolishes, Esc cancels or opens the menu.
 - **Overlays and following:** O opens overlays; F follows the selected citizen.
 - **Saving:** F5 quicksaves, F9 quickloads.
-- **Help:** the **Help** button explains the basics.
+- **In the editor:** left-click paints, WASD moves the camera, and the scroll wheel zooms.
 
 ## License
 - **Code:** PolyForm Noncommercial 1.0.0.
 - **Art, data and docs:** CC BY-NC-SA 4.0.
 
-You are free to play, modify and share the game, and to contribute. Selling it is not allowed. See LICENSE.md, LICENSE-ASSETS.txt and NOTICE.
+Play it, modify it, share it and contribute; don't sell it. See LICENSE.md, LICENSE-ASSETS.txt and NOTICE.
 
 ## Known limitations
-- Missions 5–16 are not in this release.
-- There is no audio.
-- Only a macOS build is provided; Windows and Linux build from source.
+- There is no audio yet.
+- Mods cannot ship their own sprites yet; new buildings use a placeholder of their size.
+- Missions 13 (Colonia Agrippina) and 15 (Antioch) are the hardest in the campaign and the least playtested.
