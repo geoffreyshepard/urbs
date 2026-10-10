@@ -326,6 +326,9 @@ void World::deserialize(save::Reader& r) {
   lost_reason = r.str();
   r.vec(unlocked);
   r.pod(mission_number);
+  // Buildings added to the game after the save was written: available if the mission allows them.
+  for (size_t d = unlocked.size(); d < defs->buildings.size(); ++d)
+    unlocked.push_back(defs->buildings[d].unlock <= mission_number ? 1 : 0);
   r.pod(difficulty);
   {
     const u32 nm = r.pod<u32>();

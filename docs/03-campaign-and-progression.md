@@ -38,11 +38,13 @@ The salary accrues to the governor's **personal savings**, which carry across mi
 | 9 | **Campania — The Servile War** | Late Republic | 4,000 | 3 h | Slave treatment and manumission policy under pressure, servile revolt, amphitheater, hospital, curia |
 | 10 | **Corinth — Refounded** | Late Republic | 4,500 | 3.25 h | Greek culture: odeon, academy, marble, dyes, scriptorium; research system expanded |
 | 11 | **Lugdunum — Capital of Gaul** | Late Republic → Empire | 5,500 | 3.5 h | Transition to Empire, Emperor's Favor, imperial cult, mint, triumphal arch |
-| 12 | **Alexandria — Egypt** | Empire | 6,500 | 4 h | Nile flood cycle, grain fleet, glassworks, circus/hippodrome, Egyptian gods, lighthouse monument |
+| 12 | **Alexandria — Egypt** | Empire | 5,000 | 4 h | Nile flood cycle, grain fleet, glassworks, circus/hippodrome, Egyptian gods, lighthouse monument |
 | 13 | **Colonia Agrippina — The Rhine** | Empire | 7,000 | 4.25 h | Heavy military, limes forts, siege engines, large battles, harsh winters |
 | 14 | **Londinium — Britannia** | Empire | 7,500 | 4.5 h | Revolt that burns the city midway, then rebuild under pressure |
 | 15 | **Antioch — The East** | Empire | 8,500 | 5 h | Luxury trade, huge markets, earthquake disaster, multi-district management |
 | 16 | **Roma — Caput Mundi** | Empire | 10,000 | 6 h | Rebuild Rome after a great fire: Colosseum, Pantheon, Circus Maximus-scale monuments; every system at once |
+
+Alexandria's population goal is lower than its neighbours' because the floodplain limits building land and the lighthouse and circus are large builds.
 
 Each mission has:
 - **Win goals:** population, ratings thresholds, specific buildings or monuments, requests fulfilled, sometimes surviving N years.

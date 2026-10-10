@@ -34,12 +34,12 @@ This is the baseline content set. The "M" column gives the campaign mission wher
 | Silver | Silver mine → **silver ore** → Smelter → **silver** → (export / mint) | 6 |
 | Concrete | Limestone → Lime kiln (+wood) → **lime**; Pozzolana pit → **pozzolana**; lime + pozzolana + stone → Concrete works → **concrete** | 7 |
 | Furniture | Planks → Carpenter → **furniture** | 8 |
-| Marble | Marble quarry → **marble** → Sculptor → statues / décor | 10 |
+| Marble | Marble quarry → **marble** → Sculptor → **statues** (exported to Rome) | 10 |
 | Dye | Dye works (coastal murex / plants) → **dye**; clothing + dye → Dyer → **dyed clothing** | 10 |
-| Scrolls | Papyrus (import or marsh reeds) → Scriptorium → **scrolls** | 10 |
+| Scrolls | Papyrus (import or marsh reeds) → Scriptorium → **scrolls** (exported to Rome and Gallia) | 10 |
 | Coins | Silver → Mint → **denarii** to the treasury | 11 |
 | Glass | Sand + wood → Glassworks → **glassware** | 12 |
-| Jewelry | Gold/silver → Jeweler → **jewelry** | 12 |
+| Jewelry | Silver → Jeweler → **jewelry**; gold (imported from Alexandria or Hispania) → Goldsmith → **2 jewelry** | 12 |
 
 ## Consumption by class and housing tier
 

@@ -40,5 +40,6 @@
   {"id": "harvest_papyrus", "outputs": {"papyrus": 2}, "work": 200},
   {"id": "blow_glass", "inputs": {"sand": 2, "wood": 1}, "outputs": {"glassware": 1}, "work": 240},
   {"id": "craft_jewelry", "inputs": {"silver": 1}, "outputs": {"jewelry": 1}, "work": 300},
-  {"id": "strike_coins", "inputs": {"silver": 2}, "coins": 90, "work": 160}
+  {"id": "strike_coins", "inputs": {"silver": 2}, "coins": 90, "work": 160},
+  {"id": "craft_gold_jewelry", "inputs": {"gold": 1}, "outputs": {"jewelry": 2}, "work": 360}
 ]
