@@ -10,6 +10,8 @@
 #include "path/nav.hpp"
 #include "path/search.hpp"
 #include "save/save.hpp"
+#include "sim/chaos.hpp"
+#include "sim/invariants.hpp"
 #include "sim/scenario.hpp"
 #include "sim/scheduler.hpp"
 #include "sim/world.hpp"
@@ -450,4 +452,34 @@ TEST_CASE("deliveries nobody can make expire instead of reserving goods forever"
     if (w->econ.task_ids.alive_index(k) && w->econ.tasks[k].dst == site && w->econ.tasks[k].good == D.good("cut_stone"))
       live += w->econ.tasks[k].amount;
   CHECK(w->econ.rin(w->buildings[site].inv, D.good("cut_stone")) == live);
+}
+
+TEST_CASE("a town stays consistent under a chaos player, and reloads exactly") {
+  // Random building, demolition, policies, trade, armies and disasters for ten days: every counter and
+  // reservation must still agree with a recount (sim/invariants.cpp), and a save must reload exactly.
+  auto spec = sim::load_scenario(scenario("small_town.json"));
+  auto w = std::make_unique<sim::World>();
+  sim::setup_scenario(*w, defs(), spec);
+  sim::Chaos chaos(42);
+  sim::InvariantChecker checker;
+  std::vector<std::string> bad;
+  for (int t = 0; t < static_cast<int>(kTicksPerDay) * 10; ++t) {
+    chaos.step(*w, 20);
+    w->tick();
+    if (w->now % kTicksPerDay == kTicksPerHour * 12) checker.check(*w, bad);
+  }
+  CHECK(chaos.actions > 1000);
+  for (const auto& line : bad) MESSAGE(line);
+  CHECK(bad.empty());
+  const std::string path = (std::filesystem::temp_directory_path() / "urbs_chaos_save.urbs").string();
+  std::string err;
+  REQUIRE(save::save_world(*w, path, "test", &err));
+  auto c = std::make_unique<sim::World>();
+  REQUIRE_MESSAGE(save::load_world(*c, defs(), path, &err), err);
+  for (int t = 0; t < static_cast<int>(kTicksPerHour) * 6; ++t) {
+    w->tick();
+    c->tick();
+  }
+  CHECK(save::world_hash(*w) == save::world_hash(*c));
+  std::remove(path.c_str());
 }

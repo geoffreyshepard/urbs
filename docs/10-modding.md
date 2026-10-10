@@ -142,6 +142,7 @@ A scenario is a folder with `scenario.json` and an optional `script.lua`.
 
 **Goals**
 - `goals`: `{"population", "culture", "prosperity", "security", "favor", "requests", "survive_days", "buildings": {id: n}}`. All must be met at once to win.
+- `goals.max_debt_days` (default 32): on Imperium, the mission is lost after this many days in debt. On Civitas and Imperium it is also lost when favor reaches zero; on Otium a mission cannot be lost.
 
 **Script**
 - `script`: the Lua file.

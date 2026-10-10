@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "core/types.hpp"
 #include "data/defs.hpp"
@@ -33,5 +35,8 @@ bool load_map(sim::TileMap& m, const std::string& path, std::string* err);
 
 // Hash of the simulation state, for determinism and round-trip tests.
 u64 world_hash(const sim::World& w);
+// The same state hashed in named parts (and a few more: army, hauls, trade, script), to find what
+// differs between two worlds that should be identical (urbs_headless --roundtrip).
+std::vector<std::pair<std::string, u64>> world_hash_parts(const sim::World& w);
 
 }  // namespace urbs::save

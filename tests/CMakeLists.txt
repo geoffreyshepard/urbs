@@ -42,3 +42,14 @@ add_test(NAME mod_example COMMAND urbs_headless --mod ${CMAKE_SOURCE_DIR}/mods/e
          --scenario ${CMAKE_SOURCE_DIR}/mods/example_vintners_guild/scenarios/vintners_valley/scenario.json
          --ticks 6000 --autoplay)
 set_tests_properties(mod_example PROPERTIES PASS_REGULAR_EXPRESSION "alloc_violations\":0")
+
+# Audit flags on a small town (quick): consistency checks, a chaos player, save/reload comparisons.
+# tools/audit.sh runs the same over the whole campaign, past victory and on random sandbox maps.
+add_test(NAME audit_town COMMAND urbs_headless --scenario ${CMAKE_CURRENT_SOURCE_DIR}/scenarios/small_town.json
+         --ticks 8400 --check --chaos 12 --roundtrip 3)
+# Two campaign missions under the full audit (long; release builds).
+add_test(NAME audit_m04_chaos COMMAND urbs_headless --scenario ${CMAKE_SOURCE_DIR}/data/scenarios/m04_capua/scenario.json
+         --ticks 60000 --autoplay --keep-playing --chaos 8 --check --roundtrip 10)
+add_test(NAME audit_m09_check COMMAND urbs_headless --scenario ${CMAKE_SOURCE_DIR}/data/scenarios/m09_campania/scenario.json
+         --ticks 120000 --autoplay --check --roundtrip 20)
+set_tests_properties(audit_m04_chaos audit_m09_check PROPERTIES LABELS long)

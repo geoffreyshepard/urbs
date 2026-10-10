@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <unistd.h>
 #include <string>
 #include <vector>
 
@@ -12,6 +14,8 @@
 #include "save/save.hpp"
 #include "sim/scenario.hpp"
 #include "sim/autoplay.hpp"
+#include "sim/chaos.hpp"
+#include "sim/invariants.hpp"
 #include "sim/world.hpp"
 
 using namespace urbs;
@@ -33,8 +37,12 @@ int main(int argc, char** argv) {
   int difficulty = -1;
   u64 seed_override = 0;
   std::vector<std::string> mods;
-  i32 ascii[4] = {-1, -1, -1, -1};
-  std::vector<std::string> watch;   // --watch a,b,c: print these goods' city stock in the daily trace  // --ascii x0 y0 x1 y1: print that part of the map at the end
+  i32 ascii[4] = {-1, -1, -1, -1};  // --ascii x0 y0 x1 y1: print that part of the map at the end
+  std::vector<std::string> watch;    // --watch a,b,c: print these goods' city stock in the daily trace
+  bool check = false;                // --check: consistency checks every game day (docs/testing.md)
+  bool keep_playing = false;         // --keep-playing: run all ticks even after the mission ends
+  u32 chaos = 0;                     // --chaos N: N random player commands per game hour
+  u32 roundtrip = 0;                 // --roundtrip D: every D days, save, reload, and compare a day of play
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
@@ -52,6 +60,10 @@ int main(int argc, char** argv) {
     else if (is("--difficulty") && i + 1 < argc) difficulty = std::atoi(argv[++i]);
     else if (is("--seed") && i + 1 < argc) seed_override = std::strtoull(argv[++i], nullptr, 10);
     else if (is("--mod") && i + 1 < argc) mods.emplace_back(argv[++i]);
+    else if (is("--check")) check = true;
+    else if (is("--keep-playing")) keep_playing = true;
+    else if (is("--chaos") && i + 1 < argc) chaos = static_cast<u32>(std::atoi(argv[++i]));
+    else if (is("--roundtrip") && i + 1 < argc) roundtrip = static_cast<u32>(std::atoi(argv[++i]));
     else if (is("--watch") && i + 1 < argc) {
       std::string list = argv[++i];
       for (size_t a = 0, b; a <= list.size(); a = b + 1) {
@@ -72,7 +84,7 @@ int main(int argc, char** argv) {
     std::fprintf(stderr,
                  "usage: urbs_headless (--scenario file.json | --load save.urbs) [--ticks N] [--test] [--autoplay]\n"
                  "       [--daily] [--verbose] [--dump] [--difficulty 0-2] [--seed N] [--mod dir]... [--watch goods]\n"
-                 "       [--ascii x0 y0 x1 y1] [--version]\n");
+                 "       [--ascii x0 y0 x1 y1] [--check] [--chaos N] [--roundtrip DAYS] [--keep-playing] [--version]\n");
     return 2;
   }
   data::Defs defs;
@@ -135,11 +147,70 @@ int main(int argc, char** argv) {
   u32 max_walking = 0;
   double sys_max[8] = {}, sys_sum[8] = {};
   u64 fallbacks = 0, failed_paths = 0;
+  sim::InvariantChecker checker;
+  sim::Chaos chaos_player(spec.world.seed * 7919 + 17);
+  u32 check_fail = 0, roundtrip_fail = 0, roundtrips = 0;
+  double save_ms_max = 0, load_ms_max = 0;
+  u64 save_bytes_max = 0;
+  const std::string rt_path =
+      (std::filesystem::temp_directory_path() / ("urbs_roundtrip_" + std::to_string(spec.world.seed) + "_" + std::to_string(::getpid()) + ".urbs")).string();
   for (u64 t = 0; t < ticks; ++t) {
     sim::push_due_orders(*world, spec);
     if (autoplay) bot.step(*world);
+    chaos_player.step(*world, chaos);
     world->tick();
-    if (autoplay && world->mission != sim::MissionState::Running) break;
+    if (autoplay && !keep_playing && world->mission != sim::MissionState::Running) break;
+    if (check && world->now % kTicksPerDay == kTicksPerHour * 12) {
+      std::vector<std::string> bad;
+      const u32 n = checker.check(*world, bad);
+      if (n > 0) {
+        check_fail += n;
+        std::printf("CHECK day %u: %u violations\n", world->mission_days, n);
+        for (const auto& line : bad) std::printf("  %s\n", line.c_str());
+      }
+    }
+    if (roundtrip && world->now % (kTicksPerDay * roundtrip) == kTicksPerHour * 13) {
+      // Save, load into a fresh world, run both for a day without the bot: they must not diverge.
+      std::string err;
+      const auto t0 = std::chrono::steady_clock::now();
+      const bool saved = save::save_world(*world, rt_path, "roundtrip", &err);
+      const auto t1 = std::chrono::steady_clock::now();
+      auto copy = std::make_unique<sim::World>();
+      const bool loaded = saved && save::load_world(*copy, defs, rt_path, &err);
+      const auto t2 = std::chrono::steady_clock::now();
+      ++roundtrips;
+      if (!loaded) {
+        ++roundtrip_fail;
+        std::printf("ROUNDTRIP day %u: %s\n", world->mission_days, err.c_str());
+      } else {
+        save_ms_max = std::max(save_ms_max, std::chrono::duration<double, std::milli>(t1 - t0).count());
+        load_ms_max = std::max(load_ms_max, std::chrono::duration<double, std::milli>(t2 - t1).count());
+        std::error_code ec;
+        save_bytes_max = std::max<u64>(save_bytes_max, std::filesystem::file_size(rt_path, ec));
+        const u64 h0 = save::world_hash(*world), h1 = save::world_hash(*copy);
+        u64 diverged_at = 0;
+        if (h0 != h1) diverged_at = 1;
+        // Compare every game hour (hashing every tick doubles the cost of the day).
+        for (Tick k = 1; k <= kTicksPerDay && !diverged_at; ++k) {
+          world->tick();
+          copy->tick();
+          if (k % kTicksPerHour == 0 && save::world_hash(*world) != save::world_hash(*copy)) diverged_at = k / kTicksPerHour + 1;
+        }
+        if (diverged_at) {
+          const auto pa = save::world_hash_parts(*world), pb = save::world_hash_parts(*copy);
+          std::string parts;
+          for (size_t k = 0; k < pa.size() && k < pb.size(); ++k)
+            if (pa[k].second != pb[k].second) parts += " " + pa[k].first;
+          std::printf("ROUNDTRIP differing parts:%s\n", parts.c_str());
+          ++roundtrip_fail;
+          std::printf("ROUNDTRIP day %u: the reloaded world diverges %s\n", world->mission_days,
+                      diverged_at == 1 ? "immediately after loading"
+                                       : ("within " + std::to_string(diverged_at - 1) + " game hours").c_str());
+        }
+        t += kTicksPerDay;
+      }
+      std::filesystem::remove(rt_path);
+    }
     if (world->now % kTicksPerDay == kTicksPerHour * 10) {
       att_present = att_employed = 0;
       if (verbose && world->mission_days % 20 == 10) {
@@ -545,8 +616,21 @@ int main(int argc, char** argv) {
                   world->site_ready(b), idle, homeless, leaving, reach);
     });
   }
+  // Audit summaries (docs/testing.md); a failed audit makes the run fail.
+  bool audit_ok = true;
+  if (check) {
+    std::printf("invariants: %u violations\n", check_fail);
+    audit_ok &= check_fail == 0;
+  }
+  if (chaos) std::printf("chaos: %llu commands\n", static_cast<unsigned long long>(chaos_player.actions));
+  if (roundtrip) {
+    std::printf("roundtrip: %u saves, %u failed, save %.0f ms, load %.0f ms, %.0f KB (largest)\n", roundtrips,
+                roundtrip_fail, save_ms_max, load_ms_max, static_cast<double>(save_bytes_max) / 1024.0);
+    audit_ok &= roundtrip_fail == 0;
+  }
+  if ((check || chaos || roundtrip) && core::alloc::hook_installed() && viol > 0) audit_ok = false;
   if (test) {
-    bool ok = true;
+    bool ok = audit_ok;
     if (world->citizens.ids.count() < spec.expect_min_citizens) {
       std::fprintf(stderr, "FAIL: citizens %u < %u\n", world->citizens.ids.count(), spec.expect_min_citizens);
       ok = false;
@@ -566,5 +650,5 @@ int main(int argc, char** argv) {
     }
     return ok ? 0 : 1;
   }
-  return 0;
+  return audit_ok ? 0 : 3;
 }

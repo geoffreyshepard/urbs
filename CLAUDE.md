@@ -46,6 +46,9 @@ ctest --preset long         # long soak tests (release build)
 # --verbose adds money/request lines, --dump prints every building at the end).
 ./build/release/urbs_headless --scenario data/scenarios/m04_capua/scenario.json --ticks 192000 --autoplay --daily
 URBS_ALLOC_TRAP=1 ./build/dev/urbs_headless ...  # abort with a stack trace at the first allocation inside tick()
+tools/bot_missions.sh 300 1 3   # balance: every mission x 3 seeds, win days (release build; does not build)
+tools/audit.sh                  # deep audit: consistency checks, chaos player, save round-trips, soak, random maps
+                                # (release build; ~1 h; see docs/testing.md)
 ```
 
 ## Performance targets (Apple Silicon M1 baseline)

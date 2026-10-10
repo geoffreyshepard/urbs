@@ -22,8 +22,10 @@ struct ScenarioSpec {
   f64 expect_max_tick_ms = 0;
   u32 expect_max_alloc_violations = 0xFFFFFFFFu;
   std::vector<std::pair<std::string, u32>> expect_stock;   // good id -> minimum units anywhere
-  std::vector<std::pair<std::string, u32>> expect_active;
-  std::vector<std::pair<std::string, u32>> expect_produced;  // good id -> min produced yesterday+today  // building id -> minimum active count
+  std::vector<std::pair<std::string, u32>> expect_active;    // building id -> minimum active count
+  std::vector<std::pair<std::string, u32>> expect_produced;  // good id -> min produced yesterday+today
+  std::string expect_mission;      // "won", "lost" or "running" at the end ("" = not checked)
+  std::string expect_lost_reason;  // text the loss message must contain
   // Scripted orders: commands pushed before the given tick.
   std::vector<std::pair<Tick, Command>> orders;
   bool industry = false;  // town generator: add workshops, forum, trade post

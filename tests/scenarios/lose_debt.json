@@ -1,0 +1,31 @@
+{
+  "name": "lose_debt",
+  "id": "test_lose_debt",
+  "mission": 3,
+  "difficulty": 2,
+  "map": {
+    "size": 96,
+    "seed": 2,
+    "flat": true,
+    "river": false
+  },
+  "world": {
+    "max_citizens": 1000,
+    "max_buildings": 256,
+    "max_households": 400
+  },
+  "generator": "town",
+  "houses": 20,
+  "citizens": 60,
+  "goals": {
+    "population": 5000,
+    "max_debt_days": 3
+  },
+  "ticks": 7200,
+  "test": {
+    "mission": "lost",
+    "lost_reason": "debt",
+    "max_alloc_violations": 0
+  },
+  "script": "lose_debt.lua"
+}

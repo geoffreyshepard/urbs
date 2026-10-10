@@ -74,6 +74,8 @@ ScenarioSpec parse_scenario(const std::string& text, const std::string& path) {
       for (auto& [k, v] : t["produced"].items()) s.expect_produced.emplace_back(k, v.get<u32>());
     if (t.contains("active"))
       for (auto& [k, v] : t["active"].items()) s.expect_active.emplace_back(k, v.get<u32>());
+    s.expect_mission = t.value("mission", std::string());
+    s.expect_lost_reason = t.value("lost_reason", std::string());
   }
   s.map.flat = j.contains("map") && j["map"].value("flat", false);
   if (j.contains("map_file"))
@@ -96,6 +98,18 @@ void push_due_orders(World& w, const ScenarioSpec& spec) {
 
 bool check_expectations(const World& w, const ScenarioSpec& spec) {
   bool ok = true;
+  if (!spec.expect_mission.empty()) {
+    const char* state = w.mission == MissionState::Won ? "won" : w.mission == MissionState::Lost ? "lost" : "running";
+    if (spec.expect_mission != state) {
+      std::fprintf(stderr, "FAIL: mission %s, expected %s (%s)\n", state, spec.expect_mission.c_str(), w.lost_reason.c_str());
+      ok = false;
+    }
+  }
+  if (!spec.expect_lost_reason.empty() && w.lost_reason.find(spec.expect_lost_reason) == std::string::npos) {
+    std::fprintf(stderr, "FAIL: loss reason \"%s\" does not mention \"%s\"\n", w.lost_reason.c_str(),
+                 spec.expect_lost_reason.c_str());
+    ok = false;
+  }
   for (const auto& [gid, minv] : spec.expect_stock) {
     GoodId g = w.defs->good(gid);
     u64 total = 0;
@@ -506,6 +520,7 @@ void setup_mission(World& w, const data::Defs& defs, ScenarioSpec& s) {
     w.goals.favor = g.value("favor", static_cast<u8>(0));
     w.goals.requests = g.value("requests", static_cast<u16>(0));
     w.goals.survive_days = g.value("survive_days", static_cast<u16>(0));
+    w.goals.max_debt_days = g.value("max_debt_days", w.goals.max_debt_days);
     if (g.contains("buildings"))
       for (auto& [b, n] : g["buildings"].items()) {
         BuildingDefId d = defs.building(b);

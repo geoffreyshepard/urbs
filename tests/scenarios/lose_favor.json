@@ -1,0 +1,15 @@
+{
+  "name": "lose_favor",
+  "id": "test_lose_favor",
+  "mission": 3,
+  "difficulty": 1,
+  "map": {"size": 96, "seed": 2, "flat": true, "river": false},
+  "world": {"max_citizens": 1000, "max_buildings": 256, "max_households": 400},
+  "generator": "town",
+  "houses": 20,
+  "citizens": 60,
+  "goals": {"population": 5000},
+  "script": "lose_favor.lua",
+  "ticks": 7200,
+  "test": {"mission": "lost", "lost_reason": "confidence", "max_alloc_violations": 0}
+}

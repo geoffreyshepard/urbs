@@ -547,6 +547,71 @@ u64 world_hash(const sim::World& w) {
   return h;
 }
 
+std::vector<std::pair<std::string, u64>> world_hash_parts(const sim::World& w) {
+  std::vector<std::pair<std::string, u64>> out;
+  const u64 s0 = 0xCBF29CE484222325ull;
+  auto add = [&](const char* name, u64 h) { out.emplace_back(name, h); };
+  const auto& C = w.citizens;
+  add("time", fnv(s0, &w.now, sizeof(w.now)));
+  add("citizens.token", fnv_vec(s0, C.token));
+  add("citizens.activity", fnv_vec(s0, C.activity));
+  add("citizens.loc", fnv_vec(s0, C.loc));
+  add("citizens.home", fnv_vec(s0, C.home));
+  add("citizens.work", fnv_vec(s0, C.work));
+  add("citizens.needs", fnv_vec(fnv_vec(s0, C.need_base), C.need_t0));
+  add("citizens.walk_start", fnv_vec(s0, C.walk_start));
+  add("citizens.happiness", fnv_vec(s0, C.happiness));
+  add("citizens.health", fnv_vec(s0, C.health));
+  add("citizens.task", fnv_vec(s0, C.task));
+  add("citizens.reason", fnv_vec(s0, C.reason));
+  u64 hb = s0, hp = s0, hw = s0;
+  for (u32 i = 0; i < w.buildings.ids.high_water(); ++i) {
+    if (!w.buildings.ids.alive_index(i)) continue;
+    const auto& b = w.buildings.b[i];
+    u32 v[6] = {b.employed, b.residents, b.visitors, b.build_progress, static_cast<u32>(b.money), b.damage};
+    hb = fnv(hb, v, sizeof(v));
+    hp = fnv(hp, &b.present, sizeof(b.present));
+    hw = fnv(hw, &b.work_progress, sizeof(b.work_progress));
+  }
+  add("buildings", hb);
+  add("buildings.present", hp);
+  add("buildings.work_progress", hw);
+  u64 hh = s0;
+  for (u32 i = 0; i < w.households.ids.high_water(); ++i) {
+    if (!w.households.ids.alive_index(i)) continue;
+    const auto& h = w.households.h[i];
+    u32 v[4] = {h.food, h.members, static_cast<u32>(h.savings), h.water};
+    hh = fnv(fnv(hh, v, sizeof(v)), h.fstock, sizeof(h.fstock));
+  }
+  add("households", hh);
+  add("econ.amount", fnv_vec(s0, w.econ.amount));
+  add("econ.reservations", fnv_vec(fnv_vec(s0, w.econ.res_in), w.econ.res_out));
+  add("econ.treasury", fnv(s0, &w.econ.treasury, sizeof(w.econ.treasury)));
+  add("econ.price", fnv_vec(s0, w.econ.price));
+  u64 ht = s0;
+  for (u32 t = 0; t < w.econ.task_ids.high_water(); ++t)
+    if (w.econ.task_ids.alive_index(t)) ht = fnv(ht, &w.econ.tasks[t], sizeof(w.econ.tasks[t]));
+  add("econ.hauls", ht);
+  for (size_t k = 0; k < static_cast<size_t>(rng::StreamId::Count); ++k) {
+    auto st = w.rng[k].state();
+    add(("rng." + std::to_string(k)).c_str(), fnv(s0, &st, sizeof(st)));
+  }
+  u64 ha = s0;
+  for (const auto& u : w.army.units) ha = fnv(ha, &u, sizeof(u));
+  ha = fnv_vec(fnv_vec(fnv_vec(ha, w.army.x), w.army.y), w.army.hp);
+  add("army", ha);
+  u64 hr = s0;
+  for (const auto& r : w.routes) {
+    hr = fnv(hr, &r.open, sizeof(r.open));
+    hr = fnv(hr, &r.next_visit, sizeof(r.next_visit));
+    hr = fnv_vec(fnv_vec(hr, r.bought), r.sold);
+  }
+  add("trade.routes", hr);
+  add("favor", fnv(s0, &w.favor, sizeof(w.favor)));
+  add("script", w.script ? fnv(s0, w.script->export_state().data(), w.script->export_state().size()) : 0);
+  return out;
+}
+
 namespace {
 constexpr u32 kMapMagic = 0x4D425255;  // "URBM"
 constexpr u32 kMapVersion = 1;
