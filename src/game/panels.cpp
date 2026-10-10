@@ -533,23 +533,24 @@ void draw_labor_panel(sim::World& w, const UiIcons& icons, const Dock& dock, boo
                     with_commas(workforce) + " of working age  \xC2\xB7  " + with_commas(unemployed) + " without work",
                     workforce && unemployed * 10 > workforce ? kColBad : 0))
     *open = false;
-  if (ImGui::BeginTable("labor", 3)) {
-    ImGui::TableSetupColumn("Sector");
-    ImGui::TableSetupColumn("Workers");
-    ImGui::TableSetupColumn("Priority (1 = first)");
-    ImGui::TableHeadersRow();
-    for (int s = 0; s < sim::kSectorCount; ++s) {
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::TextUnformatted(sim::sector_name(static_cast<sim::Sector>(s)));
-      ImGui::TableNextColumn();
-      ImGui::Text("%u / %u", filled[s], jobs[s]);
-      ImGui::TableNextColumn();
-      int p = w.policy.sector_priority[s];
-      ImGui::SetNextItemWidth(120);
-      if (ImGui::SliderInt(("##p" + std::to_string(s)).c_str(), &p, 1, 5)) w.policy.sector_priority[s] = static_cast<u8>(p);
-    }
-    ImGui::EndTable();
+  ImGui::TextDisabled("Short of hands, the sectors with the lowest number are staffed first.");
+  section("Sectors");
+  const float fs = ImGui::GetFontSize();
+  const float x0 = ImGui::GetCursorScreenPos().x;
+  for (int sct = 0; sct < sim::kSectorCount; ++sct) {
+    ImGui::PushID(sct);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(sim::sector_name(static_cast<sim::Sector>(sct)));
+    ImGui::SameLine(0, 0);
+    ImGui::SetCursorScreenPos(ImVec2(x0 + std::round(fs * 6.5f), ImGui::GetCursorScreenPos().y));
+    const float f = frac(filled[sct], jobs[sct]);
+    bar(std::round(fs * 6), jobs[sct] ? f : 0.0f, jobs[sct] ? level_col(f) : kColPlain);
+    ImGui::SameLine(0, std::round(fs * 0.6f));
+    ImGui::Text("%s / %s", with_commas(filled[sct]).c_str(), with_commas(jobs[sct]).c_str());
+    int pr = w.policy.sector_priority[sct];
+    if (stepper("##prio", &pr, 1, 5)) w.policy.sector_priority[sct] = static_cast<u8>(pr);
+    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Priority: 1 is staffed first, 5 last");
+    ImGui::PopID();
   }
   end_panel();
 }
@@ -572,26 +573,13 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
   // The ledger: income and spending for yesterday, this year and last year.
   const auto& L = w.econ.money;
   const float fs = ImGui::GetFontSize();
-  auto right_cell = [](const std::string& t, ImU32 col, bool bold) {
-    ImGui::PushFont(bold ? ui_fonts().bold : ui_fonts().body, 0.0f);
-    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(t.c_str()).x);
-    if (col) ImGui::PushStyleColor(ImGuiCol_Text, col);
-    ImGui::TextUnformatted(t.c_str());
-    if (col) ImGui::PopStyleColor();
-    ImGui::PopFont();
-  };
+
   if (ImGui::BeginTable("##ledger", 4)) {
     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
     for (const char* h : {"Yesterday", "This year", "Last year"})
       ImGui::TableSetupColumn(h, ImGuiTableColumnFlags_WidthFixed, std::round(fs * 5.2f));
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    for (const char* h : {"Yesterday", "This year", "Last year"}) {
-      ImGui::TableNextColumn();
-      ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
-      right_cell(h, 0, false);
-      ImGui::PopStyleColor();
-    }
+    const char* heads[] = {"", "Yesterday", "This year", "Last year"};
+    table_headings(heads, 4);
     i64 net[3] = {};
     for (int income = 1; income >= 0; --income) {
       ImGui::TableNextRow();
@@ -612,7 +600,7 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
         ImGui::TextUnformatted(econ::money_name(m));
         for (i64 v : {L.yesterday[k], L.year[k], L.last_year[k]}) {
           ImGui::TableNextColumn();
-          right_cell(with_commas(v), 0, false);
+          cell_right(with_commas(v));
         }
       }
     }
@@ -632,7 +620,7 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
     for (i64 v : net) {
       ImGui::TableNextColumn();
       ImGui::Dummy(ImVec2(0, 3));
-      right_cell(signed_commas(v), v >= 0 ? kColGood : kColBad, true);
+      cell_right(signed_commas(v), v >= 0 ? kColGood : kColBad, true);
     }
     ImGui::EndTable();
   }
@@ -800,31 +788,67 @@ void draw_religion_panel(sim::World& w, const UiIcons& icons, const Dock& dock, 
                       angry > pleased ? kColBad : 0))
       *open = false;
   }
-  ImGui::Text("Weather: %s", sim::weather_name(w.weather));
+  const float fs = ImGui::GetFontSize(), pic = std::round(fs * 2.8f);
+  const i64 pop = static_cast<i64>(w.population());
   for (u32 g = 0; g < D.gods.size(); ++g) {
     if (!w.god_available[g]) continue;
+    const auto& god = D.gods[g];
     ImGui::PushID(static_cast<int>(g));
     const u8 m = w.god_mood[g];
     const char* mood = m >= 85 ? "exalted" : m >= 65 ? "pleased" : m >= 35 ? "indifferent" : m >= 15 ? "displeased" : "wrathful";
-    ImGui::Text("%-14s %3u  %s", D.gods[g].name.c_str(), m, mood);
-    ImGui::SameLine(300);
-    if (ImGui::SmallButton("Festival")) {
-      sim::Command c;
-      c.type = sim::CmdType::Festival;
-      c.def = static_cast<u16>(g);
-      c.value = 1;
-      w.push(c);
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Grand")) {
-      sim::Command c;
-      c.type = sim::CmdType::Festival;
-      c.def = static_cast<u16>(g);
-      c.value = 3;
-      w.push(c);
-    }
+    const ImU32 col = m >= 65 ? kColGood : m >= 35 ? kColWarn : kColBad;
+    // Portrait in a frame.
+    const ImVec2 p = ImGui::GetCursorScreenPos();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(p, ImVec2(p.x + pic, p.y + pic), IM_COL32(246, 236, 210, 255), 4);
+    dl->AddRect(p, ImVec2(p.x + pic, p.y + pic), ImGui::GetColorU32(ImGuiCol_Border), 4, 0, 1.5f);
+    icons.draw_icon("ui/god_" + god.id, ImVec2(p.x + 3, p.y + 3), pic - 6);
+    ImGui::Dummy(ImVec2(pic, pic));
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("%s. Feast day: day %u of the year.", D.gods[g].domain.c_str(), D.gods[g].festival_day + 1u);
+      ImGui::SetTooltip("%s\nFeast day: day %u of the year", god.name.c_str(), god.festival_day + 1u);
+    ImGui::SameLine(0, std::round(fs * 0.7f));
+    ImGui::BeginGroup();
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
+    ImGui::TextUnformatted(god.name.c_str());
+    ImGui::PopFont();
+    ImGui::TextDisabled("%s", god.domain.c_str());
+    ImGui::EndGroup();
+    ImGui::SameLine(0, 0);
+    const float right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x;
+    const float bw = std::round(fs * 5), btn = std::round(fs * 5.2f);
+    ImGui::SetCursorScreenPos(ImVec2(right - btn - fs - bw, p.y + std::round(fs * 0.25f)));
+    ImGui::BeginGroup();
+    bar(bw, static_cast<float>(m) / 100.0f, col);
+    ImGui::PushStyleColor(ImGuiCol_Text, col == kColWarn ? ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled) : col4(col));
+    ImGui::TextUnformatted(mood);
+    ImGui::PopStyleColor();
+    ImGui::EndGroup();
+    ImGui::SameLine(0, 0);
+    ImGui::SetCursorScreenPos(ImVec2(right - btn, p.y + std::round((pic - ImGui::GetFrameHeight()) * 0.5f)));
+    if (ImGui::Button("Festival", ImVec2(btn, 0))) ImGui::OpenPopup("##fest");
+    if (ImGui::BeginPopup("##fest")) {
+      const bool feast = sim::day_of_year(w.now) == god.festival_day;
+      ImGui::PushFont(ui_fonts().bold, 0.0f);
+      ImGui::Text("A festival for %s", god.name.c_str());
+      ImGui::PopFont();
+      ImGui::TextDisabled(feast ? "Today is the feast day: twice the effect" : "Feast day: day %u of the year",
+                          god.festival_day + 1u);
+      for (int size : {1, 3}) {
+        const i64 cost = pop * size / 2 + 100 * size;
+        if (coin_button(icons, size == 1 ? "Festival (1 day)" : "Grand festival (3 days)", cost,
+                        w.econ.treasury >= cost)) {
+          sim::Command c;
+          c.type = sim::CmdType::Festival;
+          c.def = static_cast<u16>(g);
+          c.value = size;
+          w.push(c);
+          ImGui::CloseCurrentPopup();
+        }
+      }
+      ImGui::EndPopup();
+    }
+    ImGui::SetCursorScreenPos(ImVec2(p.x, p.y + pic + ImGui::GetStyle().ItemSpacing.y));
+    ImGui::Dummy(ImVec2(0, 0));
     ImGui::PopID();
   }
   end_panel();

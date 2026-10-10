@@ -1035,37 +1035,42 @@ void App::draw_stock_window(const Dock& dock, bool* open) {
   if (!panel_header(icons_, "ui/icon_goods", false, "Goods", "What the city holds, made and used yesterday"))
     *open = false;
   const auto& e = world_->econ;
-  if (ImGui::BeginTable("goods", 6, ImGuiTableFlags_RowBg)) {
-    ImGui::TableSetupColumn("Good");
-    ImGui::TableSetupColumn("Stock");
-    ImGui::TableSetupColumn("Made");
-    ImGui::TableSetupColumn("Used");
-    ImGui::TableSetupColumn("Trade");
-    ImGui::TableSetupColumn("Price");
-    ImGui::TableHeadersRow();
+  const float fs = ImGui::GetFontSize();
+  if (ImGui::BeginTable("##goods", 6, ImGuiTableFlags_RowBg)) {
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
+    for (int k = 0; k < 5; ++k) ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, std::round(fs * 3.6f));
+    const char* heads[] = {"Good", "Stock", "Made", "Used", "Change", "Price"};
+    table_headings(heads, 6);
     for (u32 g = 0; g < e.goods; ++g) {
-      if (!e.city_stock[g] && !e.produced_yday[g] && !e.consumed_yday[g] && !e.imported_yday[g] && !e.exported_yday[g]) continue;
+      if (!e.city_stock[g] && !e.produced_yday[g] && !e.consumed_yday[g] && !e.imported_yday[g] && !e.exported_yday[g])
+        continue;
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      icons_.image("goods/" + defs_.goods[g].id + "_16", 14);
+      good_icon(icons_, defs_.goods[g].id);
       ImGui::SameLine();
       ImGui::TextUnformatted(defs_.goods[g].name.c_str());
       ImGui::TableNextColumn();
-      ImGui::Text("%u", e.city_stock[g]);
+      // Nothing left of something people use: red.
+      cell_right(with_commas(e.city_stock[g]), e.city_stock[g] == 0 && e.consumed_yday[g] ? kColBad : 0, true);
       ImGui::TableNextColumn();
-      ImGui::Text("%u", e.produced_yday[g]);
+      cell_right(with_commas(e.produced_yday[g]));
       ImGui::TableNextColumn();
-      ImGui::Text("%u", e.consumed_yday[g]);
+      cell_right(with_commas(e.consumed_yday[g]));
       ImGui::TableNextColumn();
-      if (e.imported_yday[g] || e.exported_yday[g]) ImGui::Text("+%u/-%u", e.imported_yday[g], e.exported_yday[g]);
+      const i64 change =
+          static_cast<i64>(e.produced_yday[g]) + e.imported_yday[g] - e.consumed_yday[g] - e.exported_yday[g];
+      cell_right(change ? signed_commas(change) : std::string("0"), change > 0 ? kColGood : change < 0 ? kColBad : 0);
+      if (ImGui::IsItemHovered() && (e.imported_yday[g] || e.exported_yday[g]))
+        ImGui::SetTooltip("Imported %u, exported %u", e.imported_yday[g], e.exported_yday[g]);
       ImGui::TableNextColumn();
-      ImGui::Text("%.1f", e.price[g] / 10.0);
+      char price[16];
+      std::snprintf(price, sizeof price, "%.1f", e.price[g] / 10.0);
+      cell_right(price);
     }
     ImGui::EndTable();
   }
-  ImGui::TextDisabled("Made, used and traded are yesterday's figures.");
+  ImGui::TextDisabled("Yesterday's figures. Change counts trade in and out.");
   end_panel();
-  ;
 }
 
 void App::draw_debug_ui() {

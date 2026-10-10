@@ -185,6 +185,28 @@ void meter_row(const char* label, float frac, ImU32 col, const std::string& valu
   if (tip && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip);
 }
 
+void cell_right(const std::string& s, ImU32 col, bool bold) {
+  ImGui::PushFont(bold ? ui_fonts().bold : ui_fonts().body, 0.0f);
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetColumnWidth() - ImGui::CalcTextSize(s.c_str()).x);
+  if (col) ImGui::PushStyleColor(ImGuiCol_Text, col);
+  ImGui::TextUnformatted(s.c_str());
+  if (col) ImGui::PopStyleColor();
+  ImGui::PopFont();
+}
+
+void table_headings(const char* const* names, int n) {
+  ImGui::TableNextRow();
+  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+  for (int k = 0; k < n; ++k) {
+    ImGui::TableNextColumn();
+    if (k == 0)
+      ImGui::TextUnformatted(names[k]);
+    else
+      cell_right(names[k]);
+  }
+  ImGui::PopStyleColor();
+}
+
 void value_row(const char* label, const std::string& value, ImU32 col) {
   ImGui::TextUnformatted(label);
   text_right(value, col);

@@ -44,6 +44,10 @@ void meter_row(const char* label, float frac, ImU32 col, const std::string& valu
                const char* tip = nullptr);
 // Text right-aligned at the panel's right edge, on the current line.
 void text_right(const std::string& s, ImU32 col = 0, bool bold = true);
+// Right-aligned text in the current table cell (numbers in ledgers). `col` 0 keeps the text colour.
+void cell_right(const std::string& s, ImU32 col = 0, bool bold = false);
+// Small-caps column headings for a table, right-aligned except the first.
+void table_headings(const char* const* names, int n);
 // A label/value row with no bar.
 void value_row(const char* label, const std::string& value, ImU32 col = 0);
 
