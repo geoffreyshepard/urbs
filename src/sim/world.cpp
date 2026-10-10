@@ -123,6 +123,7 @@ bool World::can_place(BuildingDefId def, i32 x, i32 y, i32 w, i32 h) const {
 
 void World::update_nav_rect(i32 x, i32 y, i32 w, i32 h) {
   nav_changed_tick_ = now;
+  entrances_dirty_ = true;
   for (i32 ty = y; ty < y + h; ++ty)
     for (i32 tx = x; tx < x + w; ++tx)
       if (map.in_bounds(tx, ty)) {
@@ -154,6 +155,27 @@ void World::compute_entrance(Building& b) {
   }
   for (i32 tx = b.x; tx < b.x + b.w; ++tx) consider(tx, b.y - 1, 0);
   b.entrance = best;
+}
+
+void World::refresh_entrances() {
+  entrances_dirty_ = false;
+  // Building, demolishing or changing roads can block a neighbour's entrance or leave it in a pocket
+  // cut off from the town. Such buildings pick a new entrance; one with no way in raises an alert.
+  buildings.for_each([&](BuildingId id, Building& b) {
+    if (b.state == BState::Ruin) return;
+    const bool ok = b.entrance >= 0 && nav.cost[static_cast<size_t>(b.entrance)] != 0 &&
+                    (entry_tile < 0 || nav.connected(b.entrance, entry_tile));
+    if (ok) {
+      b.flags &= static_cast<u8>(~kBuildingCutOff);
+      return;
+    }
+    const i32 old = b.entrance;
+    compute_entrance(b);
+    if (b.entrance != old) providers_dirty_ = true;
+    const bool cut = b.entrance < 0 || (entry_tile >= 0 && !nav.connected(b.entrance, entry_tile));
+    if (cut && !(b.flags & kBuildingCutOff)) add_alert(AlertKind::NoRoad, id);
+    b.flags = static_cast<u8>(cut ? b.flags | kBuildingCutOff : b.flags & ~kBuildingCutOff);
+  });
 }
 
 namespace {
@@ -308,6 +330,7 @@ void World::place_road(i32 x, i32 y, Road type) {
   if (map.road[i] == type) return;
   map.road[i] = type;
   nav_changed_tick_ = now;
+  entrances_dirty_ = true;
   nav.update_tile(map, x, y, now);
   map.mark_dirty(x, y);
 }
@@ -339,6 +362,7 @@ void World::demolish(i32 x0, i32 y0, i32 x1, i32 y1) {
       if (map.building[i].valid()) remove_building(map.building[i]);
       if (map.road[i] != Road::None) {
         map.road[i] = Road::None;
+        entrances_dirty_ = true;
         nav.update_tile(map, x, y, now);
         map.mark_dirty(x, y);
       }
@@ -695,6 +719,7 @@ void World::tick() {
   sched.set_now(now);
   apply_commands();
   if (nav.regions_dirty) nav.rebuild_regions();
+  if (entrances_dirty_) refresh_entrances();
   if (water_dirty) recompute_water();
   if (desir_dirty) recompute_desirability();
   if (providers_dirty_) refresh_service_providers();
@@ -733,6 +758,7 @@ void World::tick() {
   if (now % kTicksPerHour == 7) {
     labor_allocate();
     count_carters();
+    expire_stale_tasks();
   }
   lap(3);
   if (econ.goods > 0) {

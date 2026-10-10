@@ -54,6 +54,9 @@ Scoring is a small weighted utility function over candidate activities. Candidat
 The grid has per-tile move costs (paved road < dirt road < open ground; impassable for water and walls, with gates as conditional passage). Costs are in tenths of a tick per tile: paved road 10, dirt road 15, grass 50, forest 70, marsh 85. A game hour is 50 ticks, so a dirt road covers about 33 tiles an hour. Roads must be fast: with 3 ticks a tile, commutes took 40% of the working day and cities stalled around 2,000 people. Service ranges and patrol reach (`kPatrolReachTicks`) are measured in walking ticks.
 
 1. **Connectivity regions:** flood-filled walkable components, updated incrementally when buildings and walls change. An unreachable destination is rejected in O(1) before any search, as Dwarf Fortress does.
+   - Every building has one entrance tile on its perimeter. It prefers the south side, then roads, then tiles in the same region as the entry tile.
+   - When the walkable map changes (a building placed or removed, a road laid or torn up, a wall breached), buildings whose entrance is blocked or cut off from the entry pick a new one.
+   - A building left with no way in raises a "has no road access" alert. Hiring needs home and workplace in the same region, so a cut-off building can never be staffed.
 2. **Hierarchical A\* (HPA\*):** 32×32 chunks with portal nodes on their borders. Search the abstract graph, then refine each chunk segment lazily, only when the agent enters that chunk (and only for visible agents; off-screen agents need only the abstract path length and timing).
 3. **Path cache:** keyed by (source building entrance, destination building entrance). Commutes are extremely repetitive (home → work), so the hit rate is high. Entries are invalidated by chunk dirty flags.
 4. **Flow fields:** used for military movement, mass evacuations, and the "everyone goes to the amphitheater" crowds.

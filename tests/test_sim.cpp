@@ -311,3 +311,143 @@ TEST_CASE("map files round-trip and scenarios can load a painted map") {
   CHECK(w.map.resource[static_cast<size_t>(w.map.idx(15, 30))] == sim::Resource::Marble);
   std::filesystem::remove_all(dir);
 }
+
+TEST_CASE("every good has a source and a use") {
+  // A good nothing makes or sells is dead content; one nothing uses, eats or buys is a dead end.
+  const auto& D = defs();
+  std::vector<u8> source(D.goods.size(), 0), use(D.goods.size(), 0);
+  for (const auto& r : D.recipes) {
+    for (const auto& a : r.inputs) use[a.good.v] = 1;
+    for (const auto& a : r.outputs) source[a.good.v] = 1;
+  }
+  for (const auto& p : D.partners) {
+    for (const auto& a : p.sells) source[a.good.v] = 1;
+    for (const auto& a : p.buys) use[a.good.v] = 1;
+  }
+  for (const auto& h : D.housing)
+    for (const auto& q : h.reqs)
+      for (GoodId g : q.goods) use[g.v] = 1;
+  for (const auto& b : D.buildings)
+    for (const auto& c : b.cost_goods) use[c.good.v] = 1;
+  for (const auto& u : D.units)
+    for (const auto& c : u.gear) use[c.good.v] = 1;
+  for (size_t g = 0; g < D.goods.size(); ++g) {
+    if (D.goods[g].food) use[g] = 1;
+    CHECK_MESSAGE(source[g], D.goods[g].id << " has no source (no recipe makes it, no partner sells it)");
+    CHECK_MESSAGE(use[g], D.goods[g].id << " has no use (nothing consumes, eats, builds with or buys it)");
+  }
+}
+
+namespace {
+std::unique_ptr<sim::World> flat_world(i32 size) {
+  auto w = std::make_unique<sim::World>();
+  sim::MapGenParams p;
+  p.size = size;
+  p.flat = true;
+  p.river = false;
+  sim::generate_map(w->map, p);
+  w->init(sim::WorldConfig{}, defs());
+  return w;
+}
+BuildingId put(sim::World& w, const char* id, i32 x, i32 y) {
+  const BuildingDefId d = defs().building(id);
+  return w.place_building(d, x, y, defs().b(d).w, defs().b(d).h, true);
+}
+}  // namespace
+
+TEST_CASE("entrances follow their neighbours; a walled-in building raises a no-road alert") {
+  auto w = flat_world(64);
+  w->entry_tile = w->map.idx(0, 40);
+  BuildingId a = put(*w, "potter", 20, 20);
+  REQUIRE(a.valid());
+  w->tick();
+  const i32 e0 = w->buildings[a].entrance;
+  REQUIRE(e0 >= 0);
+  // A statue built on the potter's doorstep: the potter finds another way in.
+  REQUIRE(put(*w, "statue", e0 % 64, e0 / 64).valid());
+  w->tick();
+  const i32 e1 = w->buildings[a].entrance;
+  CHECK(e1 != e0);
+  CHECK(w->nav.cost[static_cast<size_t>(e1)] != 0);
+  CHECK(w->nav.connected(e1, w->entry_tile));
+  CHECK((w->buildings[a].flags & sim::kBuildingCutOff) == 0);
+  // A statue walled in on all sides has no way in at all.
+  BuildingId s = put(*w, "statue", 40, 20);
+  REQUIRE(s.valid());
+  for (i32 dy = -1; dy <= 1; ++dy)
+    for (i32 dx = -1; dx <= 1; ++dx)
+      if (dx || dy) REQUIRE(put(*w, "wall", 40 + dx, 20 + dy).valid());
+  w->tick();
+  CHECK((w->buildings[s].flags & sim::kBuildingCutOff) != 0);
+  bool alerted = false;
+  for (const auto& al : w->alerts) alerted |= al.kind == sim::AlertKind::NoRoad && al.b == s;
+  CHECK(alerted);
+}
+
+TEST_CASE("defences: gates let citizens through but not raiders, walls are besieged, towers shoot") {
+  auto w = flat_world(64);
+  w->entry_tile = w->map.idx(0, 32);
+  const auto& D = defs();
+  // The governor's palace is the raiders' target, ahead of the forum.
+  REQUIRE(put(*w, "forum", 4, 4).valid());
+  BuildingId pal = put(*w, "governor_palace", 30, 30);
+  REQUIRE(pal.valid());
+  w->tick();
+  CHECK(w->city_target_tile() == w->buildings[pal].entrance);
+  // Gate: walkable for citizens and city troops, a siege obstacle for raiders.
+  REQUIRE(put(*w, "gate", 10, 10).valid());
+  REQUIRE(put(*w, "wall", 12, 10).valid());
+  const i32 gate = w->map.idx(10, 10), wall = w->map.idx(12, 10);
+  CHECK(w->nav.walkable(10, 10));
+  CHECK(w->field_cost(gate, 0) > 0);
+  CHECK(w->field_cost(gate, 1) > 100);
+  // Wall: blocks citizens; raiders must break through it.
+  CHECK_FALSE(w->nav.walkable(12, 10));
+  CHECK(w->field_cost(wall, 0) == 0);
+  CHECK(w->field_cost(wall, 1) > 100);
+  // A staffed tower shoots raiders in range.
+  BuildingId tw = put(*w, "tower", 44, 44);
+  REQUIRE(tw.valid());
+  w->buildings[tw].employed = w->buildings[tw].jobs;
+  const u16 u = w->spawn_unit(D.unit("barbarian_warrior"), 1, 46.0f, 50.0f, 4, BuildingId{});
+  REQUIRE(u != military::kNoUnit);
+  auto enemy_hp = [&] {
+    i64 hp = 0;
+    for (u32 j = 0; j < w->army.x.size(); ++j)
+      if (w->army.unit[j] == u && w->army.hp[j] > 0) hp += w->army.hp[j];
+    return hp;
+  };
+  const i64 hp0 = enemy_hp();
+  REQUIRE(hp0 > 0);
+  for (int t = 0; t < 400; ++t) w->tick();
+  CHECK(enemy_hp() < hp0);
+}
+
+TEST_CASE("deliveries nobody can make expire instead of reserving goods forever") {
+  // No citizens, so no porters: every haul stays unclaimed. Reservations must not outlive a day.
+  auto w = flat_world(64);
+  w->entry_tile = w->map.idx(0, 32);
+  const auto& D = defs();
+  BuildingId store = put(*w, "warehouse", 10, 30);
+  REQUIRE(store.valid());
+  w->add_stock(store, D.good("cut_stone"), 100);
+  const BuildingDefId tj = D.building("temple_of_jupiter");
+  BuildingId site = w->place_building(tj, 30, 30, D.b(tj).w, D.b(tj).h, false);
+  REQUIRE(site.valid());
+  bool planned = false;
+  for (int t = 0; t < static_cast<int>(kTicksPerDay) * 3; ++t) {
+    w->tick();
+    for (u32 k = 0; k < w->econ.task_ids.high_water(); ++k) {
+      if (!w->econ.task_ids.alive_index(k)) continue;
+      planned = true;
+      REQUIRE(w->now - w->econ.tasks[k].created <= kTicksPerDay + kTicksPerHour);
+    }
+  }
+  CHECK(planned);
+  // What the site counts as inbound is exactly what live hauls carry to it.
+  u32 live = 0;
+  for (u32 k = 0; k < w->econ.task_ids.high_water(); ++k)
+    if (w->econ.task_ids.alive_index(k) && w->econ.tasks[k].dst == site && w->econ.tasks[k].good == D.good("cut_stone"))
+      live += w->econ.tasks[k].amount;
+  CHECK(w->econ.rin(w->buildings[site].inv, D.good("cut_stone")) == live);
+}

@@ -251,6 +251,7 @@ struct World {
   u32 soldiers_lost_ = 0, enemies_killed_ = 0;
   u16 buy_captives_ = 0;
   Tick nav_changed_tick_ = 0;
+  bool entrances_dirty_ = false;  // the walkable map changed: re-check building entrances next tick
 
   std::vector<Command> commands;  // pending, applied at next tick start
   TickStats stats;
@@ -359,6 +360,7 @@ struct World {
   [[nodiscard]] int first_unmet(const Building& b, u8 tier) const;  // index into tier reqs or -1
   BuildingId find_vacant_house(i32 near_tile, u16 space, u8 line = 0) const;
   bool ensure_entry_tile();
+  void refresh_entrances();
   void start_emigration(HouseholdId hh);
   struct HappinessParts {
     i16 food = 0, water = 0, rest = 0, hygiene = 0, religion = 0, entertainment = 0, variety = 0, housing = 0,
@@ -455,6 +457,7 @@ struct World {
   void on_citizen_event(const Event& e);
   void on_building_event(const Event& e);
   void labor_allocate();
+  void expire_stale_tasks();
   void match_good(GoodId g);
   bool claim_task(u32 i);
   void haul_step(u32 i);

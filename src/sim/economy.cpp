@@ -401,6 +401,19 @@ void World::cancel_task(u32 t, bool goods_lost) {
   econ.task_ids.destroy(econ.task_ids.id_at(t));
 }
 
+void World::expire_stale_tasks() {
+  // A haul still holds its reservations, and a reserved delivery is never planned twice, so a stuck
+  // haul could leave a site waiting forever for its last few units. One nobody has claimed for a day
+  // (no porter can reach its source, or none is free), or any haul two days old (hauls take hours;
+  // its porter is lost), is dropped; the next matching pass plans the delivery afresh.
+  for (u32 t = 0; t < econ.task_ids.high_water(); ++t) {
+    if (!econ.task_ids.alive_index(t)) continue;
+    const Tick age = now - econ.tasks[t].created;
+    if ((econ.tasks[t].state == econ::TaskState::Open && age > kTicksPerDay) || age > 2 * kTicksPerDay)
+      cancel_task(t, true);
+  }
+}
+
 void World::match_good(GoodId g) {
   if (econ.open_tasks >= kMaxOpenTasks) return;
   // Suppliers (storage, producers of g) and active demands (sites, producer inputs, markets).

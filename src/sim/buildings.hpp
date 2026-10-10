@@ -10,6 +10,8 @@ namespace urbs::sim {
 enum class BState : u8 { Construction, Active, Burning, Ruin };
 
 inline constexpr u32 kNoIndex = 0xFFFFFFFFu;
+// Building::flags bits: 0x03 devolve counter, 0x10 sewer, 0x20 piped water, 0x40 cut off from the town.
+inline constexpr u8 kBuildingCutOff = 0x40;
 
 struct Building {
   BuildingDefId def;

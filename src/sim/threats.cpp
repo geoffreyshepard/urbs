@@ -344,7 +344,8 @@ void World::trigger(TriggerId t, i32 x, i32 y, i32 value) {
             if (map.in_bounds(tx, ty) && terrain_water(map.terrain[static_cast<size_t>(map.idx(tx, ty))]) &&
                 map.height[static_cast<size_t>(map.idx(b.x, b.y))] <= 2)
               wet = true;
-        if (!wet || defs->b(b.def).kind == BuildingKind::Farm) return;  // fields are only soaked
+        // Fields are only soaked; harbors, wharves and the lighthouse are built to stand in the water.
+        if (!wet || defs->b(b.def).kind == BuildingKind::Farm || defs->b(b.def).needs_water_adjacent) return;
         b.damage = static_cast<u8>(std::min(255, b.damage + (nile ? 40 : 90)));  // the yearly Nile is gentler
         b.work_progress = 0;
       });

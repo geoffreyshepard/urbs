@@ -281,6 +281,7 @@ Difficulty scales how often and how hard these hit (see campaign).
 - **Autumn:** harvest; olive and grape harvest; festivals.
 - **Winter:** no farm growth, higher food and fuel consumption, shipping slows.
 - **Weather events:** rain, heatwaves, storms. Region modifiers apply, such as the Nile flood in Alexandria and harsh winters in Germania.
+- **Floods:** a flood damages buildings on low ground near water. Fields are only soaked. Buildings that must stand at the water (harbors, wharves, the lighthouse) are built for it and take no flood damage. The yearly Nile flood is gentler than a disaster flood, and it renews the soil.
 
 ---
 
