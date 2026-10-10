@@ -117,15 +117,23 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
       }
     return;
   }
-  if (b.plague > 0 && plague_.valid)
-    r.push_sprite(plague_, px + fw / 2 - 4, py - 10, render::depth_for_foot(foot, map_h) - 0.0002f);
+  if (b.plague > 0 && plague_.valid) {
+    // Status mark: an overlay (no cast shadow), pulsing softly so a sick district reads without
+    // covering every roof in solid icons.
+    const f32 pulse = 0.55f + 0.3f * std::sin(r.time * 2.5f + static_cast<f32>(b.x + b.y));
+    r.push_translucent({px + fw / 2 - 4 - static_cast<f32>(plague_.ax), py - 10 - static_cast<f32>(plague_.ay), 0.03f,
+                        static_cast<f32>(plague_.w), static_cast<f32>(plague_.h), plague_.u, plague_.v, plague_.w,
+                        plague_.h, render::rgba(255, 255, 255, static_cast<u8>(pulse * 255.0f))});
+  }
   if (b.state == sim::BState::Burning) {
     const int frame = static_cast<int>(r.time * 8.0f);
     for (i32 ty = b.y; ty < b.y + b.h; ++ty)
       for (i32 tx = b.x; tx < b.x + b.w; ++tx) {
         const int f = (frame + tx * 3 + ty * 5) & 3;
         const f32 x = static_cast<f32>(tx) * T, y = static_cast<f32>(ty + 1) * T;
-        if (fire_[f].valid) r.push_sprite(fire_[f], x, y - 1, render::depth_for_foot(y, map_h) - 0.0003f);
+        // alpha just under opaque: flames cast no shadow (shaders/shadow.vert)
+        if (fire_[f].valid)
+          r.push_sprite(fire_[f], x, y - 1, render::depth_for_foot(y, map_h) - 0.0003f, render::rgba(255, 255, 255, 250));
         if (smoke_[f].valid)
           r.push_sprite(smoke_[f], x + static_cast<f32>((f * 5) % 7) - 3.0f, y - 30.0f - static_cast<f32>(f * 4),
                         0.05f, render::rgba(255, 255, 255, 200));

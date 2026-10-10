@@ -71,3 +71,5 @@ tools/atlas/            # packs sprites into atlases + JSON metadata (stb_rect_p
 | M8–M9 | Fire/smoke/collapse effects, soldiers, walls/gates/towers, combat effects |
 | M10 | UI skin, advisor portraits (small pixel portraits), god icons |
 | M12–M13 | Monuments, regional variants (Egyptian, Gallic, Germanic, Greek) |
+
+**Regional variants** (`tools/artgen/regions.py`) swap material ramps for common buildings and also reshape housing: flat earthen roof terraces with parapets in Egypt, flat whitewashed terraces in the east, half-timbered daub walls under slate in the north.
