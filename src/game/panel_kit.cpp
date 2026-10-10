@@ -212,13 +212,13 @@ void value_row(const char* label, const std::string& value, ImU32 col) {
   text_right(value, col);
 }
 
-bool stepper(const char* id, int* v, int lo, int hi, const char* unit) {
+bool stepper(const char* id, int* v, int lo, int hi, const char* unit, int step) {
   const float h = ImGui::GetFrameHeight(), box = std::round(ImGui::GetFontSize() * 3.4f), gap = 4;
   ImGui::SameLine(0, 0);
   ImGui::SetCursorScreenPos(ImVec2(g_right - (h * 2 + box + gap * 2), ImGui::GetCursorScreenPos().y));
   ImGui::PushID(id);
   int nv = *v;
-  if (glyph_button("##minus", false, h)) nv = std::max(lo, nv - 1);
+  if (glyph_button("##minus", false, h)) nv = std::max(lo, nv - step);
   ImGui::SameLine(0, gap);
   const ImVec2 p = ImGui::GetCursorScreenPos();
   ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -230,7 +230,7 @@ bool stepper(const char* id, int* v, int lo, int hi, const char* unit) {
               ImGui::GetColorU32(ImGuiCol_Text), s.c_str());
   ImGui::Dummy(ImVec2(box, h));
   ImGui::SameLine(0, gap);
-  if (glyph_button("##plus", true, h)) nv = std::min(hi, nv + 1);
+  if (glyph_button("##plus", true, h)) nv = std::min(hi, nv + step);
   ImGui::PopID();
   const bool changed = nv != *v;
   *v = nv;

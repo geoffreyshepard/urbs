@@ -644,33 +644,52 @@ void App::draw_research(const Dock& dock, bool* open) {
   if (!panel_header(icons_, "ui/icon_research", false, "Research",
                     with_commas(world_->scientia) + " scientia to spend"))
     *open = false;
-  ImGui::TextWrapped("Scholars in schools, libraries and academies produce scientia. Spend it on techniques for this city.");
-  divider();
+  ImGui::TextDisabled("Scholars in schools, libraries and academies produce scientia.");
+  const float fs = ImGui::GetFontSize();
+  section("Techniques");
   for (u16 t = 0; t < defs_.techniques.size(); ++t) {
     const auto& tech = defs_.techniques[t];
+    const bool known = world_->tech_known[t] != 0;
     ImGui::PushID(t);
-    if (world_->tech_known[t]) {
-      ImGui::TextColored(ImVec4(0.3f, 0.45f, 0.1f, 1), "[known] %s", tech.name.c_str());
+    const float y0 = ImGui::GetCursorScreenPos().y;
+    check_mark(known);
+    ImGui::SameLine();
+    ImGui::BeginGroup();
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
+    ImGui::TextUnformatted(tech.name.c_str());
+    ImGui::PopFont();
+    ImGui::PushTextWrapPos(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - fs * 6.5f);
+    ImGui::TextDisabled("%s", tech.desc.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::EndGroup();
+    const float y1 = ImGui::GetCursorScreenPos().y;
+    ImGui::SameLine(0, 0);
+    const float bw = std::round(fs * 5.6f);
+    ImGui::SetCursorScreenPos(
+        ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - bw, y0 + 2));
+    if (known) {
+      ImGui::Dummy(ImVec2(bw, 1));
     } else {
       const bool can = world_->scientia >= tech.cost;
       if (!can) ImGui::BeginDisabled();
-      if (ImGui::Button(("Study (" + std::to_string(tech.cost) + ")").c_str())) {
+      if (ImGui::Button(("Study  " + std::to_string(tech.cost)).c_str(), ImVec2(bw, 0))) {
         sim::Command c;
         c.type = sim::CmdType::Research;
         c.def = t;
         world_->push(c);
       }
       if (!can) ImGui::EndDisabled();
-      ImGui::SameLine();
-      ImGui::TextUnformatted(tech.name.c_str());
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+        ImGui::SetTooltip(can ? "Costs %u scientia" : "Needs %u scientia", tech.cost);
     }
-    ImGui::TextDisabled("   %s", tech.desc.c_str());
+    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + ImGui::GetStyle().WindowPadding.x, y1));
+    ImGui::Dummy(ImVec2(0, 0));
     ImGui::PopID();
   }
   if (mission_index_ >= 0) {
-    ImGui::Separator();
-    ImGui::Text("Personal savings: %s", with_commas(profile_.savings).c_str());
-    if (profile_.savings >= 500 && ImGui::Button("Donate 500 to the city treasury")) {
+    section("Your own purse");
+    value_row("Personal savings", with_commas(profile_.savings) + " denarii");
+    if (coin_button(icons_, "Give the city", 500, profile_.savings >= 500)) {
       profile_.savings -= 500;
       sim::Command c;
       c.type = sim::CmdType::Grant;
@@ -679,7 +698,6 @@ void App::draw_research(const Dock& dock, bool* open) {
     }
   }
   end_panel();
-  ;
 }
 
 void App::draw_help(const Dock& dock, bool* open) {

@@ -3,6 +3,7 @@
 #include <imgui.h>
 
 #include <algorithm>
+#include <cfloat>
 #include <cmath>
 #include <vector>
 
@@ -701,56 +702,99 @@ void draw_trade_panel(sim::World& w, const UiIcons& icons, const Dock& dock, boo
             n == 0 ? std::string("No routes open yet") : std::to_string(n) + (n == 1 ? " route open" : " routes open")))
       *open = false;
   }
-  ImGui::TextUnformatted("Routes");
+  const float fs = ImGui::GetFontSize();
+  // A row of goods pictures, each with its price under the hover.
+  auto goods_row = [&](const char* label, u32 partner, const std::vector<data::GoodAmount>& list, bool buying) {
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("%s", label);
+    ImGui::SameLine(std::round(fs * 3.2f));
+    for (size_t k = 0; k < list.size(); ++k) {
+      const auto& g = D.goods[list[k].good.v];
+      if (k) ImGui::SameLine(0, std::round(fs * 0.5f));
+      if (ImGui::GetCursorScreenPos().x + fs * 3 > ImGui::GetWindowPos().x + ImGui::GetWindowWidth()) {
+        ImGui::NewLine();
+        ImGui::SameLine(std::round(fs * 3.2f));
+      }
+      ImGui::BeginGroup();
+      good_icon(icons, g.id);
+      ImGui::SameLine(0, 2);
+      ImGui::Text("%u", w.trade_price(partner, list[k].good, buying) / 10);
+      ImGui::EndGroup();
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("%s: %s at %u denarii", g.name.c_str(), buying ? "they sell" : "they buy",
+                          w.trade_price(partner, list[k].good, buying) / 10);
+    }
+  };
+  section("Routes");
   for (u32 p = 0; p < w.routes.size(); ++p) {
     const auto& rs = w.routes[p];
     if (!rs.available) continue;
     const auto& pd = D.partners[p];
     ImGui::PushID(static_cast<int>(p));
-    ImGui::Text("%s (%s)", pd.name.c_str(), pd.sea ? "sea" : "land");
-    ImGui::SameLine(260);
+    ImGui::AlignTextToFramePadding();
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
+    ImGui::TextUnformatted(pd.name.c_str());
+    ImGui::PopFont();
+    ImGui::SameLine();
+    ImGui::TextDisabled(pd.sea ? "by sea" : "by land");
     if (rs.open) {
-      ImGui::TextColored(col4(kColGood), "open");
-    } else if (ImGui::Button(("Open route (" + std::to_string(pd.open_cost) + ")").c_str())) {
-      sim::Command c;
-      c.type = sim::CmdType::OpenRoute;
-      c.def = static_cast<u16>(p);
-      w.push(c);
+      text_right("open", kColGood);
+    } else {
+      ImGui::SameLine(0, 0);
+      const float bw = std::round(fs * 8.5f);
+      ImGui::SetCursorScreenPos(
+          ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - bw,
+                 ImGui::GetCursorScreenPos().y));
+      if (coin_button(icons, "Open route", pd.open_cost, w.econ.treasury >= pd.open_cost)) {
+        sim::Command c;
+        c.type = sim::CmdType::OpenRoute;
+        c.def = static_cast<u16>(p);
+        w.push(c);
+      }
     }
-    std::string buys = "  buys:", sells = "  sells:";
-    for (const auto& g : pd.buys)
-      buys += " " + D.goods[g.good.v].name + " " + std::to_string(w.trade_price(p, g.good, false) / 10) + "dn";
-    for (const auto& g : pd.sells)
-      sells += " " + D.goods[g.good.v].name + " " + std::to_string(w.trade_price(p, g.good, true) / 10) + "dn";
-    ImGui::TextWrapped("%s", buys.c_str());
-    ImGui::TextWrapped("%s", sells.c_str());
+    goods_row("Buys", p, pd.buys, false);
+    goods_row("Sells", p, pd.sells, true);
+    ImGui::Spacing();
     ImGui::PopID();
   }
-  ImGui::Separator();
-  ImGui::TextUnformatted("Goods: import when stock is below the level, export above it.");
-  ImGui::TextUnformatted("Stockpile keeps a good in storage (markets and workshops do not take it), e.g. for Rome.");
-  if (ImGui::BeginTable("tg", 4)) {
-    ImGui::TableSetupColumn("Good");
-    ImGui::TableSetupColumn("Stock");
-    ImGui::TableSetupColumn("Mode");
-    ImGui::TableSetupColumn("Level");
-    ImGui::TableHeadersRow();
+
+  section("What to trade");
+  ImGui::TextWrapped(
+      "Import keeps a good up to the level, export sells what is above it. Stockpile keeps it in "
+      "storage so markets and workshops leave it, e.g. for Rome.");
+  if (ImGui::BeginTable("##tg", 4, ImGuiTableFlags_RowBg)) {
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, std::round(fs * 3.2f));
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed, std::round(fs * 6.2f));
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_WidthFixed,
+                            ImGui::GetFrameHeight() * 2 + std::round(fs * 3.4f) + 10);
+    const char* heads[] = {"Good", "Stock", "", "Level"};
+    table_headings(heads, 4);
     const char* modes[] = {"-", "Import", "Export", "Stockpile"};
     for (u32 g = 0; g < D.goods.size(); ++g) {
       ImGui::PushID(static_cast<int>(g));
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      good_icon(icons, D.goods[g].id);
+      ImGui::SameLine();
+      ImGui::AlignTextToFramePadding();
       ImGui::TextUnformatted(D.goods[g].name.c_str());
       ImGui::TableNextColumn();
-      ImGui::Text("%u", w.econ.city_stock[g]);
+      ImGui::AlignTextToFramePadding();
+      cell_right(with_commas(w.econ.city_stock[g]));
       ImGui::TableNextColumn();
       int m = w.trade_mode[g];
-      ImGui::SetNextItemWidth(90);
+      ImGui::SetNextItemWidth(-FLT_MIN);
       bool changed = ImGui::Combo("##m", &m, modes, 4);
       ImGui::TableNextColumn();
       int lvl = w.trade_level[g];
-      ImGui::SetNextItemWidth(120);
-      changed |= ImGui::SliderInt("##l", &lvl, 0, 1000);
+      if (m == 1 || m == 2) {
+        ImGui::Dummy(ImVec2(0, 0));
+        changed |= stepper("##l", &lvl, 0, 1000, "", 25);
+      } else {
+        ImGui::AlignTextToFramePadding();
+        cell_right("\xE2\x80\x94", ImGui::GetColorU32(ImGuiCol_TextDisabled));
+      }
       if (changed) {
         sim::Command c;
         c.type = sim::CmdType::SetTrade;
@@ -869,30 +913,54 @@ void draw_military_panel(sim::World& w, Selection& sel, const UiIcons& icons, co
     if (enemies) sub += "  \xC2\xB7  " + std::to_string(enemies) + " enemy " + (enemies == 1 ? "band" : "bands") + "!";
     if (!panel_header(icons, "ui/icon_military", false, "Military", sub, enemies ? kColBad : 0)) *open = false;
   }
-  ImGui::TextWrapped("Select a unit, then right-click the map to move it. Raise units from a barracks.");
-  const char* consc[] = {"Volunteers only", "Conscript the employed too", "Full levy"};
-  int c = w.policy.conscription;
-  if (ImGui::Combo("Recruitment", &c, consc, 3)) {
-    sim::Command cmd;
-    cmd.type = sim::CmdType::SetPolicy;
-    cmd.def = static_cast<u16>(sim::PolicyId::Conscription);
-    cmd.value = c;
-    w.push(cmd);
+  ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+  ImGui::TextWrapped("Click a soldier or a unit below, then right-click the map to march. Raise units at a barracks.");
+  ImGui::PopStyleColor();
+  const float fs = ImGui::GetFontSize();
+  section("Recruitment");
+  {
+    const char* consc[] = {"Volunteers", "Employed too", "Full levy"};
+    int c = w.policy.conscription;
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted("Who serves");
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip(
+          "Volunteers: only men without work. Employed too: workers can be called up. Full levy: everyone");
+    if (choice("##consc", &c, consc, 3, std::round(fs * 5.6f))) {
+      sim::Command cmd;
+      cmd.type = sim::CmdType::SetPolicy;
+      cmd.def = static_cast<u16>(sim::PolicyId::Conscription);
+      cmd.value = c;
+      w.push(cmd);
+    }
+    value_row("Soldiers lost", with_commas(w.soldiers_lost_));
+    value_row("Enemies slain", with_commas(w.enemies_killed_));
   }
-  ImGui::Text("Soldiers lost %u, enemies slain %u", w.soldiers_lost_, w.enemies_killed_);
-  ImGui::Separator();
+  section("Units");
+  bool any = false;
   for (u16 u = 0; u < military::kMaxUnits; ++u) {
     const auto& un = w.army.units[u];
     if (!un.alive) continue;
+    any = true;
     const auto& ud = D.units[un.def.v];
-    std::string label = (un.side ? std::string("[enemy] ") : "Cohors " + std::to_string(un.number) + " - ") + ud.name + " (" +
-                        std::to_string(un.count) + ", morale " + std::to_string(un.morale) + ", " +
-                        military::order_name(un.order) + ")##u" + std::to_string(u);
-    if (ImGui::Selectable(label.c_str(), sel.unit == u)) sel.unit = u;
+    ImGui::PushID(u);
+    const ImVec2 p = ImGui::GetCursorScreenPos();
+    const float rh = std::round(fs * 2.5f);
+    if (ImGui::Selectable("##unit", sel.unit == u, 0, ImVec2(0, rh))) sel.unit = u;
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const std::string title =
+        un.side ? "Enemy " + ud.name : "Cohors " + std::to_string(un.number) + "  \xC2\xB7  " + ud.name;
+    const std::string sub = std::to_string(un.count) + " of " + std::to_string(un.initial) + " men  \xC2\xB7  morale " +
+                            std::to_string(un.morale) + "  \xC2\xB7  " + military::order_name(un.order);
+    dl->AddText(ui_fonts().bold, fs, ImVec2(p.x + 6, p.y + 2), un.side ? kColBad : ImGui::GetColorU32(ImGuiCol_Text),
+                title.c_str());
+    dl->AddText(ImVec2(p.x + 6, p.y + fs * 1.2f), ImGui::GetColorU32(ImGuiCol_TextDisabled), sub.c_str());
+    ImGui::PopID();
   }
+  if (!any) ImGui::TextUnformatted("No units in the field.");
   if (sel.unit < military::kMaxUnits && w.army.units[sel.unit].alive && w.army.units[sel.unit].side == 0) {
     const auto& un = w.army.units[sel.unit];
-    ImGui::Separator();
+    section(("Cohors " + std::to_string(un.number)).c_str());
     auto cmd = [&](sim::CmdType t, i32 v) {
       sim::Command k;
       k.type = t;
@@ -900,23 +968,35 @@ void draw_military_panel(sim::World& w, Selection& sel, const UiIcons& icons, co
       k.value = v;
       w.push(k);
     };
-    ImGui::Text("Experience %u", un.exp);
-    for (int f = 0; f < 4; ++f) {
-      if (f) ImGui::SameLine();
-      if (ImGui::RadioButton(military::formation_name(static_cast<military::Formation>(f)), static_cast<int>(un.formation) == f))
-        cmd(sim::CmdType::UnitFormation, f);
-    }
-    if (ImGui::RadioButton("aggressive", un.stance == military::Stance::Aggressive)) cmd(sim::CmdType::UnitStance, 0);
-    ImGui::SameLine();
-    if (ImGui::RadioButton("defensive", un.stance == military::Stance::Defensive)) cmd(sim::CmdType::UnitStance, 1);
+    meter_row("Strength", frac(un.count, un.initial), level_col(frac(un.count, un.initial)),
+              std::to_string(un.count) + " / " + std::to_string(un.initial));
+    meter_row("Morale", frac(un.morale, 100), level_col(frac(un.morale, 100)), std::to_string(un.morale));
+    meter_row("Experience", frac(un.exp, 100), kColPlain, std::to_string(un.exp));
+    const char* forms[] = {"Line", "Wedge", "Testudo", "Loose"};
+    int f = static_cast<int>(un.formation);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted("Formation");
+    if (choice("##form", &f, forms, 4, std::round(fs * 4.2f))) cmd(sim::CmdType::UnitFormation, f);
+    const char* stances[] = {"Aggressive", "Defensive"};
+    int st = un.stance == military::Stance::Defensive ? 1 : 0;
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted("Stance");
+    if (choice("##stance", &st, stances, 2, std::round(fs * 5.6f))) cmd(sim::CmdType::UnitStance, st);
+    ImGui::Spacing();
     if (ImGui::Button("Return to barracks")) cmd(sim::CmdType::UnitOrder, static_cast<i32>(military::Order::Return));
     ImGui::SameLine();
     if (ImGui::Button("Disband")) cmd(sim::CmdType::DisbandUnit, 0);
-    ImGui::TextUnformatted("Off-map campaign (8 days):");
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("Campaign abroad (8 days)");
+    ImGui::SameLine();
+    const char* nm[] = {"Skirmish", "Campaign", "Conquest"};
     for (int lv = 1; lv <= 3; ++lv) {
       if (lv > 1) ImGui::SameLine();
-      const char* nm[] = {"", "Skirmish", "Campaign", "Conquest"};
-      if (ImGui::Button(nm[lv])) cmd(sim::CmdType::Campaign, lv);
+      if (ImGui::Button(nm[lv - 1])) cmd(sim::CmdType::Campaign, lv);
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip(lv == 1   ? "Small risk, small plunder"
+                          : lv == 2 ? "More risk, more plunder"
+                                    : "Great risk, great plunder");
     }
   }
   end_panel();
@@ -1196,11 +1276,39 @@ BuildingId draw_alerts_panel(const sim::World& w, const UiIcons& icons, const Do
                                      : std::to_string(w.alerts.size()) + (w.alerts.size() == 1 ? " alert" : " alerts") +
                                            ", newest first"))
     *open = false;
-  for (auto it = w.alerts.rbegin(); it != w.alerts.rend(); ++it) {
-    std::string t = "Day " + std::to_string(sim::day_index(it->t) + 1) + "  " + alert_text(w, *it);
-    if (it->count > 1) t += "  (x" + std::to_string(it->count) + ")";
-    t += "##" + std::to_string(it - w.alerts.rbegin());
-    if (ImGui::Selectable(t.c_str()) && it->b.valid()) jump = it->b;
+  // Newest first, under a heading per day; a coloured stripe says how bad it is. A click goes to the building.
+  const float fs = ImGui::GetFontSize();
+  u64 day = ~0ull;
+  int k = 0;
+  for (auto it = w.alerts.rbegin(); it != w.alerts.rend(); ++it, ++k) {
+    const u64 d = sim::day_index(it->t);
+    if (d != day) {
+      day = d;
+      section(("Day " + std::to_string(d + 1)).c_str());
+    }
+    using K = sim::AlertKind;
+    const K kind = it->kind;
+    const bool bad = kind == K::Fire || kind == K::Collapse || kind == K::Disease || kind == K::Crime ||
+                     kind == K::Riot || kind == K::Revolt || kind == K::Raid || kind == K::GodAngry ||
+                     kind == K::TreasuryLow || kind == K::Homeless;
+    const bool good = kind == K::Immigrants || kind == K::Dedicated || kind == K::Request ||
+                      (kind == K::GodAngry && (it->arg & 0x100));
+    const ImU32 col = good ? kColGood : bad ? kColBad : kColWarn;
+    std::string t = alert_text(w, *it);
+    if (it->count > 1) t += "  \xC3\x97" + std::to_string(it->count);
+    ImGui::PushID(k);
+    const ImVec2 p = ImGui::GetCursorScreenPos();
+    const bool there = it->b.valid() && w.buildings.alive(it->b);
+    const float wrap = ImGui::GetContentRegionAvail().x - fs;
+    const float h = ImGui::CalcTextSize(t.c_str(), nullptr, false, wrap).y + 4;
+    if (ImGui::Selectable("##a", false, there ? 0 : ImGuiSelectableFlags_Disabled, ImVec2(0, h)) && there) jump = it->b;
+    if (there && ImGui::IsItemHovered()) ImGui::SetTooltip("Go there");
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const float sw = std::max(3.0f, std::round(fs * 0.22f));
+    dl->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + sw, p.y + h - 2), col, 1);
+    dl->AddText(ui_fonts().body, fs, ImVec2(p.x + sw + fs * 0.5f, p.y + 2), ImGui::GetColorU32(ImGuiCol_Text),
+                t.c_str(), nullptr, wrap - sw);
+    ImGui::PopID();
   }
   end_panel();
   return jump;

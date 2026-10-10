@@ -52,7 +52,7 @@ void table_headings(const char* const* names, int n);
 void value_row(const char* label, const std::string& value, ImU32 col = 0);
 
 // Compact controls. Each returns true when the value changed.
-bool stepper(const char* id, int* v, int lo, int hi, const char* unit = "");
+bool stepper(const char* id, int* v, int lo, int hi, const char* unit = "", int step = 1);
 bool choice(const char* id, int* v, const char* const* options, int n, float each_w = 0);
 // A button with a coin and a cost after its label; disabled when the city cannot afford it.
 bool coin_button(const UiIcons& icons, const char* label, i64 cost, bool afford);
