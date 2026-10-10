@@ -68,6 +68,9 @@ class Renderer {
     f32 shear[4] = {0.22f, 0.08f, 2.0f, 1.0f};
     f32 color[4] = {0.62f, 0.64f, 0.78f, 1.0f};  // multiplies the ground under a shadow
   } shadows;
+  // Ground shading of the static layer (layout matches shaders/ground.frag). season: overall
+  // dryness, dry-patch strength, winter browning, snow cover.
+  f32 ground_season[4] = {0, 0.3f, 0, 0};
 
  private:
   struct Chunk {
@@ -79,8 +82,10 @@ class Renderer {
   void ensure_targets(u32 w, u32 h);
   void upload_far_texture(SDL_GPUCopyPass* pass);
   void draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, SDL_GPUBuffer* buf, u32 count,
-                      SDL_GPUTexture* tex, u32 tex_w, u32 tex_h);
-  void draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool count_stats);
+                      SDL_GPUTexture* tex, u32 tex_w, u32 tex_h, SDL_GPUTexture* ground = nullptr);
+  // main_pass: bind the ground texture and count stats (false for the shadow pass).
+  void draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool main_pass);
+  void upload_ground(SDL_GPUCopyPass* pass, const std::vector<size_t>& chunks);
   void save_screenshot(SDL_GPUCommandBuffer* cmd);
 
   platform::Window* win_ = nullptr;
@@ -88,8 +93,10 @@ class Renderer {
   SDL_GPUGraphicsPipeline* pipe_opaque_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_translucent_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_shadow_ = nullptr;
+  SDL_GPUGraphicsPipeline* pipe_ground_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_post_ = nullptr;
   SDL_GPUSampler* sampler_ = nullptr;
+  SDL_GPUSampler* linear_ = nullptr;
   SDL_GPUTexture* scene_ = nullptr;
   SDL_GPUTexture* depth_ = nullptr;
   SDL_GPUTexture* final_ = nullptr;  // graded world (+ UI for screenshots); blitted to the swapchain
@@ -106,6 +113,8 @@ class Renderer {
   std::vector<SpriteInstance> dynamic_, translucent_;
   DynamicBuffer dyn_buf_, trans_buf_, quad_buf_;
 
+  SDL_GPUTexture* ground_tex_ = nullptr;  // one texel per tile: wear, luminance, vegetation, shore
+  std::vector<u32> ground_scratch_;
   SDL_GPUTexture* far_tex_ = nullptr;   // one texel per tile
   SDL_GPUTexture* overlay_tex_ = nullptr;
   std::vector<u32> far_pixels_;

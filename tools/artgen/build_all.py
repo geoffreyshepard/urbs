@@ -39,9 +39,9 @@ def required_names():
     n = []
     for t in terrain.TERRAINS:
         n += ["terrain/%s_%d" % (t, v) for v in range(4)]
-        n += ["terrain/edge_%s_%s" % (t, s) for s in "nesw"]
-        n += ["terrain/corner_%s_%s" % (t, c) for c in ("ne", "se", "sw", "nw")]
-    n += ["terrain/cliff_s", "terrain/cliff_e", "terrain/cliff_w"]
+    for t in terrain.DUAL_TERRAINS:
+        n += ["terrain/dg_%s_%d" % (t, m) for m in range(1, 15)]
+    n += ["terrain/hc_%d" % m for m in range(1, 15)]
     n += ["terrain/water_shimmer_%d" % f for f in range(4)]
     for r in ("dirt", "paved"):
         n.append("road/%s_c" % r)

@@ -50,9 +50,15 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
 (`ax`, `ay`). A sprite with no anchor listed uses (0, 0).
 
 - `terrain/<T>_<0..3>`, where T is one of grass, fertile, sand, rock, forest, marsh, shallow, deep. These are opaque 16x16 tiles, and any variant tiles seamlessly with any other.
-- `terrain/edge_<T>_<n|e|s|w>`: terrain T bleeding in from that side. `terrain/corner_<T>_<ne|se|sw|nw>`: the same for a diagonal-only neighbour.
-  Blend priority, lowest first: deep < shallow < marsh < sand < rock < grass < fertile < forest. On each tile, draw the edges of every higher-priority neighbour terrain, lowest priority first. Draw a corner only when the diagonal neighbour is T and neither orthogonal neighbour next to that corner is T.
-- `terrain/cliff_<s|e|w>`: drawn on a tile whose south, east or west neighbour is lower.
+- Terrain is drawn on a **dual grid**: one 16x16 cell centred on every tile corner (cell (x, y) at pixel
+  (x*16-8, y*16-8), its corners on the centres of tiles (x-1, y-1), (x, y-1), (x-1, y), (x, y); cells run to
+  x = w and y = h). Blend priority, lowest first: deep < shallow < marsh < sand < rock < grass < fertile < forest.
+  - Draw the cell's lowest-priority corner terrain as a full base tile `terrain/<T>_<v>`.
+  - Then for each higher terrain L present, lowest first, draw `terrain/dg_<L>_<mask>` (mask 1..14, bit NW=1, NE=2,
+    SW=4, SE=8, set for each corner whose terrain has priority >= L). `terrain.dual_layers()` is the reference.
+- `terrain/hc_<mask>`: height steps, on the same cells. For each level L with min < L <= max of the four corner
+  heights, draw the contour whose mask marks the corners at height >= L. Same contour noise as `dg_`, so cliffs follow
+  coastlines.
 - `terrain/water_shimmer_<0..3>`: animation overlay frames for water tiles.
 - `road/<dirt|paved>_c` plus `road/<R>_<n|ne|e|se|s|sw|w|nw>`: the center piece plus one spoke per connected neighbour. Pieces can be drawn in any order.
   - Extra, optional: `road/<R>_fill_<ne|se|sw|nw>`. Draw it on a tile whose two orthogonal neighbours at that corner are joined by a diagonal road. For example, draw `fill_nw` when the N neighbour has a `sw` spoke to the W neighbour. Without it, diagonal roads narrow to a single pixel at every tile corner.

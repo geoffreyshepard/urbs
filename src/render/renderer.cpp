@@ -9,6 +9,8 @@
 
 #include "core/log.hpp"
 #include "core/profile.hpp"
+#include "shaders/ground_frag.h"
+#include "shaders/ground_vert.h"
 #include "shaders/post_frag.h"
 #include "shaders/post_vert.h"
 #include "shaders/shadow_frag.h"
@@ -48,7 +50,11 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
                                    post_vert_msl_size, 0, 0);
   SDL_GPUShader* pfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, post_frag_spv, post_frag_spv_size,
                                    post_frag_msl, post_frag_msl_size, 1, 1);
-  if (!vs || !fs || !svs || !sfs || !pvs || !pfs) return false;
+  SDL_GPUShader* gvs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, ground_vert_spv, ground_vert_spv_size,
+                                   ground_vert_msl, ground_vert_msl_size, 0, 1);
+  SDL_GPUShader* gfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, ground_frag_spv, ground_frag_spv_size,
+                                   ground_frag_msl, ground_frag_msl_size, 2, 1);
+  if (!vs || !fs || !svs || !sfs || !pvs || !pfs || !gvs || !gfs) return false;
 
   SDL_GPUVertexBufferDescription vbd{};
   vbd.slot = 0;
@@ -87,6 +93,12 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   pi.target_info.has_depth_stencil_target = true;
   pi.target_info.depth_stencil_format = depth_format_;
   pipe_opaque_ = SDL_CreateGPUGraphicsPipeline(dev_, &pi);
+  {
+    SDL_GPUGraphicsPipelineCreateInfo gpi = pi;  // static chunk layer with ground shading
+    gpi.vertex_shader = gvs;
+    gpi.fragment_shader = gfs;
+    pipe_ground_ = SDL_CreateGPUGraphicsPipeline(dev_, &gpi);
+  }
   pi.depth_stencil_state.enable_depth_write = false;
   pipe_translucent_ = SDL_CreateGPUGraphicsPipeline(dev_, &pi);
 
@@ -128,8 +140,8 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   ppi.target_info.num_color_targets = 1;
   pipe_post_ = SDL_CreateGPUGraphicsPipeline(dev_, &ppi);
 
-  for (SDL_GPUShader* sh : {vs, fs, svs, sfs, pvs, pfs}) SDL_ReleaseGPUShader(dev_, sh);
-  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_shadow_ || !pipe_post_) {
+  for (SDL_GPUShader* sh : {vs, fs, svs, sfs, pvs, pfs, gvs, gfs}) SDL_ReleaseGPUShader(dev_, sh);
+  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_shadow_ || !pipe_post_ || !pipe_ground_) {
     URBS_LOG_ERROR("pipeline creation failed: {}", SDL_GetError());
     return false;
   }
@@ -140,6 +152,8 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   si.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
   si.address_mode_u = si.address_mode_v = si.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
   sampler_ = SDL_CreateGPUSampler(dev_, &si);
+  si.min_filter = si.mag_filter = SDL_GPU_FILTER_LINEAR;  // ground texture: smooth between tile centres
+  linear_ = SDL_CreateGPUSampler(dev_, &si);
 
   SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(dev_);
   SDL_GPUCopyPass* cp = SDL_BeginGPUCopyPass(cmd);
@@ -164,11 +178,12 @@ void Renderer::shutdown() {
   dyn_buf_.release(dev_);
   trans_buf_.release(dev_);
   quad_buf_.release(dev_);
-  for (auto* t : {scene_, depth_, final_, far_tex_, overlay_tex_})
+  for (auto* t : {scene_, depth_, final_, far_tex_, overlay_tex_, ground_tex_})
     if (t) SDL_ReleaseGPUTexture(dev_, t);
   atlas_.release(dev_);
-  if (sampler_) SDL_ReleaseGPUSampler(dev_, sampler_);
-  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_shadow_, pipe_post_})
+  for (auto* s : {sampler_, linear_})
+    if (s) SDL_ReleaseGPUSampler(dev_, s);
+  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_shadow_, pipe_post_, pipe_ground_})
     if (p) SDL_ReleaseGPUGraphicsPipeline(dev_, p);
   dev_ = nullptr;
 }
@@ -178,9 +193,9 @@ void Renderer::set_map(const sim::TileMap* map) {
     if (c.buf) SDL_ReleaseGPUBuffer(dev_, c.buf);
   chunks_.clear();
   map_ = map;
-  if (far_tex_) SDL_ReleaseGPUTexture(dev_, far_tex_);
-  if (overlay_tex_) SDL_ReleaseGPUTexture(dev_, overlay_tex_);
-  far_tex_ = overlay_tex_ = nullptr;
+  for (auto* t : {far_tex_, overlay_tex_, ground_tex_})
+    if (t) SDL_ReleaseGPUTexture(dev_, t);
+  far_tex_ = overlay_tex_ = ground_tex_ = nullptr;
   far_revision_ = 0xFFFFFFFFu;
   if (!map_) return;
   chunks_.resize(static_cast<size_t>(map_->chunks_x() * map_->chunks_y()));
@@ -188,6 +203,7 @@ void Renderer::set_map(const sim::TileMap* map) {
   std::vector<SDL_GPUTransferBuffer*> unused;
   far_tex_ = create_texture_rgba(dev_, static_cast<u32>(map_->w), static_cast<u32>(map_->h), nullptr, nullptr, unused);
   overlay_tex_ = create_texture_rgba(dev_, static_cast<u32>(map_->w), static_cast<u32>(map_->h), nullptr, nullptr, unused);
+  ground_tex_ = create_texture_rgba(dev_, static_cast<u32>(map_->w), static_cast<u32>(map_->h), nullptr, nullptr, unused);
 }
 
 void Renderer::set_overlay(const u32* tile_rgba) {
@@ -262,6 +278,12 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
       }
   if (pending.empty()) return;
   stats_.chunks_rebuilt = static_cast<u32>(pending.size());
+  {
+    std::vector<size_t> rebuilt;
+    rebuilt.reserve(pending.size());
+    for (const Pending& p : pending) rebuilt.push_back(p.chunk);
+    upload_ground(pass, rebuilt);
+  }
   const u32 total = static_cast<u32>(scratch_.size() * sizeof(SpriteInstance));
   SDL_GPUTransferBufferCreateInfo xi{};
   xi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
@@ -287,6 +309,50 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
     SDL_UploadToGPUBuffer(pass, &src, &dst, false);
   }
   SDL_ReleaseGPUTransferBuffer(dev_, xb);  // deferred until the GPU is done with it
+}
+
+void Renderer::upload_ground(SDL_GPUCopyPass* pass, const std::vector<size_t>& chunks) {
+  if (!ground_tex_) return;
+  // Wear spreads two tiles, so each rebuilt chunk refreshes its texels plus a 2-tile border.
+  constexpr i32 kPad = 2;
+  struct Region {
+    i32 x0, y0, w, h;
+    u32 offset;
+  };
+  std::vector<Region> regions;
+  ground_scratch_.clear();
+  std::vector<u32> block;
+  for (size_t ci : chunks) {
+    const i32 cx = static_cast<i32>(ci) % map_->chunks_x(), cy = static_cast<i32>(ci) / map_->chunks_x();
+    const i32 x0 = std::max(0, cx * sim::kChunkTiles - kPad), y0 = std::max(0, cy * sim::kChunkTiles - kPad);
+    const i32 x1 = std::min(map_->w, (cx + 1) * sim::kChunkTiles + kPad);
+    const i32 y1 = std::min(map_->h, (cy + 1) * sim::kChunkTiles + kPad);
+    build_ground_texels(*map_, x0, y0, x1, y1, block);
+    regions.push_back({x0, y0, x1 - x0, y1 - y0, static_cast<u32>(ground_scratch_.size() * 4)});
+    ground_scratch_.insert(ground_scratch_.end(), block.begin(), block.end());
+  }
+  SDL_GPUTransferBufferCreateInfo xi{};
+  xi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+  xi.size = static_cast<u32>(ground_scratch_.size() * 4);
+  SDL_GPUTransferBuffer* xb = SDL_CreateGPUTransferBuffer(dev_, &xi);
+  std::memcpy(SDL_MapGPUTransferBuffer(dev_, xb, false), ground_scratch_.data(), xi.size);
+  SDL_UnmapGPUTransferBuffer(dev_, xb);
+  for (const Region& r : regions) {
+    SDL_GPUTextureTransferInfo src{};
+    src.transfer_buffer = xb;
+    src.offset = r.offset;
+    src.pixels_per_row = static_cast<u32>(r.w);
+    src.rows_per_layer = static_cast<u32>(r.h);
+    SDL_GPUTextureRegion dst{};
+    dst.texture = ground_tex_;
+    dst.x = static_cast<u32>(r.x0);
+    dst.y = static_cast<u32>(r.y0);
+    dst.w = static_cast<u32>(r.w);
+    dst.h = static_cast<u32>(r.h);
+    dst.d = 1;
+    SDL_UploadToGPUTexture(pass, &src, &dst, false);
+  }
+  SDL_ReleaseGPUTransferBuffer(dev_, xb);
 }
 
 void Renderer::upload_far_texture(SDL_GPUCopyPass* pass) {
@@ -322,7 +388,7 @@ void Renderer::upload_far_texture(SDL_GPUCopyPass* pass) {
 }
 
 void Renderer::draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, SDL_GPUBuffer* buf, u32 count,
-                              SDL_GPUTexture* tex, u32 tex_w, u32 tex_h) {
+                              SDL_GPUTexture* tex, u32 tex_w, u32 tex_h, SDL_GPUTexture* ground) {
   if (!buf || count == 0) return;
   Vec2 o = cam_.origin();
   CameraUniform u{{o.x, o.y},
@@ -332,12 +398,12 @@ void Renderer::draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, 
   SDL_PushGPUVertexUniformData(cmd, 0, &u, sizeof(u));
   SDL_GPUBufferBinding bb{buf, 0};
   SDL_BindGPUVertexBuffers(rp, 0, &bb, 1);
-  SDL_GPUTextureSamplerBinding tsb{tex, sampler_};
-  SDL_BindGPUFragmentSamplers(rp, 0, &tsb, 1);
+  SDL_GPUTextureSamplerBinding tsb[2] = {{tex, sampler_}, {ground, linear_}};
+  SDL_BindGPUFragmentSamplers(rp, 0, tsb, ground ? 2 : 1);
   SDL_DrawGPUPrimitives(rp, 6, count, 0, 0);
 }
 
-void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool count_stats) {
+void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool main_pass) {
   const Recti vis = cam_.visible_world(64);
   const i32 cpx = sim::kChunkTiles * sim::kTilePx;
   int cx0 = std::max(0, vis.x / cpx), cy0 = std::max(0, vis.y / cpx);
@@ -347,8 +413,9 @@ void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* 
     for (int cx = cx0; cx <= cx1; ++cx) {
       const Chunk& c = chunks_[static_cast<size_t>(cy * map_->chunks_x() + cx)];
       if (!c.buf || c.count == 0) continue;
-      draw_instances(rp, cmd, c.buf, c.count, atlas_.texture(), atlas_.width(), atlas_.height());
-      if (count_stats) {
+      draw_instances(rp, cmd, c.buf, c.count, atlas_.texture(), atlas_.width(), atlas_.height(),
+                     main_pass ? ground_tex_ : nullptr);
+      if (main_pass) {
         ++stats_.chunks_drawn;
         stats_.chunk_instances += c.count;
       }
@@ -409,7 +476,13 @@ void Renderer::render(ImDrawData* draw_data) {
     if (cam_.far()) {
       draw_instances(rp, cmd, quad_buf_.buf, 1, far_tex_, static_cast<u32>(map_->w), static_cast<u32>(map_->h));
     } else {
+      SDL_BindGPUGraphicsPipeline(rp, pipe_ground_);
+      const f32 gu[8] = {ground_season[0], ground_season[1], ground_season[2], ground_season[3],
+                         1.0f / static_cast<f32>(map_->w * sim::kTilePx), 1.0f / static_cast<f32>(map_->h * sim::kTilePx),
+                         time, (kDepthTerrain + kDepthRoad) * 0.5f};
+      SDL_PushGPUFragmentUniformData(cmd, 0, gu, sizeof(gu));
       draw_visible_chunks(rp, cmd, true);
+      SDL_BindGPUGraphicsPipeline(rp, pipe_opaque_);
     }
   }
   draw_instances(rp, cmd, dyn_buf_.buf, n_dyn, atlas_.texture(), atlas_.width(), atlas_.height());

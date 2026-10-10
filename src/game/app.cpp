@@ -566,6 +566,7 @@ void App::run() {
     lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt));
     renderer_.grade = lighting_.grade;
     renderer_.shadows = lighting_.shadows;
+    for (int k = 0; k < 4; ++k) renderer_.ground_season[k] = lighting_.ground[k];
     view_.draw(*world_, renderer_, alpha_);
     if (weather == sim::Weather::Rain || weather == sim::Weather::Storm || weather == sim::Weather::Snow) {
       // Rain streaks / snowflakes over the visible area.

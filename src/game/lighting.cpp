@@ -237,6 +237,33 @@ void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 
   blend(shadows.color, s.color, 4);
   blend(shadows.shear, s.shear, 4);
   shadows.enabled = s.enabled || shadows.color[0] < 0.98f;
+
+  // Ground: dryness, dry patches and browning follow the year (keyed mid-season, wrapping round),
+  // settled snow follows the weather in sim time.
+  static constexpr f32 kSeasonGround[4][3] = {
+      {0.00f, 0.25f, 0.00f},  // spring
+      {0.10f, 0.45f, 0.00f},  // summer
+      {0.06f, 0.35f, 0.18f},  // autumn
+      {0.00f, 0.20f, 0.40f},  // winter
+  };
+  const f32 year = (static_cast<f32>(sim::day_of_year(w.now)) +
+                    static_cast<f32>(sim::tick_of_day(w.now)) / static_cast<f32>(kTicksPerDay)) /
+                   static_cast<f32>(kDaysPerSeason);  // 0..4, season i is centred on i + 0.5
+  const f32 sp = std::fmod(year - 0.5f + 4.0f, 4.0f);
+  const int s0 = static_cast<int>(sp) % 4, s1 = (s0 + 1) % 4;
+  const f32 st = sp - std::floor(sp);
+  for (int i = 0; i < 3; ++i) ground[i] = lerp(kSeasonGround[s0][i], kSeasonGround[s1][i], st);
+  if (weather == sim::Weather::Heat) ground[0] = std::min(1.0f, ground[0] + 0.15f);
+  const bool snowing = weather == sim::Weather::Snow;
+  if (!primed) {
+    snow = snowing ? 0.8f : 0.0f;
+  } else if (w.now > last_tick) {
+    const f32 dt_ticks = static_cast<f32>(std::min<Tick>(w.now - last_tick, kTicksPerDay));
+    if (snowing) snow = std::min(1.0f, snow + dt_ticks / 400.0f);
+    else snow = std::max(0.0f, snow - dt_ticks / (sim::season(w.now) == sim::Season::Winter ? 1200.0f : 300.0f));
+  }
+  last_tick = w.now;
+  ground[3] = snow;
   primed = true;
 }
 

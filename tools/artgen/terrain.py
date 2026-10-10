@@ -5,9 +5,9 @@ Rules
 - Base tiles are opaque.  Variants share base color and feature density and
   keep multi-pixel features 1px away from tile borders, so any variant tiles
   seamlessly against any other.
-- Edges/corners: the fringe depth is pinned to EDGE_END at both tile ends so
-  neighbouring edge tiles and corner pieces connect.  Dither parity is taken
-  from tile-local (x + y), consistent across tiles because 16 is even.
+- Transitions are dual-grid overlays (see "dual-grid blends" below).  Dither
+  parity is taken from cell-local (x + y), consistent across cells because 16
+  is even.
 """
 import math
 
@@ -19,7 +19,6 @@ TERRAINS = ["grass", "fertile", "sand", "rock", "forest", "marsh", "shallow", "d
 PRIORITY = ["deep", "shallow", "marsh", "sand", "rock", "grass", "fertile", "forest"]
 SIDES = ["n", "e", "s", "w"]
 CORNERS = ["ne", "se", "sw", "nw"]
-EDGE_END = 3          # fringe depth at the two ends of every edge piece
 WATER = {"shallow", "deep"}
 
 
@@ -66,7 +65,8 @@ def tex_fertile(v, key=None):
     img = new(T, T)
     r = rng(key or "terrain/fertile/%d" % v)
     g = C.grass
-    _grass_like(img, r, g[1], g[0], g[2], g[3], [(C.earth[2], 3), (C.earth[1], 2)], tuft_n=6)
+    # close to grass (fertility is read from the overlay): a little denser, with tilled-earth flecks
+    _grass_like(img, r, g[2], g[1], g[1], g[3], [(C.earth[2], 4), (C.earth[1], 3), (C.grass[0], 6)], tuft_n=7)
     return img
 
 
@@ -242,35 +242,22 @@ def base_tile(t, v):
     return TEXTURES[t](v)
 
 
-# ------------------------------------------------------------ edges/corners
-def _profile(key):
-    """Fringe depth per position 0..15, pinned to EDGE_END at both ends;
-    a smooth wave (sum of two sines) so blends read as organic shapes."""
-    r = rng(key)
-    p1, p2 = r.uniform(0, 6.283), r.uniform(0, 6.283)
-    a1, a2 = r.uniform(0.7, 1.2), r.uniform(0.4, 0.7)
-    d = []
-    for a in range(T):
-        env = math.sin(math.pi * (a + 0.5) / T)          # 0 at the ends
-        wave = a1 * math.sin(2 * math.pi * a / T * 1.0 + p1) + a2 * math.sin(2 * math.pi * a / T * 3.0 + p2)
-        d.append(int(round(EDGE_END + 0.6 + env * wave)))
-    d[0] = d[-1] = EDGE_END
-    return [max(2, min(6, v)) for v in d]
-
-
-def _side_coords(side, x, y):
-    """(along, depth) of pixel for a fringe entering from `side`."""
-    if side == "n":
-        return x, y
-    if side == "s":
-        return x, T - 1 - y
-    if side == "w":
-        return y, x
-    return y, T - 1 - x        # e
+# ------------------------------------------------------------ dual-grid blends
+# Terrain transitions use a dual grid: a 16x16 cell is drawn centred on every tile corner, so its
+# four corners sit on the centres of the four tiles around that point.  The cell takes the lowest-
+# priority terrain of the four as a full base tile, then, for each higher terrain L present, the
+# overlay terrain/dg_<L>_<mask>, where mask has bit NW=1, NE=2, SW=4, SE=8 set for every corner
+# whose terrain has priority >= L.  See dual_layers() (mirrored by render/terrain.cpp).
+#
+# An overlay's shape is the 0.5 contour of the bilinear blend of its corner bits, pushed about by
+# a small noise that is periodic over 16 px, so shapes agree along every shared cell edge: straight
+# runs wobble, outer corners round off and diagonal coasts become smooth 45-degree lines.
+DUAL_TERRAINS = [t for t in PRIORITY if t != PRIORITY[0]]   # the lowest never overlays
 
 
 def _paint_fringe(img, t, inside_fn, key):
-    """inside_fn(x, y) -> 'solid' | 'rim' | 'dither' | 'foam' | None."""
+    """inside_fn(x, y) -> 'solid' | 'rim' | 'dither' | 'foam' | None.  The terrain texture is
+    read half a tile off ((x + 8, y + 8) mod 16), matching full tiles drawn on dual cells."""
     src = TEXTURES[t](0, key=key + "/tex")
     fr = FRINGE[t]
     for y in range(T):
@@ -279,105 +266,110 @@ def _paint_fringe(img, t, inside_fn, key):
             if k is None:
                 continue
             chk = (x + y) % 2 == 0
+            tex = src.getpixel(((x + 8) % T, (y + 8) % T))
             if k == "solid":
-                px(img, x, y, src.getpixel((x, y)))
+                px(img, x, y, tex)
             elif k == "rim":
-                px(img, x, y, fr["rim"] or src.getpixel((x, y)))
+                px(img, x, y, fr["rim"] or tex)
             elif k == "dither":
                 if chk:
-                    px(img, x, y, fr["rim"] or src.getpixel((x, y)))
+                    px(img, x, y, fr["rim"] or tex)
             elif k == "foam":
                 if fr["foam"] is not None and chk and hash2(x, y, 7) % 3 == 0:
                     px(img, x, y, fr["foam"])
     return img
 
 
-def edge(t, side):
-    prof = _profile("edge/%s/%s" % (t, side))
+def _dual_noise(x, y):
+    """Smooth noise with period 16 in x and y (so it matches across cell edges)."""
+    u, v = 2 * math.pi * (x + 0.5) / T, 2 * math.pi * (y + 0.5) / T
+    return (0.075 * math.sin(u + 2 * v + 0.7) + 0.06 * math.sin(3 * u - v + 2.1) +
+            0.045 * math.sin(2 * u + 3 * v + 4.0))
 
+
+def _dual_field(mask, x, y):
+    """(value, gradient length per px) of the corner blend at pixel (x, y)."""
+    nw, ne, sw, se = ((mask >> i) & 1 for i in range(4))
+    u, v = (x + 0.5) / T, (y + 0.5) / T
+    top, bot = nw + (ne - nw) * u, sw + (se - sw) * u
+    f = top + (bot - top) * v
+    fu = (ne - nw) * (1 - v) + (se - sw) * v
+    fv = bot - top
+    g = math.hypot(fu, fv) / T
+    return f + _dual_noise(x, y), max(g, 0.02)
+
+
+def dual(t, mask):
     def inside(x, y):
-        a, d = _side_coords(side, x, y)
-        lim = prof[a]
-        if d < lim - 1:
+        f, g = _dual_field(mask, x, y)
+        d = (f - 0.5) / g                  # signed distance to the contour, in px (inside > 0)
+        if d >= 1.0:
             return "solid"
-        if d == lim - 1:
+        if d >= 0.0:
             return "rim" if t not in WATER else "solid"
-        if d == lim:
+        if d >= -1.0:
             return "dither"
-        if d == lim + 1:
+        if d >= -2.0:
             return "foam"
         return None
 
-    return _paint_fringe(new(T, T), t, inside, "edge/%s/%s" % (t, side))
+    return _paint_fringe(new(T, T), t, inside, "dual/%s/%d" % (t, mask))
 
 
-def corner(t, c):
-    # distance measured from the corner point
-    def inside(x, y):
-        dx = (T - 1 - x) if "e" in c else x
-        dy = y if "n" in c else (T - 1 - y)
-        dist = math.hypot(dx + 0.5, dy + 0.5)
-        if dist < EDGE_END - 0.6:
-            return "solid"
-        if dist < EDGE_END + 0.5:
-            return "rim" if t not in WATER else "solid"
-        if dist < EDGE_END + 1.5:
-            return "dither"
-        if dist < EDGE_END + 2.5:
-            return "foam"
-        return None
-
-    return _paint_fringe(new(T, T), t, inside, "corner/%s/%s" % (t, c))
+def dual_layers(terrain_at, x, y, variant=0):
+    """Sprite names for the dual cell whose corners are the centres of tiles (x-1, y-1) .. (x, y).
+    terrain_at(x, y) must clamp to the map.  Drawn at pixel (x*16 - 8, y*16 - 8)."""
+    corners = [terrain_at(x - 1, y - 1), terrain_at(x, y - 1), terrain_at(x - 1, y), terrain_at(x, y)]
+    prio = [PRIORITY.index(c) for c in corners]
+    low = min(prio)
+    names = ["terrain/%s_%d" % (PRIORITY[low], variant % 4)]
+    for p in sorted(set(prio)):
+        if p == low:
+            continue
+        mask = sum(1 << i for i in range(4) if prio[i] >= p)
+        names.append("terrain/dg_%s_%d" % (PRIORITY[p], mask))
+    return names
 
 
 # ------------------------------------------------------------ cliffs
-def cliff(side):
+# Height steps use the dual grid too: terrain/hc_<mask> (mask bits as for dg_, set for corners on
+# the higher level) is drawn along the same noisy contour as the terrain overlays, so cliffs follow
+# coastlines.  Where the high ground lies to the north the step shows a face of earth strata below
+# the contour (lit when it turns west, dark when it turns east); elsewhere it is a lip: a light rim
+# on the high side where the slope faces the top-left light, a dark one where it faces away.
+def height_cliff(mask):
     img = new(T, T)
-    r = rng("cliff/" + side)
     e = C.earth
-    if side == "s":
-        # irregular top of the face; pinned at ends for seamless runs
-        top = [11] * T
-        for x in range(2, T - 2):
-            top[x] = 11 + r.choice((-1, 0, 0, 0, 1))
+    for y in range(T):
         for x in range(T):
-            t0 = top[x]
-            px(img, x, t0 - 1, C.travertine[1] if (x % 3) else C.earth[3])   # lit lip
-            for y in range(t0, T):
-                depth = y - t0
-                if y == T - 1:
-                    c = e[0]
-                elif depth == 0:
-                    c = e[3]
+            f, g = _dual_field(mask, x, y)
+            d = (f - 0.5) / g                      # px from the contour, + on the high side
+            nw, ne, sw, se = ((mask >> i) & 1 for i in range(4))
+            u, v = (x + 0.5) / T, (y + 0.5) / T
+            gx = (ne - nw) * (1 - v) + (se - sw) * v
+            gy = (sw - nw) * (1 - u) + (se - ne) * u
+            n = math.hypot(gx, gy) or 1.0
+            gx, gy = gx / n, gy / n                # unit vector toward the high side
+            face = max(0.0, -gy)                   # high ground to the north: the face is visible
+            depth = 1.0 + 3.2 * face               # face height in px
+            if -depth <= d < 0 and face > 0.25:
+                k = -d                             # 0 at the top of the face
+                if k < 1.0:
+                    c = e[3]                       # sunlit top edge
+                elif d < -depth + 1.0:
+                    c = e[0]                       # foot of the face
                 else:
-                    c = e[2] if (x + (y // 2)) % 4 else e[1]   # strata
-                    if r.random() < 0.15:
-                        c = e[1]
+                    c = e[2] if (int(y) // 2 + x) % 4 else e[1]   # strata
+                    if gx > 0.45:
+                        c = e[1]                   # turning east, away from the light
+                    elif gx < -0.45:
+                        c = e[3] if (x + y) % 2 else e[2]
                 px(img, x, y, c)
-            if x % 5 == 2:                              # vertical fissure
-                for y in range(t0 + 1, T - 1):
-                    px(img, x, y, e[1])
-        # small boulder detail
-        bx = r.randrange(3, T - 4)
-        px(img, bx, T - 3, C.travertine[1])
-        px(img, bx + 1, T - 3, C.travertine[0])
-        px(img, bx + 1, T - 2, e[0])
-    else:
-        # e: face looks away from the light -> dark; w: faces the light
-        for y in range(T):
-            jag = 1 if (hash2(y, 3, 11) % 4 == 0 and 1 < y < T - 2) else 0
-            if side == "e":
-                cols = [(T - 1, e[0]), (T - 2, e[1]), (T - 3 - jag, e[1] if jag else None)]
-                lip = T - 3 - jag if not jag else T - 4
-                for x, c in cols:
-                    if c is not None:
-                        px(img, x, y, c)
-                if y % 2 == 0:
-                    px(img, lip, y, C.earth[2])
-            else:
-                px(img, 0, y, e[1])
-                px(img, 1, y, e[3])
-                px(img, 2 + jag, y, C.travertine[1] if y % 2 else e[3])
+            elif 0 <= d < 1.0 and face <= 0.25:
+                lit = gx + gy > 0.2                # slope faces away from the top-left light?
+                px(img, x, y, C.earth[1] if not lit else C.travertine[1])
+            elif -1.0 <= d < 0 and face <= 0.25 and (x + y) % 2 == 0:
+                px(img, x, y, C.earth[1])
     return img
 
 
@@ -410,13 +402,11 @@ def generate():
     for t in TERRAINS:
         for v in range(4):
             out.append(("terrain/%s_%d" % (t, v), base_tile(t, v), None))
-    for t in TERRAINS:
-        for s in SIDES:
-            out.append(("terrain/edge_%s_%s" % (t, s), edge(t, s), None))
-        for c in CORNERS:
-            out.append(("terrain/corner_%s_%s" % (t, c), corner(t, c), None))
-    for s in ("s", "e", "w"):
-        out.append(("terrain/cliff_%s" % s, cliff(s), None))
+    for t in DUAL_TERRAINS:
+        for m in range(1, 15):
+            out.append(("terrain/dg_%s_%d" % (t, m), dual(t, m), None))
+    for m in range(1, 15):
+        out.append(("terrain/hc_%d" % m, height_cliff(m), None))
     for f in range(4):
         out.append(("terrain/water_shimmer_%d" % f, shimmer(f), None))
     return out
