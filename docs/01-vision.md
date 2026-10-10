@@ -29,7 +29,7 @@ Build Rome one family at a time. Found a muddy Latin hamlet, grow it into a prov
 - Controller or Steam Deck support
 - 3D, rotating camera, or high-resolution art
 - Deep RTS-style combat micro
-- Music, sound and localization (English only). Architecture leaves room for them later.
+- Sound effects and localization (English only). Architecture leaves room for them later. (Music is now in scope: see docs/11-music.md.)
 - Mobile platforms
 
 ## Constraints
