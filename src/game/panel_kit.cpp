@@ -108,6 +108,17 @@ bool panel_header(const UiIcons& icons, const std::string& picture, bool thumb, 
   return !closed;
 }
 
+void menu_title(const char* title) {
+  g_left = ImGui::GetCursorScreenPos().x;
+  g_right = g_left + ImGui::GetContentRegionAvail().x;
+  ImGui::PushFont(ui_fonts().heading, std::round(ImGui::GetFontSize() * 1.6f));
+  const float w = ImGui::CalcTextSize(title).x;
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX() + std::max(0.0f, (g_right - g_left - w) * 0.5f));
+  ImGui::TextUnformatted(title);
+  ImGui::PopFont();
+  divider();
+}
+
 void tag(const char* label, ImU32 col) {
   const UiFonts& f = ui_fonts();
   const float fs = ImGui::GetFontSize(), ts = std::round(fs * 0.85f), h = std::round(fs * 1.35f);

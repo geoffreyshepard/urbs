@@ -101,8 +101,7 @@ void App::draw_ui() {
         ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Always);
         begin_window("##end", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
         if (world_->mission == sim::MissionState::Won) {
-          ImGui::Text("VICTORIA!");
-          ImGui::Separator();
+          menu_title("Victoria!");
           ImGui::TextWrapped("The Senate is pleased with your work. You have earned promotion and a greater charge.");
           ImGui::Text("Personal savings: %s denarii", with_commas(profile_.savings).c_str());
           if (mission_index_ >= 0) {
@@ -117,8 +116,7 @@ void App::draw_ui() {
           }
           if (big_button("Keep building this city")) end_dismissed_ = true;
         } else {
-          ImGui::Text("The mission has failed");
-          ImGui::Separator();
+          menu_title("The mission has failed");
           ImGui::TextWrapped("%s", world_->lost_reason.c_str());
           if (big_button("Load a saved game")) {
             show_saveload_ = true;
@@ -187,8 +185,11 @@ void App::draw_campaign() {
   const ImVec2 ds = display();
   ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(ds.x - 40, ds.y - 40), ImGuiCond_Always);
-  begin_window("The Province of the Career", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-  float map_w = (ds.x - 40) * 0.64f, map_h = ds.y - 120;
+  begin_window(
+      "##campaign", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("The Province of the Career");
+  float map_w = (ds.x - 40) * 0.64f, map_h = ds.y - 160;
   map_h = std::min(map_h, (map_w - 16) * 288.0f / 512.0f + 16);
   // Stylised Mediterranean: sea, land masses as soft blobs, the road of the career between missions.
   ImGui::BeginChild("map", ImVec2(map_w, map_h), true);
@@ -256,8 +257,11 @@ void App::draw_campaign() {
 }
 
 void App::draw_sandbox_setup() {
-  center_next(420, 440);
-  begin_window("Sandbox", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  center_next(420, 480);
+  begin_window(
+      "##sandbox", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Sandbox");
   ImGui::TextWrapped("A free city with every building unlocked and 15,000 denarii.");
   int size = gen_.size, seed = static_cast<int>(gen_.seed);
   const char* sizes[] = {"Small (128)", "Medium (192)", "Large (256)", "Huge (384)"};
@@ -558,8 +562,11 @@ Dock App::panel_dock(Panel p) const {
 }
 
 void App::draw_pause() {
-  center_next(320, 330);
-  begin_window("Paused", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  center_next(320, 300);
+  begin_window(
+      "##paused", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Paused");
   const float x = (320 - 260) * 0.5f;
   ImGui::SetCursorPosX(x);
   if (big_button("Resume")) paused_menu_ = false;
@@ -586,8 +593,11 @@ void App::draw_pause() {
 }
 
 void App::draw_settings() {
-  center_next(400, 330);
-  begin_window("Settings", &show_settings_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  center_next(400, 360);
+  begin_window(
+      "##settings", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Settings");
   if (ImGui::SliderFloat("UI scale", &settings_.ui_scale, 0.75f, 2.0f, "%.2f")) apply_roman_style(settings_.ui_scale);
   ImGui::Checkbox("Scroll at screen edges", &settings_.edge_scroll);
   ImGui::Checkbox("Autosave every four days", &settings_.autosave);
@@ -603,8 +613,11 @@ void App::draw_settings() {
 }
 
 void App::draw_saveload() {
-  center_next(460, 420);
-  begin_window(saveload_saving_ ? "Save game" : "Load game", &show_saveload_, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+  center_next(460, 470);
+  begin_window(
+      "##saveload", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title(saveload_saving_ ? "Save game" : "Load game");
   const char* slots[] = {"autosave", "quicksave", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"};
   for (const char* s : slots) {
     if (saveload_saving_ && (std::string(s) == "autosave")) continue;
@@ -633,6 +646,8 @@ void App::draw_saveload() {
     if (!can) ImGui::EndDisabled();
     ImGui::PopID();
   }
+  ImGui::Spacing();
+  if (big_button("Back", 160)) show_saveload_ = false;
   ImGui::End();
 }
 

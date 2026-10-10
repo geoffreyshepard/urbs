@@ -31,6 +31,8 @@ void end_panel();
 // one summary line under it, and a close button. Returns false when the close button was clicked.
 bool panel_header(const UiIcons& icons, const std::string& picture, bool thumb, const std::string& title,
                   const std::string& sub, ImU32 sub_col = 0);
+// A menu's title (pause, settings, save and load, setup screens): centred Cinzel over the panels' divider.
+void menu_title(const char* title);
 // A coloured tag ("Plague", "On fire") on the current line.
 void tag(const char* label, ImU32 col);
 // A thin rule across the panel, then a small-caps label.

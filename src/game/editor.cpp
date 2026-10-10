@@ -9,6 +9,7 @@
 
 #include "core/log.hpp"
 #include "game/app.hpp"
+#include "game/panel_kit.hpp"
 #include "game/style.hpp"
 #include "save/save.hpp"
 
@@ -74,8 +75,11 @@ bool App::reload_defs(std::string* err) {
 }
 
 void App::draw_mods() {
-  center_next(640, 520);
-  begin_window("Mods", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  center_next(640, 550);
+  begin_window(
+      "##mods", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Mods");
   ImGui::TextWrapped("Mods add or change goods, buildings, housing, gods, units, trade partners and scenarios. "
                      "Enabled mods load in this order after the base game. See docs/10-modding.md.");
   ImGui::TextDisabled("Folders: %smods  and  %smods", root_.c_str(), user_dir_.c_str());
@@ -157,8 +161,11 @@ std::vector<std::pair<std::string, std::string>> App::custom_scenarios() const {
 }
 
 void App::draw_custom() {
-  center_next(560, 480);
-  begin_window("Custom scenarios", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  center_next(560, 510);
+  begin_window(
+      "##custom", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Custom scenarios");
   ImGui::TextWrapped("Scenarios made in the editor (saved in %sscenarios) and scenarios from enabled mods.", user_dir_.c_str());
   ImGui::Separator();
   const auto list = custom_scenarios();
