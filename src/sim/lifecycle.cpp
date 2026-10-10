@@ -130,7 +130,7 @@ void World::kill_citizen(u32 i) {
   despawn_citizen(id);
   if (hh.valid() && households.ids.alive(hh) && households[hh].members == 0) {
     // No heirs: the estate passes to the city.
-    earn(std::max(0, households[hh].savings), econ::Money::Other);
+    earn(std::max(0, households[hh].savings), econ::Money::Taxes);  // bona vacantia: booked as revenue
     Household& h = households[hh];
     if (h.home.valid() && buildings.alive(h.home)) {
       u32* p = &buildings[h.home].first_household;

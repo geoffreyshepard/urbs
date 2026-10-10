@@ -327,8 +327,9 @@ void World::military_tick() {
     }
     const auto& ud = defs->units[un.def.v];
     if (un.target_tile >= 0) {
+      // A field computed before the map last changed (a wall breached, a road or building added) is stale.
       if (un.field < 0 || A.fields[un.field].target != un.target_tile || A.fields[un.field].side != un.side ||
-          !A.fields[un.field].valid)
+          !A.fields[un.field].valid || A.fields[un.field].computed < nav_changed_tick_)
         un.field = flow_field(un.target_tile, un.side);
       FlowField& ff = A.fields[un.field];
       ff.last_used = now;

@@ -25,11 +25,15 @@
 | Walking speed | Roads are fast (dirt 1.5, paved 1 tick per tile) | Commutes otherwise ate the working day; the autoplay bot could not grow past ~2,000 |
 | Exports at the trade post | Goods staged for export are not handed back out to markets | Markets drained the staged goods and caravans found nothing |
 | Housing devolution | After three failed daily checks (was two) | Single-day hiccups caused eviction cascades |
+| Waterside buildings and floods | Harbors, wharves and the lighthouse take no flood damage | The yearly Nile flood otherwise wore the harbor down; on stone-less maps it could then never be rebuilt |
+| Heirless estates | Savings of a household that dies out go to the treasury, booked as taxes | The ledger has no separate category (a new one would change the save format) |
+| Stale deliveries | A haul unclaimed for a day, or two days old, is dropped and replanned | Stuck reservations stalled monuments at their last stage |
 
 ## Open questions (decide before the milestone that needs them)
 
 | Question | Needed by |
 |---|---|
+| "A city sacked" is listed as a mission failure in docs/03, but no such rule exists in the game: what counts as sacked (palace or forum taken, a share of buildings ruined), and on which difficulties? Missions are currently lost only to zero favor (Civitas, Imperium) and long debt (Imperium) | Next balance pass |
 | Final game name | M11 (first public release) |
 | Should slaves be visibly owned by specific households in the inspector, or shown more abstractly? | M7 |
 | How punishing should mission failure be: replay from the start, or reload any save? | M11 |

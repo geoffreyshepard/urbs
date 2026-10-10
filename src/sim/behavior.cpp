@@ -65,6 +65,16 @@ void World::decide(u32 i) {
     request_walk(i, current_tile(i), BuildingId{}, entry_tile, Activity::Leave);
     return;
   }
+  // A porter deciding again has abandoned its haul (destination gone, path failed, interrupted):
+  // a finished haul clears C.task before the next decision. Release it, or its reservation would
+  // block that delivery for good.
+  if (C.task[i] != kNoIndex && econ.task_ids.alive_index(C.task[i]) && econ.tasks[C.task[i]].porter == C.ids.id_at(i)) {
+    const u32 t = C.task[i];
+    econ.tasks[t].porter = CitizenId{};  // detach first: this decision goes on as usual
+    C.task[i] = kNoIndex;
+    C.carrying[i] = 0;
+    cancel_task(t, true);
+  }
   const u32 h = hour_of_day(now);
   const i32 here = current_tile(i);
   BuildingId home = C.home[i];
