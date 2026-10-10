@@ -7,6 +7,10 @@
   "ax": 0,
   "ay": 147
  },
+ "bld/amphitheater_lit": {
+  "ax": 0,
+  "ay": 147
+ },
  "bld/aqueduct_c": {
   "ax": 0,
   "ay": 33
@@ -31,6 +35,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/armory_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/bakery": {
   "ax": 0,
   "ay": 47
@@ -44,6 +52,10 @@
   "ay": 47
  },
  "bld/bakery@north": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/bakery_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -63,6 +75,10 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/balneum_lit": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/barracks": {
   "ax": 0,
   "ay": 87
@@ -76,6 +92,10 @@
   "ay": 87
  },
  "bld/barracks@north": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/barracks_lit": {
   "ax": 0,
   "ay": 87
  },
@@ -95,11 +115,23 @@
   "ax": 0,
   "ay": 87
  },
+ "bld/basilica_lit": {
+  "ax": 0,
+  "ay": 87
+ },
  "bld/blacksmith": {
   "ax": 0,
   "ay": 47
  },
+ "bld/blacksmith_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/brick_kiln": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/brick_kiln_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -127,7 +159,15 @@
   "ax": 0,
   "ay": 207
  },
+ "bld/colosseum_lit": {
+  "ax": 0,
+  "ay": 207
+ },
  "bld/concrete_works": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/concrete_works_lit": {
   "ax": 0,
   "ay": 67
  },
@@ -171,6 +211,10 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/domus_plot_t1_lit": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/domus_plot_t2": {
   "ax": 0,
   "ay": 67
@@ -191,7 +235,15 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/dye_works_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/dyer": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/dyer_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -243,6 +295,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/garum_workshop_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/gate": {
   "ax": 0,
   "ay": 27
@@ -251,7 +307,15 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/glassworks_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/governor_palace": {
+  "ax": 0,
+  "ay": 107
+ },
+ "bld/governor_palace_lit": {
   "ax": 0,
   "ay": 107
  },
@@ -299,7 +363,15 @@
   "ax": 0,
   "ay": 67
  },
+ "bld/harbor_lit": {
+  "ax": 0,
+  "ay": 67
+ },
  "bld/hospital": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/hospital_lit": {
   "ax": 0,
   "ay": 87
  },
@@ -355,6 +427,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/house_plot_t2_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/house_plot_t3": {
   "ax": 0,
   "ay": 47
@@ -368,6 +444,10 @@
   "ay": 47
  },
  "bld/house_plot_t3@north": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/house_plot_t3_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -387,11 +467,19 @@
   "ax": 0,
   "ay": 63
  },
+ "bld/house_plot_t4_lit": {
+  "ax": 0,
+  "ay": 63
+ },
  "bld/iron_mine": {
   "ax": 0,
   "ay": 67
  },
  "bld/jeweler": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/jeweler_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -428,6 +516,10 @@
   "ay": 67
  },
  "bld/lighthouse": {
+  "ax": 0,
+  "ay": 87
+ },
+ "bld/lighthouse_lit": {
   "ax": 0,
   "ay": 87
  },
@@ -479,6 +571,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/militia_post_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/mill": {
   "ax": 0,
   "ay": 47
@@ -492,6 +588,10 @@
   "ay": 47
  },
  "bld/mill@north": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/mill_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -511,7 +611,15 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/olive_press_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/pantheon": {
+  "ax": 0,
+  "ay": 167
+ },
+ "bld/pantheon_lit": {
   "ax": 0,
   "ay": 167
  },
@@ -615,6 +723,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/potter_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/pozzolana_pit": {
   "ax": 0,
   "ay": 47
@@ -660,6 +772,10 @@
   "ay": 47
  },
  "bld/sculptor": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/sculptor_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -715,6 +831,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/stonemason_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/tavern": {
   "ax": 0,
   "ay": 47
@@ -728,6 +848,10 @@
   "ay": 47
  },
  "bld/tavern@north": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/tavern_lit": {
   "ax": 0,
   "ay": 47
  },
@@ -771,6 +895,10 @@
   "ax": 0,
   "ay": 127
  },
+ "bld/thermae_lit": {
+  "ax": 0,
+  "ay": 127
+ },
  "bld/tower": {
   "ax": 0,
   "ay": 47
@@ -788,6 +916,10 @@
   "ay": 67
  },
  "bld/trade_post@north": {
+  "ax": 0,
+  "ay": 67
+ },
+ "bld/trade_post_lit": {
   "ax": 0,
   "ay": 67
  },
@@ -875,6 +1007,10 @@
   "ax": 0,
   "ay": 47
  },
+ "bld/weaver_lit": {
+  "ax": 0,
+  "ay": 47
+ },
  "bld/well": {
   "ax": 0,
   "ay": 27
@@ -884,6 +1020,10 @@
   "ay": 27
  },
  "bld/winery": {
+  "ax": 0,
+  "ay": 47
+ },
+ "bld/winery_lit": {
   "ax": 0,
   "ay": 47
  },

@@ -33,6 +33,8 @@ class Renderer {
   // Per-frame dynamic sprites (buildings, agents, effects). Cleared every frame.
   void push(const SpriteInstance& s) { dynamic_.push_back(s); }
   void push_translucent(const SpriteInstance& s) { translucent_.push_back(s); }
+  // Emissive sprites (window lights): added over the graded frame, depth-tested against the world.
+  void push_light(const SpriteInstance& s) { lights_.push_back(s); }
   void push_sprite(const Sprite& s, f32 wx, f32 wy, f32 z, u32 color = kWhite);  // anchored
   void push_rect(f32 x, f32 y, f32 w, f32 h, f32 z, u32 color, bool translucent = true);
 
@@ -95,6 +97,7 @@ class Renderer {
   SDL_GPUGraphicsPipeline* pipe_shadow_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_ground_ = nullptr;
   SDL_GPUGraphicsPipeline* pipe_post_ = nullptr;
+  SDL_GPUGraphicsPipeline* pipe_light_ = nullptr;
   SDL_GPUSampler* sampler_ = nullptr;
   SDL_GPUSampler* linear_ = nullptr;
   SDL_GPUTexture* scene_ = nullptr;
@@ -110,8 +113,8 @@ class Renderer {
   const sim::TileMap* map_ = nullptr;
   std::vector<Chunk> chunks_;
   std::vector<SpriteInstance> scratch_;
-  std::vector<SpriteInstance> dynamic_, translucent_;
-  DynamicBuffer dyn_buf_, trans_buf_, quad_buf_;
+  std::vector<SpriteInstance> dynamic_, translucent_, lights_;
+  DynamicBuffer dyn_buf_, trans_buf_, quad_buf_, light_buf_;
 
   SDL_GPUTexture* ground_tex_ = nullptr;  // one texel per tile: wear, luminance, vegetation, shore
   std::vector<u32> ground_scratch_;

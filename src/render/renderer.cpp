@@ -128,6 +128,17 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   }
   pipe_shadow_ = SDL_CreateGPUGraphicsPipeline(dev_, &spi);
 
+  // Lights: additive, depth-tested (no writes) against the world pass, drawn on the graded frame.
+  SDL_GPUGraphicsPipelineCreateInfo lpi = pi;
+  SDL_GPUColorTargetDescription lctd = ctd;
+  lctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+  lctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+  lctd.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
+  lctd.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+  lpi.target_info.color_target_descriptions = &lctd;
+  lpi.depth_stencil_state.enable_depth_write = false;
+  pipe_light_ = SDL_CreateGPUGraphicsPipeline(dev_, &lpi);
+
   // Post: fullscreen triangle, scene texture -> graded final texture.
   SDL_GPUGraphicsPipelineCreateInfo ppi{};
   SDL_GPUColorTargetDescription pctd{};
@@ -141,7 +152,7 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   pipe_post_ = SDL_CreateGPUGraphicsPipeline(dev_, &ppi);
 
   for (SDL_GPUShader* sh : {vs, fs, svs, sfs, pvs, pfs, gvs, gfs}) SDL_ReleaseGPUShader(dev_, sh);
-  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_shadow_ || !pipe_post_ || !pipe_ground_) {
+  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_shadow_ || !pipe_post_ || !pipe_ground_ || !pipe_light_) {
     URBS_LOG_ERROR("pipeline creation failed: {}", SDL_GetError());
     return false;
   }
@@ -177,13 +188,14 @@ void Renderer::shutdown() {
   chunks_.clear();
   dyn_buf_.release(dev_);
   trans_buf_.release(dev_);
+  light_buf_.release(dev_);
   quad_buf_.release(dev_);
   for (auto* t : {scene_, depth_, final_, far_tex_, overlay_tex_, ground_tex_})
     if (t) SDL_ReleaseGPUTexture(dev_, t);
   atlas_.release(dev_);
   for (auto* s : {sampler_, linear_})
     if (s) SDL_ReleaseGPUSampler(dev_, s);
-  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_shadow_, pipe_post_, pipe_ground_})
+  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_shadow_, pipe_post_, pipe_ground_, pipe_light_})
     if (p) SDL_ReleaseGPUGraphicsPipeline(dev_, p);
   dev_ = nullptr;
 }
@@ -432,6 +444,7 @@ void Renderer::render(ImDrawData* draw_data) {
     SDL_SubmitGPUCommandBuffer(cmd);
     dynamic_.clear();
     translucent_.clear();
+    lights_.clear();
     return;
   }
   ensure_targets(sw, sh);
@@ -446,6 +459,8 @@ void Renderer::render(ImDrawData* draw_data) {
   const u32 n_dyn = static_cast<u32>(dynamic_.size()), n_trans = static_cast<u32>(translucent_.size());
   dyn_buf_.upload(dev_, cp, dynamic_.data(), n_dyn * sizeof(SpriteInstance));
   trans_buf_.upload(dev_, cp, translucent_.data(), n_trans * sizeof(SpriteInstance));
+  const u32 n_light = static_cast<u32>(lights_.size());
+  light_buf_.upload(dev_, cp, lights_.data(), n_light * sizeof(SpriteInstance));
   SpriteInstance quads[2];
   if (map_) {
     f32 mw = static_cast<f32>(map_->w * sim::kTilePx), mh = static_cast<f32>(map_->h * sim::kTilePx);
@@ -466,7 +481,7 @@ void Renderer::render(ImDrawData* draw_data) {
   dt.texture = depth_;
   dt.clear_depth = 1.0f;
   dt.load_op = SDL_GPU_LOADOP_CLEAR;
-  dt.store_op = SDL_GPU_STOREOP_DONT_CARE;
+  dt.store_op = SDL_GPU_STOREOP_STORE;  // the light pass tests against it
   dt.stencil_load_op = has_stencil_ ? SDL_GPU_LOADOP_CLEAR : SDL_GPU_LOADOP_DONT_CARE;
   dt.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
   dt.clear_stencil = 0;
@@ -533,6 +548,23 @@ void Renderer::render(ImDrawData* draw_data) {
     SDL_DrawGPUPrimitives(gp, 3, 1, 0, 0);
     SDL_EndGPURenderPass(gp);
   }
+  if (n_light > 0 && !cam_.far()) {
+    SDL_GPUColorTargetInfo lt{};
+    lt.texture = final_;
+    lt.load_op = SDL_GPU_LOADOP_LOAD;
+    lt.store_op = SDL_GPU_STOREOP_STORE;
+    SDL_GPUDepthStencilTargetInfo ld{};
+    ld.texture = depth_;
+    ld.load_op = SDL_GPU_LOADOP_LOAD;
+    ld.store_op = SDL_GPU_STOREOP_DONT_CARE;
+    ld.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
+    ld.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
+    SDL_GPURenderPass* lp = SDL_BeginGPURenderPass(cmd, &lt, 1, &ld);
+    SDL_BindGPUGraphicsPipeline(lp, pipe_light_);
+    draw_instances(lp, cmd, light_buf_.buf, n_light, atlas_.texture(), atlas_.width(), atlas_.height());
+    SDL_EndGPURenderPass(lp);
+  }
+  lights_.clear();
 
   // UI into the final texture when a screenshot wants it (so the PNG shows panels).
   const bool ui_in_final = draw_data && !screenshot_path_.empty() && screenshot_ui_;

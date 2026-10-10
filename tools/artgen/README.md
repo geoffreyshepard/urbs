@@ -111,6 +111,9 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
   - Slave: gray.
   - Soldier: red tunic, gray armor and helmet.
 
+- Optional: `bld/<name>_lit` (same size and anchor as `bld/<name>`): warm window pixels for night, found by
+  `lights.py` (small filled C.outline rectangles set into a wall). The renderer adds them over the graded frame.
+
 ### Phase 3
 
 - `ui/province_map` is 512x288, covering lon -10 to 40 and lat 25 to 56 in an equirectangular projection.

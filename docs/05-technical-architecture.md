@@ -120,6 +120,9 @@ No multiplayer, so bit-exact cross-platform determinism is **not** required. The
   each art pixel's centre and quantises it with a 4×4 Bayer pattern, so smooth fields stay pixel-crisp. It gives hills
   smooth shading, broad light/dark and dry/lush variation, worn earth around buildings and along roads, seasonal drying
   and browning, settled snow (built up by snowfall in `game/lighting.cpp`) and lighter shallows by the shore.
+- **Night lights:** lived-in houses and staffed workplaces push their `bld/<name>_lit` window mask (plus a faint
+  1-px glow) to a light list. It is drawn additively on the graded frame, depth-tested against the world pass, with
+  strength from the grade's night amount, so windows glow instead of being darkened with everything else.
 - **Colour grade** (`shaders/post.frag`): split toning (cool shadows, warm light), exposure, saturation, contrast,
   lifted blacks and a light vignette. `game/lighting.cpp` keys these by hour (night, dawn, morning, day, golden hour,
   dusk) and adjusts for season and weather, easing between states so weather changes fade in.
