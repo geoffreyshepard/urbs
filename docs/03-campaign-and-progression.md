@@ -6,6 +6,7 @@
 - A persistent **career layer** links the missions: rank, personal savings, unlocked buildings and techniques, and a growing **province map** on which your earlier cities appear as trade partners.
 - Mission length grows from about **30 minutes** (mission 1) to about **6 hours** (mission 16). Population goals grow from about **300** to **10,000**.
 - History is stylized: real places and eras, loose with dates and details.
+- The story (one career told through letters, advisors and events, with a patron, a rival and an ending) is in docs/12-story.md.
 
 ## Career ranks
 

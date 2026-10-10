@@ -30,6 +30,9 @@ std::vector<std::string> enabled_mod_dirs(const Settings& s, const std::vector<M
 
 struct MissionInfo {
   std::string id, name, rank, region, blurb;
+  std::string letter;    // appointment letter, shown on the province map before the mission
+  std::string victory;   // the victory screen's text
+  std::string epilogue;  // the end of the campaign (last mission only)
   int salary = 1;
   float x = 0.5f, y = 0.5f;  // province map position (0..1)
   std::vector<std::string> sells;

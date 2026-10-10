@@ -8,11 +8,13 @@
    "x": 0.462,
    "y": 0.4428,
    "region": "Italia",
-   "blurb": "Found a hamlet by the river and grow it to 300 souls.",
+   "blurb": "A strip of land by a river in Latium, a grant from the Senate, and a few families with nowhere else to go.",
    "sells": [
     "wheat",
     "wood"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nThe Senate has voted you the land below my estates, from the ford to the bend in the river. It is good soil and nobody lives on it, which tells you something about the floods. Families from the hills will come if there are houses and water. My steward will send what grain we can spare.\n\nI put your name forward because you work and you do not complain. Do both there.\n\nFarewell.",
+   "victory": "Three hundred people live inside Spurinna's furrow. The ford has a road, the road has a market, and the Latin villages have started to call the place by a name.\n\nA letter comes from Postumius. Rome is building a port at the mouth of the Tiber and needs a man to run its council. He has suggested you. Several senators had suggested their nephews."
   },
   {
    "id": "m02_ostia",
@@ -22,11 +24,13 @@
    "x": 0.4458,
    "y": 0.4597,
    "region": "Italia",
-   "blurb": "Rome's harbor town: fish, salt, warehouses and the first trade route.",
+   "blurb": "Rome's port at the mouth of the Tiber: salt pans, fishing boats, and a council that needs someone to run it.",
    "sells": [
     "fish",
     "salt"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nYou will sit on the council at Ostia. In practice you will be the council: the others own warehouses in Rome and visit when the weather is good. The harbor master tells me the salt pans are the best on the coast and the fishermen the worst drunks.\n\nRome eats what comes up this river. See that it keeps coming.\n\nFarewell.",
+   "victory": "Ostia has quays, warehouses and a salt trade, and Rome eats a little better for it. The harbor master has stopped calling you the new man and started calling you the decurion.\n\nThe Senate sends you to the Samnite hills next. Calidius brings a second letter, unsealed. Lucius Aurunculeius Mela, whose father sits in the Senate, wanted that post for himself and said so in the Curia. \"He will not forget it,\" Calidius says. \"Neither will his father.\""
   },
   {
    "id": "m03_beneventum",
@@ -36,11 +40,13 @@
    "x": 0.4956,
    "y": 0.4797,
    "region": "Italia",
-   "blurb": "Walls, militia and temples on a troubled frontier.",
+   "blurb": "A frontier town in the Samnite hills. The Samnites lost the last war and have not accepted it.",
    "sells": [
     "stone",
     "cut_stone"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nThe Samnites called that town Maleventum, the place of the bad wind. We renamed it when we took it. Now we have to deserve the new name.\n\nQuintus Labienus will join you. He fought in those hills when you were learning to walk, and he will tell you so.\n\nYoung Mela made a speech against your appointment. It was a good speech. Make it look foolish.\n\nFarewell.",
+   "victory": "The Samnites send envoys instead of warbands. They walk in through the gate, look for a long time at the temple of Mars, and accept the treaty without much argument. Labienus says that is the best kind of battle.\n\nSpurinna watches the birds over the hills for a whole morning and declares the wind good. Postumius writes that Campania needs a quaestor who cannot be bought with wine, and that he has assumed you qualify."
   },
   {
    "id": "m04_capua",
@@ -50,12 +56,14 @@
    "x": 0.4842,
    "y": 0.4806,
    "region": "Italia",
-   "blurb": "Olives, vines and pottery; the first equites and their domus.",
+   "blurb": "The richest soil in Italy and the softest city in it. Oil, wine, and nobles who expect to be flattered.",
    "sells": [
     "olive_oil",
     "wine",
     "pottery"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nCapua is rich. Its olives are fat, its wine is sweet, and its nobles think Rome is a provincial town that got lucky. Hannibal's army wintered there once and never fought as well again. Do not winter there.\n\nThe equites will build fine houses if you give them pleasant streets to build in. Rome wants their oil and their wine, and so, I imagine, will you.\n\nFarewell.",
+   "victory": "Capua's oil and wine go up the Appian Way every week, and the equites who laughed at your accent now ask you to dinner. You eat little and drink less. Postumius hears of it and approves.\n\nThe next letter carries the Senate's seal. Sicily feeds Rome, Syracuse is its greatest port, and the last aedile there spent more on his villa than on the harbor. The post is yours."
   },
   {
    "id": "m05_syracuse",
@@ -65,11 +73,13 @@
    "x": 0.5058,
    "y": 0.6103,
    "region": "Sicilia",
-   "blurb": "Sea trade, grain exports and Rome's demands.",
+   "blurb": "Archimedes' city, and Rome's granary. Wheat, garum, and ships that must not stop sailing.",
    "sells": [
     "wheat",
     "garum"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nSicilian wheat feeds Rome. When the ships are late the price of bread doubles, the crowds come out, and senators who never think about bread think about it very hard. Keep the ships sailing.\n\nYour predecessor built himself a villa and a reputation. Build Rome a harbor.\n\nFarewell.",
+   "victory": "The harbor is a forest of masts and the warehouses smell of wheat and fish sauce. When the grain fleet sails, the bakers of Rome stop worrying.\n\nBefore you leave, Vitruvius takes you to Archimedes' tomb by the Agrigentine gate. He has had a stone bench set in front of it. \"For the next one who comes looking,\" he says.\n\nThe Senate's next letter is short. Scipio has taken New Carthage in Spain, with its silver mines, and someone has to hold it."
   },
   {
    "id": "m06_carthago_nova",
@@ -79,11 +89,13 @@
    "x": 0.1804,
    "y": 0.5935,
    "region": "Hispania",
-   "blurb": "Mines, smelters and the first legions against Punic threats.",
+   "blurb": "Scipio took New Carthage and its silver mines. Carthage wants them back.",
    "sells": [
     "silver",
     "iron"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nThe hills behind New Carthage are full of silver, and forty thousand men dig it out. That silver pays our legions. Carthage knows this as well as we do, and its armies are still in Spain.\n\nBuild mines and forges, raise real legions, and hold the city. Labienus will enjoy it more than you will.\n\nFarewell.",
+   "victory": "The last Punic army in Spain is beaten in the hills west of the city. Labienus brings back a Carthaginian helmet and sets it on a shelf in the praetorium, next to a Samnite one.\n\nThe mines run, the forges run, and Rome pays its legions in Spanish silver. Postumius writes that the Senate is founding a city at the head of the Adriatic, where the Alps come down to the sea, and that it will need water, walls, and someone who can manage both."
   },
   {
    "id": "m07_aquileia",
@@ -93,11 +105,13 @@
    "x": 0.4674,
    "y": 0.33,
    "region": "Italia",
-   "blurb": "Aqueducts over the hills, baths, sewers and barbarian raids.",
+   "blurb": "The gate to the north at the foot of the Alps. Raiders in the passes, and a city that needs running water.",
    "sells": [
     "concrete",
     "wine"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nAquileia guards the road over the Alps. Gauls and Illyrians come down the passes when they are hungry, and in that country they are hungry every winter.\n\nIt will be a large city, and large cities need water brought in from the hills. Your engineer will be happy at last.\n\nFarewell.",
+   "victory": "Water comes down from the hills into the reservoir, through the pipes and out of the fountains, and people stop in the street to watch it. Vitruvius stands at the first fountain for most of a morning. Back at his desk he rewrites the chapter on water for the third time.\n\nThe raiders have learned that Aquileia has walls, forts and a garrison that never sleeps. Postumius sends you west, to Gaul, where a new road crosses an old trade route."
   },
   {
    "id": "m08_narbo",
@@ -107,11 +121,13 @@
    "x": 0.26,
    "y": 0.4135,
    "region": "Gallia",
-   "blurb": "A trade hub with carts, a basilica and a great temple.",
+   "blurb": "Where the road from Italy meets the roads to Spain and Gaul. Make it the market of the West.",
    "sells": [
     "furniture",
     "clothing"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nNarbo is a crossroads. The Via Domitia runs through it to Spain, the river runs to the sea, and the tracks into Gaul lead to tribes who would rather trade with us than fight, as long as we have wine.\n\nOne warning. The legion in Gaul is commanded by Lucius Mela, a praetor now like you. He will need supplies from you, and he will enjoy asking.\n\nFarewell.",
+   "victory": "Narbo's market sells Spanish silver, Gaulish wool, Italian wine and Greek pottery, and takes a small tax on all of it. Mela's legion is fed, dry and supplied, and his letters have grown shorter.\n\nPostumius writes from Rome in an unsteady hand. A gladiator called Spartacus has broken out of a school in Capua, and the slaves of Campania are going over to him by the thousand. The Senate is making you consul and sending you there."
   },
   {
    "id": "m09_campania",
@@ -121,11 +137,13 @@
    "x": 0.4898,
    "y": 0.4919,
    "region": "Italia",
-   "blurb": "Keep the peace in a land worked by slaves.",
+   "blurb": "A gladiator named Spartacus has escaped from Capua, and the slaves of Campania are going over to him.",
    "sells": [
     "wine",
     "olive_oil"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings.\n\nYou are consul. I had hoped to see it in better times.\n\nSpartacus has beaten two Roman armies. The estates of Campania are worked by slaves, and every one of them has heard his name. The Senate wants order. Hold the city, hold the roads, and if you can, keep the slaves from joining him. Crassus is raising legions and will come, eventually.\n\nFarewell.",
+   "victory": "Crassus's legions catch Spartacus at last, far to the south, and he dies fighting. Six thousand prisoners are crucified along the Appian Way, from Capua to Rome, one every forty paces. Lollius rides part of the road and comes back without speaking.\n\nThe city held. Postumius sends congratulations and very little else. The Republic is tearing itself apart, and there are armies in the streets of Rome that belong to men, not to the Senate. One of those men, Caesar, has ordered Corinth rebuilt. You are to build it."
   },
   {
    "id": "m10_corinth",
@@ -135,12 +153,14 @@
    "x": 0.6586,
    "y": 0.5839,
    "region": "Achaea",
-   "blurb": "Greek culture: odeon, academy, marble and dyes.",
+   "blurb": "A century after Rome burned Corinth, Caesar orders it rebuilt with freedmen and veterans.",
    "sells": [
     "marble",
     "dyed_clothing",
     "scrolls"
-   ]
+   ],
+   "letter": "Aulus Postumius sends greetings, for what may be the last time.\n\nI am old, and the doctors have stopped pretending otherwise. I wanted you to have Corinth from my hand while my hand still counts for something.\n\nRome burned Corinth a hundred years ago and sold its people. Caesar is building it again with freedmen and veterans, and Greek learning never entirely left. Build schools there, and a theater, and let the Greeks argue in it.\n\nYou were the best thing I did in the Senate.\n\nFarewell.",
+   "victory": "Corinth has a market again, an odeon full of Greeks arguing, and an academy where the arguments are written down. The freedmen who came here a few years ago now call themselves Corinthians.\n\nThe next letter is not from Postumius, and it is not from the Senate. It comes from the office of Caesar's heir, in a polite and careful hand: Lugdunum in Gaul needs a governor who knows how to build."
   },
   {
    "id": "m11_lugdunum",
@@ -150,11 +170,13 @@
    "x": 0.2966,
    "y": 0.3303,
    "region": "Gallia",
-   "blurb": "The Republic becomes an Empire. Mint coins and honour the Emperor.",
+   "blurb": "The capital of the Three Gauls, in the years the Republic becomes an Empire.",
    "sells": [
     "silver",
     "tools"
-   ]
+   ],
+   "letter": "From the office of Gaius Julius Caesar Octavianus, to the proconsul. Greetings.\n\nLugdunum stands where the Rhodanus meets the Arar. It is to be the capital of the Three Gauls. Its hills hold silver. Strike it into coin, honour the gods of Rome, and show the chiefs of Gaul what Rome looks like when it is generous.\n\nReports are to be sent to this office monthly.\n\nFarewell.",
+   "victory": "The chiefs of the Three Gauls meet at Lugdunum, walk under your arch, and pay their taxes in coins from your mint with the Emperor's head on them. Calidius keeps one of the first coins in his purse and does not spend it.\n\nThe palace sends you to Egypt. Egypt belongs to the Emperor personally, the letter explains, and no senator may set foot in it without his permission. You have his permission."
   },
   {
    "id": "m12_alexandria",
@@ -164,12 +186,14 @@
    "x": 0.7984,
    "y": 0.8,
    "region": "Aegyptus",
-   "blurb": "The Nile flood, the grain fleet and the great lighthouse.",
+   "blurb": "The Emperor's own province: the Nile, the grain fleet, and the lighthouse on Pharos.",
    "sells": [
     "wheat",
     "glassware",
     "papyrus"
-   ]
+   ],
+   "letter": "From the office of the Emperor, to the governor of Alexandria. Greetings.\n\nEgypt is the Emperor's personal estate, and a third of Rome's grain comes from it. Each summer the Nile floods, renews the fields, and soaks everything foolish enough to be built on them.\n\nThe Emperor wishes the light on Pharos to burn again, and the people of Alexandria to have a circus, so that they cheer for chariots and not for pretenders.\n\nFarewell.",
+   "victory": "The light burns on Pharos again, and ships coming in at night steer by it from forty miles out. The circus is full every race day, and the crowd shouts for the Greens and the Blues instead of against the governor.\n\nThe palace's next letter sends you north, to the Rhine. It mentions, in one dry sentence, that three legions were lost in the German forests not long ago and that their eagles were never found."
   },
   {
    "id": "m13_colonia",
@@ -179,11 +203,13 @@
    "x": 0.3392,
    "y": 0.1632,
    "region": "Germania",
-   "blurb": "Limes forts, siege engines and great battles in harsh winters.",
+   "blurb": "The Rhine frontier: forts, siege engines, and winters that close the roads.",
    "sells": [
     "weapons",
     "armor"
-   ]
+   ],
+   "letter": "From the office of the Emperor, to his legate on the Rhine. Greetings.\n\nThe Rhine is the edge of the world Rome governs. The tribes on the far bank test it every year, and every year it must hold. Colonia is to be the anchor of the frontier, a city of forts, granaries and engines of war.\n\nThe Emperor's confidence goes with you. So do two more legions, on paper.\n\nFarewell.",
+   "victory": "The tribes stop crossing. Their chiefs come down to the far bank under a green branch and ask for a market instead, and you give them one, on this side of the river, where you can watch it.\n\nLabienus's shoulder has healed badly, and he no longer pretends otherwise. He asks for one more posting with you, and then a farm. The palace sends you to Britannia, to a new town on the Thames that is growing too fast."
   },
   {
    "id": "m14_londinium",
@@ -193,11 +219,13 @@
    "x": 0.1974,
    "y": 0.1448,
    "region": "Britannia",
-   "blurb": "A revolt burns the city midway; rebuild under pressure.",
+   "blurb": "A new trading town on the Thames, growing fast among Britons who never asked for it.",
    "sells": [
     "wool",
     "iron"
-   ]
+   ],
+   "letter": "From the office of the Emperor, to his legate in Britannia. Greetings.\n\nLondinium is a merchants' town on the Thames, new and growing quickly. The governor is campaigning in the far west, on the island of Mona, and the eastern tribes are quiet.\n\nThe Emperor would like them to remain quiet.\n\nFarewell.",
+   "victory": "Londinium rises again in brick and stone, along a river crowded with ships. Under the new forum the workmen dig through a layer of black earth full of melted glass and fused coins, and build on top of it.\n\nLabienus reminds you about the farm. You promise it to him after one more posting, and he says he has heard that before. The next letter sends you east, to Antioch, as prefect."
   },
   {
    "id": "m15_antioch",
@@ -207,11 +235,13 @@
    "x": 0.9232,
    "y": 0.6387,
    "region": "Syria",
-   "blurb": "Luxury trade, huge markets and an earthquake.",
+   "blurb": "The Queen of the East: caravans from Parthia and India, theatres, luxury, and a city built on a fault.",
    "sells": [
     "jewelry",
     "dyed_clothing"
-   ]
+   ],
+   "letter": "From the office of the Emperor, to the prefect of Antioch. Greetings.\n\nAntioch is the third city of the empire, where the caravans of Parthia and India meet the ships of the sea. The governor of Syria is Lucius Aurunculeius Mela. The Emperor trusts that two of his servants can work together.\n\nThe Empress has asked for Antiochene jewelry.\n\nFarewell.",
+   "victory": "Antioch is rebuilt, its colonnades straighter than before and its markets louder. Caravans come in out of the desert and leave with glass and purple.\n\nBefore you leave, a letter arrives from the palace. Rome has burned. Ten of its fourteen districts are ash, and the Emperor wants the man who rebuilt Antioch to rebuild the City. Mela's recommendation is enclosed. It is four lines long, and it calls you the best builder in the empire. Calidius holds it up to the lamp, looking for the trick."
   },
   {
    "id": "m16_roma",
@@ -221,8 +251,11 @@
    "x": 0.45,
    "y": 0.4548,
    "region": "Italia",
-   "blurb": "Rebuild Rome after the great fire: Colosseum, Pantheon, Circus Maximus.",
-   "sells": []
+   "blurb": "Rome after the great fire: ten of its fourteen districts in ashes, and the whole world watching.",
+   "sells": [],
+   "letter": "From the Emperor, to the Prefect of the City. Greetings.\n\nNine days of fire have left ten of Rome's fourteen districts in ashes. The people sleep in the parks, and the temples are smoking shells.\n\nRebuild Rome greater than it was: an amphitheatre to outshine every other, a temple to all the gods, and the greatest circus in the world. The treasury will help you.\n\nDo not make me regret it.",
+   "victory": "Rome stands again.",
+   "epilogue": "The Colosseum fills with fifty thousand people who came to see blood and stay to look at the building. The dome of the Pantheon hangs over the city with a hole at the top for the gods to look in. The Circus Maximus holds more people than lived in Capua.\n\nVitruvius finishes his ten books on architecture. He dedicates them to the Emperor, and your name is in the preface, spelled correctly.\n\nCalidius closes the accounts of the rebuilding. They balance to the last as. He retires to Ostia and buys a share in a salt works.\n\nLollius stays on as aedile under the next prefect. On market days he still walks the streets and listens.\n\nLabienus has his farm at last, by the river in Latium, a short walk from the stone Spurinna set at the founding. He grows bad wine and tells the neighbours about the Rhine.\n\nSpurinna takes the auspices on the Capitol one last time. He watches the sky for a long while and will not say what he saw.\n\nThe hamlet by the ford is a town of four thousand now. The first stone still stands at the edge of its forum, and someone has cut your name into it."
   }
  ]
 }

@@ -59,13 +59,29 @@ void App::draw_ui() {
       }
       draw_messages(*world_, icons_, &last_message_);
       if (world_->mission != sim::MissionState::Running && !end_dismissed_) {
-        center_next(420, 0);
-        ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Always);
+        const MissionInfo* mi =
+            mission_index_ >= 0 && mission_index_ < static_cast<int>(campaign_.missions.size())
+                ? &campaign_.missions[static_cast<size_t>(mission_index_)]
+                : nullptr;
+        const bool finale = mi && world_->mission == sim::MissionState::Won && !mi->epilogue.empty();
+        const float end_w = finale ? 600.0f : 460.0f;
+        center_next(end_w, 0);
+        ImGui::SetNextWindowSize(ImVec2(end_w, 0), ImGuiCond_Always);
         ImGui::Begin("##end", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
         if (world_->mission == sim::MissionState::Won) {
           ImGui::Text("VICTORIA!");
           ImGui::Separator();
-          ImGui::TextWrapped("The Senate is pleased with your work. You have earned promotion and a greater charge.");
+          ImGui::TextWrapped("%s", mi && !mi->victory.empty()
+                                       ? mi->victory.c_str()
+                                       : "The city has met every goal. Rome takes note of the name of its builder.");
+          if (finale) {
+            ImGui::Spacing();
+            ImGui::BeginChild("epilogue", ImVec2(0, std::min(360.0f, display().y * 0.45f)), true);
+            ImGui::TextWrapped("%s", mi->epilogue.c_str());
+            ImGui::EndChild();
+            ImGui::TextDisabled("The campaign is complete.");
+          }
+          ImGui::Spacing();
           ImGui::Text("Personal savings: %s denarii", with_commas(profile_.savings).c_str());
           if (mission_index_ >= 0) {
             if (big_button("To the province map")) {
@@ -82,9 +98,13 @@ void App::draw_ui() {
           }
           if (big_button("Keep building this city")) end_dismissed_ = true;
         } else {
-          ImGui::Text("The mission has failed");
+          ImGui::Text("Recalled");
           ImGui::Separator();
           ImGui::TextWrapped("%s", world_->lost_reason.c_str());
+          ImGui::Spacing();
+          ImGui::TextWrapped(mi ? "A letter recalls you to Rome, and the post goes to someone else. The city is not "
+                                  "finished with you, though: load a save or begin again."
+                                : "The city is lost. Load a save or begin again.");
           if (big_button("Load a saved game")) {
             show_saveload_ = true;
             saveload_saving_ = false;
@@ -154,7 +174,7 @@ void App::draw_campaign() {
   const ImVec2 ds = display();
   ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(ds.x - 40, ds.y - 40), ImGuiCond_Always);
-  ImGui::Begin("The Province of the Career", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  ImGui::Begin("Cursus honorum", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   float map_w = (ds.x - 40) * 0.64f, map_h = ds.y - 120;
   map_h = std::min(map_h, (map_w - 16) * 288.0f / 512.0f + 16);
   // Stylised Mediterranean: sea, land masses as soft blobs, the road of the career between missions.
@@ -197,6 +217,12 @@ void App::draw_campaign() {
     ImGui::TextDisabled("%s  -  rank: %s  -  salary %d/day", m.region.c_str(), m.rank.c_str(), m.salary);
     ImGui::Separator();
     ImGui::TextWrapped("%s", m.blurb.c_str());
+    if (!m.letter.empty()) {
+      ImGui::Spacing();
+      ImGui::BeginChild("letter", ImVec2(0, std::max(120.0f, map_h - 300.0f)), true);
+      ImGui::TextWrapped("%s", m.letter.c_str());
+      ImGui::EndChild();
+    }
     ImGui::Spacing();
     if (profile_.done(m.id)) ImGui::TextColored(ImVec4(0.55f, 0.4f, 0.05f, 1), "Completed");
     const bool available = std::filesystem::exists(root_ + "data/scenarios/" + m.id + "/scenario.json");
@@ -212,7 +238,7 @@ void App::draw_campaign() {
   ImGui::Separator();
   ImGui::Text("Career: %zu of %zu missions", profile_.completed.size(), campaign_.missions.size());
   ImGui::Text("Personal savings: %s denarii", with_commas(profile_.savings).c_str());
-  ImGui::TextWrapped("Cities you have built trade with you in later missions.");
+  ImGui::TextWrapped("The cities you have built trade with you in later missions.");
   ImGui::EndChild();
   if (big_button("Back", 160)) screen_ = Screen::Menu;
   ImGui::SameLine();

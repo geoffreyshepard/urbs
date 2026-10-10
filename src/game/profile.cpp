@@ -89,6 +89,9 @@ bool CampaignDef::load(const std::string& root) {
     mi.rank = m.value("rank", "");
     mi.region = m.value("region", "");
     mi.blurb = m.value("blurb", "");
+    mi.letter = m.value("letter", "");
+    mi.victory = m.value("victory", "");
+    mi.epilogue = m.value("epilogue", "");
     mi.salary = m.value("salary", 1);
     mi.x = m.value("x", 0.5f);
     mi.y = m.value("y", 0.5f);

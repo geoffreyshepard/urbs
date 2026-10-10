@@ -63,6 +63,9 @@ Contributions are welcome. Read [CLAUDE.md](CLAUDE.md) for the engineering rules
 | [docs/08-roadmap.md](docs/08-roadmap.md) | Milestones M0–M14 with exit criteria |
 | [docs/09-assumptions-and-open-questions.md](docs/09-assumptions-and-open-questions.md) | Decisions defaulted on your behalf, and what is still open |
 | [docs/10-modding.md](docs/10-modding.md) | Modding guide: definition files, scenarios, the Lua API |
+| [docs/11-music.md](docs/11-music.md) | The generated soundtrack |
+| [docs/12-story.md](docs/12-story.md) | The campaign's story, cast and writing rules |
+| [docs/testing.md](docs/testing.md) | Test layers: unit and scenario tests, the campaign, the audit |
 | [docs/milestones/](docs/milestones/) | What each milestone delivered, M0–M14 |
 
 ## How to use these docs with Claude Code
