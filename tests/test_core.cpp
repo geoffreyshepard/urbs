@@ -49,8 +49,10 @@ TEST_CASE("Allocation hook counts allocations during a tick scope") {
   core::alloc::reset_violations();
   {
     core::alloc::TickScope s;
-    auto* p = new int(5);
-    delete p;
+    // A direct operator new call through a volatile pointer: optimised builds may elide a plain
+    // new/delete pair, which would leave nothing for the hook to count.
+    void* volatile p = ::operator new(16);
+    ::operator delete(p);
   }
   CHECK(core::alloc::violations() == 1);
   core::alloc::reset_violations();
