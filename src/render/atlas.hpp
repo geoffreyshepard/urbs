@@ -30,6 +30,11 @@ class Atlas {
   [[nodiscard]] SDL_GPUTexture* texture() const { return tex_; }
   [[nodiscard]] u32 width() const { return w_; }
   [[nodiscard]] u32 height() const { return h_; }
+  // Atlas texels per iso px (main.json "scale"; sprites may be packed below their 128 px-per-tile
+  // native size).  Sprite rects and anchors are in texels; divide by scale() for iso px.
+  [[nodiscard]] f32 scale() const { return scale_; }
+  [[nodiscard]] f32 iso_w(const Sprite& s) const { return static_cast<f32>(s.w) / scale_; }
+  [[nodiscard]] f32 iso_h(const Sprite& s) const { return static_cast<f32>(s.h) / scale_; }
   // Average colour of a sprite's opaque pixels (used for far-zoom terrain and minimap).
   [[nodiscard]] u32 average_color(const Sprite& s) const;
   [[nodiscard]] const std::vector<u8>& pixels() const { return pixels_; }
@@ -37,6 +42,7 @@ class Atlas {
  private:
   SDL_GPUTexture* tex_ = nullptr;
   u32 w_ = 0, h_ = 0;
+  f32 scale_ = 1.0f;
   std::vector<u8> pixels_;
   std::unordered_map<std::string, Sprite> sprites_;
   Sprite fallback_;
