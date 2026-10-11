@@ -38,6 +38,9 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--ticks")) o.ticks_before = std::atoi(argv[++i]);
     else if (arg("--inspect")) o.inspect = std::atoi(argv[++i]);
     else if (arg("--overlay")) o.overlay = std::atoi(argv[++i]);
+    else if (arg("--build-group")) o.build_group = std::atoi(argv[++i]);
+    else if (arg("--show")) o.show = argv[++i];
+    else if (arg("--weather")) o.weather = argv[++i];
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
     else if (std::strcmp(argv[i], "--mute") == 0) o.mute = true;
@@ -56,9 +59,11 @@ AppOptions parse_args(int argc, char** argv) {
 void App::after_world_change() {
   bot_.reset();
   view_.init(renderer_.atlas(), defs_, world_->region);
+  icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, world_->region);
   renderer_.set_map(&world_->map);
   sel_ = Selection{};
   tools_.cancel();
+  alerts_seen_ = world_->now;
   end_dismissed_ = false;
   last_message_ = 0;
   overlay_ = Overlay::None;
@@ -246,6 +251,7 @@ bool App::init(const AppOptions& opt) {
   ImGui_ImplSDLGPU3_Init(&ii);
 
   root_ = platform::data_root();
+  load_ui_fonts(root_);
   if (!renderer_.init(win_, root_)) return false;
   if (opt.screenshot.empty() && !opt.mute && audio_.init()) audio_.set_volume(settings_.music_volume);
   music_.init(root_, &audio_);
@@ -269,7 +275,8 @@ bool App::init(const AppOptions& opt) {
   profile_.load(user_dir_);
   selected_mission_ = profile_.next_index(campaign_);
   view_.init(renderer_.atlas(), defs_);
-  icons_.init(win_.gpu, renderer_.atlas());
+  icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, std::string());
+  icons_.init(win_.gpu, renderer_.atlas(), defs_);
   gen_.size = 192;
   gen_.seed = opt.seed;
   gen_.coast = 2;
@@ -300,6 +307,34 @@ bool App::init(const AppOptions& opt) {
   speed_ = std::clamp(opt.speed, 0, 3);
   overlay_ = static_cast<Overlay>(std::clamp(opt.overlay, 0, static_cast<int>(Overlay::Count) - 1));
   overlay_age_ = 1 << 20;
+  build_group_ = opt.build_group;
+  // Screenshots: open panels and dialogs by name (--show finance,nomsg,bld:temple).
+  const char* kPanelNames[] = {"rome",     "advisors", "finance",  "goods",  "trade", "labor",
+                               "religion", "military", "research", "alerts", "help"};
+  const std::pair<const char*, bool*> kShow[] = {
+      {"pause", &paused_menu_}, {"settings", &show_settings_}, {"load", &show_saveload_}};
+  for (size_t a = 0; a < opt.show.size();) {
+    size_t b = opt.show.find(',', a);
+    if (b == std::string::npos) b = opt.show.size();
+    const std::string p = opt.show.substr(a, b - a);
+    a = b + 1;
+    for (const auto& [name, flag] : kShow)
+      if (p == name) *flag = true;
+    for (int k = 0; k < kPanelCount; ++k)
+      if (p == kPanelNames[k]) panel_ = static_cast<Panel>(k);
+    if (p == "save") show_saveload_ = saveload_saving_ = true;
+    if (p == "nobuild") show_build_ = false;
+    if (p == "nomsg") last_message_ = 0xffff;  // the mission briefing and other messages stay unread and hidden
+    if (p.rfind("advisor", 0) == 0 && p.size() == 8 && p[7] >= '1' && p[7] <= '5') {  // advisor1..advisor5
+      panel_ = Panel::Advisors;
+      advisor_ = std::atoi(p.c_str() + 7);
+    }
+    if (p.rfind("bld:", 0) == 0)  // select the first building of this def
+      world_->buildings.for_each([&](BuildingId id, const sim::Building& bd) {
+        if (!sel_.building.valid() && world_->defs->b(bd.def).id == p.substr(4)) sel_.building = id;
+      });
+  }
+  build_fly_y_ = 100 + 50.0f * static_cast<float>(std::max(0, opt.build_group));
   if (opt.inspect >= 0 && world_->citizens.ids.alive_index(static_cast<u32>(opt.inspect))) {
     sel_.citizen = world_->citizens.ids.id_at(static_cast<u32>(opt.inspect));
     sel_.follow = true;
@@ -344,7 +379,10 @@ void App::handle_event(const SDL_Event& e) {
         dragging_ = true;
         right_drag_ = 0;
       }
-      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT && !tools_.mouse_down(mouse_tile())) pick_at_mouse();
+      if (!ui_mouse && e.button.button == SDL_BUTTON_LEFT) {
+        build_group_ = -1;  // the build list gets out of the way once the player works on the map
+        if (!tools_.mouse_down(mouse_tile())) pick_at_mouse();
+      }
       break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
       if (e.button.button == SDL_BUTTON_MIDDLE || e.button.button == SDL_BUTTON_RIGHT) {
@@ -361,6 +399,7 @@ void App::handle_event(const SDL_Event& e) {
             world_->push(c);
           } else {
             tools_.cancel();
+            build_group_ = -1;
           }
         }
         dragging_ = false;
@@ -378,18 +417,21 @@ void App::handle_event(const SDL_Event& e) {
     case SDL_EVENT_KEY_DOWN:
       if (ImGui::GetIO().WantCaptureKeyboard) break;
       if (e.key.key == SDLK_ESCAPE) {
-        if (tools_.kind != ToolKind::Inspect) tools_.cancel();
-        else if (sel_.building.valid() || sel_.citizen.valid() || sel_.unit != 0xFFFF) sel_ = Selection{};
+        if (tools_.kind != ToolKind::Inspect || build_group_ >= 0) {
+          tools_.cancel();
+          build_group_ = -1;
+        } else if (sel_.building.valid() || sel_.citizen.valid() || sel_.unit != 0xFFFF)
+          sel_ = Selection{};
         else paused_menu_ = !paused_menu_;
       }
       if (paused_menu_) break;
       if (e.key.key == SDLK_R) tools_.select_road(sim::Road::Dirt);
       if (e.key.key == SDLK_X) tools_.select_demolish();
       if (e.key.key == SDLK_B) show_build_ = !show_build_;
-      if (e.key.key == SDLK_L) show_stock_ = !show_stock_;
-      if (e.key.key == SDLK_J) show_labor_ = !show_labor_;
+      if (e.key.key == SDLK_L) toggle_panel(Panel::Goods);
+      if (e.key.key == SDLK_J) toggle_panel(Panel::Labor);
       if (e.key.key == SDLK_F) sel_.follow = !sel_.follow;
-      if (e.key.key == SDLK_H || e.key.key == SDLK_F1) show_help_ = !show_help_;
+      if (e.key.key == SDLK_H || e.key.key == SDLK_F1) toggle_panel(Panel::Help);
       if (e.key.key == SDLK_F12) show_debug_ = !show_debug_;
       if (e.key.key == SDLK_F5) save_slot("quicksave");
       if (e.key.key == SDLK_F9) load_slot("quicksave");
@@ -496,7 +538,7 @@ void App::pick_at_mouse() {
     }
   }
   if (best < 7.0f * 7.0f) {
-    show_military_ = true;
+    panel_ = Panel::Military;
     return;
   }
   const auto& C = world_->citizens;
@@ -522,34 +564,6 @@ void App::pick_at_mouse() {
     sel_.unit = 0xFFFF;
     if (!b.valid()) sel_.citizen = CitizenId{};
   }
-}
-
-void App::update_light() {
-  // Light: day/night cycle from the sim clock; season and weather colour it.
-  const f32 tod = (static_cast<f32>(sim::tick_of_day(world_->now)) + alpha_) / static_cast<f32>(kTicksPerDay) * 24.0f;
-  f32 day = 1.0f;
-  if (tod < 4.5f || tod > 21.5f) day = 0.0f;
-  else if (tod < 7.0f) day = (tod - 4.5f) / 2.5f;
-  else if (tod > 19.0f) day = (21.5f - tod) / 2.5f;
-  f32 rr = 0.42f + 0.58f * day, gg = 0.46f + 0.54f * day, bb = 0.70f + 0.30f * day;
-  if (tod > 17.5f && tod < 21.0f) {  // warm sunset
-    rr = std::min(1.0f, rr + 0.08f);
-    bb *= 0.92f;
-  }
-  switch (sim::season(world_->now)) {
-    case sim::Season::Winter: rr *= 0.93f; gg *= 0.96f; break;
-    case sim::Season::Autumn: bb *= 0.93f; break;
-    case sim::Season::Summer: rr = std::min(1.0f, rr * 1.03f); break;
-    default: break;
-  }
-  if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm) {
-    rr *= 0.85f;
-    gg *= 0.87f;
-    bb *= 0.92f;
-  }
-  renderer_.light[0] = rr;
-  renderer_.light[1] = gg;
-  renderer_.light[2] = bb;
 }
 
 void App::run() {
@@ -603,14 +617,19 @@ void App::run() {
     } else {
       renderer_.set_overlay(nullptr);
     }
-    update_light();
+    sim::Weather weather = world_->weather;
+    for (int k = 0; k < static_cast<int>(sim::Weather::Count); ++k)
+      if (opt_.weather == sim::weather_name(static_cast<sim::Weather>(k))) weather = static_cast<sim::Weather>(k);
+    lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt));
+    renderer_.grade = lighting_.grade;
+    renderer_.shadows = lighting_.shadows;
+    for (int k = 0; k < 4; ++k) renderer_.ground_season[k] = lighting_.ground[k];
     view_.draw(*world_, renderer_, alpha_);
-    if (world_->weather == sim::Weather::Rain || world_->weather == sim::Weather::Storm ||
-        world_->weather == sim::Weather::Snow) {
+    if (weather == sim::Weather::Rain || weather == sim::Weather::Storm || weather == sim::Weather::Snow) {
       // Rain streaks / snowflakes over the visible area.
       const Recti vis = renderer_.camera().visible_world(0);
-      const bool snow = world_->weather == sim::Weather::Snow;
-      const int n = world_->weather == sim::Weather::Storm ? 500 : 280;
+      const bool snow = weather == sim::Weather::Snow;
+      const int n = weather == sim::Weather::Storm ? 500 : 280;
       for (int k = 0; k < n; ++k) {
         const u32 hsh = static_cast<u32>(k) * 2654435761u;
         const f32 fx = static_cast<f32>(hsh % 10007) / 10007.0f, fy0 = static_cast<f32>((hsh >> 12) % 9973) / 9973.0f;

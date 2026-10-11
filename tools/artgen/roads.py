@@ -29,15 +29,16 @@ DHALF = 4.2          # diagonal half width, perpendicular
 # ------------------------------------------------------------ textures
 def _paved_texture():
     """16x16 periodic polygonal paving (Roman via): a toroidal Voronoi of
-    jittered seeds gives irregular stones; joints sit on cell borders, each
-    stone is lit on its top-left rim and shaded on its bottom-right rim."""
+    jittered seeds gives irregular basalt stones; joints sit on cell borders,
+    each stone is lit on its top edge and shaded on its bottom-right rim."""
     r = rng("road/paved/tex")
     seeds = []
     for gy in range(4):
         for gx in range(3):
             seeds.append(((gx * 16 / 3.0 + (gy % 2) * 2.7 + r.uniform(-1.0, 1.0)) % T,
                           (gy * 4 + 2 + r.uniform(-0.8, 0.8)) % T))
-    faces = [C.gray[3], C.gray[3], C.gray[2], C.travertine[1], C.gray[3]]
+    # basalt (silex) blocks: dark, close in value, so streets read as one surface, not a checker
+    faces = [C.gray[2], C.gray[2], C.gray[1], C.gray[2], C.travertine[0]]
     face_of = [r.choice(faces) for _ in seeds]
 
     def cell(x, y):
@@ -61,13 +62,13 @@ def _paved_texture():
             up = cid[(y - 1) % T][x]
             f = face_of[i]
             if right != i or down != i:
-                c = C.gray[1]                         # joint / shadow rim
-            elif left != i or up != i:
-                c = C.marble[0] if f != C.gray[2] else C.gray[3]   # lit rim
+                c = C.gray[0]                         # joint / shadow rim
+            elif up != i:
+                c = C.gray[3]                         # worn, lit top edge
             else:
                 c = f
-                if hash2(x, y, 77) % 9 == 0:
-                    c = C.gray[2] if f != C.gray[2] else C.gray[1]  # wear
+                if hash2(x, y, 77) % 11 == 0:
+                    c = C.gray[3] if f == C.gray[2] else C.gray[2]  # polish from wheels
             tex[y][x] = c
     return tex
 

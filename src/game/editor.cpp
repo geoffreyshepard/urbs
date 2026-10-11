@@ -9,6 +9,8 @@
 
 #include "core/log.hpp"
 #include "game/app.hpp"
+#include "game/panel_kit.hpp"
+#include "game/style.hpp"
 #include "save/save.hpp"
 
 namespace urbs::game {
@@ -64,6 +66,7 @@ bool App::reload_defs(std::string* err) {
     base_defs_ = std::move(d);
     defs_ = base_defs_;
     view_.init(renderer_.atlas(), defs_, world_ ? world_->region : std::string());
+    icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, world_ ? world_->region : std::string());
     return true;
   } catch (const std::exception& e) {
     if (err) *err = e.what();
@@ -72,8 +75,11 @@ bool App::reload_defs(std::string* err) {
 }
 
 void App::draw_mods() {
-  center_next(640, 520);
-  ImGui::Begin("Mods", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  center_next(640, 550);
+  begin_window(
+      "##mods", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Mods");
   ImGui::TextWrapped("Mods add or change goods, buildings, housing, gods, units, trade partners and scenarios. "
                      "Enabled mods load in this order after the base game. See docs/10-modding.md.");
   ImGui::TextDisabled("Folders: %smods  and  %smods", root_.c_str(), user_dir_.c_str());
@@ -155,8 +161,11 @@ std::vector<std::pair<std::string, std::string>> App::custom_scenarios() const {
 }
 
 void App::draw_custom() {
-  center_next(560, 480);
-  ImGui::Begin("Custom scenarios", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  center_next(560, 510);
+  begin_window(
+      "##custom", nullptr,
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  menu_title("Custom scenarios");
   ImGui::TextWrapped("Scenarios made in the editor (saved in %sscenarios) and scenarios from enabled mods.", user_dir_.c_str());
   ImGui::Separator();
   const auto list = custom_scenarios();
@@ -414,7 +423,7 @@ void App::editor_event(const SDL_Event& e) {
 void App::draw_editor() {
   ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(400, display().y - 20), ImGuiCond_FirstUseEver);
-  ImGui::Begin("Scenario editor", nullptr, ImGuiWindowFlags_NoCollapse);
+  begin_window("Scenario editor", nullptr, ImGuiWindowFlags_NoCollapse);
   if (ImGui::CollapsingHeader("Paint", ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Combo("Brush", &ed_.brush, kBrushes, 7);
     if (ed_.brush == 0) ImGui::Combo("Terrain", &ed_.terrain, kTerrains, 8);

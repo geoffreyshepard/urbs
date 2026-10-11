@@ -1,6 +1,7 @@
 #include "game/world_view.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 
 #include "core/profile.hpp"
@@ -26,6 +27,8 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
     DefSprites ds;
     ds.base = find(b.sprite);
     for (int t = 0; t < 5; ++t) ds.tier[t] = find(b.sprite + "_t" + std::to_string(t));
+    ds.base_lit = atlas.find(b.sprite + "_lit");
+    for (int t = 0; t < 5; ++t) ds.tier_lit[t] = atlas.find(b.sprite + "_t" + std::to_string(t) + "_lit");
     for (int v = 0; v < 4; ++v) ds.tile[v] = find(b.sprite + "_tile_" + std::to_string(v));
     ds.hut = find(b.sprite + "_hut");
     ds.line_c = find(b.sprite + "_c");
@@ -114,15 +117,23 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
       }
     return;
   }
-  if (b.plague > 0 && plague_.valid)
-    r.push_sprite(plague_, px + fw / 2 - 4, py - 10, render::depth_for_foot(foot, map_h) - 0.0002f);
+  if (b.plague > 0 && plague_.valid) {
+    // Status mark: an overlay (no cast shadow), pulsing softly so a sick district reads without
+    // covering every roof in solid icons.
+    const f32 pulse = 0.55f + 0.3f * std::sin(r.time * 2.5f + static_cast<f32>(b.x + b.y));
+    r.push_translucent({px + fw / 2 - 4 - static_cast<f32>(plague_.ax), py - 10 - static_cast<f32>(plague_.ay), 0.03f,
+                        static_cast<f32>(plague_.w), static_cast<f32>(plague_.h), plague_.u, plague_.v, plague_.w,
+                        plague_.h, render::rgba(255, 255, 255, static_cast<u8>(pulse * 255.0f))});
+  }
   if (b.state == sim::BState::Burning) {
     const int frame = static_cast<int>(r.time * 8.0f);
     for (i32 ty = b.y; ty < b.y + b.h; ++ty)
       for (i32 tx = b.x; tx < b.x + b.w; ++tx) {
         const int f = (frame + tx * 3 + ty * 5) & 3;
         const f32 x = static_cast<f32>(tx) * T, y = static_cast<f32>(ty + 1) * T;
-        if (fire_[f].valid) r.push_sprite(fire_[f], x, y - 1, render::depth_for_foot(y, map_h) - 0.0003f);
+        // alpha just under opaque: flames cast no shadow (shaders/shadow.vert)
+        if (fire_[f].valid)
+          r.push_sprite(fire_[f], x, y - 1, render::depth_for_foot(y, map_h) - 0.0003f, render::rgba(255, 255, 255, 250));
         if (smoke_[f].valid)
           r.push_sprite(smoke_[f], x + static_cast<f32>((f * 5) % 7) - 3.0f, y - 30.0f - static_cast<f32>(f * 4),
                         0.05f, render::rgba(255, 255, 255, 200));
@@ -145,7 +156,10 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
           continue;
         }
         if (ds->line_type) {
-          const f32 z = render::depth_for_foot(y + T - 1, map_h);
+          // Flat line pieces (pipes, sewers, bridge decks) lie on the ground; tall ones (walls,
+          // aqueducts) are y-sorted and cast shadows.
+          const bool flat = ds->line_c.h <= sim::kTilePx;
+          const f32 z = flat ? render::kDepthRoad - 0.0004f : render::depth_for_foot(y + T - 1, map_h);
           r.push_sprite(ds->line_c, x, y + T - 1, z, tint);
           for (int s = 0; s < 4; ++s) {
             i32 nx = tx + kDir4X[s], ny = ty + kDir4Y[s];
@@ -190,6 +204,25 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
     return;
   }
   r.push(render::SpriteInstance{px, foot - sh, z, fw, sh, s.u, s.v, s.w, s.h, tint});
+
+  // Window lights at night: lived-in houses and staffed workplaces, a stable share of them.
+  const f32 night = r.grade.params[2];
+  if (night > 0.05f && ds && b.state != sim::BState::Ruin) {
+    const Sprite& lit = (b.tier < 5 && ds->tier[b.tier].valid) ? ds->tier_lit[b.tier] : ds->base_lit;
+    const bool occupied = b.residents > 0 || b.employed > 0 || (b.capacity == 0 && b.jobs == 0);
+    const u32 hsh = static_cast<u32>(b.x * 73856093) ^ static_cast<u32>(b.y * 19349663);
+    if (lit.valid && occupied && hsh % 5 != 0) {
+      const f32 flicker = 0.9f + 0.1f * std::sin(r.time * 3.1f + static_cast<f32>(hsh % 97));
+      const u8 a = static_cast<u8>(std::clamp(night * flicker * 1.25f, 0.0f, 1.0f) * 255.0f);
+      const f32 lz = z - 0.00002f;
+      r.push_light({px, foot - sh, lz, fw, sh, lit.u, lit.v, lit.w, lit.h, render::rgba(255, 236, 190, a)});
+      // soft glow: the same mask nudged one pixel each way, faint
+      static constexpr f32 kOff[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+      for (const auto& o : kOff)
+        r.push_light({px + o[0], foot - sh + o[1], lz, fw, sh, lit.u, lit.v, lit.w, lit.h,
+                      render::rgba(255, 190, 110, static_cast<u8>(a / 5))});
+    }
+  }
 }
 
 void WorldView::draw(const sim::World& w, render::Renderer& r, f32 alpha) {

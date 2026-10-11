@@ -27,8 +27,11 @@ import units                                    # noqa: E402
 import goods                                    # noqa: E402
 import ui                                       # noqa: E402
 import hud                                      # noqa: E402
+import categories                               # noqa: E402
 import worldmap                                 # noqa: E402
 import regions                                 # noqa: E402
+import outlines                                 # noqa: E402
+import lights                                   # noqa: E402
 from buildings import fixed as bfixed           # noqa: E402
 
 SPRITES_DIR = os.path.join(ROOT, "assets", "sprites")
@@ -39,9 +42,9 @@ def required_names():
     n = []
     for t in terrain.TERRAINS:
         n += ["terrain/%s_%d" % (t, v) for v in range(4)]
-        n += ["terrain/edge_%s_%s" % (t, s) for s in "nesw"]
-        n += ["terrain/corner_%s_%s" % (t, c) for c in ("ne", "se", "sw", "nw")]
-    n += ["terrain/cliff_s", "terrain/cliff_e", "terrain/cliff_w"]
+    for t in terrain.DUAL_TERRAINS:
+        n += ["terrain/dg_%s_%d" % (t, m) for m in range(1, 15)]
+    n += ["terrain/hc_%d" % m for m in range(1, 15)]
     n += ["terrain/water_shimmer_%d" % f for f in range(4)]
     for r in ("dirt", "paved"):
         n.append("road/%s_c" % r)
@@ -75,7 +78,7 @@ PLACES = ["Rome", "Ostia", "Beneventum", "Capua", "Syracuse", "Carthago Nova", "
 
 def phase3_names():
     return (["ui/province_map", "ui/logo", "ui/panel_corner", "ui/divider"] +
-            ["ui/icon_" + i for i in HUD_ICONS])
+            ["ui/icon_" + i for i in HUD_ICONS] + ["ui/cat_" + c for c in categories.CATEGORIES])
 
 
 GOODS = ("wheat vegetables fish meat olives grapes flour bread olive_oil wine salt garum wood "
@@ -124,9 +127,12 @@ def generate_all():
     """-> list of (name, PIL image, anchor or None), sorted by name."""
     sprites = []
     for mod in (terrain, roads, objects, people, units, buildings, fx, effects, goods, ui,
-                hud, worldmap):
+                hud, categories, worldmap):
         sprites += mod.generate()
+    lit = lights.generate(sprites)          # before sel-out: windows are still C.outline
+    outlines.apply(sprites)
     sprites += regions.variants(sprites)
+    sprites += lit
     names = [s[0] for s in sprites]
     dup = {x for x in names if names.count(x) > 1}
     if dup:

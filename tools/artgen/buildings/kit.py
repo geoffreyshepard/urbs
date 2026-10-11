@@ -16,7 +16,7 @@ import math
 
 from palette import C
 from primitives import (new, px, rect, hline, vline, rng, outline, ellipse_mask, line,
-                        get, hash2)
+                        get, hash2, flat, paste_exact)
 from primitives import roof as _roof
 
 TILE = 16
@@ -68,7 +68,9 @@ class Bld:
     def put(self, L, ol=True):
         if ol:
             outline(L, C.outline)
-        self.img.alpha_composite(L)
+        else:
+            flat(L)  # ground surfaces cast no shadow
+        paste_exact(self.img, L)
 
     def result(self):
         return ("bld/" + self.id, self.img, (0, self.H - 1))

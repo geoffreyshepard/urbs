@@ -21,6 +21,7 @@ class WorldView {
   struct DefSprites {
     render::Sprite base;
     render::Sprite tier[5];
+    render::Sprite base_lit, tier_lit[5];  // night window lights (bld/<name>_lit)
     render::Sprite tile[4];
     render::Sprite hut;
     render::Sprite line_c, line[4];  // n e s w

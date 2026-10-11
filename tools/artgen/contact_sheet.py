@@ -168,6 +168,21 @@ DIRV = {"n": (0, -1), "ne": (1, -1), "e": (1, 0), "se": (1, 1),
         "s": (0, 1), "sw": (-1, 1), "w": (-1, 0), "nw": (-1, -1)}
 
 
+def dual_terrain(put, terrain_at, W, H, height_at=None):
+    """Terrain cells and height contours on the dual grid (see terrain.dual_layers)."""
+    from terrain import dual_layers
+    for y in range(H + 1):
+        for x in range(W + 1):
+            for name in dual_layers(terrain_at, x, y, hash2(x, y, 42)):
+                put(name, x * TILE - TILE // 2, y * TILE - TILE // 2)
+            if height_at is None:
+                continue
+            hh = [height_at(x - 1, y - 1), height_at(x, y - 1), height_at(x - 1, y), height_at(x, y)]
+            for lv in range(min(hh) + 1, max(hh) + 1):
+                mask = sum(1 << i for i in range(4) if hh[i] >= lv)
+                put("terrain/hc_%d" % mask, x * TILE - TILE // 2, y * TILE - TILE // 2)
+
+
 def scene_map(W, H):
     import math
     t = [["grass"] * W for _ in range(H)]
@@ -258,31 +273,9 @@ def scene(spr, meta, W=24, H=16, k=3):
         im = spr[name]
         img.paste(im, (x, y), im)
 
-    # terrain + blends
-    for y in range(H):
-        for x in range(W):
-            t = terr[y][x]
-            put("terrain/%s_%d" % (t, hash2(x, y, 42) % 4), x * TILE, y * TILE)
-            for T in PRIORITY[PRIO[t] + 1:]:
-                for s, (dx, dy) in NB.items():
-                    if at(x + dx, y + dy) == T:
-                        put("terrain/edge_%s_%s" % (T, s), x * TILE, y * TILE)
-                for c, (a, b) in CORNER_NB.items():
-                    dx = NB[a][0] + NB[b][0]
-                    dy = NB[a][1] + NB[b][1]
-                    if at(x + dx, y + dy) == T and at(x + NB[a][0], y + NB[a][1]) != T \
-                            and at(x + NB[b][0], y + NB[b][1]) != T:
-                        put("terrain/corner_%s_%s" % (T, c), x * TILE, y * TILE)
-            if t in ("shallow", "deep"):
-                put("terrain/water_shimmer_%d" % (hash2(x, y, 5) % 4), x * TILE, y * TILE)
-    # cliffs
-    for y in range(H):
-        for x in range(W):
-            e = elev[y][x]
-            for s in ("s", "e", "w"):
-                dx, dy = NB[s]
-                if 0 <= x + dx < W and 0 <= y + dy < H and elev[y + dy][x + dx] < e:
-                    put("terrain/cliff_%s" % s, x * TILE, y * TILE)
+    # terrain (dual grid) + height contours, as render/terrain.cpp draws them
+    dual_terrain(put, lambda x, y: terr[min(max(y, 0), H - 1)][min(max(x, 0), W - 1)], W, H,
+                 lambda x, y: elev[min(max(y, 0), H - 1)][min(max(x, 0), W - 1)])
     # resources
     for (x, y, r) in ((21, 1, "marble"), (22, 3, "stone"), (16, 2, "fish"), (19, 0, "clay"),
                       (12, 13, "iron"), (23, 0, "silver"), (13, 4, "limestone"), (11, 14, "pozzolana")):
@@ -388,16 +381,7 @@ def city_scene(spr, meta, W=48, H=36, k=2):
     def at(x, y):
         return terr[y][x] if 0 <= x < W and 0 <= y < H else None
 
-    for y in range(H):
-        for x in range(W):
-            t = terr[y][x]
-            put("terrain/%s_%d" % (t, hash2(x, y, 42) % 4), x * TILE, y * TILE)
-            for T in PRIORITY[PRIO[t] + 1:]:
-                for s, (dx, dy) in NB.items():
-                    if at(x + dx, y + dy) == T:
-                        put("terrain/edge_%s_%s" % (T, s), x * TILE, y * TILE)
-            if t in ("shallow", "deep"):
-                put("terrain/water_shimmer_%d" % (hash2(x, y, 5) % 4), x * TILE, y * TILE)
+    dual_terrain(put, lambda x, y: terr[min(max(y, 0), H - 1)][min(max(x, 0), W - 1)], W, H)
     for (x, y), R in sorted(roads.items()):
         put("road/%s_c" % R, x * TILE, y * TILE)
         for d in road_links(roads, x, y):

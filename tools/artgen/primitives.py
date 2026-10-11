@@ -141,6 +141,24 @@ def shade_blob(img, mask, ramp, light=(-0.7, -0.7), key="blob", noise=0.18,
 
 
 # ---------------------------------------------------------------- outline
+FLAT_ALPHA = 254   # opaque, but marks a ground-level pixel (yards, paving): casts no shadow
+
+
+def flat(img):
+    """Mark every opaque pixel as ground level (alpha 254, in place). The renderer draws it like
+    any opaque pixel; only the cast-shadow pass skips it (shaders/shadow.frag)."""
+    a = img.getchannel("A").point(lambda v: FLAT_ALPHA if v else 0)
+    img.putalpha(a)
+    return img
+
+
+def paste_exact(dst, src):
+    """Paste src over dst wherever src is opaque, copying pixels (and alpha flags) exactly."""
+    mask = src.getchannel("A").point(lambda v: 255 if v else 0)
+    dst.paste(src, (0, 0), mask)
+    return dst
+
+
 def outline(img, c=None, diagonal=False, inner_color_for=None):
     """Add a 1px outline outside all opaque pixels (in place).
     4-connected by default; diagonal=True also fills 8-connected corners."""

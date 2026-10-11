@@ -102,9 +102,30 @@ No multiplayer, so bit-exact cross-platform determinism is **not** required. The
 
 - Pixel art with nearest-neighbor sampling. Zoom levels: **4×, 3×, 2×, 1×** (pixel-perfect) plus **far zooms ½ and ¼**, which use a simplified representation (building silhouettes, citizens as 1-px dots, or density shading).
 - **Static layers** (terrain, roads, buildings) are baked per 32×32 chunk into GPU vertex buffers and rebuilt only when dirty.
+  Terrain transitions and height steps use a dual grid (cells centred on tile corners, one of 14 noisy corner-mask
+  shapes per terrain; see `tools/artgen/README.md`), so coasts, borders and cliffs follow smooth contours instead of
+  the tile staircase.
 - **Dynamic sprites** (agents, carried goods, effects) are culled by chunk and drawn as instanced quads from one per-frame instance buffer; tens of thousands of instances is cheap.
 - **Overlays** are per-tile color layers uploaded as a texture and blended in a shader.
-- Day/night tint, seasonal palette shifts and simple lights at night (lamps, fires) are cheap shader effects.
+- **Frame passes** (`render/renderer.cpp`): world pass into a scene texture (terrain chunks, dynamic sprites, then
+  cast shadows, then translucent sprites and overlays) → grade pass into a final texture → blit to the swapchain →
+  UI. The UI is never graded.
+- **Cast shadows:** every y-sorted sprite (depth between `kDepthOverlayMax` and `kDepthShadow`) is drawn a second time
+  as its silhouette, sheared away from the top-left light (`shaders/shadow.vert`), multiplying the ground. It is
+  depth-tested against what is already drawn, so shadows never cover a sprite in front of them, and a stencil test lets
+  each pixel darken once. Ground-level sprite pixels are flagged with alpha 254 by the art generators and cast nothing.
+  Shadows lengthen toward dawn and dusk and fade under cloud and at night. Far zooms skip them.
+- **Ground shading** (`shaders/ground.frag`): the static chunk layer samples a map-sized ground texture (one texel per
+  tile: wear, luminance, vegetation, land mask; built per dirty chunk by `build_ground_texels`) with linear filtering at
+  each art pixel's centre and quantises it with a 4×4 Bayer pattern, so smooth fields stay pixel-crisp. It gives hills
+  smooth shading, broad light/dark and dry/lush variation, worn earth around buildings and along roads, seasonal drying
+  and browning, settled snow (built up by snowfall in `game/lighting.cpp`) and lighter shallows by the shore.
+- **Night lights:** lived-in houses and staffed workplaces push their `bld/<name>_lit` window mask (plus a faint
+  1-px glow) to a light list. It is drawn additively on the graded frame, depth-tested against the world pass, with
+  strength from the grade's night amount, so windows glow instead of being darkened with everything else.
+- **Colour grade** (`shaders/post.frag`): split toning (cool shadows, warm light), exposure, saturation, contrast,
+  lifted blacks and a light vignette. `game/lighting.cpp` keys these by hour (night, dawn, morning, day, golden hour,
+  dusk) and adjusts for season and weather, easing between states so weather changes fade in.
 
 ## Cross-platform notes
 

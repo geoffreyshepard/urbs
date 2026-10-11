@@ -17,9 +17,9 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 | Camera | Fixed top-down with a slight 3/4 tilt for buildings (front faces visible), as in Songs of Syx |
 | Tile size | 16×16 px |
 | Citizen size | About 6×10 px; readable silhouette at 2×, a colored dot at far zoom |
-| Light | From the top-left; one highlight shade and one shadow shade per material |
-| Outlines | Dark outline on buildings and units only; terrain has none |
-| Palette | 48-color locked palette (`assets/palettes/urbs.pal`) built on a Mediterranean feel: terracotta, ochre, travertine, marble white, olive and cypress greens, sea blues, sun-baked earth, Roman red, Tyrian purple |
+| Light | From the top-left; one highlight shade and one shadow shade per material. The renderer adds cast shadows, ground shading and a colour grade on top; those are not palette colours |
+| Outlines | Dark outline on buildings and units only; terrain has none. The outer silhouette uses the dark partner of the material it borders (selective outline, `outlines.py`); interior detail lines stay near-black |
+| Palette | 56-color locked palette (v2: hue-shifted ramps with cool shadows and warm lights, sun-baked sage grass, plus 8 dark outline partners) (`assets/palettes/urbs.pal`) built on a Mediterranean feel: terracotta, ochre, travertine, marble white, olive and cypress greens, sea blues, sun-baked earth, Roman red, Tyrian purple |
 | Animation | Citizens: 4 directions × 4-frame walk, plus a work loop and idle. Water and fire use palette cycling. |
 
 **Class readability:** clothing color encodes class at a glance.
@@ -33,6 +33,25 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 | Slaves | Plain gray tunic |
 | Soldiers | Roman red with metal gray |
 
+**UI type:** Alegreya Sans for all UI text and Cinzel (Roman inscriptional capitals) for window titles and headings,
+both SIL OFL fonts in `assets/fonts` (the one exception to "art is code"). `game/style.cpp` loads them;
+`begin_window()` and `heading()` apply the title face.
+
+**Build menu:** the left-hand rail shows one 24x24 picture per building group (`ui/cat_<id>` from
+`tools/artgen/categories.py`). Each symbol has a distinct shape and a dominant colour, so the rail reads without text:
+basalt road, terracotta house, golden wheat sheaf, Roman loaf, iron anvil, amphora and crate, water drop, rod of
+Asclepius, temple front, lyre, SPQR standard, scutum, triumphal arch. The rows that pop out show each building's own
+sprite. `game/ui_icons.cpp` composes these thumbnails at startup: a 2x2 field with its hut for farms, a three-piece
+run for walls, aqueducts and roads, and the city's regional variant when there is one.
+
+**Panels:** every panel is built from the pieces in `game/panel_kit.hpp`, in the look of the top bar: parchment with
+no title bar, a header with a framed picture (the panel's icon, or the building's own thumbnail), the title in Cinzel
+and one summary line; small-caps section labels between thin rules; the top bar's bars (green when a goal is met,
+amber when short, red when failing, ochre with no goal); goods named with their icons. The building and citizen
+inspector sits beside the build rail, where the build lists pop out, so opening a list closes it. The report panels
+(Rome, Finance, Goods and the rest) hang from their top-bar button at the right edge, with a notch pointing at it, one
+at a time; the latest-news line moves left of an open panel.
+
 ## Generator structure
 
 ```
@@ -44,6 +63,8 @@ tools/artgen/
 ├── people.py           # body template × clothing palette × pose × direction × frame
 ├── units.py            # soldiers, cavalry, siege
 ├── goods.py            # carried-goods icons and UI icons
+├── hud.py              # HUD icons (16x16), logo, panel ornaments
+├── categories.py       # build-menu category icons (24x24)
 ├── ui.py               # panels, buttons, frames, fonts (bitmap)
 └── build_all.py        # generates everything → assets/sprites/
 tools/atlas/            # packs sprites into atlases + JSON metadata (stb_rect_pack)
@@ -67,3 +88,5 @@ tools/atlas/            # packs sprites into atlases + JSON metadata (stb_rect_p
 | M8–M9 | Fire/smoke/collapse effects, soldiers, walls/gates/towers, combat effects |
 | M10 | UI skin, advisor portraits (small pixel portraits), god icons |
 | M12–M13 | Monuments, regional variants (Egyptian, Gallic, Germanic, Greek) |
+
+**Regional variants** (`tools/artgen/regions.py`) swap material ramps for common buildings and also reshape housing: flat earthen roof terraces with parapets in Egypt, flat whitewashed terraces in the east, half-timbered daub walls under slate in the north.

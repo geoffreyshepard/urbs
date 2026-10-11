@@ -1,6 +1,6 @@
 # URBS art generators
 
-All sprites are produced by code, using the locked 48-color palette in
+All sprites are produced by code, using the locked 56-color palette in
 `assets/palettes/urbs.pal`. Never edit a generated PNG. Change the generator
 and regenerate instead. Output is deterministic: every random choice comes from
 `primitives.rng(key)`, which is `random.Random` seeded with a CRC of a fixed
@@ -50,9 +50,15 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
 (`ax`, `ay`). A sprite with no anchor listed uses (0, 0).
 
 - `terrain/<T>_<0..3>`, where T is one of grass, fertile, sand, rock, forest, marsh, shallow, deep. These are opaque 16x16 tiles, and any variant tiles seamlessly with any other.
-- `terrain/edge_<T>_<n|e|s|w>`: terrain T bleeding in from that side. `terrain/corner_<T>_<ne|se|sw|nw>`: the same for a diagonal-only neighbour.
-  Blend priority, lowest first: deep < shallow < marsh < sand < rock < grass < fertile < forest. On each tile, draw the edges of every higher-priority neighbour terrain, lowest priority first. Draw a corner only when the diagonal neighbour is T and neither orthogonal neighbour next to that corner is T.
-- `terrain/cliff_<s|e|w>`: drawn on a tile whose south, east or west neighbour is lower.
+- Terrain is drawn on a **dual grid**: one 16x16 cell centred on every tile corner (cell (x, y) at pixel
+  (x*16-8, y*16-8), its corners on the centres of tiles (x-1, y-1), (x, y-1), (x-1, y), (x, y); cells run to
+  x = w and y = h). Blend priority, lowest first: deep < shallow < marsh < sand < rock < grass < fertile < forest.
+  - Draw the cell's lowest-priority corner terrain as a full base tile `terrain/<T>_<v>`.
+  - Then for each higher terrain L present, lowest first, draw `terrain/dg_<L>_<mask>` (mask 1..14, bit NW=1, NE=2,
+    SW=4, SE=8, set for each corner whose terrain has priority >= L). `terrain.dual_layers()` is the reference.
+- `terrain/hc_<mask>`: height steps, on the same cells. For each level L with min < L <= max of the four corner
+  heights, draw the contour whose mask marks the corners at height >= L. Same contour noise as `dg_`, so cliffs follow
+  coastlines.
 - `terrain/water_shimmer_<0..3>`: animation overlay frames for water tiles.
 - `road/<dirt|paved>_c` plus `road/<R>_<n|ne|e|se|s|sw|w|nw>`: the center piece plus one spoke per connected neighbour. Pieces can be drawn in any order.
   - Extra, optional: `road/<R>_fill_<ne|se|sw|nw>`. Draw it on a tile whose two orthogonal neighbours at that corner are joined by a diagonal road. For example, draw `fill_nw` when the N neighbour has a `sw` spoke to the W neighbour. Without it, diagonal roads narrow to a single pixel at every tile corner.
@@ -91,7 +97,12 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
 ## Style rules
 
 - Tiles are 16x16. Light comes from the top-left. Each material uses one highlight shade and one shadow shade.
-- Buildings, units and objects get a dark outline (`C.outline`). Terrain never has an outline.
+- Buildings, units and objects get a dark outline (`C.outline`). Terrain never has an outline. After generation,
+  `outlines.py` recolours the outer silhouette with the dark partner of the bordering material (`C.ol_*`); interior
+  lines stay `C.outline`.
+- Ground surfaces inside a building sprite (yards, lawns, paving plates: the layers put with `ol=False`, and the
+  housing ground layer) are stored with alpha 254 (`primitives.flat`). They look the same; the renderer's cast-shadow
+  pass skips them, so only raised parts throw shadows. `check_image` accepts alpha 0, 254 and 255.
 - Class reads from clothing:
   - Patrician: white toga with a purple border.
   - Eques: off-white tunic with narrow purple stripes.
@@ -100,6 +111,9 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
   - Slave: gray.
   - Soldier: red tunic, gray armor and helmet.
 
+- Optional: `bld/<name>_lit` (same size and anchor as `bld/<name>`): warm window pixels for night, found by
+  `lights.py` (small filled C.outline rectangles set into a wall). The renderer adds them over the graded frame.
+
 ### Phase 3
 
 - `ui/province_map` is 512x288, covering lon -10 to 40 and lat 25 to 56 in an equirectangular projection.
@@ -107,3 +121,4 @@ Anchors are in `assets/sprites/meta.json` and `assets/atlas/main.json`
   - Each place is snapped onto land, so it never sits in the sea.
 - `ui/logo` (about 200x60), `ui/panel_corner` (8x8, drawn as the top-left corner; mirror it for the others) and `ui/divider` (64x6, tileable).
 - `ui/icon_<name>`: 16x16 HUD icons.
+- `ui/cat_<id>`: 24x24 build-menu category icons (`categories.py`): roads, housing, farms, food, industry, storage, water, health, religion, culture, civic, military, monument.
