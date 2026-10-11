@@ -66,9 +66,11 @@ inline constexpr f32 kDepthShadow = 0.95f;
 inline constexpr f32 kDepthOverlayMax = 0.08f;
 
 // Static chunk instances carry a code in their colour's alpha byte (alpha = 255 - code) that
-// shaders/ground.vert decodes: code = 1 + kind * 8 + height level; kind 0 terrain, 1 road,
-// 2 cliff face, 3 decoration.  The ground shader treats every chunk instance as fully opaque tint.
-enum GroundKind : int { kKindTerrain = 0, kKindRoad = 1, kKindCliff = 2, kKindDecor = 3 };
+// shaders/ground.vert decodes: code = 1 + kind * 8 + height level.  The ground shader treats every
+// chunk instance as fully opaque tint.  Terrain bases and cliff faces are alpha-tested (hard edges,
+// so a raised piece never leaves a half-transparent seam over ground drawn after it); blends, roads
+// and decorations keep soft edges.
+enum GroundKind : int { kKindTerrain = 0, kKindRoad = 1, kKindCliff = 2, kKindDecor = 3, kKindBlend = 4 };
 inline constexpr u32 ground_code_color(int kind, int level) {
   return 0x00FFFFFFu | (static_cast<u32>(255 - (1 + kind * 8 + level)) << 24);
 }

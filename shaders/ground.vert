@@ -2,7 +2,7 @@
 // Static chunk layer (terrain, roads, cliffs, decorations): sprite.vert plus each vertex's position
 // on the top-down sim grid, which ground.frag needs to sample the per-tile ground texture.  The
 // instance colour's alpha byte carries a code from build_chunk (render/terrain.hpp):
-// alpha = 255 - (1 + kind * 8 + level); kind 0 terrain, 1 road, 2 cliff, 3 decoration.
+// alpha = 255 - (1 + kind * 8 + level); kind 0 terrain, 1 road, 2 cliff, 3 decoration, 4 blend.
 layout(location = 0) in vec3 i_pos;
 layout(location = 1) in vec2 i_size;
 layout(location = 2) in uvec4 i_rect;

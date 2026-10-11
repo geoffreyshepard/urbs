@@ -160,7 +160,7 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
             if (prio[k] == pr) which = k;
           }
         if (which < 0) continue;
-        out.push_back(anchored(ts.dual[static_cast<int>(c[which])][mask][p], at, z, code));
+        out.push_back(anchored(ts.dual[static_cast<int>(c[which])][mask][p], at, z, ground_code_color(kKindBlend, lv[0])));
       }
     }
 
@@ -225,7 +225,7 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
       };
       const f32 jx = (static_cast<f32>((var >> 2) & 7) - 3.5f) / 14.0f;
       const f32 jy = (static_cast<f32>((var >> 5) & 3) - 1.5f) / 8.0f;
-      if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && var % 5 < 2) {
+      if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && var % 4 == 0) {
         put(ts.res[static_cast<int>(m.resource[i])], jx * 0.5f, jy * 0.5f);
         continue;
       }
