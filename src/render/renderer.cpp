@@ -286,7 +286,7 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
   sim::TileMap& m = const_cast<sim::TileMap&>(*map_);
   struct Pending {
     size_t chunk;
-    u32 offset, bytes;
+    u32 offset, bytes, ground;
   };
   std::vector<Pending> pending;
   scratch_.clear();
@@ -300,10 +300,10 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
         if (!m.chunk_dirty[ci]) continue;
         if (pass_i == 0 && !visible(cx, cy)) continue;
         size_t start = scratch_.size();
-        build_chunk(m, ts_, cx, cy, scratch_);
+        const u32 ground = build_chunk(m, ts_, cx, cy, scratch_);
         m.chunk_dirty[ci] = 0;
         pending.push_back({ci, static_cast<u32>(start * sizeof(SpriteInstance)),
-                           static_cast<u32>((scratch_.size() - start) * sizeof(SpriteInstance))});
+                           static_cast<u32>((scratch_.size() - start) * sizeof(SpriteInstance)), ground});
         --budget;
       }
   if (pending.empty()) return;
@@ -325,6 +325,7 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
   for (const Pending& p : pending) {
     Chunk& c = chunks_[p.chunk];
     c.count = p.bytes / sizeof(SpriteInstance);
+    c.ground = p.ground;
     if (p.bytes == 0) continue;
     if (p.bytes > c.capacity) {
       if (c.buf) SDL_ReleaseGPUBuffer(dev_, c.buf);
@@ -414,7 +415,7 @@ void Renderer::upload_far_texture(SDL_GPUCopyPass* pass) {
 }
 
 void Renderer::draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, SDL_GPUBuffer* buf, u32 count,
-                              SDL_GPUTexture* ground) {
+                              SDL_GPUTexture* ground, u32 first) {
   if (!buf || count == 0) return;
   Vec2 o = cam_.origin();
   CameraUniform u{{o.x, o.y},
@@ -427,18 +428,28 @@ void Renderer::draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, 
   SDL_BindGPUVertexBuffers(rp, 0, &bb, 1);
   SDL_GPUTextureSamplerBinding tsb[2] = {{atlas_.texture(), sampler_}, {ground, linear_}};
   SDL_BindGPUFragmentSamplers(rp, 0, tsb, ground ? 2 : 1);
-  SDL_DrawGPUPrimitives(rp, 6, count, 0, 0);
+  SDL_DrawGPUPrimitives(rp, 6, count, 0, first);
 }
 
 void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd) {
+  // Every chunk's ground first, then the decorations by chunk diagonal (back to front), so trees and
+  // their shadows that hang over a neighbouring chunk always land on finished ground.
   const iso::Rectf vis = view_rect(0.0f);
-  for (int cy = 0; cy < map_->chunks_y(); ++cy)
-    for (int cx = 0; cx < map_->chunks_x(); ++cx) {
-      const Chunk& c = chunks_[static_cast<size_t>(cy * map_->chunks_x() + cx)];
+  const int ncx = map_->chunks_x(), ncy = map_->chunks_y();
+  for (int cy = 0; cy < ncy; ++cy)
+    for (int cx = 0; cx < ncx; ++cx) {
+      const Chunk& c = chunks_[static_cast<size_t>(cy * ncx + cx)];
       if (!c.buf || c.count == 0 || !chunk_visible(cx, cy, vis)) continue;
-      draw_instances(rp, cmd, c.buf, c.count, ground_tex_);
+      draw_instances(rp, cmd, c.buf, c.ground, ground_tex_);
       ++stats_.chunks_drawn;
       stats_.chunk_instances += c.count;
+    }
+  for (int d = 0; d <= ncx + ncy - 2; ++d)
+    for (int cx = std::max(0, d - ncy + 1); cx <= std::min(d, ncx - 1); ++cx) {
+      const int cy = d - cx;
+      const Chunk& c = chunks_[static_cast<size_t>(cy * ncx + cx)];
+      if (!c.buf || c.count <= c.ground || !chunk_visible(cx, cy, vis)) continue;
+      draw_instances(rp, cmd, c.buf, c.count - c.ground, ground_tex_, c.ground);
     }
 }
 

@@ -3,9 +3,10 @@
 #include <algorithm>
 #include <string>
 
+#include "render/iso.hpp"
+
 namespace urbs::render {
 
-using sim::kTilePx;
 using sim::Road;
 using sim::Terrain;
 
@@ -38,13 +39,11 @@ f32 value_noise(i32 x, i32 y, i32 cell, u32 seed) {
   return (a + (b - a) * fx) + ((c + (d - c) * fx) - (a + (b - a) * fx)) * fy;
 }
 
-SpriteInstance inst(const Sprite& s, f32 x, f32 y, f32 z, u32 color = kWhite) {
-  return SpriteInstance{x, y, z, static_cast<f32>(s.w), static_cast<f32>(s.h), s.u, s.v, s.w, s.h, color};
+// Anchored sprite: the anchor lands on the iso point (x, y).
+SpriteInstance anchored(const Sprite& s, f32 x, f32 y, f32 z, u32 color) {
+  return SpriteInstance{x - s.iso_ax(), y - s.iso_ay(), z, s.iso_w(), s.iso_h(), s.u, s.v, s.w, s.h, color};
 }
-// Anchored sprite: the anchor pixel lands on (wx, wy).
-SpriteInstance anchored(const Sprite& s, f32 wx, f32 wy, f32 z, u32 color = kWhite) {
-  return inst(s, wx - static_cast<f32>(s.ax), wy - static_cast<f32>(s.ay), z, color);
-}
+SpriteInstance anchored(const Sprite& s, Vec2 p, f32 z, u32 color) { return anchored(s, p.x, p.y, z, color); }
 }  // namespace
 
 int terrain_priority(Terrain t) {
@@ -63,13 +62,24 @@ int terrain_priority(Terrain t) {
 
 void TerrainSprites::resolve(const Atlas& a) {
   for (int t = 0; t < kTerrainCount; ++t) {
-    std::string tn = sim::terrain_name(static_cast<Terrain>(t));
-    for (int v = 0; v < 4; ++v) base[t][v] = a.get("terrain/" + tn + "_" + std::to_string(v));
-    if (t != static_cast<int>(Terrain::Deep))  // the lowest priority never overlays
-      for (int m = 1; m < 15; ++m) dual[t][m] = a.get("terrain/dg_" + tn + "_" + std::to_string(m));
+    const std::string tn = std::string("terrain/") + sim::terrain_name(static_cast<Terrain>(t));
+    for (int p = 0; p < 4; ++p) {
+      const std::string ps = "_" + std::to_string(p);
+      base[t][p] = a.get(tn + ps);
+      for (int k = 0; k < 4; ++k)
+        quarter[t][k][p] = a.get(std::string("terrain/q_") + sim::terrain_name(static_cast<Terrain>(t)) + "_" +
+                                 std::to_string(k) + ps);
+      if (t != static_cast<int>(Terrain::Deep))  // the lowest priority never overlays
+        for (int m = 1; m < 15; ++m)
+          dual[t][m][p] = a.get(std::string("terrain/dg_") + sim::terrain_name(static_cast<Terrain>(t)) + "_" +
+                                std::to_string(m) + ps);
+    }
     base_color[t] = a.average_color(base[t][0]);
   }
-  for (int k = 1; k < 15; ++k) hcliff[k] = a.get("terrain/hc_" + std::to_string(k));
+  for (int v = 0; v < 2; ++v) {
+    cliff[0][v] = a.get("terrain/cliff_s_" + std::to_string(v));
+    cliff[1][v] = a.get("terrain/cliff_e_" + std::to_string(v));
+  }
   const char* rn[3] = {"", "dirt", "paved"};
   for (int r = 1; r < 3; ++r) {
     road_center[r] = a.get(std::string("road/") + rn[r] + "_c");
@@ -77,61 +87,80 @@ void TerrainSprites::resolve(const Atlas& a) {
     for (int c = 0; c < 4; ++c) road_fill[r][c] = a.get(std::string("road/") + rn[r] + "_fill_" + kCorner[c]);
     road_color[r] = a.average_color(road_center[r]);
   }
-  for (int i = 0; i < 6; ++i) tree[i] = a.get("obj/tree_" + std::to_string(i));
+  auto decor = [&](const std::string& n) { return Decor{a.get(n), a.get(n + "_shadow")}; };
+  for (int i = 0; i < 7; ++i) tree[i] = decor("obj/tree_" + std::to_string(i));
   for (int i = 0; i < 3; ++i) {
-    bush[i] = a.get("obj/bush_" + std::to_string(i));
-    reeds[i] = a.get("obj/reeds_" + std::to_string(i));
-    boulder[i] = a.get("obj/boulder_" + std::to_string(i));
+    bush[i] = decor("obj/bush_" + std::to_string(i));
+    reeds[i] = decor("obj/reeds_" + std::to_string(i));
+    boulder[i] = decor("obj/boulder_" + std::to_string(i));
   }
-  for (int r = 1; r < static_cast<int>(sim::Resource::Count); ++r) res[r] = a.get(std::string("obj/res_") + kResName[r]);
+  for (int r = 1; r < static_cast<int>(sim::Resource::Count); ++r) res[r] = decor(std::string("obj/res_") + kResName[r]);
 }
 
-void build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy, std::vector<SpriteInstance>& out) {
+u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy, std::vector<SpriteInstance>& out) {
+  const size_t first = out.size();
+  // Decorations are collected here and appended after the ground (render thread only; reused).
+  static std::vector<SpriteInstance> decor;
+  decor.clear();
   const i32 x0 = cx * sim::kChunkTiles, y0 = cy * sim::kChunkTiles;
   const i32 x1 = std::min(m.w, x0 + sim::kChunkTiles), y1 = std::min(m.h, y0 + sim::kChunkTiles);
-  const f32 map_px_h = static_cast<f32>(m.h * kTilePx);
+  const f32 map_h = iso::map_iso_h(m);
   auto R = [&](i32 x, i32 y) { return m.in_bounds(x, y) ? m.road[static_cast<size_t>(m.idx(x, y))] : Road::None; };
-
   auto Tc = [&](i32 x, i32 y) {
     return m.terrain[static_cast<size_t>(m.idx(std::clamp(x, 0, m.w - 1), std::clamp(y, 0, m.h - 1)))];
   };
-  // Terrain: dual-grid cells centred on tile corners (tools/artgen/terrain.py, dual_layers). Cell
-  // (x, y) has the centres of tiles (x-1, y-1) .. (x, y) at its corners; this chunk owns the cells
-  // whose bottom-right tile it contains, plus the extra row/column past the map's last tile.
+  auto Hc = [&](i32 x, i32 y) {
+    return static_cast<int>(m.height[static_cast<size_t>(m.idx(std::clamp(x, 0, m.w - 1), std::clamp(y, 0, m.h - 1)))]);
+  };
+
+  // Terrain: dual-grid cells centred on tile corners.  Cell (x, y) has the centres of tiles
+  // (x-1, y-1) .. (x, y) at its corners (NW, NE, SW, SE = the diamond's top, right, left, bottom);
+  // this chunk owns the cells whose SE tile it contains, plus the extra row/column past the map's
+  // last tile.  A cell whose four tiles share one height level draws whole, with blends; a cell
+  // across a height step (or on the map edge) draws each tile's quarter on that tile's own level.
   const i32 cx1 = x1 == m.w ? x1 + 1 : x1, cy1 = y1 == m.h ? y1 + 1 : y1;
   for (i32 y = y0; y < cy1; ++y)
     for (i32 x = x0; x < cx1; ++x) {
-      const Terrain c[4] = {Tc(x - 1, y - 1), Tc(x, y - 1), Tc(x - 1, y), Tc(x, y)};
+      static constexpr i32 kQx[4] = {-1, 0, -1, 0}, kQy[4] = {-1, -1, 0, 0};
+      const int p = (x & 1) | ((y & 1) << 1);
+      bool inb[4], uniform = true;
+      int lv[4];
+      Terrain c[4];
+      for (int k = 0; k < 4; ++k) {
+        inb[k] = m.in_bounds(x + kQx[k], y + kQy[k]);
+        lv[k] = Hc(x + kQx[k], y + kQy[k]);
+        c[k] = Tc(x + kQx[k], y + kQy[k]);
+        uniform = uniform && inb[k] && lv[k] == lv[0];
+      }
+      const f32 fx = static_cast<f32>(x) + 0.5f, fy = static_cast<f32>(y) + 0.5f;
+      if (!uniform) {
+        for (int k = 0; k < 4; ++k) {
+          if (!inb[k]) continue;
+          const i32 tx = x + kQx[k], ty = y + kQy[k];
+          out.push_back(anchored(ts.quarter[static_cast<int>(c[k])][k][p], iso::from_tile(fx, fy, static_cast<f32>(lv[k])),
+                                 ground_depth(tx + ty, kLayerQuarter), ground_code_color(kKindTerrain, lv[k])));
+        }
+        continue;
+      }
       int prio[4], low = 99;
       for (int k = 0; k < 4; ++k) low = std::min(low, prio[k] = terrain_priority(c[k]));
-      const f32 px = static_cast<f32>(x * kTilePx - kTilePx / 2), py = static_cast<f32>(y * kTilePx - kTilePx / 2);
-      const u8 var = m.variant[static_cast<size_t>(m.idx(std::min(x, m.w - 1), std::min(y, m.h - 1)))];
       int base = 0;
       for (int k = 0; k < 4; ++k)
         if (prio[k] == low) base = k;
-      out.push_back(inst(ts.base[static_cast<int>(c[base])][var & 3], px, py, kDepthTerrain));
+      const Vec2 at = iso::from_tile(fx, fy, static_cast<f32>(lv[0]));
+      const f32 z = ground_depth(x + y - 1, kLayerCell);
+      const u32 code = ground_code_color(kKindTerrain, lv[0]);
+      out.push_back(anchored(ts.base[static_cast<int>(c[base])][p], at, z, code));
       // Overlays for each higher terrain present, lowest first.
-      for (int p = low + 1; p < kTerrainCount; ++p) {
+      for (int pr = low + 1; pr < kTerrainCount; ++pr) {
         int mask = 0, which = -1;
         for (int k = 0; k < 4; ++k)
-          if (prio[k] >= p) {
+          if (prio[k] >= pr) {
             mask |= 1 << k;
-            if (prio[k] == p) which = k;
+            if (prio[k] == pr) which = k;
           }
         if (which < 0) continue;
-        out.push_back(inst(ts.dual[static_cast<int>(c[which])][mask], px, py, kDepthTerrain));
-      }
-      // Height steps: one contour per level crossed inside the cell.
-      auto Hc = [&](i32 hx, i32 hy) {
-        return m.height[static_cast<size_t>(m.idx(std::clamp(hx, 0, m.w - 1), std::clamp(hy, 0, m.h - 1)))];
-      };
-      const u8 hh[4] = {Hc(x - 1, y - 1), Hc(x, y - 1), Hc(x - 1, y), Hc(x, y)};
-      const u8 hmin = std::min({hh[0], hh[1], hh[2], hh[3]}), hmax = std::max({hh[0], hh[1], hh[2], hh[3]});
-      for (int lv = hmin + 1; lv <= hmax; ++lv) {
-        int mask = 0;
-        for (int k = 0; k < 4; ++k)
-          if (hh[k] >= lv) mask |= 1 << k;
-        out.push_back(inst(ts.hcliff[mask], px, py, kDepthCliff));
+        out.push_back(anchored(ts.dual[static_cast<int>(c[which])][mask][p], at, z, code));
       }
     }
 
@@ -140,13 +169,26 @@ void build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy
       const size_t i = static_cast<size_t>(m.idx(x, y));
       const Terrain t = m.terrain[i];
       const u8 var = m.variant[i];
-      const f32 px = static_cast<f32>(x * kTilePx), py = static_cast<f32>(y * kTilePx);
+      const int lv = static_cast<int>(m.height[i]);
+      const Vec2 corner = iso::tile_anchor(x, y, static_cast<f32>(lv));
+
+      // Cliff faces under the south and east edges, one per level down to the neighbour (the map's
+      // front edges drop to level 0).
+      for (int side = 0; side < 2; ++side) {
+        const i32 nx = x + (side == 1 ? 1 : 0), ny = y + (side == 0 ? 1 : 0);
+        const int nl = m.in_bounds(nx, ny) ? Hc(nx, ny) : 0;
+        for (int l = nl; l < lv; ++l)
+          out.push_back(anchored(ts.cliff[side][(x * 7 + y * 3 + l) & 1], iso::tile_anchor(x, y, static_cast<f32>(l)),
+                                 ground_depth(x + y, kLayerCliff), ground_code_color(kKindCliff, l)));
+      }
 
       const Road road = m.road[i];
       const bool occupied = m.building[i].valid();
+      const f32 zr = ground_depth(x + y + 1, kLayerRoad);
+      const u32 road_code = ground_code_color(kKindRoad, lv);
       if (road != Road::None) {
         int ri = road == Road::Paved || road == Road::Bridge ? 2 : 1;
-        out.push_back(inst(ts.road_center[ri], px, py, kDepthRoad));
+        out.push_back(anchored(ts.road_center[ri], corner, zr, road_code));
         bool orth[4];
         for (int s = 0; s < 4; ++s) orth[s] = R(x + kDir4X[s], y + kDir4Y[s]) != Road::None;
         for (int d = 0; d < 8; ++d) {
@@ -155,7 +197,7 @@ void build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy
             int a = d / 2, b = ((d + 1) / 2) % 4;
             if (orth[a] || orth[b]) continue;
           }
-          out.push_back(inst(ts.road_spoke[ri][d], px, py, kDepthRoad));
+          out.push_back(anchored(ts.road_spoke[ri][d], corner, zr, road_code));
         }
         continue;
       }
@@ -169,34 +211,52 @@ void build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy
           Road ra = R(x + kDir4X[kSa[c]], y + kDir4Y[kSa[c]]), rb = R(x + kDir4X[kSb[c]], y + kDir4Y[kSb[c]]);
           if (ra == Road::None || rb == Road::None || R(x + kDx[c], y + kDy[c]) != Road::None) continue;
           int ri = (ra == Road::Dirt && rb == Road::Dirt) ? 1 : 2;
-          out.push_back(inst(ts.road_fill[ri][c], px, py, kDepthRoad));
+          out.push_back(anchored(ts.road_fill[ri][c], corner, zr, road_code));
         }
       }
 
-      if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && (var & 0x30) != 0)
-        out.push_back(inst(ts.res[static_cast<int>(m.resource[i])], px, py, kDepthRoad));
-
-      // Decorations, y-sorted with buildings and agents.
-      const f32 ox = static_cast<f32>((var >> 2) & 7) - 3.5f, oy = static_cast<f32>((var >> 5) & 3);
-      const f32 foot_x = px + 8 + ox, foot_y = py + 12 + oy;
-      const f32 z = depth_for_foot(foot_y, map_px_h);
+      // Decorations and resource outcrops, y-sorted with buildings and agents.  The foot is jittered
+      // inside the tile by the tile's variant bits.
+      auto put = [&](const TerrainSprites::Decor& d, f32 jx, f32 jy) {
+        const Vec2 foot = iso::from_tile(static_cast<f32>(x) + 0.5f + jx, static_cast<f32>(y) + 0.5f + jy, static_cast<f32>(lv));
+        const u32 code = ground_code_color(kKindDecor, lv);
+        if (d.shadow.valid) decor.push_back(anchored(d.shadow, foot, kDepthDecorShadow, code));
+        decor.push_back(anchored(d.body, foot, iso::depth_for_iso(foot.y, map_h), code));
+      };
+      const f32 jx = (static_cast<f32>((var >> 2) & 7) - 3.5f) / 14.0f;
+      const f32 jy = (static_cast<f32>((var >> 5) & 3) - 1.5f) / 8.0f;
+      if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && var % 5 < 2) {
+        put(ts.res[static_cast<int>(m.resource[i])], jx * 0.5f, jy * 0.5f);
+        continue;
+      }
       switch (t) {
-        case Terrain::Forest:
-          if (var % 10 < 8) out.push_back(anchored(ts.tree[var % 6], foot_x, foot_y, z));
+        case Terrain::Forest: {
+          static constexpr int kForest[6] = {0, 1, 3, 5, 4, 1};  // cypress, pine, oak, holm oak
+          if (var % 10 < 8) put(ts.tree[kForest[var % 6]], jx, jy);
+          if (var % 3 == 0) put(ts.tree[kForest[(var / 7) % 6]], -jy - 0.2f, jx * 0.5f + 0.22f);
           break;
+        }
         case Terrain::Grass:
-          if (var % 23 == 0) out.push_back(anchored(ts.bush[var % 3], foot_x, foot_y, z));
-          else if (var % 41 == 1) out.push_back(anchored(ts.tree[var % 6], foot_x, foot_y, z));
+          if (var % 23 == 0) put(ts.bush[var % 3], jx, jy);
+          else if (var % 41 == 1) put(ts.tree[(var / 41) % 2 ? 2 : 6], jx, jy);  // olive or poplar
+          break;
+        case Terrain::Fertile:
+          if (var % 61 == 2) put(ts.tree[2], jx, jy);
           break;
         case Terrain::Marsh:
-          if (var % 5 < 2) out.push_back(anchored(ts.reeds[var % 3], foot_x, foot_y, z));
+          if (var % 5 < 2) put(ts.reeds[var % 3], jx, jy);
           break;
         case Terrain::Rock:
-          if (var % 4 == 0) out.push_back(anchored(ts.boulder[var % 3], foot_x, foot_y, z));
+          if (var % 4 == 0) put(ts.boulder[var % 3], jx, jy);
           break;
         default: break;
       }
     }
+  const u32 ground = static_cast<u32>(out.size() - first);
+  // Shadows first, then bodies far to near, so overlapping translucent edges blend in order.
+  std::stable_sort(decor.begin(), decor.end(), [](const SpriteInstance& a, const SpriteInstance& b) { return a.z > b.z; });
+  out.insert(out.end(), decor.begin(), decor.end());
+  return ground;
 }
 
 void build_ground_texels(const sim::TileMap& m, i32 x0, i32 y0, i32 x1, i32 y1, std::vector<u32>& out) {

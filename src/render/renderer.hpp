@@ -98,13 +98,14 @@ class Renderer {
   struct Chunk {
     SDL_GPUBuffer* buf = nullptr;
     u32 count = 0;
+    u32 ground = 0;  // leading ground instances; the rest are decorations (see build_chunk)
     u32 capacity = 0;
   };
   void rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget);
   void ensure_targets(u32 w, u32 h);
   void upload_far_texture(SDL_GPUCopyPass* pass);
   void draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, SDL_GPUBuffer* buf, u32 count,
-                      SDL_GPUTexture* ground = nullptr);
+                      SDL_GPUTexture* ground = nullptr, u32 first = 0);
   void draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd);
   void draw_far(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd);
   void push_overlay_tiles();

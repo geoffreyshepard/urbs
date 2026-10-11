@@ -264,30 +264,43 @@ def res_fish(M, X):
         m.thickness = 0.012
 
 
-def _wrap(fn, *a, scale=1.0):
+def _wrap(fn, *a, scale=1.0, shadow=False):
+    """Build fn's scene.  shadow=False: the object alone (no shadow catcher).  shadow=True: only
+    the shadow it casts on the ground (the object is hidden from the camera but still casts)."""
     def build(M):
         X = _mats()
         fn(M, X, *a)
-        if scale != 1.0:
-            for ob in bpy.context.scene.objects:
-                if ob.type == "MESH":
-                    ob.location *= scale
-                    ob.scale *= scale
+        for ob in list(bpy.context.scene.objects):
+            if ob.type != "MESH":
+                continue
+            if scale != 1.0:
+                ob.location *= scale
+                ob.scale *= scale
+            if ob.name.startswith("shadow"):
+                if not shadow:
+                    bpy.data.objects.remove(ob, do_unlink=True)
+            elif shadow:
+                ob.visible_camera = False
     return build
 
 
-TREES = [lambda M, X: cypress(M, X, 1.05, 11), umbrella_pine, olive_tree, oak,
-         lambda M, X: cypress(M, X, 0.8, 15), holm_oak]
-
 SPRITES = {}
+
+
+def _add(name, fn, *a, scale=1.0):
+    SPRITES[name] = dict(free=True, build=_wrap(fn, *a, scale=scale))
+    SPRITES[name + "_shadow"] = dict(free=True, build=_wrap(fn, *a, scale=scale, shadow=True))
+
+
+TREES = [lambda M, X: cypress(M, X, 1.05, 11), umbrella_pine, olive_tree, oak,
+         lambda M, X: cypress(M, X, 0.8, 15), holm_oak, poplar]
 for _i, _fn in enumerate(TREES):
-    SPRITES["obj/tree_%d" % _i] = dict(free=True, build=_wrap(_fn, scale=1.25))
-SPRITES["obj/tree_6"] = dict(free=True, build=_wrap(poplar, scale=1.25))
+    _add("obj/tree_%d" % _i, _fn, scale=1.25)
 for _i in range(3):
-    SPRITES["obj/bush_%d" % _i] = dict(free=True, build=_wrap(bush, _i, 40 + _i))
-    SPRITES["obj/reeds_%d" % _i] = dict(free=True, build=_wrap(reeds, (26, 18, 12)[_i], 50 + _i))
-    SPRITES["obj/boulder_%d" % _i] = dict(free=True, build=_wrap(boulder, _i, 60 + _i))
+    _add("obj/bush_%d" % _i, bush, _i, 40 + _i)
+    _add("obj/reeds_%d" % _i, reeds, (26, 18, 12)[_i], 50 + _i)
+    _add("obj/boulder_%d" % _i, boulder, _i, 60 + _i)
 for _r, _fn in [("clay", res_clay), ("stone", res_stone), ("iron", res_iron), ("silver", res_silver),
                 ("marble", res_marble), ("limestone", res_limestone), ("pozzolana", res_pozzolana),
                 ("fish", res_fish)]:
-    SPRITES["obj/res_" + _r] = dict(free=True, build=_wrap(_fn, scale=1.3))
+    _add("obj/res_" + _r, _fn, scale=1.3)
