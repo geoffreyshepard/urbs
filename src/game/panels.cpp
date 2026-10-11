@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "game/advisors.hpp"
+#include "game/iso_draw.hpp"
 #include "game/panel_kit.hpp"
 #include "game/style.hpp"
 #include "game/ui_icons.hpp"
@@ -1315,34 +1316,36 @@ BuildingId draw_alerts_panel(const sim::World& w, const UiIcons& icons, const Do
 }
 
 void draw_selection(const sim::World& w, const Selection& sel, render::Renderer& r, f32 alpha) {
-  const f32 T = static_cast<f32>(sim::kTilePx);
+  namespace iso = render::iso;
+  const u32 mark = render::rgba(255, 240, 120, 220);
+  // A flat ring under someone's feet.
+  auto foot_ring = [&](Vec2 foot, f32 rx) {
+    for (int k = 0; k < 16; ++k) {
+      const f32 a = static_cast<f32>(k) * 0.3927f;
+      r.push_rect(foot.x + std::cos(a) * rx - 3.0f, foot.y + std::sin(a) * rx * 0.5f - 2.0f, 6.0f, 4.0f, 0.01f, mark);
+    }
+  };
   if (sel.unit < military::kMaxUnits && w.army.units[sel.unit].alive) {
     const auto& A = w.army;
     for (u32 i = 0; i < A.ids.high_water(); ++i)
       if (A.ids.alive_index(i) && A.unit[i] == sel.unit) {
-        const f32 x = (A.px[i] + (A.x[i] - A.px[i]) * alpha) * T, y = (A.py[i] + (A.y[i] - A.py[i]) * alpha) * T;
-        r.push_rect(x - 3, y + 3, 6, 1, 0.01f, render::rgba(255, 240, 120, 220));
+        const f32 tx = A.px[i] + (A.x[i] - A.px[i]) * alpha, ty = A.py[i] + (A.y[i] - A.py[i]) * alpha;
+        foot_ring(iso::from_tile(tx, ty, iso::level_at(w.map, static_cast<i32>(tx), static_cast<i32>(ty))), 14.0f);
       }
     const auto& un = A.units[sel.unit];
     if (un.target_tile >= 0) {
-      const f32 tx = static_cast<f32>(un.target_tile % w.map.w) * T, ty = static_cast<f32>(un.target_tile / w.map.w) * T;
-      r.push_rect(tx, ty, T, T, 0.01f, render::rgba(255, 240, 120, 90));
+      const i32 tx = un.target_tile % w.map.w, ty = un.target_tile / w.map.w;
+      r.push_diamond(tx, ty, 1, 1, iso::level_at(w.map, tx, ty), 0.01f, render::rgba(255, 240, 120, 90));
     }
   }
   if (sel.building.valid() && w.buildings.alive(sel.building)) {
     const auto& b = w.buildings[sel.building];
-    const f32 x = static_cast<f32>(b.x) * T, y = static_cast<f32>(b.y) * T, bw = static_cast<f32>(b.w) * T,
-              bh = static_cast<f32>(b.h) * T;
-    const u32 c = render::rgba(255, 240, 120, 220);
-    r.push_rect(x, y, bw, 1, 0.01f, c);
-    r.push_rect(x, y + bh - 1, bw, 1, 0.01f, c);
-    r.push_rect(x, y, 1, bh, 0.01f, c);
-    r.push_rect(x + bw - 1, y, 1, bh, 0.01f, c);
+    push_diamond_outline(r, b.x, b.y, b.w, b.h, iso::level_at(w.map, b.x, b.y), 0.01f, mark, 4.0f);
   }
   if (sel.citizen.valid() && w.citizens.alive(sel.citizen)) {
     Vec2 p;
     if (w.citizen_position(sel.citizen.index(), alpha, p, nullptr))
-      r.push_rect(p.x - 4, p.y + 3, 8, 2, 0.01f, render::rgba(255, 240, 120, 230));
+      foot_ring(iso::project(p, iso::level_at_world(w.map, p.x, p.y)), 16.0f);
   }
 }
 

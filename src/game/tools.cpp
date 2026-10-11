@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "game/iso_draw.hpp"
 #include "game/world_view.hpp"
 
 namespace urbs::game {
@@ -113,8 +114,9 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
 }
 
 void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r) const {
-  const f32 T = static_cast<f32>(sim::kTilePx);
+  namespace iso = render::iso;
   const u32 ok_col = render::rgba(80, 220, 90, 110), bad_col = render::rgba(230, 60, 50, 120);
+  auto tile = [&](i32 x, i32 y, u32 col) { r.push_diamond(x, y, 1, 1, iso::level_at(w.map, x, y), 0.03f, col); };
   switch (kind) {
     case ToolKind::Build: {
       if (!def.valid()) return;
@@ -124,8 +126,7 @@ void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r
         Vec2i a = dragging_ ? start_ : hover_, b = hover_;
         i32 x = a.x, y = a.y;
         for (int n = 0; n < 2048; ++n) {
-          r.push_rect(static_cast<f32>(x) * T, static_cast<f32>(y) * T, T, T, 0.03f,
-                      ld.layer == 2 ? render::rgba(150, 100, 60, 140) : render::rgba(60, 140, 230, 140));
+          tile(x, y, ld.layer == 2 ? render::rgba(150, 100, 60, 140) : render::rgba(60, 140, 230, 140));
           if (x == b.x && y == b.y) break;
           if (ld.layer == 3) {
             x += (b.x > x) - (b.x < x);
@@ -140,15 +141,14 @@ void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r
       }
       Recti f = footprint(w);
       const bool ok = w.can_place(def, f.x, f.y, f.w, f.h) && w.econ.treasury >= cost(w);
-      r.push_rect(static_cast<f32>(f.x) * T, static_cast<f32>(f.y) * T, static_cast<f32>(f.w) * T,
-                  static_cast<f32>(f.h) * T, 0.03f, ok ? ok_col : bad_col);
+      const f32 level = iso::level_at(w.map, f.x, f.y);
+      r.push_diamond(f.x, f.y, f.w, f.h, level, 0.03f, ok ? ok_col : bad_col);
       const auto& d = w.defs->b(def);
       if (!d.painted) {
         const render::Sprite& s = view.building_sprite(def, f.w, f.h);
-        const f32 fw = static_cast<f32>(f.w) * T, foot = static_cast<f32>(f.y + f.h) * T;
-        const f32 sh = static_cast<f32>(s.h) * fw / static_cast<f32>(std::max<u16>(1, s.w));
-        r.push_translucent(render::SpriteInstance{static_cast<f32>(f.x) * T, foot - sh, 0.02f, fw, sh, s.u, s.v, s.w,
-                                                  s.h, render::rgba(255, 255, 255, 170)});
+        if (s.valid)
+          r.push_translucent(iso_instance(s, iso::footprint_anchor(f.x, f.y, f.w, f.h, level), 0.02f,
+                                          render::rgba(255, 255, 255, 170)));
       }
       break;
     }
@@ -158,7 +158,7 @@ void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r
       for (int n = 0; n < 2048; ++n) {
         bool ok = w.map.in_bounds(x, y) && !w.map.building[static_cast<size_t>(w.map.idx(x, y))].valid() &&
                   !sim::terrain_water(w.map.terrain[static_cast<size_t>(w.map.idx(x, y))]);
-        r.push_rect(static_cast<f32>(x) * T, static_cast<f32>(y) * T, T, T, 0.03f, ok ? ok_col : bad_col);
+        tile(x, y, ok ? ok_col : bad_col);
         if (x == b.x && y == b.y) break;
         x += (b.x > x) - (b.x < x);
         y += (b.y > y) - (b.y < y);
@@ -167,8 +167,7 @@ void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r
     }
     case ToolKind::Demolish: {
       Recti f = footprint(w);
-      r.push_rect(static_cast<f32>(f.x) * T, static_cast<f32>(f.y) * T, static_cast<f32>(f.w) * T,
-                  static_cast<f32>(f.h) * T, 0.03f, render::rgba(230, 60, 50, 90));
+      r.push_diamond(f.x, f.y, f.w, f.h, iso::level_at(w.map, f.x, f.y), 0.03f, render::rgba(230, 60, 50, 90));
       break;
     }
     default: break;

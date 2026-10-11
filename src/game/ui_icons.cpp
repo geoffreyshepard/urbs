@@ -128,17 +128,13 @@ struct Canvas {
   std::vector<u8> px;
 };
 
-// Top-left pixel of a piece: the anchor is the footprint's bottom-left pixel; sprites without one are
-// tile-sized and cover their tile.
-void piece_origin(const Piece& p, int& x, int& y) {
-  constexpr int T = 16;
-  if (p.s.ax == 0 && p.s.ay == 0) {
-    x = p.tx * T;
-    y = p.ty * T;
-  } else {
-    x = p.tx * T - p.s.ax;
-    y = p.ty * T + T - 1 - p.s.ay;
-  }
+// Top-left texel of a piece: pieces are ground-attached iso sprites anchored at the bottom corner of
+// their tile (docs/13-isometric.md); tile (tx, ty) of the little layout sits on the iso grid.
+void piece_origin(const render::Atlas& atlas, const Piece& p, int& x, int& y) {
+  const float k = 1.0f / p.s.iso_per_texel;  // texels per iso px
+  (void)atlas;
+  x = static_cast<int>(std::lround(static_cast<float>(p.tx - p.ty) * 64.0f * k)) - p.s.ax;
+  y = static_cast<int>(std::lround((static_cast<float>(p.tx + p.ty) + 2.0f) * 32.0f * k)) - p.s.ay;
 }
 
 // Paints the pieces in order onto one canvas, cropped to the opaque pixels.
@@ -147,7 +143,7 @@ Canvas compose(const render::Atlas& atlas, const std::vector<Piece>& pieces) {
   int x0 = INT_MAX, y0 = INT_MAX, x1 = INT_MIN, y1 = INT_MIN;
   for (const Piece& p : pieces) {
     int x, y;
-    piece_origin(p, x, y);
+    piece_origin(atlas, p, x, y);
     x0 = std::min(x0, x);
     y0 = std::min(y0, y);
     x1 = std::max(x1, x + p.s.w);
@@ -159,7 +155,7 @@ Canvas compose(const render::Atlas& atlas, const std::vector<Piece>& pieces) {
   const auto& src = atlas.pixels();
   for (const Piece& p : pieces) {
     int ox, oy;
-    piece_origin(p, ox, oy);
+    piece_origin(atlas, p, ox, oy);
     for (int y = 0; y < p.s.h; ++y)
       for (int x = 0; x < p.s.w; ++x) {
         const size_t si = (static_cast<size_t>(p.s.v + y) * atlas.width() + p.s.u + x) * 4;
@@ -263,7 +259,7 @@ void UiIcons::build_thumbs(SDL_GPUDevice* dev, const render::Atlas& atlas, const
       for (int y = 0; y < 2; ++y)
         for (int x = 0; x < 2; ++x) p.push_back({find(b.sprite + "_tile_" + std::to_string((x + y * 2) % 4)), x, y});
       const render::Sprite hut = find(b.sprite + "_hut");
-      if (hut.valid) p.push_back({hut, 0, 0});
+      if (hut.valid) p.push_back({hut, 0, 1});  // on the front-left tile, as in the world view
     }
     if (p.empty()) {
       const render::Sprite s = find(b.sprite);

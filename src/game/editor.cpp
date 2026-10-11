@@ -11,6 +11,7 @@
 #include "game/app.hpp"
 #include "game/panel_kit.hpp"
 #include "game/style.hpp"
+#include "render/iso.hpp"
 #include "save/save.hpp"
 
 namespace urbs::game {
@@ -224,7 +225,8 @@ void App::editor_new() {
     return;
   }
   after_world_change();
-  renderer_.camera().center = {static_cast<f32>(world_->map.w * sim::kTilePx) / 2, static_cast<f32>(world_->map.h * sim::kTilePx) / 2};
+  renderer_.camera().center =
+      render::iso::from_tile(static_cast<f32>(world_->map.w) / 2, static_cast<f32>(world_->map.h) / 2);
   screen_ = Screen::Editor;
   speed_ = 0;
 }
