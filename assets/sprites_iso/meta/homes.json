@@ -1,0 +1,230 @@
+{
+ "bld/domus_plot": {
+  "ax": 192,
+  "ay": 201
+ },
+ "bld/domus_plot_t0": {
+  "ax": 192,
+  "ay": 212
+ },
+ "bld/domus_plot_t0@east": {
+  "ax": 192,
+  "ay": 212
+ },
+ "bld/domus_plot_t0@egypt": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t0@north": {
+  "ax": 192,
+  "ay": 233
+ },
+ "bld/domus_plot_t1": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1@egypt": {
+  "ax": 192,
+  "ay": 235
+ },
+ "bld/domus_plot_t1@north": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_lit": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2@egypt": {
+  "ax": 192,
+  "ay": 229
+ },
+ "bld/domus_plot_t2@north": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/garden_tile_0": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/garden_tile_1": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/garden_tile_2": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/garden_tile_3": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/great_temple": {
+  "ax": 320,
+  "ay": 431
+ },
+ "bld/house_plot": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t0": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0@egypt": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t0@north": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t1": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/house_plot_t1@east": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/house_plot_t1@egypt": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/house_plot_t1@north": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/house_plot_t2": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/house_plot_t2@east": {
+  "ax": 128,
+  "ay": 157
+ },
+ "bld/house_plot_t2@egypt": {
+  "ax": 128,
+  "ay": 162
+ },
+ "bld/house_plot_t2@north": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t2_lit": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/house_plot_t3": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/house_plot_t3@east": {
+  "ax": 128,
+  "ay": 183
+ },
+ "bld/house_plot_t3@egypt": {
+  "ax": 128,
+  "ay": 189
+ },
+ "bld/house_plot_t3@north": {
+  "ax": 128,
+  "ay": 186
+ },
+ "bld/house_plot_t3_lit": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/house_plot_t4": {
+  "ax": 128,
+  "ay": 215
+ },
+ "bld/house_plot_t4@east": {
+  "ax": 128,
+  "ay": 215
+ },
+ "bld/house_plot_t4@egypt": {
+  "ax": 128,
+  "ay": 219
+ },
+ "bld/house_plot_t4@north": {
+  "ax": 128,
+  "ay": 223
+ },
+ "bld/house_plot_t4_lit": {
+  "ax": 128,
+  "ay": 215
+ },
+ "bld/plaza_tile_0": {
+  "ax": 64,
+  "ay": 64
+ },
+ "bld/plaza_tile_1": {
+  "ax": 64,
+  "ay": 64
+ },
+ "bld/plaza_tile_2": {
+  "ax": 64,
+  "ay": 64
+ },
+ "bld/plaza_tile_3": {
+  "ax": 64,
+  "ay": 64
+ },
+ "bld/shrine": {
+  "ax": 64,
+  "ay": 104
+ },
+ "bld/shrine@east": {
+  "ax": 64,
+  "ay": 104
+ },
+ "bld/shrine@egypt": {
+  "ax": 64,
+  "ay": 96
+ },
+ "bld/shrine@north": {
+  "ax": 64,
+  "ay": 94
+ },
+ "bld/slave_quarters": {
+  "ax": 192,
+  "ay": 189
+ },
+ "bld/statue": {
+  "ax": 64,
+  "ay": 101
+ },
+ "bld/temple": {
+  "ax": 192,
+  "ay": 282
+ },
+ "bld/temple@east": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/temple@egypt": {
+  "ax": 192,
+  "ay": 229
+ },
+ "bld/temple@north": {
+  "ax": 192,
+  "ay": 236
+ }
+}
