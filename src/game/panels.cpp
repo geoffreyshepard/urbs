@@ -1340,7 +1340,21 @@ void draw_selection(const sim::World& w, const Selection& sel, render::Renderer&
   }
   if (sel.building.valid() && w.buildings.alive(sel.building)) {
     const auto& b = w.buildings[sel.building];
-    push_diamond_outline(r, b.x, b.y, b.w, b.h, iso::level_at(w.map, b.x, b.y), 0.01f, mark, 4.0f);
+    // Corner brackets (fx/select_WxH, ground-attached) where the art has them, else an outline.
+    static render::Sprite brackets[4][4];
+    static bool resolved = false;
+    if (!resolved) {
+      for (int sw = 1; sw <= 4; ++sw)
+        for (int sh = 1; sh <= 4; ++sh)
+          brackets[sw - 1][sh - 1] = r.atlas().find("fx/select_" + std::to_string(sw) + "x" + std::to_string(sh));
+      resolved = true;
+    }
+    const f32 lv = iso::level_at(w.map, b.x, b.y);
+    const render::Sprite* br = b.w <= 4 && b.h <= 4 ? &brackets[b.w - 1][b.h - 1] : nullptr;
+    if (br && br->valid)
+      r.push_translucent(iso_instance(*br, iso::footprint_anchor(b.x, b.y, b.w, b.h, lv), 0.01f, mark));
+    else
+      push_diamond_outline(r, b.x, b.y, b.w, b.h, lv, 0.01f, mark, 4.0f);
   }
   if (sel.citizen.valid() && w.citizens.alive(sel.citizen)) {
     Vec2 p;

@@ -133,10 +133,10 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
     // Status mark: an overlay (no cast shadow), pulsing softly so a sick district reads without
     // covering every roof in solid icons.
     const f32 pulse = 0.55f + 0.3f * std::sin(r.time * 2.5f + static_cast<f32>(b.x + b.y));
+    // The icon is anchored at its bottom centre; float it just above the roof.
     const Vec2 c = iso::from_tile(cx, cy, level);
-    const f32 sz = 10.0f * kIsoK;
-    r.push_translucent(iso_icon(plague_, {c.x, top_y + sz * 0.3f}, sz, sz, 0.03f,
-                                render::rgba(255, 255, 255, static_cast<u8>(pulse * 255.0f))));
+    r.push_translucent(
+        iso_instance(plague_, {c.x, top_y + 8.0f}, 0.03f, render::rgba(255, 255, 255, static_cast<u8>(pulse * 255.0f))));
   }
   if (b.state == sim::BState::Burning) {
     const int frame = static_cast<int>(r.time * 8.0f);
@@ -175,7 +175,9 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
         }
         if (ds->line_type) {
           // Flat line pieces (pipes, sewers, bridge decks) lie on the ground; tall ones (walls,
-          // aqueducts) are y-sorted.  Spokes draw over the centre piece.
+          // aqueducts) are y-sorted.  Back arms (n, w) sit behind the centre pier, front arms (e, s)
+          // in front of it.
+          static constexpr f32 kArmBias[4] = {2e-6f, -1e-6f, -2e-6f, 1e-6f};  // n e s w
           const f32 lz = tall(ds->line_c) ? tz : render::kDepthRoad - 0.0004f;
           r.push(iso_instance(ds->line_c, ta, lz, tint));
           for (int sd = 0; sd < 4; ++sd) {
@@ -183,7 +185,7 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
             if (!w.map.in_bounds(nx, ny) || !ds->line[sd].valid) continue;
             BuildingId nb = w.map.building[static_cast<size_t>(w.map.idx(nx, ny))];
             if (nb.valid() && w.buildings.alive(nb) && w.buildings[nb].def == b.def)
-              r.push(iso_instance(ds->line[sd], ta, lz - 0.000001f * static_cast<f32>(sd + 1), tint));
+              r.push(iso_instance(ds->line[sd], ta, lz + kArmBias[sd], tint));
           }
           continue;
         }
