@@ -1,7 +1,7 @@
 """Render one family of iso sprites.
 
     /Applications/Blender.app/Contents/MacOS/Blender -b --python tools/artgen3d/run.py -- \
-        <family> [name-or-prefix...] [--samples N] [--list]
+        <family> [name-or-prefix...] [--samples N] [--list] [--lit-only]
 
 <family> is a module in this folder exposing SPRITES = {name: spec}.  name is the atlas name
 ("bld/bakery", "people/pleb_s_0"); the PNG goes to assets/sprites_iso/<name>.png and the anchor
@@ -31,13 +31,16 @@ def main():
         samples = int(argv[k + 1])
         del argv[k:k + 2]
     list_only = "--list" in argv
-    argv = [a for a in argv if a != "--list"]
+    lit_only = "--lit-only" in argv  # re-render only the _lit overlays (same framing)
+    argv = [a for a in argv if a not in ("--list", "--lit-only")]
     if not argv:
         print("usage: run.py -- <family> [names...]")
         return
     family, wanted = argv[0], argv[1:]
     mod = importlib.import_module(family)
     names = [n for n in mod.SPRITES if not wanted or any(n == w or n.startswith(w) for w in wanted)]
+    if lit_only:
+        names = [n for n in names if mod.SPRITES[n].get("lit")]
     if list_only:
         print("\n".join(names))
         return
@@ -54,7 +57,8 @@ def main():
         else:
             fw, fh = spec.get("fp", (1, 1))
             ax, ay = kit.frame_footprint(s, fw, fh, spec.get("fixed_h"))
-        kit.render_to(s, os.path.join(kit.OUT, name + ".png"))
+        if not lit_only:
+            kit.render_to(s, os.path.join(kit.OUT, name + ".png"))
         meta.set(name, ax, ay)
         if spec.get("lit"):
             kit.render_lit(s, os.path.join(kit.OUT, name + "_lit.png"))
