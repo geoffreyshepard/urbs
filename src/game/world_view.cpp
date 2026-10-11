@@ -24,12 +24,33 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
       placeholder_[w - 1][h - 1] = atlas.get("bld/placeholder_" + std::to_string(w) + "x" + std::to_string(h));
   defs_.clear();
   static const char* kSides[4] = {"n", "e", "s", "w"};
+  static const char* kRot[4] = {"", "_r1", "_r2", "_r3"};
   for (const auto& b : defs.buildings) {
     DefSprites ds;
-    ds.base = find(b.sprite);
-    for (int t = 0; t < 5; ++t) ds.tier[t] = find(b.sprite + "_t" + std::to_string(t));
-    ds.base_lit = atlas.find(b.sprite + "_lit");
-    for (int t = 0; t < 5; ++t) ds.tier_lit[t] = atlas.find(b.sprite + "_t" + std::to_string(t) + "_lit");
+    const bool square = b.w == b.h;
+    // One footprint sprite (and its night lights) for rotation k; see DefSprites for the fallback.
+    auto rotated = [&](const std::string& name, int k, Sprite& out, Sprite& out_lit, const Sprite& r0,
+                       const Sprite& r0_lit) {
+      if (k == 0) {
+        out = find(name);
+        out_lit = atlas.find(name + "_lit");
+        return;
+      }
+      const Sprite rs = b.rotatable ? find(name + kRot[k]) : Sprite{};
+      if (rs.valid) {
+        out = rs;
+        out_lit = atlas.find(name + kRot[k] + "_lit");
+      } else if (square || !b.rotatable) {
+        out = r0;
+        out_lit = r0_lit;
+      }
+    };
+    for (int k = 0; k < 4; ++k) {
+      rotated(b.sprite, k, ds.base[k], ds.base_lit[k], ds.base[0], ds.base_lit[0]);
+      for (int t = 0; t < 5; ++t)
+        rotated(b.sprite + "_t" + std::to_string(t), k, ds.tier[k][t], ds.tier_lit[k][t], ds.tier[0][t],
+                ds.tier_lit[0][t]);
+    }
     for (int v = 0; v < 4; ++v) ds.tile[v] = find(b.sprite + "_tile_" + std::to_string(v));
     ds.hut = find(b.sprite + "_hut");
     ds.line_c = find(b.sprite + "_c");
@@ -90,11 +111,12 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
   white = atlas.get("fx/white");
 }
 
-const Sprite& WorldView::building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier) const {
+const Sprite& WorldView::building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier, u8 rot) const {
   if (def.valid() && def.v < defs_.size()) {
     const DefSprites& d = defs_[def.v];
-    if (tier < 5 && d.tier[tier].valid) return d.tier[tier];
-    if (d.base.valid) return d.base;
+    const int k = rot & 3;
+    if (tier < 5 && d.tier[k][tier].valid) return d.tier[k][tier];
+    if (d.base[k].valid) return d.base[k];
   }
   return placeholder_[std::clamp(w, 1, 4) - 1][std::clamp(h, 1, 4) - 1];
 }
@@ -127,7 +149,7 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
       }
     return;
   }
-  const Sprite& s = building_sprite(b.def, b.w, b.h, b.tier);
+  const Sprite& s = building_sprite(b.def, b.w, b.h, b.tier, b.rot);
   const f32 top_y = anchor.y - s.iso_h();  // top of the building's art
   if (b.plague > 0 && plague_.valid) {
     // Status mark: an overlay (no cast shadow), pulsing softly so a sick district reads without
@@ -236,7 +258,8 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
   // Window lights at night: lived-in houses and staffed workplaces, a stable share of them.
   const f32 night = r.grade.params[2];
   if (night > 0.05f && ds) {
-    const Sprite& lit = (b.tier < 5 && ds->tier[b.tier].valid) ? ds->tier_lit[b.tier] : ds->base_lit;
+    const int k = b.rot & 3;
+    const Sprite& lit = (b.tier < 5 && ds->tier[k][b.tier].valid) ? ds->tier_lit[k][b.tier] : ds->base_lit[k];
     const bool occupied = b.residents > 0 || b.employed > 0 || (b.capacity == 0 && b.jobs == 0);
     const u32 hsh = static_cast<u32>(b.x) * 73856093u ^ static_cast<u32>(b.y) * 19349663u;
     if (lit.valid && occupied && hsh % 5 != 0) {

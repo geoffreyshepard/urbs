@@ -427,6 +427,9 @@ void App::handle_event(const SDL_Event& e) {
       }
       if (paused_menu_) break;
       if (e.key.key == SDLK_R) tools_.select_road(sim::Road::Dirt);
+      // Rotate the building in hand (R is the road tool): E clockwise, Q counter-clockwise.
+      if (e.key.key == SDLK_E) tools_.rotate(*world_, (e.key.mod & SDL_KMOD_SHIFT) ? -1 : 1);
+      if (e.key.key == SDLK_Q) tools_.rotate(*world_, -1);
       if (e.key.key == SDLK_X) tools_.select_demolish();
       if (e.key.key == SDLK_B) show_build_ = !show_build_;
       if (e.key.key == SDLK_L) toggle_panel(Panel::Goods);

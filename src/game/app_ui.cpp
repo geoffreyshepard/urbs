@@ -759,15 +759,16 @@ void App::draw_help(const Dock& dock, bool* open) {
   ImGui::TextWrapped(
       "Camera: WASD or arrow keys to pan, right- or middle-drag to pan, mouse wheel to zoom.\n"
       "Time: Space pauses, 1/2/3 set speed.\n"
-      "Building: open Build (B), pick a building, left-click to place. Farms and gardens: drag an area. "
+      "Building: open Build (B), pick a building, left-click to place; E and Q turn it (its door faces the "
+      "front). Farms and gardens: drag an area. "
       "Roads (R): drag a line, diagonals allowed. Demolish (X): drag a rectangle. Right-click or Esc cancels.\n"
       "Inspect: left-click a building or a walking citizen. F follows the selected citizen.\n"
       "Soldiers: click a soldier to select the unit, right-click the map to march there.\n"
       "Overlays (O): desirability, water, pipes, any service's coverage, housing level and more.\n"
       "Saving: F5 quicksave, F9 quickload, or the menu (Esc).\n\n"
       "Houses grow when their residents have what they need: water, food variety, worship, markets, baths and "
-      "more. Click a house to see what it needs next. Workers come from houses, so keep people housed, fed and employed. "
-      "Porters from warehouses, granaries and markets carry goods; farms and workshops need them nearby.\n\n"
+      "more. Click a house to see what it needs next. Workers come from houses, so keep people housed, fed and "
+      "employed. Porters from warehouses, granaries and markets carry goods; farms and workshops need them nearby.\n\n"
       "Money: the city pays wages and gets them back through taxes and market sales; its real profit is exports. "
       "Build a trade post, open routes (Trade) and export surpluses. Food nobody eats is wages spent for nothing.\n"
       "Rome's requests: set the good to Stockpile in the Trade panel so markets leave it in storage, then Send it "
@@ -1088,6 +1089,10 @@ void App::draw_build_menu() {
       icons_.image("goods/denarii_16", ImGui::GetFontSize());
       ImGui::SameLine(0, 4);
       ImGui::Text("%lld", static_cast<long long>(cost));
+    }
+    if (tools_.can_rotate(*world_)) {
+      ImGui::SameLine(0, 16);
+      ImGui::TextDisabled("E / Q rotate");
     }
     ImGui::SameLine(0, 16);
     ImGui::TextDisabled("Right-click or Esc to stop");

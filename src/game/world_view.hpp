@@ -13,15 +13,19 @@ class WorldView {
   void init(const render::Atlas& atlas, const data::Defs& defs, const std::string& region = {});
   void draw(const sim::World& w, render::Renderer& r, f32 alpha);
 
-  [[nodiscard]] const render::Sprite& building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier = 0) const;
+  // w, h: the footprint on the map (already rotated); rot: Building::rot (docs/13-isometric.md).
+  [[nodiscard]] const render::Sprite& building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier = 0, u8 rot = 0) const;
   [[nodiscard]] const render::Sprite& good_icon(GoodId g, bool big) const;
   render::Sprite dot, white;
 
  private:
+  // Footprint sprites are indexed by rotation (bld/<name>, bld/<name>_r1 .. _r3).  Resolved once at
+  // init: a missing rotated sprite falls back to the unrotated one for square footprints and is left
+  // invalid (-> size-matched placeholder) for the others.
   struct DefSprites {
-    render::Sprite base;
-    render::Sprite tier[5];
-    render::Sprite base_lit, tier_lit[5];  // night window lights (bld/<name>_lit)
+    render::Sprite base[4];
+    render::Sprite tier[4][5];
+    render::Sprite base_lit[4], tier_lit[4][5];  // night window lights (bld/<name>[_r<k>]_lit)
     render::Sprite tile[4];
     render::Sprite hut;
     render::Sprite line_c, line[4];  // n e s w

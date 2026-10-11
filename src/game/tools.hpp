@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+
 #include "render/renderer.hpp"
 #include "sim/world.hpp"
 
@@ -46,9 +48,16 @@ class Tools {
   [[nodiscard]] Recti footprint(const sim::World& w) const;
   [[nodiscard]] i64 cost(const sim::World& w) const;
 
+  // Rotation of the building in hand (Building::rot), remembered per building type for the session.
+  // rotate() turns it by +1 (clockwise) or -1; returns false when the tool holds nothing rotatable.
+  [[nodiscard]] bool can_rotate(const sim::World& w) const;
+  bool rotate(const sim::World& w, int dir);
+  [[nodiscard]] u8 rot() const { return kind == ToolKind::Build && def.v < rot_.size() ? rot_[def.v] : u8{0}; }
+
  private:
   Vec2i hover_{0, 0}, start_{0, 0};
   bool dragging_ = false;
+  std::vector<u8> rot_;  // by building def
 };
 
 }  // namespace urbs::game
