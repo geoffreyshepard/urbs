@@ -44,7 +44,7 @@ PAGE_W, PAGE_H = 4096, 2048
 MAX_PAGES = 65536 // PAGE_H  # page index lives in the high bits of a u16 v
 SCALES = (1.0, 0.75, 0.625, 0.5, 0.375, 0.25)
 MIN_AUTO_SCALE = 0.5
-PAGE_BUDGET = 3  # 3 x 32 MB (+ mips) keeps the atlas near 128 MB of GPU memory
+PAGE_BUDGET = 6  # 6 x 32 MB (+ mips): ~256 MB of GPU memory at most (4-direction buildings, 2026-10-11)
 UI_GROUPS = ("ui", "goods")
 UI_TEXELS_PER_ISO = 0.25  # a 16 px icon covers half a tile (64 iso px) when drawn in the world
 TILE = 16  # legacy px per tile
@@ -172,6 +172,15 @@ def resample(items, scale):
                 h = max(1, int(round(im.height * scale)))
                 im = im.resize((w, h), Image.LANCZOS if scale < 1.0 else Image.BILINEAR)
             ax, ay = ax * scale, ay * scale
+            # Trim fully transparent margins (lit overlays, tall canvases); the anchor moves with the crop.
+            box = im.getchannel("A").point(lambda a: 255 if a > 0 else 0).getbbox()
+            if box is None:
+                box = (0, 0, 1, 1)
+            l, t = max(0, box[0] - 1), max(0, box[1] - 1)
+            r, b = min(im.width, box[2] + 1), min(im.height, box[3] + 1)
+            if (l, t, r, b) != (0, 0, im.width, im.height):
+                im = im.crop((l, t, r, b))
+                ax, ay = ax - l, ay - t
         out.append((name, im, (int(round(ax)), int(round(ay))), s))
     return out
 
