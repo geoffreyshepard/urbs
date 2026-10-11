@@ -1,0 +1,210 @@
+{
+ "bld/academy": {
+  "ax": 256,
+  "ay": 307
+ },
+ "bld/amphitheater": {
+  "ax": 448,
+  "ay": 496
+ },
+ "bld/amphitheater_lit": {
+  "ax": 448,
+  "ay": 496
+ },
+ "bld/balneum": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/balneum@east": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/balneum@egypt": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/balneum@north": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/balneum_lit": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/basilica": {
+  "ax": 384,
+  "ay": 376
+ },
+ "bld/basilica@east": {
+  "ax": 384,
+  "ay": 376
+ },
+ "bld/basilica@egypt": {
+  "ax": 384,
+  "ay": 382
+ },
+ "bld/basilica@north": {
+  "ax": 384,
+  "ay": 403
+ },
+ "bld/basilica_lit": {
+  "ax": 384,
+  "ay": 376
+ },
+ "bld/circus": {
+  "ax": 1024,
+  "ay": 713
+ },
+ "bld/curia": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/forum": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/forum@east": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/forum@egypt": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/forum@north": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/governor_palace": {
+  "ax": 320,
+  "ay": 373
+ },
+ "bld/governor_palace_lit": {
+  "ax": 320,
+  "ay": 373
+ },
+ "bld/hospital": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/hospital_lit": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/latrina": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/latrina@east": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/latrina@egypt": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/latrina@north": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/library": {
+  "ax": 192,
+  "ay": 256
+ },
+ "bld/library@east": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/library@egypt": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/library@north": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/mint": {
+  "ax": 192,
+  "ay": 244
+ },
+ "bld/odeon": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/physician": {
+  "ax": 64,
+  "ay": 98
+ },
+ "bld/physician@east": {
+  "ax": 64,
+  "ay": 103
+ },
+ "bld/physician@egypt": {
+  "ax": 64,
+  "ay": 103
+ },
+ "bld/physician@north": {
+  "ax": 64,
+  "ay": 115
+ },
+ "bld/school": {
+  "ax": 128,
+  "ay": 165
+ },
+ "bld/school@east": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/school@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/school@north": {
+  "ax": 128,
+  "ay": 187
+ },
+ "bld/tavern": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/tavern@east": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/tavern@egypt": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/tavern@north": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/tavern_lit": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/theater": {
+  "ax": 320,
+  "ay": 332
+ },
+ "bld/theater@east": {
+  "ax": 320,
+  "ay": 332
+ },
+ "bld/theater@egypt": {
+  "ax": 320,
+  "ay": 334
+ },
+ "bld/theater@north": {
+  "ax": 320,
+  "ay": 332
+ },
+ "bld/thermae": {
+  "ax": 384,
+  "ay": 474
+ },
+ "bld/thermae_lit": {
+  "ax": 384,
+  "ay": 474
+ }
+}
