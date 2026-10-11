@@ -1,4 +1,14 @@
-# 07 — Art Pipeline (AI-Generated Pixel Art via Claude Code)
+# 07 — Art Pipeline
+
+> **2026-10-11: world art is now pre-rendered 3D on an isometric camera.** Buildings, terrain, roads,
+> trees, people, units and effects are Blender models built by Python scripts in `tools/artgen3d/`
+> (`kit.py` holds the camera, lights, materials and parts; one module per family; `run.py` renders
+> them headless into `assets/sprites_iso/`; ground textures come from `terrain_tex.py`). See
+> `docs/13-isometric.md` for the projection, sprite conventions and readability rules. The pixel-art
+> generators below still produce the UI icons (`ui/*`) and goods icons (`goods/*`); their world
+> sprites in `assets/sprites/` are no longer packed. The rest of this document describes the original
+> pixel-art pipeline.
+
 
 ## Approach: art is code
 

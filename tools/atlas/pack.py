@@ -135,6 +135,8 @@ def gather():
         if group in UI_GROUPS:
             m = legacy_meta.get(name, {})
             items[name] = (load_png(path), (int(m.get("ax", 0)), int(m.get("ay", 0))), UI_TEXELS_PER_ISO)
+        elif group == "terrain":
+            continue  # the iso terrain layer uses its own sprite scheme (see tools/artgen3d/terrain_tex.py)
         elif name not in iso:
             im, anchor = legacy_world(name, load_png(path), legacy_meta)
             items[name] = (im, anchor, None)
