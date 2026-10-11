@@ -5,12 +5,14 @@
 
 namespace urbs::render {
 
-inline constexpr f32 kZoomLevels[] = {0.25f, 0.5f, 1.0f, 2.0f, 3.0f, 4.0f};
+// Screen points per iso px (a tile is 128 iso px wide): index 3 shows a tile 64 points wide.
+inline constexpr f32 kZoomLevels[] = {0.0625f, 0.125f, 0.25f, 0.5f, 0.75f, 1.0f};
 inline constexpr int kZoomCount = 6;
 inline constexpr int kFarZoomMax = 1;  // zoom indices <= this use the simplified far representation
 
+// All positions are iso px (see render/iso.hpp); "world" in the names below means iso px.
 struct Camera {
-  Vec2 center{0, 0};     // world px
+  Vec2 center{0, 0};     // iso px
   int zoom = 3;          // index into kZoomLevels
   f32 density = 1.0f;    // physical pixels per window point
   Vec2 screen{1, 1};     // target size in physical px
@@ -20,12 +22,12 @@ struct Camera {
   [[nodiscard]] Vec2 origin() const {
     f32 s = scale();
     Vec2 o{center.x - screen.x / (2 * s), center.y - screen.y / (2 * s)};
-    // Snap to whole screen pixels so pixel art never shimmers.
+    // Snap to whole screen pixels so sprites never shimmer while scrolling.
     o.x = std::floor(o.x * s) / s;
     o.y = std::floor(o.y * s) / s;
     return o;
   }
-  // Window-point coordinates -> world px.
+  // Window-point coordinates -> iso px.
   [[nodiscard]] Vec2 screen_to_world(Vec2 pt) const {
     Vec2 o = origin();
     f32 s = scale();
@@ -36,7 +38,7 @@ struct Camera {
     f32 s = scale();
     return {(w.x - o.x) * s / density, (w.y - o.y) * s / density};
   }
-  // Visible world rect in px.
+  // Visible iso rect.
   [[nodiscard]] Recti visible_world(i32 margin_px = 0) const {
     Vec2 o = origin();
     f32 s = scale();
