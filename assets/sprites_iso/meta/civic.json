@@ -3,11 +3,47 @@
   "ax": 256,
   "ay": 307
  },
+ "bld/academy_r1": {
+  "ax": 256,
+  "ay": 297
+ },
+ "bld/academy_r2": {
+  "ax": 256,
+  "ay": 297
+ },
+ "bld/academy_r3": {
+  "ax": 256,
+  "ay": 307
+ },
  "bld/amphitheater": {
   "ax": 448,
   "ay": 496
  },
  "bld/amphitheater_lit": {
+  "ax": 448,
+  "ay": 496
+ },
+ "bld/amphitheater_r1": {
+  "ax": 448,
+  "ay": 489
+ },
+ "bld/amphitheater_r1_lit": {
+  "ax": 448,
+  "ay": 489
+ },
+ "bld/amphitheater_r2": {
+  "ax": 448,
+  "ay": 489
+ },
+ "bld/amphitheater_r2_lit": {
+  "ax": 448,
+  "ay": 489
+ },
+ "bld/amphitheater_r3": {
+  "ax": 448,
+  "ay": 496
+ },
+ "bld/amphitheater_r3_lit": {
   "ax": 448,
   "ay": 496
  },
@@ -31,6 +67,66 @@
   "ax": 192,
   "ay": 272
  },
+ "bld/balneum_r1": {
+  "ax": 192,
+  "ay": 210
+ },
+ "bld/balneum_r1@east": {
+  "ax": 192,
+  "ay": 210
+ },
+ "bld/balneum_r1@egypt": {
+  "ax": 192,
+  "ay": 210
+ },
+ "bld/balneum_r1@north": {
+  "ax": 192,
+  "ay": 210
+ },
+ "bld/balneum_r1_lit": {
+  "ax": 192,
+  "ay": 210
+ },
+ "bld/balneum_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/balneum_r2@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/balneum_r2@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/balneum_r2@north": {
+  "ax": 192,
+  "ay": 224
+ },
+ "bld/balneum_r2_lit": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/balneum_r3": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/balneum_r3@east": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/balneum_r3@egypt": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/balneum_r3@north": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/balneum_r3_lit": {
+  "ax": 192,
+  "ay": 271
+ },
  "bld/basilica": {
   "ax": 384,
   "ay": 376
@@ -51,12 +147,96 @@
   "ax": 384,
   "ay": 376
  },
+ "bld/basilica_r1": {
+  "ax": 256,
+  "ay": 353
+ },
+ "bld/basilica_r1@east": {
+  "ax": 256,
+  "ay": 353
+ },
+ "bld/basilica_r1@egypt": {
+  "ax": 256,
+  "ay": 372
+ },
+ "bld/basilica_r1@north": {
+  "ax": 256,
+  "ay": 374
+ },
+ "bld/basilica_r1_lit": {
+  "ax": 256,
+  "ay": 353
+ },
+ "bld/basilica_r2": {
+  "ax": 384,
+  "ay": 353
+ },
+ "bld/basilica_r2@east": {
+  "ax": 384,
+  "ay": 353
+ },
+ "bld/basilica_r2@egypt": {
+  "ax": 384,
+  "ay": 353
+ },
+ "bld/basilica_r2@north": {
+  "ax": 384,
+  "ay": 374
+ },
+ "bld/basilica_r2_lit": {
+  "ax": 384,
+  "ay": 353
+ },
+ "bld/basilica_r3": {
+  "ax": 256,
+  "ay": 376
+ },
+ "bld/basilica_r3@east": {
+  "ax": 256,
+  "ay": 376
+ },
+ "bld/basilica_r3@egypt": {
+  "ax": 256,
+  "ay": 382
+ },
+ "bld/basilica_r3@north": {
+  "ax": 256,
+  "ay": 403
+ },
+ "bld/basilica_r3_lit": {
+  "ax": 256,
+  "ay": 376
+ },
  "bld/circus": {
   "ax": 1024,
   "ay": 713
  },
+ "bld/circus_r1": {
+  "ax": 320,
+  "ay": 710
+ },
+ "bld/circus_r2": {
+  "ax": 1024,
+  "ay": 695
+ },
+ "bld/circus_r3": {
+  "ax": 320,
+  "ay": 719
+ },
  "bld/curia": {
   "ax": 256,
+  "ay": 298
+ },
+ "bld/curia_r1": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/curia_r2": {
+  "ax": 256,
+  "ay": 272
+ },
+ "bld/curia_r3": {
+  "ax": 192,
   "ay": 298
  },
  "bld/forum": {
@@ -75,6 +255,54 @@
   "ax": 192,
   "ay": 259
  },
+ "bld/forum_r1": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r1@east": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r1@egypt": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r1@north": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r2": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r2@east": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r2@egypt": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r2@north": {
+  "ax": 192,
+  "ay": 251
+ },
+ "bld/forum_r3": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/forum_r3@east": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/forum_r3@egypt": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/forum_r3@north": {
+  "ax": 192,
+  "ay": 259
+ },
  "bld/governor_palace": {
   "ax": 320,
   "ay": 373
@@ -83,11 +311,59 @@
   "ax": 320,
   "ay": 373
  },
+ "bld/governor_palace_r1": {
+  "ax": 320,
+  "ay": 341
+ },
+ "bld/governor_palace_r1_lit": {
+  "ax": 320,
+  "ay": 341
+ },
+ "bld/governor_palace_r2": {
+  "ax": 320,
+  "ay": 341
+ },
+ "bld/governor_palace_r2_lit": {
+  "ax": 320,
+  "ay": 341
+ },
+ "bld/governor_palace_r3": {
+  "ax": 320,
+  "ay": 373
+ },
+ "bld/governor_palace_r3_lit": {
+  "ax": 320,
+  "ay": 373
+ },
  "bld/hospital": {
   "ax": 256,
   "ay": 298
  },
  "bld/hospital_lit": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/hospital_r1": {
+  "ax": 256,
+  "ay": 274
+ },
+ "bld/hospital_r1_lit": {
+  "ax": 256,
+  "ay": 274
+ },
+ "bld/hospital_r2": {
+  "ax": 256,
+  "ay": 291
+ },
+ "bld/hospital_r2_lit": {
+  "ax": 256,
+  "ay": 291
+ },
+ "bld/hospital_r3": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/hospital_r3_lit": {
   "ax": 256,
   "ay": 298
  },
@@ -107,6 +383,54 @@
   "ax": 128,
   "ay": 178
  },
+ "bld/latrina_r1": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/latrina_r1@east": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/latrina_r1@egypt": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/latrina_r1@north": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/latrina_r2": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/latrina_r2@east": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/latrina_r2@egypt": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/latrina_r2@north": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/latrina_r3": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/latrina_r3@east": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/latrina_r3@egypt": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/latrina_r3@north": {
+  "ax": 128,
+  "ay": 178
+ },
  "bld/library": {
   "ax": 192,
   "ay": 256
@@ -123,11 +447,83 @@
   "ax": 192,
   "ay": 272
  },
+ "bld/library_r1": {
+  "ax": 192,
+  "ay": 220
+ },
+ "bld/library_r1@east": {
+  "ax": 192,
+  "ay": 226
+ },
+ "bld/library_r1@egypt": {
+  "ax": 192,
+  "ay": 226
+ },
+ "bld/library_r1@north": {
+  "ax": 192,
+  "ay": 237
+ },
+ "bld/library_r2": {
+  "ax": 192,
+  "ay": 220
+ },
+ "bld/library_r2@east": {
+  "ax": 192,
+  "ay": 226
+ },
+ "bld/library_r2@egypt": {
+  "ax": 192,
+  "ay": 226
+ },
+ "bld/library_r2@north": {
+  "ax": 192,
+  "ay": 237
+ },
+ "bld/library_r3": {
+  "ax": 192,
+  "ay": 256
+ },
+ "bld/library_r3@east": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/library_r3@egypt": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/library_r3@north": {
+  "ax": 192,
+  "ay": 272
+ },
  "bld/mint": {
   "ax": 192,
   "ay": 244
  },
+ "bld/mint_r1": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/mint_r2": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/mint_r3": {
+  "ax": 192,
+  "ay": 254
+ },
  "bld/odeon": {
+  "ax": 256,
+  "ay": 298
+ },
+ "bld/odeon_r1": {
+  "ax": 256,
+  "ay": 299
+ },
+ "bld/odeon_r2": {
+  "ax": 256,
+  "ay": 299
+ },
+ "bld/odeon_r3": {
   "ax": 256,
   "ay": 298
  },
@@ -147,6 +543,54 @@
   "ax": 64,
   "ay": 115
  },
+ "bld/physician_r1": {
+  "ax": 64,
+  "ay": 89
+ },
+ "bld/physician_r1@east": {
+  "ax": 64,
+  "ay": 94
+ },
+ "bld/physician_r1@egypt": {
+  "ax": 64,
+  "ay": 94
+ },
+ "bld/physician_r1@north": {
+  "ax": 64,
+  "ay": 106
+ },
+ "bld/physician_r2": {
+  "ax": 64,
+  "ay": 89
+ },
+ "bld/physician_r2@east": {
+  "ax": 64,
+  "ay": 94
+ },
+ "bld/physician_r2@egypt": {
+  "ax": 64,
+  "ay": 94
+ },
+ "bld/physician_r2@north": {
+  "ax": 64,
+  "ay": 106
+ },
+ "bld/physician_r3": {
+  "ax": 64,
+  "ay": 98
+ },
+ "bld/physician_r3@east": {
+  "ax": 64,
+  "ay": 103
+ },
+ "bld/physician_r3@egypt": {
+  "ax": 64,
+  "ay": 103
+ },
+ "bld/physician_r3@north": {
+  "ax": 64,
+  "ay": 115
+ },
  "bld/school": {
   "ax": 128,
   "ay": 165
@@ -160,6 +604,54 @@
   "ay": 171
  },
  "bld/school@north": {
+  "ax": 128,
+  "ay": 187
+ },
+ "bld/school_r1": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r1@east": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r1@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r1@north": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r2": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r2@east": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r2@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/school_r2@north": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/school_r3": {
+  "ax": 128,
+  "ay": 165
+ },
+ "bld/school_r3@east": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/school_r3@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/school_r3@north": {
   "ax": 128,
   "ay": 187
  },
@@ -183,6 +675,66 @@
   "ax": 128,
   "ay": 169
  },
+ "bld/tavern_r1": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/tavern_r1@east": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/tavern_r1@egypt": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/tavern_r1@north": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/tavern_r1_lit": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/tavern_r2": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/tavern_r2@east": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/tavern_r2@egypt": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/tavern_r2@north": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/tavern_r2_lit": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/tavern_r3": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/tavern_r3@east": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/tavern_r3@egypt": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/tavern_r3@north": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/tavern_r3_lit": {
+  "ax": 128,
+  "ay": 169
+ },
  "bld/theater": {
   "ax": 320,
   "ay": 332
@@ -199,6 +751,54 @@
   "ax": 320,
   "ay": 332
  },
+ "bld/theater_r1": {
+  "ax": 256,
+  "ay": 342
+ },
+ "bld/theater_r1@east": {
+  "ax": 256,
+  "ay": 342
+ },
+ "bld/theater_r1@egypt": {
+  "ax": 256,
+  "ay": 342
+ },
+ "bld/theater_r1@north": {
+  "ax": 256,
+  "ay": 342
+ },
+ "bld/theater_r2": {
+  "ax": 320,
+  "ay": 342
+ },
+ "bld/theater_r2@east": {
+  "ax": 320,
+  "ay": 342
+ },
+ "bld/theater_r2@egypt": {
+  "ax": 320,
+  "ay": 342
+ },
+ "bld/theater_r2@north": {
+  "ax": 320,
+  "ay": 342
+ },
+ "bld/theater_r3": {
+  "ax": 256,
+  "ay": 332
+ },
+ "bld/theater_r3@east": {
+  "ax": 256,
+  "ay": 332
+ },
+ "bld/theater_r3@egypt": {
+  "ax": 256,
+  "ay": 335
+ },
+ "bld/theater_r3@north": {
+  "ax": 256,
+  "ay": 332
+ },
  "bld/thermae": {
   "ax": 384,
   "ay": 474
@@ -206,5 +806,29 @@
  "bld/thermae_lit": {
   "ax": 384,
   "ay": 474
+ },
+ "bld/thermae_r1": {
+  "ax": 384,
+  "ay": 427
+ },
+ "bld/thermae_r1_lit": {
+  "ax": 384,
+  "ay": 427
+ },
+ "bld/thermae_r2": {
+  "ax": 384,
+  "ay": 427
+ },
+ "bld/thermae_r2_lit": {
+  "ax": 384,
+  "ay": 427
+ },
+ "bld/thermae_r3": {
+  "ax": 384,
+  "ay": 480
+ },
+ "bld/thermae_r3_lit": {
+  "ax": 384,
+  "ay": 480
  }
 }

@@ -3,6 +3,18 @@
   "ax": 192,
   "ay": 201
  },
+ "bld/domus_plot_r1": {
+  "ax": 192,
+  "ay": 201
+ },
+ "bld/domus_plot_r2": {
+  "ax": 192,
+  "ay": 201
+ },
+ "bld/domus_plot_r3": {
+  "ax": 192,
+  "ay": 201
+ },
  "bld/domus_plot_t0": {
   "ax": 192,
   "ay": 212
@@ -18,6 +30,54 @@
  "bld/domus_plot_t0@north": {
   "ax": 192,
   "ay": 233
+ },
+ "bld/domus_plot_t0_r1": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/domus_plot_t0_r1@east": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/domus_plot_t0_r1@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_r1@north": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/domus_plot_t0_r2": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/domus_plot_t0_r2@east": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/domus_plot_t0_r2@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_r2@north": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/domus_plot_t0_r3": {
+  "ax": 192,
+  "ay": 212
+ },
+ "bld/domus_plot_t0_r3@east": {
+  "ax": 192,
+  "ay": 212
+ },
+ "bld/domus_plot_t0_r3@egypt": {
+  "ax": 192,
+  "ay": 216
+ },
+ "bld/domus_plot_t0_r3@north": {
+  "ax": 192,
+  "ay": 212
  },
  "bld/domus_plot_t1": {
   "ax": 192,
@@ -39,6 +99,66 @@
   "ax": 192,
   "ay": 231
  },
+ "bld/domus_plot_t1_r1": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r1@east": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r1@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_r1@north": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r1_lit": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r2": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r2@east": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r2@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_r2@north": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r2_lit": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_r3": {
+  "ax": 192,
+  "ay": 236
+ },
+ "bld/domus_plot_t1_r3@east": {
+  "ax": 192,
+  "ay": 235
+ },
+ "bld/domus_plot_t1_r3@egypt": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_r3@north": {
+  "ax": 192,
+  "ay": 244
+ },
+ "bld/domus_plot_t1_r3_lit": {
+  "ax": 192,
+  "ay": 236
+ },
  "bld/domus_plot_t2": {
   "ax": 192,
   "ay": 231
@@ -54,6 +174,54 @@
  "bld/domus_plot_t2@north": {
   "ax": 192,
   "ay": 231
+ },
+ "bld/domus_plot_t2_r1": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/domus_plot_t2_r1@east": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/domus_plot_t2_r1@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_r1@north": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/domus_plot_t2_r2": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/domus_plot_t2_r2@east": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/domus_plot_t2_r2@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_r2@north": {
+  "ax": 192,
+  "ay": 261
+ },
+ "bld/domus_plot_t2_r3": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_r3@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_r3@egypt": {
+  "ax": 192,
+  "ay": 252
+ },
+ "bld/domus_plot_t2_r3@north": {
+  "ax": 192,
+  "ay": 253
  },
  "bld/garden_tile_0": {
   "ax": 64,
@@ -75,7 +243,31 @@
   "ax": 320,
   "ay": 431
  },
+ "bld/great_temple_r1": {
+  "ax": 320,
+  "ay": 404
+ },
+ "bld/great_temple_r2": {
+  "ax": 320,
+  "ay": 404
+ },
+ "bld/great_temple_r3": {
+  "ax": 320,
+  "ay": 431
+ },
  "bld/house_plot": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_r1": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_r2": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_r3": {
   "ax": 128,
   "ay": 137
  },
@@ -95,6 +287,54 @@
   "ax": 128,
   "ay": 137
  },
+ "bld/house_plot_t0_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r1@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r1@egypt": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t0_r1@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r2@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r2@egypt": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_r3": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_r3@east": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_r3@egypt": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/house_plot_t0_r3@north": {
+  "ax": 128,
+  "ay": 133
+ },
  "bld/house_plot_t1": {
   "ax": 128,
   "ay": 150
@@ -110,6 +350,54 @@
  "bld/house_plot_t1@north": {
   "ax": 128,
   "ay": 147
+ },
+ "bld/house_plot_t1_r1": {
+  "ax": 128,
+  "ay": 134
+ },
+ "bld/house_plot_t1_r1@east": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_r1@egypt": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t1_r1@north": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_r2": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t1_r2@east": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t1_r2@egypt": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t1_r2@north": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t1_r3": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/house_plot_t1_r3@east": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t1_r3@egypt": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/house_plot_t1_r3@north": {
+  "ax": 128,
+  "ay": 166
  },
  "bld/house_plot_t2": {
   "ax": 128,
@@ -131,6 +419,66 @@
   "ax": 128,
   "ay": 158
  },
+ "bld/house_plot_t2_r1": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t2_r1@east": {
+  "ax": 128,
+  "ay": 138
+ },
+ "bld/house_plot_t2_r1@egypt": {
+  "ax": 128,
+  "ay": 143
+ },
+ "bld/house_plot_t2_r1@north": {
+  "ax": 128,
+  "ay": 140
+ },
+ "bld/house_plot_t2_r1_lit": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t2_r2": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t2_r2@east": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t2_r2@egypt": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t2_r2@north": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t2_r2_lit": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t2_r3": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/house_plot_t2_r3@east": {
+  "ax": 128,
+  "ay": 144
+ },
+ "bld/house_plot_t2_r3@egypt": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/house_plot_t2_r3@north": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/house_plot_t2_r3_lit": {
+  "ax": 128,
+  "ay": 150
+ },
  "bld/house_plot_t3": {
   "ax": 128,
   "ay": 185
@@ -151,6 +499,66 @@
   "ax": 128,
   "ay": 185
  },
+ "bld/house_plot_t3_r1": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_r1@east": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/house_plot_t3_r1@egypt": {
+  "ax": 128,
+  "ay": 179
+ },
+ "bld/house_plot_t3_r1@north": {
+  "ax": 128,
+  "ay": 176
+ },
+ "bld/house_plot_t3_r1_lit": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_r2": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t3_r2@east": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/house_plot_t3_r2@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/house_plot_t3_r2@north": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/house_plot_t3_r2_lit": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t3_r3": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/house_plot_t3_r3@east": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_r3@egypt": {
+  "ax": 128,
+  "ay": 181
+ },
+ "bld/house_plot_t3_r3@north": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/house_plot_t3_r3_lit": {
+  "ax": 128,
+  "ay": 177
+ },
  "bld/house_plot_t4": {
   "ax": 128,
   "ay": 215
@@ -170,6 +578,66 @@
  "bld/house_plot_t4_lit": {
   "ax": 128,
   "ay": 215
+ },
+ "bld/house_plot_t4_r1": {
+  "ax": 128,
+  "ay": 189
+ },
+ "bld/house_plot_t4_r1@east": {
+  "ax": 128,
+  "ay": 189
+ },
+ "bld/house_plot_t4_r1@egypt": {
+  "ax": 128,
+  "ay": 193
+ },
+ "bld/house_plot_t4_r1@north": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_r1_lit": {
+  "ax": 128,
+  "ay": 189
+ },
+ "bld/house_plot_t4_r2": {
+  "ax": 128,
+  "ay": 193
+ },
+ "bld/house_plot_t4_r2@east": {
+  "ax": 128,
+  "ay": 193
+ },
+ "bld/house_plot_t4_r2@egypt": {
+  "ax": 128,
+  "ay": 193
+ },
+ "bld/house_plot_t4_r2@north": {
+  "ax": 128,
+  "ay": 193
+ },
+ "bld/house_plot_t4_r2_lit": {
+  "ax": 128,
+  "ay": 193
+ },
+ "bld/house_plot_t4_r3": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_r3@east": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_r3@egypt": {
+  "ax": 128,
+  "ay": 220
+ },
+ "bld/house_plot_t4_r3@north": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_r3_lit": {
+  "ax": 128,
+  "ay": 222
  },
  "bld/plaza_tile_0": {
   "ax": 64,
@@ -203,13 +671,85 @@
   "ax": 64,
   "ay": 94
  },
+ "bld/shrine_r1": {
+  "ax": 64,
+  "ay": 99
+ },
+ "bld/shrine_r1@east": {
+  "ax": 64,
+  "ay": 99
+ },
+ "bld/shrine_r1@egypt": {
+  "ax": 64,
+  "ay": 106
+ },
+ "bld/shrine_r1@north": {
+  "ax": 64,
+  "ay": 82
+ },
+ "bld/shrine_r2": {
+  "ax": 64,
+  "ay": 99
+ },
+ "bld/shrine_r2@east": {
+  "ax": 64,
+  "ay": 99
+ },
+ "bld/shrine_r2@egypt": {
+  "ax": 64,
+  "ay": 88
+ },
+ "bld/shrine_r2@north": {
+  "ax": 64,
+  "ay": 87
+ },
+ "bld/shrine_r3": {
+  "ax": 64,
+  "ay": 104
+ },
+ "bld/shrine_r3@east": {
+  "ax": 64,
+  "ay": 104
+ },
+ "bld/shrine_r3@egypt": {
+  "ax": 64,
+  "ay": 107
+ },
+ "bld/shrine_r3@north": {
+  "ax": 64,
+  "ay": 110
+ },
  "bld/slave_quarters": {
   "ax": 192,
+  "ay": 189
+ },
+ "bld/slave_quarters_r1": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/slave_quarters_r2": {
+  "ax": 192,
+  "ay": 173
+ },
+ "bld/slave_quarters_r3": {
+  "ax": 128,
   "ay": 189
  },
  "bld/statue": {
   "ax": 64,
   "ay": 101
+ },
+ "bld/statue_r1": {
+  "ax": 64,
+  "ay": 101
+ },
+ "bld/statue_r2": {
+  "ax": 64,
+  "ay": 108
+ },
+ "bld/statue_r3": {
+  "ax": 64,
+  "ay": 107
  },
  "bld/temple": {
   "ax": 192,
@@ -226,5 +766,53 @@
  "bld/temple@north": {
   "ax": 192,
   "ay": 236
+ },
+ "bld/temple_r1": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/temple_r1@east": {
+  "ax": 192,
+  "ay": 256
+ },
+ "bld/temple_r1@egypt": {
+  "ax": 192,
+  "ay": 267
+ },
+ "bld/temple_r1@north": {
+  "ax": 192,
+  "ay": 236
+ },
+ "bld/temple_r2": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/temple_r2@east": {
+  "ax": 192,
+  "ay": 256
+ },
+ "bld/temple_r2@egypt": {
+  "ax": 192,
+  "ay": 267
+ },
+ "bld/temple_r2@north": {
+  "ax": 192,
+  "ay": 236
+ },
+ "bld/temple_r3": {
+  "ax": 192,
+  "ay": 282
+ },
+ "bld/temple_r3@east": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/temple_r3@egypt": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/temple_r3@north": {
+  "ax": 192,
+  "ay": 250
  }
 }

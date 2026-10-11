@@ -43,6 +43,18 @@
   "ax": 192,
   "ay": 240
  },
+ "bld/cart_depot_r1": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/cart_depot_r2": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/cart_depot_r3": {
+  "ax": 192,
+  "ay": 226
+ },
  "bld/engineers_post": {
   "ax": 64,
   "ay": 105
@@ -59,7 +71,67 @@
   "ax": 64,
   "ay": 114
  },
+ "bld/engineers_post_r1": {
+  "ax": 64,
+  "ay": 92
+ },
+ "bld/engineers_post_r1@east": {
+  "ax": 64,
+  "ay": 92
+ },
+ "bld/engineers_post_r1@egypt": {
+  "ax": 64,
+  "ay": 92
+ },
+ "bld/engineers_post_r1@north": {
+  "ax": 64,
+  "ay": 101
+ },
+ "bld/engineers_post_r2": {
+  "ax": 64,
+  "ay": 102
+ },
+ "bld/engineers_post_r2@east": {
+  "ax": 64,
+  "ay": 102
+ },
+ "bld/engineers_post_r2@egypt": {
+  "ax": 64,
+  "ay": 102
+ },
+ "bld/engineers_post_r2@north": {
+  "ax": 64,
+  "ay": 102
+ },
+ "bld/engineers_post_r3": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/engineers_post_r3@east": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/engineers_post_r3@egypt": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/engineers_post_r3@north": {
+  "ax": 64,
+  "ay": 109
+ },
  "bld/fountain": {
+  "ax": 64,
+  "ay": 81
+ },
+ "bld/fountain_r1": {
+  "ax": 64,
+  "ay": 81
+ },
+ "bld/fountain_r2": {
+  "ax": 64,
+  "ay": 81
+ },
+ "bld/fountain_r3": {
   "ax": 64,
   "ay": 81
  },
@@ -79,6 +151,54 @@
   "ax": 192,
   "ay": 281
  },
+ "bld/granary_r1": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/granary_r1@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/granary_r1@egypt": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/granary_r1@north": {
+  "ax": 192,
+  "ay": 247
+ },
+ "bld/granary_r2": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/granary_r2@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/granary_r2@egypt": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/granary_r2@north": {
+  "ax": 192,
+  "ay": 247
+ },
+ "bld/granary_r3": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/granary_r3@east": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/granary_r3@egypt": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/granary_r3@north": {
+  "ax": 192,
+  "ay": 281
+ },
  "bld/harbor": {
   "ax": 256,
   "ay": 283
@@ -86,6 +206,30 @@
  "bld/harbor_lit": {
   "ax": 256,
   "ay": 283
+ },
+ "bld/harbor_r1": {
+  "ax": 192,
+  "ay": 227
+ },
+ "bld/harbor_r1_lit": {
+  "ax": 192,
+  "ay": 227
+ },
+ "bld/harbor_r2": {
+  "ax": 256,
+  "ay": 227
+ },
+ "bld/harbor_r2_lit": {
+  "ax": 256,
+  "ay": 227
+ },
+ "bld/harbor_r3": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/harbor_r3_lit": {
+  "ax": 192,
+  "ay": 259
  },
  "bld/market": {
   "ax": 192,
@@ -100,6 +244,54 @@
   "ay": 250
  },
  "bld/market@north": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/market_r1": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/market_r1@east": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/market_r1@egypt": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/market_r1@north": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/market_r2": {
+  "ax": 192,
+  "ay": 218
+ },
+ "bld/market_r2@east": {
+  "ax": 192,
+  "ay": 218
+ },
+ "bld/market_r2@egypt": {
+  "ax": 192,
+  "ay": 236
+ },
+ "bld/market_r2@north": {
+  "ax": 192,
+  "ay": 226
+ },
+ "bld/market_r3": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/market_r3@east": {
+  "ax": 192,
+  "ay": 250
+ },
+ "bld/market_r3@egypt": {
+  "ax": 192,
+  "ay": 250
+ },
+ "bld/market_r3@north": {
   "ax": 192,
   "ay": 271
  },
@@ -164,6 +356,18 @@
   "ay": 68
  },
  "bld/reservoir": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/reservoir_r1": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/reservoir_r2": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/reservoir_r3": {
   "ax": 192,
   "ay": 239
  },
@@ -243,6 +447,66 @@
   "ax": 192,
   "ay": 262
  },
+ "bld/trade_post_r1": {
+  "ax": 192,
+  "ay": 225
+ },
+ "bld/trade_post_r1@east": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/trade_post_r1@egypt": {
+  "ax": 192,
+  "ay": 230
+ },
+ "bld/trade_post_r1@north": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/trade_post_r1_lit": {
+  "ax": 192,
+  "ay": 225
+ },
+ "bld/trade_post_r2": {
+  "ax": 192,
+  "ay": 243
+ },
+ "bld/trade_post_r2@east": {
+  "ax": 192,
+  "ay": 243
+ },
+ "bld/trade_post_r2@egypt": {
+  "ax": 192,
+  "ay": 243
+ },
+ "bld/trade_post_r2@north": {
+  "ax": 192,
+  "ay": 243
+ },
+ "bld/trade_post_r2_lit": {
+  "ax": 192,
+  "ay": 243
+ },
+ "bld/trade_post_r3": {
+  "ax": 192,
+  "ay": 244
+ },
+ "bld/trade_post_r3@east": {
+  "ax": 192,
+  "ay": 249
+ },
+ "bld/trade_post_r3@egypt": {
+  "ax": 192,
+  "ay": 249
+ },
+ "bld/trade_post_r3@north": {
+  "ax": 192,
+  "ay": 253
+ },
+ "bld/trade_post_r3_lit": {
+  "ax": 192,
+  "ay": 244
+ },
  "bld/vegetable_garden_hut": {
   "ax": 64,
   "ay": 79
@@ -299,7 +563,67 @@
   "ax": 192,
   "ay": 282
  },
+ "bld/warehouse_r1": {
+  "ax": 192,
+  "ay": 220
+ },
+ "bld/warehouse_r1@east": {
+  "ax": 192,
+  "ay": 225
+ },
+ "bld/warehouse_r1@egypt": {
+  "ax": 192,
+  "ay": 225
+ },
+ "bld/warehouse_r1@north": {
+  "ax": 192,
+  "ay": 235
+ },
+ "bld/warehouse_r2": {
+  "ax": 192,
+  "ay": 199
+ },
+ "bld/warehouse_r2@east": {
+  "ax": 192,
+  "ay": 213
+ },
+ "bld/warehouse_r2@egypt": {
+  "ax": 192,
+  "ay": 236
+ },
+ "bld/warehouse_r2@north": {
+  "ax": 192,
+  "ay": 217
+ },
+ "bld/warehouse_r3": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/warehouse_r3@east": {
+  "ax": 192,
+  "ay": 246
+ },
+ "bld/warehouse_r3@egypt": {
+  "ax": 192,
+  "ay": 246
+ },
+ "bld/warehouse_r3@north": {
+  "ax": 192,
+  "ay": 256
+ },
  "bld/well": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/well_r1": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/well_r2": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/well_r3": {
   "ax": 64,
   "ay": 100
  },
