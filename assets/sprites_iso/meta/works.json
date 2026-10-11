@@ -1,0 +1,262 @@
+{
+ "bld/bakery": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/bakery@east": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/bakery@egypt": {
+  "ax": 128,
+  "ay": 204
+ },
+ "bld/bakery@north": {
+  "ax": 128,
+  "ay": 182
+ },
+ "bld/bakery_lit": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/blacksmith": {
+  "ax": 128,
+  "ay": 217
+ },
+ "bld/blacksmith_lit": {
+  "ax": 128,
+  "ay": 217
+ },
+ "bld/brick_kiln": {
+  "ax": 128,
+  "ay": 201
+ },
+ "bld/brick_kiln_lit": {
+  "ax": 128,
+  "ay": 201
+ },
+ "bld/carpenter": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/clay_pit": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/concrete_works": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/concrete_works_lit": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/dye_works": {
+  "ax": 192,
+  "ay": 217
+ },
+ "bld/dye_works_lit": {
+  "ax": 192,
+  "ay": 217
+ },
+ "bld/dyer": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/dyer_lit": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/fishing_wharf": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/garum_workshop": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/garum_workshop_lit": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/glassworks": {
+  "ax": 192,
+  "ay": 216
+ },
+ "bld/glassworks_lit": {
+  "ax": 192,
+  "ay": 216
+ },
+ "bld/iron_mine": {
+  "ax": 192,
+  "ay": 215
+ },
+ "bld/jeweler": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/jeweler_lit": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/lime_kiln": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/limestone_quarry": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/lumber_camp": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/marble_quarry": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/mill": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/mill@east": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/mill@egypt": {
+  "ax": 128,
+  "ay": 205
+ },
+ "bld/mill@north": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/mill_lit": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/olive_press": {
+  "ax": 128,
+  "ay": 179
+ },
+ "bld/olive_press_lit": {
+  "ax": 128,
+  "ay": 179
+ },
+ "bld/papyrus_marsh_tile_0": {
+  "ax": 64,
+  "ay": 82
+ },
+ "bld/papyrus_marsh_tile_1": {
+  "ax": 64,
+  "ay": 88
+ },
+ "bld/papyrus_marsh_tile_2": {
+  "ax": 64,
+  "ay": 81
+ },
+ "bld/papyrus_marsh_tile_3": {
+  "ax": 64,
+  "ay": 93
+ },
+ "bld/potter": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/potter@east": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/potter@egypt": {
+  "ax": 128,
+  "ay": 205
+ },
+ "bld/potter@north": {
+  "ax": 128,
+  "ay": 182
+ },
+ "bld/potter_lit": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/pozzolana_pit": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/quarry": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/salt_works": {
+  "ax": 192,
+  "ay": 164
+ },
+ "bld/sand_pit": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/sawmill": {
+  "ax": 192,
+  "ay": 202
+ },
+ "bld/scriptorium": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/sculptor": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/sculptor_lit": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/silver_mine": {
+  "ax": 192,
+  "ay": 215
+ },
+ "bld/silver_smelter": {
+  "ax": 192,
+  "ay": 211
+ },
+ "bld/smelter": {
+  "ax": 192,
+  "ay": 237
+ },
+ "bld/stonemason": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/stonemason_lit": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/weaver": {
+  "ax": 128,
+  "ay": 181
+ },
+ "bld/weaver@east": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/weaver@egypt": {
+  "ax": 128,
+  "ay": 205
+ },
+ "bld/weaver@north": {
+  "ax": 128,
+  "ay": 191
+ },
+ "bld/weaver_lit": {
+  "ax": 128,
+  "ay": 181
+ },
+ "bld/winery": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/winery_lit": {
+  "ax": 192,
+  "ay": 214
+ }
+}

@@ -726,7 +726,7 @@ def render_to(s, path):
 LIT_MATERIALS = ("window",)
 
 
-def render_lit(s, path, glow="#ffb35a", strength=6.0):
+def render_lit(s, path, glow="#ff7417", strength=0.9):
     """Night-light overlay: windows glow, everything else is held out (transparent)."""
     hold = bpy.data.materials.new("holdout")
     nt = _nodes(hold)

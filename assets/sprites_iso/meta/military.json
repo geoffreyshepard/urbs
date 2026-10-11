@@ -1,0 +1,230 @@
+{
+ "bld/armory": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/armory_lit": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/barracks": {
+  "ax": 256,
+  "ay": 309
+ },
+ "bld/barracks@east": {
+  "ax": 256,
+  "ay": 305
+ },
+ "bld/barracks@egypt": {
+  "ax": 256,
+  "ay": 305
+ },
+ "bld/barracks@north": {
+  "ax": 256,
+  "ay": 323
+ },
+ "bld/barracks_lit": {
+  "ax": 256,
+  "ay": 309
+ },
+ "bld/circus_maximus": {
+  "ax": 1536,
+  "ay": 1089
+ },
+ "bld/colosseum": {
+  "ax": 768,
+  "ay": 827
+ },
+ "bld/colosseum_lit": {
+  "ax": 768,
+  "ay": 827
+ },
+ "bld/fort": {
+  "ax": 384,
+  "ay": 485
+ },
+ "bld/gate": {
+  "ax": 128,
+  "ay": 203
+ },
+ "bld/grand_aqueduct": {
+  "ax": 640,
+  "ay": 549
+ },
+ "bld/guard_post": {
+  "ax": 128,
+  "ay": 176
+ },
+ "bld/guard_post@east": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/guard_post@egypt": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/guard_post@north": {
+  "ax": 128,
+  "ay": 189
+ },
+ "bld/lighthouse": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_lit": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/militia_post": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/militia_post@east": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/militia_post@egypt": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/militia_post@north": {
+  "ax": 128,
+  "ay": 183
+ },
+ "bld/militia_post_lit": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/pantheon": {
+  "ax": 512,
+  "ay": 567
+ },
+ "bld/pantheon_lit": {
+  "ax": 512,
+  "ay": 567
+ },
+ "bld/placeholder_1x1": {
+  "ax": 64,
+  "ay": 83
+ },
+ "bld/placeholder_1x2": {
+  "ax": 64,
+  "ay": 115
+ },
+ "bld/placeholder_1x3": {
+  "ax": 64,
+  "ay": 147
+ },
+ "bld/placeholder_1x4": {
+  "ax": 64,
+  "ay": 179
+ },
+ "bld/placeholder_2x1": {
+  "ax": 128,
+  "ay": 115
+ },
+ "bld/placeholder_2x2": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/placeholder_2x3": {
+  "ax": 128,
+  "ay": 179
+ },
+ "bld/placeholder_2x4": {
+  "ax": 128,
+  "ay": 211
+ },
+ "bld/placeholder_3x1": {
+  "ax": 192,
+  "ay": 147
+ },
+ "bld/placeholder_3x2": {
+  "ax": 192,
+  "ay": 179
+ },
+ "bld/placeholder_3x3": {
+  "ax": 192,
+  "ay": 211
+ },
+ "bld/placeholder_3x4": {
+  "ax": 192,
+  "ay": 243
+ },
+ "bld/placeholder_4x1": {
+  "ax": 256,
+  "ay": 179
+ },
+ "bld/placeholder_4x2": {
+  "ax": 256,
+  "ay": 211
+ },
+ "bld/placeholder_4x3": {
+  "ax": 256,
+  "ay": 243
+ },
+ "bld/placeholder_4x4": {
+  "ax": 256,
+  "ay": 275
+ },
+ "bld/siege_workshop": {
+  "ax": 256,
+  "ay": 286
+ },
+ "bld/stables": {
+  "ax": 256,
+  "ay": 273
+ },
+ "bld/temple_of_jupiter": {
+  "ax": 512,
+  "ay": 657
+ },
+ "bld/tower": {
+  "ax": 128,
+  "ay": 229
+ },
+ "bld/training_ground": {
+  "ax": 320,
+  "ay": 353
+ },
+ "bld/triumphal_arch": {
+  "ax": 192,
+  "ay": 297
+ },
+ "bld/vigiles_post": {
+  "ax": 64,
+  "ay": 108
+ },
+ "bld/vigiles_post@east": {
+  "ax": 64,
+  "ay": 108
+ },
+ "bld/vigiles_post@egypt": {
+  "ax": 64,
+  "ay": 108
+ },
+ "bld/vigiles_post@north": {
+  "ax": 64,
+  "ay": 115
+ },
+ "bld/wall_c": {
+  "ax": 64,
+  "ay": 119
+ },
+ "bld/wall_e": {
+  "ax": 64,
+  "ay": 99
+ },
+ "bld/wall_n": {
+  "ax": 64,
+  "ay": 119
+ },
+ "bld/wall_s": {
+  "ax": 64,
+  "ay": 99
+ },
+ "bld/wall_w": {
+  "ax": 64,
+  "ay": 119
+ }
+}

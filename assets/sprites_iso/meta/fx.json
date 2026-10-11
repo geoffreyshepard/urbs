@@ -1,0 +1,102 @@
+{
+ "fx/cart_e": {
+  "ax": 33,
+  "ay": 33
+ },
+ "fx/cart_n": {
+  "ax": 33,
+  "ay": 40
+ },
+ "fx/cart_s": {
+  "ax": 43,
+  "ay": 33
+ },
+ "fx/cart_w": {
+  "ax": 43,
+  "ay": 40
+ },
+ "fx/fire_0": {
+  "ax": 58,
+  "ay": 116
+ },
+ "fx/fire_1": {
+  "ax": 58,
+  "ay": 116
+ },
+ "fx/fire_2": {
+  "ax": 58,
+  "ay": 116
+ },
+ "fx/fire_3": {
+  "ax": 58,
+  "ay": 116
+ },
+ "fx/foundation": {
+  "ax": 64,
+  "ay": 71
+ },
+ "fx/rubble_0": {
+  "ax": 64,
+  "ay": 68
+ },
+ "fx/rubble_1": {
+  "ax": 64,
+  "ay": 70
+ },
+ "fx/rubble_2": {
+  "ax": 64,
+  "ay": 68
+ },
+ "fx/rubble_3": {
+  "ax": 64,
+  "ay": 68
+ },
+ "fx/scaffold_0": {
+  "ax": 64,
+  "ay": 113
+ },
+ "fx/scaffold_1": {
+  "ax": 64,
+  "ay": 116
+ },
+ "fx/scaffold_2": {
+  "ax": 64,
+  "ay": 113
+ },
+ "fx/scaffold_3": {
+  "ax": 64,
+  "ay": 116
+ },
+ "fx/ship_e": {
+  "ax": 54,
+  "ay": 82
+ },
+ "fx/ship_n": {
+  "ax": 54,
+  "ay": 85
+ },
+ "fx/ship_s": {
+  "ax": 50,
+  "ay": 82
+ },
+ "fx/ship_w": {
+  "ax": 50,
+  "ay": 85
+ },
+ "fx/smoke_0": {
+  "ax": 52,
+  "ay": 214
+ },
+ "fx/smoke_1": {
+  "ax": 52,
+  "ay": 214
+ },
+ "fx/smoke_2": {
+  "ax": 52,
+  "ay": 214
+ },
+ "fx/smoke_3": {
+  "ax": 52,
+  "ay": 214
+ }
+}
