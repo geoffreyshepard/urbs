@@ -7,6 +7,30 @@
   "ax": 192,
   "ay": 232
  },
+ "bld/armory_r1": {
+  "ax": 128,
+  "ay": 225
+ },
+ "bld/armory_r1_lit": {
+  "ax": 128,
+  "ay": 225
+ },
+ "bld/armory_r2": {
+  "ax": 192,
+  "ay": 208
+ },
+ "bld/armory_r2_lit": {
+  "ax": 192,
+  "ay": 208
+ },
+ "bld/armory_r3": {
+  "ax": 128,
+  "ay": 232
+ },
+ "bld/armory_r3_lit": {
+  "ax": 128,
+  "ay": 232
+ },
  "bld/barracks": {
   "ax": 256,
   "ay": 309
@@ -27,9 +51,81 @@
   "ax": 256,
   "ay": 309
  },
+ "bld/barracks_r1": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r1@east": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r1@egypt": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r1@north": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r1_lit": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r2": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r2@east": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r2@egypt": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r2@north": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r2_lit": {
+  "ax": 256,
+  "ay": 320
+ },
+ "bld/barracks_r3": {
+  "ax": 256,
+  "ay": 309
+ },
+ "bld/barracks_r3@east": {
+  "ax": 256,
+  "ay": 305
+ },
+ "bld/barracks_r3@egypt": {
+  "ax": 256,
+  "ay": 305
+ },
+ "bld/barracks_r3@north": {
+  "ax": 256,
+  "ay": 323
+ },
+ "bld/barracks_r3_lit": {
+  "ax": 256,
+  "ay": 309
+ },
  "bld/circus_maximus": {
   "ax": 1536,
   "ay": 1089
+ },
+ "bld/circus_maximus_r1": {
+  "ax": 448,
+  "ay": 1089
+ },
+ "bld/circus_maximus_r2": {
+  "ax": 1536,
+  "ay": 1039
+ },
+ "bld/circus_maximus_r3": {
+  "ax": 448,
+  "ay": 1039
  },
  "bld/colosseum": {
   "ax": 768,
@@ -39,7 +135,43 @@
   "ax": 768,
   "ay": 827
  },
+ "bld/colosseum_r1": {
+  "ax": 640,
+  "ay": 827
+ },
+ "bld/colosseum_r1_lit": {
+  "ax": 640,
+  "ay": 827
+ },
+ "bld/colosseum_r2": {
+  "ax": 768,
+  "ay": 827
+ },
+ "bld/colosseum_r2_lit": {
+  "ax": 768,
+  "ay": 827
+ },
+ "bld/colosseum_r3": {
+  "ax": 640,
+  "ay": 827
+ },
+ "bld/colosseum_r3_lit": {
+  "ax": 640,
+  "ay": 827
+ },
  "bld/fort": {
+  "ax": 384,
+  "ay": 485
+ },
+ "bld/fort_r1": {
+  "ax": 384,
+  "ay": 485
+ },
+ "bld/fort_r2": {
+  "ax": 384,
+  "ay": 485
+ },
+ "bld/fort_r3": {
   "ax": 384,
   "ay": 485
  },
@@ -47,8 +179,32 @@
   "ax": 128,
   "ay": 203
  },
+ "bld/gate_r1": {
+  "ax": 64,
+  "ay": 228
+ },
+ "bld/gate_r2": {
+  "ax": 128,
+  "ay": 228
+ },
+ "bld/gate_r3": {
+  "ax": 64,
+  "ay": 203
+ },
  "bld/grand_aqueduct": {
   "ax": 640,
+  "ay": 549
+ },
+ "bld/grand_aqueduct_r1": {
+  "ax": 128,
+  "ay": 549
+ },
+ "bld/grand_aqueduct_r2": {
+  "ax": 640,
+  "ay": 549
+ },
+ "bld/grand_aqueduct_r3": {
+  "ax": 128,
   "ay": 549
  },
  "bld/guard_post": {
@@ -67,11 +223,83 @@
   "ax": 128,
   "ay": 189
  },
+ "bld/guard_post_r1": {
+  "ax": 128,
+  "ay": 163
+ },
+ "bld/guard_post_r1@east": {
+  "ax": 128,
+  "ay": 163
+ },
+ "bld/guard_post_r1@egypt": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/guard_post_r1@north": {
+  "ax": 128,
+  "ay": 163
+ },
+ "bld/guard_post_r2": {
+  "ax": 128,
+  "ay": 216
+ },
+ "bld/guard_post_r2@east": {
+  "ax": 128,
+  "ay": 216
+ },
+ "bld/guard_post_r2@egypt": {
+  "ax": 128,
+  "ay": 216
+ },
+ "bld/guard_post_r2@north": {
+  "ax": 128,
+  "ay": 216
+ },
+ "bld/guard_post_r3": {
+  "ax": 128,
+  "ay": 219
+ },
+ "bld/guard_post_r3@east": {
+  "ax": 128,
+  "ay": 219
+ },
+ "bld/guard_post_r3@egypt": {
+  "ax": 128,
+  "ay": 219
+ },
+ "bld/guard_post_r3@north": {
+  "ax": 128,
+  "ay": 219
+ },
  "bld/lighthouse": {
   "ax": 256,
   "ay": 536
  },
  "bld/lighthouse_lit": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_r1": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_r1_lit": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_r2": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_r2_lit": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_r3": {
+  "ax": 256,
+  "ay": 536
+ },
+ "bld/lighthouse_r3_lit": {
   "ax": 256,
   "ay": 536
  },
@@ -95,11 +323,95 @@
   "ax": 128,
   "ay": 173
  },
+ "bld/militia_post_r1": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/militia_post_r1@east": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/militia_post_r1@egypt": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/militia_post_r1@north": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/militia_post_r1_lit": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/militia_post_r2": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/militia_post_r2@east": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/militia_post_r2@egypt": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/militia_post_r2@north": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/militia_post_r2_lit": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/militia_post_r3": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/militia_post_r3@east": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/militia_post_r3@egypt": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/militia_post_r3@north": {
+  "ax": 128,
+  "ay": 183
+ },
+ "bld/militia_post_r3_lit": {
+  "ax": 128,
+  "ay": 173
+ },
  "bld/pantheon": {
   "ax": 512,
   "ay": 567
  },
  "bld/pantheon_lit": {
+  "ax": 512,
+  "ay": 567
+ },
+ "bld/pantheon_r1": {
+  "ax": 512,
+  "ay": 576
+ },
+ "bld/pantheon_r1_lit": {
+  "ax": 512,
+  "ay": 576
+ },
+ "bld/pantheon_r2": {
+  "ax": 512,
+  "ay": 576
+ },
+ "bld/pantheon_r2_lit": {
+  "ax": 512,
+  "ay": 576
+ },
+ "bld/pantheon_r3": {
+  "ax": 512,
+  "ay": 567
+ },
+ "bld/pantheon_r3_lit": {
   "ax": 512,
   "ay": 567
  },
@@ -171,24 +483,96 @@
   "ax": 256,
   "ay": 286
  },
+ "bld/siege_workshop_r1": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/siege_workshop_r2": {
+  "ax": 256,
+  "ay": 228
+ },
+ "bld/siege_workshop_r3": {
+  "ax": 192,
+  "ay": 285
+ },
  "bld/stables": {
   "ax": 256,
+  "ay": 273
+ },
+ "bld/stables_r1": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/stables_r2": {
+  "ax": 256,
+  "ay": 275
+ },
+ "bld/stables_r3": {
+  "ax": 192,
   "ay": 273
  },
  "bld/temple_of_jupiter": {
   "ax": 512,
   "ay": 657
  },
+ "bld/temple_of_jupiter_r1": {
+  "ax": 384,
+  "ay": 663
+ },
+ "bld/temple_of_jupiter_r2": {
+  "ax": 512,
+  "ay": 663
+ },
+ "bld/temple_of_jupiter_r3": {
+  "ax": 384,
+  "ay": 657
+ },
  "bld/tower": {
   "ax": 128,
   "ay": 229
+ },
+ "bld/tower_r1": {
+  "ax": 128,
+  "ay": 229
+ },
+ "bld/tower_r2": {
+  "ax": 128,
+  "ay": 230
+ },
+ "bld/tower_r3": {
+  "ax": 128,
+  "ay": 230
  },
  "bld/training_ground": {
   "ax": 320,
   "ay": 353
  },
+ "bld/training_ground_r1": {
+  "ax": 320,
+  "ay": 378
+ },
+ "bld/training_ground_r2": {
+  "ax": 320,
+  "ay": 330
+ },
+ "bld/training_ground_r3": {
+  "ax": 320,
+  "ay": 376
+ },
  "bld/triumphal_arch": {
   "ax": 192,
+  "ay": 297
+ },
+ "bld/triumphal_arch_r1": {
+  "ax": 128,
+  "ay": 304
+ },
+ "bld/triumphal_arch_r2": {
+  "ax": 192,
+  "ay": 304
+ },
+ "bld/triumphal_arch_r3": {
+  "ax": 128,
   "ay": 297
  },
  "bld/vigiles_post": {
@@ -206,6 +590,54 @@
  "bld/vigiles_post@north": {
   "ax": 64,
   "ay": 115
+ },
+ "bld/vigiles_post_r1": {
+  "ax": 64,
+  "ay": 97
+ },
+ "bld/vigiles_post_r1@east": {
+  "ax": 64,
+  "ay": 97
+ },
+ "bld/vigiles_post_r1@egypt": {
+  "ax": 64,
+  "ay": 97
+ },
+ "bld/vigiles_post_r1@north": {
+  "ax": 64,
+  "ay": 104
+ },
+ "bld/vigiles_post_r2": {
+  "ax": 64,
+  "ay": 96
+ },
+ "bld/vigiles_post_r2@east": {
+  "ax": 64,
+  "ay": 96
+ },
+ "bld/vigiles_post_r2@egypt": {
+  "ax": 64,
+  "ay": 96
+ },
+ "bld/vigiles_post_r2@north": {
+  "ax": 64,
+  "ay": 103
+ },
+ "bld/vigiles_post_r3": {
+  "ax": 64,
+  "ay": 107
+ },
+ "bld/vigiles_post_r3@east": {
+  "ax": 64,
+  "ay": 107
+ },
+ "bld/vigiles_post_r3@egypt": {
+  "ax": 64,
+  "ay": 107
+ },
+ "bld/vigiles_post_r3@north": {
+  "ax": 64,
+  "ay": 114
  },
  "bld/wall_c": {
   "ax": 64,

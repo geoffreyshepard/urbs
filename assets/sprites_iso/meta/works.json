@@ -19,6 +19,66 @@
   "ax": 128,
   "ay": 171
  },
+ "bld/bakery_r1": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/bakery_r1@east": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/bakery_r1@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/bakery_r1@north": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/bakery_r1_lit": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/bakery_r2": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/bakery_r2@east": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/bakery_r2@egypt": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/bakery_r2@north": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/bakery_r2_lit": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/bakery_r3": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/bakery_r3@east": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/bakery_r3@egypt": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/bakery_r3@north": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/bakery_r3_lit": {
+  "ax": 128,
+  "ay": 170
+ },
  "bld/blacksmith": {
   "ax": 128,
   "ay": 217
@@ -26,6 +86,30 @@
  "bld/blacksmith_lit": {
   "ax": 128,
   "ay": 217
+ },
+ "bld/blacksmith_r1": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/blacksmith_r1_lit": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/blacksmith_r2": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/blacksmith_r2_lit": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/blacksmith_r3": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/blacksmith_r3_lit": {
+  "ax": 128,
+  "ay": 194
  },
  "bld/brick_kiln": {
   "ax": 128,
@@ -35,13 +119,61 @@
   "ax": 128,
   "ay": 201
  },
+ "bld/brick_kiln_r1": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/brick_kiln_r1_lit": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/brick_kiln_r2": {
+  "ax": 128,
+  "ay": 144
+ },
+ "bld/brick_kiln_r2_lit": {
+  "ax": 128,
+  "ay": 144
+ },
+ "bld/brick_kiln_r3": {
+  "ax": 128,
+  "ay": 186
+ },
+ "bld/brick_kiln_r3_lit": {
+  "ax": 128,
+  "ay": 186
+ },
  "bld/carpenter": {
   "ax": 128,
   "ay": 173
  },
+ "bld/carpenter_r1": {
+  "ax": 128,
+  "ay": 140
+ },
+ "bld/carpenter_r2": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/carpenter_r3": {
+  "ax": 128,
+  "ay": 165
+ },
  "bld/clay_pit": {
   "ax": 128,
   "ay": 132
+ },
+ "bld/clay_pit_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/clay_pit_r2": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/clay_pit_r3": {
+  "ax": 128,
+  "ay": 133
  },
  "bld/concrete_works": {
   "ax": 192,
@@ -51,6 +183,30 @@
   "ax": 192,
   "ay": 238
  },
+ "bld/concrete_works_r1": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/concrete_works_r1_lit": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/concrete_works_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/concrete_works_r2_lit": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/concrete_works_r3": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/concrete_works_r3_lit": {
+  "ax": 192,
+  "ay": 196
+ },
  "bld/dye_works": {
   "ax": 192,
   "ay": 217
@@ -58,6 +214,30 @@
  "bld/dye_works_lit": {
   "ax": 192,
   "ay": 217
+ },
+ "bld/dye_works_r1": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/dye_works_r1_lit": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/dye_works_r2": {
+  "ax": 192,
+  "ay": 172
+ },
+ "bld/dye_works_r2_lit": {
+  "ax": 192,
+  "ay": 172
+ },
+ "bld/dye_works_r3": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/dye_works_r3_lit": {
+  "ax": 128,
+  "ay": 185
  },
  "bld/dyer": {
   "ax": 128,
@@ -67,7 +247,43 @@
   "ax": 128,
   "ay": 180
  },
+ "bld/dyer_r1": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/dyer_r1_lit": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/dyer_r2": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/dyer_r2_lit": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/dyer_r3": {
+  "ax": 128,
+  "ay": 160
+ },
+ "bld/dyer_r3_lit": {
+  "ax": 128,
+  "ay": 160
+ },
  "bld/fishing_wharf": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/fishing_wharf_r1": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/fishing_wharf_r2": {
+  "ax": 128,
+  "ay": 144
+ },
+ "bld/fishing_wharf_r3": {
   "ax": 128,
   "ay": 133
  },
@@ -79,6 +295,30 @@
   "ax": 128,
   "ay": 178
  },
+ "bld/garum_workshop_r1": {
+  "ax": 128,
+  "ay": 141
+ },
+ "bld/garum_workshop_r1_lit": {
+  "ax": 128,
+  "ay": 141
+ },
+ "bld/garum_workshop_r2": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/garum_workshop_r2_lit": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/garum_workshop_r3": {
+  "ax": 128,
+  "ay": 158
+ },
+ "bld/garum_workshop_r3_lit": {
+  "ax": 128,
+  "ay": 158
+ },
  "bld/glassworks": {
   "ax": 192,
   "ay": 216
@@ -87,9 +327,45 @@
   "ax": 192,
   "ay": 216
  },
+ "bld/glassworks_r1": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/glassworks_r1_lit": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/glassworks_r2": {
+  "ax": 192,
+  "ay": 174
+ },
+ "bld/glassworks_r2_lit": {
+  "ax": 192,
+  "ay": 174
+ },
+ "bld/glassworks_r3": {
+  "ax": 128,
+  "ay": 201
+ },
+ "bld/glassworks_r3_lit": {
+  "ax": 128,
+  "ay": 201
+ },
  "bld/iron_mine": {
   "ax": 192,
   "ay": 215
+ },
+ "bld/iron_mine_r1": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/iron_mine_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/iron_mine_r3": {
+  "ax": 192,
+  "ay": 201
  },
  "bld/jeweler": {
   "ax": 128,
@@ -99,21 +375,93 @@
   "ax": 128,
   "ay": 180
  },
+ "bld/jeweler_r1": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/jeweler_r1_lit": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/jeweler_r2": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/jeweler_r2_lit": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/jeweler_r3": {
+  "ax": 128,
+  "ay": 161
+ },
+ "bld/jeweler_r3_lit": {
+  "ax": 128,
+  "ay": 161
+ },
  "bld/lime_kiln": {
   "ax": 128,
   "ay": 222
+ },
+ "bld/lime_kiln_r1": {
+  "ax": 128,
+  "ay": 187
+ },
+ "bld/lime_kiln_r2": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/lime_kiln_r3": {
+  "ax": 128,
+  "ay": 215
  },
  "bld/limestone_quarry": {
   "ax": 192,
   "ay": 196
  },
+ "bld/limestone_quarry_r1": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/limestone_quarry_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/limestone_quarry_r3": {
+  "ax": 192,
+  "ay": 220
+ },
  "bld/lumber_camp": {
   "ax": 128,
   "ay": 158
  },
+ "bld/lumber_camp_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/lumber_camp_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/lumber_camp_r3": {
+  "ax": 128,
+  "ay": 164
+ },
  "bld/marble_quarry": {
   "ax": 192,
   "ay": 196
+ },
+ "bld/marble_quarry_r1": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/marble_quarry_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/marble_quarry_r3": {
+  "ax": 192,
+  "ay": 220
  },
  "bld/mill": {
   "ax": 128,
@@ -135,6 +483,66 @@
   "ax": 128,
   "ay": 174
  },
+ "bld/mill_r1": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/mill_r1@east": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/mill_r1@egypt": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/mill_r1@north": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/mill_r1_lit": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/mill_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/mill_r2@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/mill_r2@egypt": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/mill_r2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/mill_r2_lit": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/mill_r3": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/mill_r3@east": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/mill_r3@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/mill_r3@north": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/mill_r3_lit": {
+  "ax": 128,
+  "ay": 148
+ },
  "bld/olive_press": {
   "ax": 128,
   "ay": 179
@@ -142,6 +550,30 @@
  "bld/olive_press_lit": {
   "ax": 128,
   "ay": 179
+ },
+ "bld/olive_press_r1": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/olive_press_r1_lit": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/olive_press_r2": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/olive_press_r2_lit": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/olive_press_r3": {
+  "ax": 128,
+  "ay": 157
+ },
+ "bld/olive_press_r3_lit": {
+  "ax": 128,
+  "ay": 157
  },
  "bld/papyrus_marsh_tile_0": {
   "ax": 64,
@@ -179,29 +611,161 @@
   "ax": 128,
   "ay": 171
  },
+ "bld/potter_r1": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/potter_r1@east": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/potter_r1@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/potter_r1@north": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/potter_r1_lit": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/potter_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/potter_r2@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/potter_r2@egypt": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/potter_r2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/potter_r2_lit": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/potter_r3": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/potter_r3@east": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/potter_r3@egypt": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/potter_r3@north": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/potter_r3_lit": {
+  "ax": 128,
+  "ay": 169
+ },
  "bld/pozzolana_pit": {
   "ax": 128,
   "ay": 132
+ },
+ "bld/pozzolana_pit_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/pozzolana_pit_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/pozzolana_pit_r3": {
+  "ax": 128,
+  "ay": 133
  },
  "bld/quarry": {
   "ax": 192,
   "ay": 196
  },
+ "bld/quarry_r1": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/quarry_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/quarry_r3": {
+  "ax": 192,
+  "ay": 220
+ },
  "bld/salt_works": {
   "ax": 192,
   "ay": 164
+ },
+ "bld/salt_works_r1": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/salt_works_r2": {
+  "ax": 192,
+  "ay": 166
+ },
+ "bld/salt_works_r3": {
+  "ax": 128,
+  "ay": 205
  },
  "bld/sand_pit": {
   "ax": 128,
   "ay": 132
  },
+ "bld/sand_pit_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/sand_pit_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/sand_pit_r3": {
+  "ax": 128,
+  "ay": 133
+ },
  "bld/sawmill": {
   "ax": 192,
   "ay": 202
  },
+ "bld/sawmill_r1": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/sawmill_r2": {
+  "ax": 192,
+  "ay": 165
+ },
+ "bld/sawmill_r3": {
+  "ax": 128,
+  "ay": 167
+ },
  "bld/scriptorium": {
   "ax": 128,
   "ay": 185
+ },
+ "bld/scriptorium_r1": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/scriptorium_r2": {
+  "ax": 128,
+  "ay": 141
+ },
+ "bld/scriptorium_r3": {
+  "ax": 128,
+  "ay": 165
  },
  "bld/sculptor": {
   "ax": 128,
@@ -211,17 +775,77 @@
   "ax": 128,
   "ay": 180
  },
+ "bld/sculptor_r1": {
+  "ax": 128,
+  "ay": 157
+ },
+ "bld/sculptor_r1_lit": {
+  "ax": 128,
+  "ay": 157
+ },
+ "bld/sculptor_r2": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/sculptor_r2_lit": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/sculptor_r3": {
+  "ax": 128,
+  "ay": 162
+ },
+ "bld/sculptor_r3_lit": {
+  "ax": 128,
+  "ay": 162
+ },
  "bld/silver_mine": {
   "ax": 192,
   "ay": 215
+ },
+ "bld/silver_mine_r1": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/silver_mine_r2": {
+  "ax": 192,
+  "ay": 196
+ },
+ "bld/silver_mine_r3": {
+  "ax": 192,
+  "ay": 201
  },
  "bld/silver_smelter": {
   "ax": 192,
   "ay": 211
  },
+ "bld/silver_smelter_r1": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/silver_smelter_r2": {
+  "ax": 192,
+  "ay": 165
+ },
+ "bld/silver_smelter_r3": {
+  "ax": 128,
+  "ay": 175
+ },
  "bld/smelter": {
   "ax": 192,
   "ay": 237
+ },
+ "bld/smelter_r1": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/smelter_r2": {
+  "ax": 192,
+  "ay": 171
+ },
+ "bld/smelter_r3": {
+  "ax": 128,
+  "ay": 210
  },
  "bld/stonemason": {
   "ax": 128,
@@ -230,6 +854,30 @@
  "bld/stonemason_lit": {
   "ax": 128,
   "ay": 177
+ },
+ "bld/stonemason_r1": {
+  "ax": 128,
+  "ay": 142
+ },
+ "bld/stonemason_r1_lit": {
+  "ax": 128,
+  "ay": 142
+ },
+ "bld/stonemason_r2": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/stonemason_r2_lit": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/stonemason_r3": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/stonemason_r3_lit": {
+  "ax": 128,
+  "ay": 167
  },
  "bld/weaver": {
   "ax": 128,
@@ -251,6 +899,66 @@
   "ax": 128,
   "ay": 181
  },
+ "bld/weaver_r1": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/weaver_r1@east": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/weaver_r1@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/weaver_r1@north": {
+  "ax": 128,
+  "ay": 152
+ },
+ "bld/weaver_r1_lit": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/weaver_r2": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/weaver_r2@east": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/weaver_r2@egypt": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/weaver_r2@north": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/weaver_r2_lit": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/weaver_r3": {
+  "ax": 128,
+  "ay": 161
+ },
+ "bld/weaver_r3@east": {
+  "ax": 128,
+  "ay": 152
+ },
+ "bld/weaver_r3@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/weaver_r3@north": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/weaver_r3_lit": {
+  "ax": 128,
+  "ay": 161
+ },
  "bld/winery": {
   "ax": 192,
   "ay": 214
@@ -258,5 +966,29 @@
  "bld/winery_lit": {
   "ax": 192,
   "ay": 214
+ },
+ "bld/winery_r1": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/winery_r1_lit": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/winery_r2": {
+  "ax": 192,
+  "ay": 165
+ },
+ "bld/winery_r2_lit": {
+  "ax": 192,
+  "ay": 165
+ },
+ "bld/winery_r3": {
+  "ax": 128,
+  "ay": 195
+ },
+ "bld/winery_r3_lit": {
+  "ax": 128,
+  "ay": 195
  }
 }

@@ -84,6 +84,29 @@ columns, steps, fences, sacks, amphorae, carts, trees, lots) and the framing/ren
 [--samples N]`. Each family module declares `SPRITES = {name: spec}` (see `run.py`) and may define
 its own extra materials and parts. Families never edit `kit.py`; shared fixes go through the lead.
 
+### Rotated buildings
+
+Buildings can be placed in four rotations. `rot` 0..3 = quarter turns **clockwise seen from above
+(map north up)**; the front faces grid south / west / north / east (screen down-left / up-left /
+up-right / down-right) for rot 0 / 1 / 2 / 3. The map footprint is `(fw, fh)` for even rot and
+`(fh, fw)` for odd rot. Sprite names insert `_r<k>` after the base/tier part and before `_lit` /
+`@region`: `bld/bakery_r1`, `bld/bakery_r1@east`, `bld/bakery_r1_lit`, `bld/house_plot_t2_r3_lit`.
+rot 0 keeps the plain names. Canvas and anchor follow the usual rule on the rotated footprint
+(width `(w + h) * 64`, `ax = w * 64`, `ay` = canvas height); anchors live in the family meta json.
+
+Only one-footprint building sprites are rotated: bld/ base, tier and regional sprites and their
+`_lit` overlays. Line pieces (`_c/_n/_e/_s/_w`), area tiles (`_tile_<v>`), area huts (`_hut`),
+placeholders, roads, terrain, people, fx and `obj/` sprites are not (`run.py: rotatable()`).
+
+Render them with `--rot`: `Blender -b --python tools/artgen3d/run.py -- <family> [names] --rot all`
+(or `--rot 1,3`); `--list` with `--rot` prints the file names it would write. The scene is built
+as usual, then every object except the sun/fill lights and the camera is turned `-90 * k` degrees
+about z through the footprint centre (Blender +y is grid north), and framed with the rotated
+footprint. Sun and camera stay fixed, so light and shadows match the unrotated art; the backs of
+buildings become visible in rot 1 and 2. Anchors are merged into the meta json under a file lock,
+so several Blender processes may render subsets of one family at once. Sample counts match the
+originals: 48 for `civic` and `logistics`, the default 64 for the others.
+
 ## Readability rules (from the art test brief)
 
 Each category owns an accent no other category uses: housing is quiet (muted plaster, faded
