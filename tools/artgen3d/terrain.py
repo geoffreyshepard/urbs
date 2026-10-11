@@ -25,7 +25,7 @@ def _mats():
         "myrtle": material("myrtle", "#4e6c2e", "#3f5a26", scale=26, bump=0.5),
         "broom": material("broom", "#6b7d34", "#5a6a2c", scale=26, bump=0.5, detail=(0.8, "#d9b636")),
         "juniper": material("juniper", "#3e5634", "#32472b", scale=26, bump=0.5),
-        "reed": material("reed", "#8d9a4e", "#6f7d3a", scale=30, bump=0.2, detail=(1.2, "#b5a86a")),
+        "reed": material("reed", "#7d8c42", "#5f6e30", scale=30, bump=0.2, detail=(1.2, "#a89a5c")),
         "reed_head": material("reed_head", "#6a4d30", "#56402a", scale=30, bump=0.2),
         "boulder": material("boulder", "#8c8577", "#6e685c", scale=7, bump=0.6, detail=(1.5, "#a29a8a")),
         "clay": material("clay", "#a4603e", "#8c4f31", scale=10, bump=0.4, detail=(1.4, "#b87250")),
@@ -172,11 +172,11 @@ def reeds(M, X, n, seed):
         a = rnd.uniform(0, 2 * math.pi)
         r = rnd.uniform(0, 0.16)
         x, y = r * math.cos(a), r * math.sin(a)
-        h = rnd.uniform(0.18, 0.34)
+        h = rnd.uniform(0.24, 0.46)
         lean = rnd.uniform(-0.04, 0.04)
-        mesh("reed", [(x - 0.014, y, 0), (x + 0.014, y, 0), (x + lean, y + lean * 0.5, h)],
+        mesh("reed", [(x - 0.022, y, 0), (x + 0.022, y, 0), (x + lean, y + lean * 0.5, h)],
              [(0, 1, 2)], X["reed"])
-        mesh("reed2", [(x, y - 0.014, 0), (x, y + 0.014, 0), (x + lean, y + lean * 0.5, h)],
+        mesh("reed2", [(x, y - 0.022, 0), (x, y + 0.022, 0), (x + lean, y + lean * 0.5, h)],
              [(0, 1, 2)], X["reed"])
         if i % 3 == 0:
             cylinder(x + lean, y + lean * 0.5, h - 0.02, h + 0.04, 0.008, X["reed_head"], n=5)

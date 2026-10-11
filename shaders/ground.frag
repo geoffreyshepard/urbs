@@ -23,10 +23,15 @@ const vec3 kLuma = vec3(0.299, 0.587, 0.114);
 
 void main() {
   vec4 c = texture(tex, vec3(v_uv, v_layer)) * v_color;
+  int kind = int(v_kind + 0.5);
+  if (kind == 0 || kind == 2) {  // terrain bases and cliff faces: alpha-tested, see render/terrain.hpp
+    if (c.a < 0.5) discard;
+    c.a = 1.0;
+  }
   if (c.a < 0.01) discard;
   vec4 g = texture(ground, v_world * u.map.xy);
-  bool terrain = v_kind < 0.5;
-  bool decor = v_kind > 2.5;
+  bool terrain = kind == 0 || kind == 4;
+  bool decor = kind == 3;
 
   // Luminance: hills and broad light/dark patches (softened: the art carries its own shading).
   float lum = mix(1.0, g.g * (255.0 / 128.0), decor ? 0.5 : 0.8);
@@ -44,7 +49,7 @@ void main() {
     c.rgb = mix(c.rgb, vec3(l) * vec3(1.08, 0.98, 0.80), brown);
     // Worn earth around buildings and along roads.
     float wear = smoothstep(0.1, 0.9, g.r * (0.75 + 0.5 * veg));
-    c.rgb = mix(c.rgb, vec3(0.55, 0.45, 0.32) * (0.8 + 0.5 * l), wear * 0.55);
+    c.rgb = mix(c.rgb, vec3(0.55, 0.45, 0.32) * (0.8 + 0.5 * l), wear * 0.38);
   }
   if (terrain && water && g.a > 0.02) {
     // Lighter, greener shallows by the shore and a broken foam line that drifts.
@@ -56,7 +61,7 @@ void main() {
     c.rgb = mix(c.rgb, vec3(0.86, 0.92, 0.91), foam * 0.6);
   }
   // Snow settles on everything in this layer except water and cliff faces.
-  float snow = u.season.w * (terrain || v_kind < 1.5 ? 1.0 : (decor ? 0.6 : 0.3));
+  float snow = u.season.w * (terrain || kind == 1 ? 1.0 : (decor ? 0.6 : 0.3));
   if (snow > 0.0 && !water) {
     float s = clamp(snow * (0.7 + 0.3 * l), 0.0, 1.0);
     c.rgb = mix(c.rgb, vec3(0.90, 0.93, 0.98) * (0.85 + 0.2 * l), s * 0.85);

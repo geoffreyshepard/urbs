@@ -160,7 +160,7 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
             if (prio[k] == pr) which = k;
           }
         if (which < 0) continue;
-        out.push_back(anchored(ts.dual[static_cast<int>(c[which])][mask][p], at, z, code));
+        out.push_back(anchored(ts.dual[static_cast<int>(c[which])][mask][p], at, z, ground_code_color(kKindBlend, lv[0])));
       }
     }
 
@@ -225,7 +225,7 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
       };
       const f32 jx = (static_cast<f32>((var >> 2) & 7) - 3.5f) / 14.0f;
       const f32 jy = (static_cast<f32>((var >> 5) & 3) - 1.5f) / 8.0f;
-      if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && var % 5 < 2) {
+      if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && var % 4 == 0) {
         put(ts.res[static_cast<int>(m.resource[i])], jx * 0.5f, jy * 0.5f);
         continue;
       }
@@ -253,6 +253,11 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
       }
     }
   const u32 ground = static_cast<u32>(out.size() - first);
+  // Ground back to front: the soft edges of nearer (raised) pieces must blend over what is behind
+  // them, not write depth first and leave the background showing through.  Stable, so blends keep
+  // following their cell's base.
+  std::stable_sort(out.begin() + static_cast<std::ptrdiff_t>(first), out.end(),
+                   [](const SpriteInstance& a, const SpriteInstance& b) { return a.z > b.z; });
   // Shadows first, then bodies far to near, so overlapping translucent edges blend in order.
   std::stable_sort(decor.begin(), decor.end(), [](const SpriteInstance& a, const SpriteInstance& b) { return a.z > b.z; });
   out.insert(out.end(), decor.begin(), decor.end());
