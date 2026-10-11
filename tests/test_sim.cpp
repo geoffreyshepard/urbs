@@ -386,6 +386,134 @@ TEST_CASE("entrances follow their neighbours; a walled-in building raises a no-r
   CHECK(alerted);
 }
 
+TEST_CASE("rotation: odd turns swap the footprint, the entrance prefers the front side") {
+  const auto& D = defs();
+  const BuildingDefId saw = D.building("sawmill");  // 3x2
+  REQUIRE(saw.valid());
+  REQUIRE(D.b(saw).rotatable);
+  for (const char* id : {"wheat_farm", "plaza", "aqueduct", "wall", "pipe", "sewer", "bridge", "stockpile"})
+    CHECK_MESSAGE(!D.b(D.building(id)).rotatable, id);
+  CHECK(data::rotated_size(D.b(saw), 0).w == 3);
+  CHECK(data::rotated_size(D.b(saw), 0).h == 2);
+  CHECK(data::rotated_size(D.b(saw), 1).w == 2);
+  CHECK(data::rotated_size(D.b(saw), 1).h == 3);
+  CHECK(data::rotated_size(D.b(saw), 2).w == 3);
+  CHECK(data::rotated_size(D.b(saw), 3).h == 3);
+
+  auto w = flat_world(64);
+  w->entry_tile = w->map.idx(0, 40);
+  BuildingId ids[4];
+  for (u8 rot = 0; rot < 4; ++rot) {
+    const data::Footprint fp = data::rotated_size(D.b(saw), rot);
+    const i32 x = 8 + rot * 12, y = 20;
+    ids[rot] = w->place_building(saw, x, y, fp.w, fp.h, true, rot);
+    REQUIRE(ids[rot].valid());
+    const sim::Building& b = w->buildings[ids[rot]];
+    CHECK(b.rot == rot);
+    CHECK(b.w == fp.w);
+    CHECK(b.h == fp.h);
+    for (i32 ty = y; ty < y + fp.h; ++ty)
+      for (i32 tx = x; tx < x + fp.w; ++tx) CHECK(w->map.building[static_cast<size_t>(w->map.idx(tx, ty))] == ids[rot]);
+  }
+  w->tick();
+  for (u8 rot = 0; rot < 4; ++rot) {
+    const sim::Building& b = w->buildings[ids[rot]];
+    REQUIRE(b.entrance >= 0);
+    const i32 ex = b.entrance % 64, ey = b.entrance / 64;
+    INFO("rot " << int(rot) << " entrance " << ex << "," << ey);
+    switch (rot) {
+      case 0:
+        CHECK((ey == b.y + b.h && ex >= b.x && ex < b.x + b.w));  // south
+        break;
+      case 1:
+        CHECK((ex == b.x - 1 && ey >= b.y && ey < b.y + b.h));  // west
+        break;
+      case 2:
+        CHECK((ey == b.y - 1 && ex >= b.x && ex < b.x + b.w));  // north
+        break;
+      default:
+        CHECK((ex == b.x + b.w && ey >= b.y && ey < b.y + b.h));  // east
+        break;
+    }
+  }
+  // A blocked front: the door moves to a side before the back.
+  {
+    const sim::Building& b = w->buildings[ids[3]];  // faces east
+    for (i32 ty = b.y - 1; ty <= b.y + b.h; ++ty) REQUIRE(put(*w, "wall", b.x + b.w, ty).valid());
+    w->tick();
+    const i32 ex = b.entrance % 64, ey = b.entrance / 64;
+    CHECK((ey == b.y - 1 || ey == b.y + b.h));
+    CHECK(ex >= b.x);
+    CHECK(ex < b.x + b.w);
+  }
+  // Non-rotatable defs ignore the rotation.
+  const BuildingDefId farm = D.building("wheat_farm");
+  const BuildingId f = w->place_building(farm, 10, 40, 4, 4, true, 1);
+  REQUIRE(f.valid());
+  CHECK(w->buildings[f].rot == 0);
+  // Players place through commands: rotation rides in flags bits 1-2.
+  w->unlock_up_to(99);
+  w->econ.treasury = 100000;
+  sim::Command c;
+  c.type = sim::CmdType::PlaceBuilding;
+  c.def = saw.v;
+  c.x0 = 30;
+  c.y0 = 40;
+  c.x1 = 2;
+  c.y1 = 3;
+  c.flags = static_cast<u8>(1 | (1 << 1));
+  w->push(c);
+  w->tick();
+  const BuildingId placed = w->map.building[static_cast<size_t>(w->map.idx(30, 40))];
+  REQUIRE(placed.valid());
+  CHECK(w->buildings[placed].rot == 1);
+  CHECK(w->buildings[placed].w == 2);
+  CHECK(w->buildings[placed].h == 3);
+  sim::InvariantChecker checker;
+  std::vector<std::string> bad;
+  checker.check(*w, bad);
+  for (const auto& line : bad) CHECK_MESSAGE(line.find("rotation") == std::string::npos, line);
+}
+
+TEST_CASE("rotation survives save/load; older saves load with every building at rot 0") {
+  const auto& D = defs();
+  auto w = flat_world(64);
+  w->entry_tile = w->map.idx(0, 40);
+  const BuildingDefId saw = D.building("sawmill");
+  const BuildingId a = w->place_building(saw, 10, 10, 2, 3, true, 1);
+  const BuildingId b = w->place_building(saw, 20, 10, 3, 2, true, 2);
+  const BuildingId c = w->place_building(D.building("bakery"), 30, 10, 2, 2, true, 3);
+  REQUIRE(a.valid());
+  REQUIRE(b.valid());
+  REQUIRE(c.valid());
+  for (int t = 0; t < 50; ++t) w->tick();
+  const std::string path = (std::filesystem::temp_directory_path() / "urbs_test_rot.urbs").string();
+  std::string err;
+  REQUIRE(save::save_world(*w, path, "test", &err));
+  save::SaveInfo info;
+  REQUIRE(save::read_info(path, info));
+  CHECK(info.version == save::kSaveVersion);
+  auto l = std::make_unique<sim::World>();
+  REQUIRE_MESSAGE(save::load_world(*l, D, path, &err), err);
+  std::remove(path.c_str());
+  CHECK(l->buildings[a].rot == 1);
+  CHECK(l->buildings[b].rot == 2);
+  CHECK(l->buildings[c].rot == 3);
+  CHECK(l->buildings[a].entrance == w->buildings[a].entrance);
+  CHECK(save::world_hash(*l) == save::world_hash(*w));
+
+  // The v0.1 fixture (save version 1) predates rotation.
+  auto old = std::make_unique<sim::World>();
+  REQUIRE_MESSAGE(save::load_world(*old, D, std::string(URBS_SOURCE_DIR) + "/tests/saves/v1_capua_day25.urbs", &err),
+                  err);
+  u32 n = 0;
+  old->buildings.for_each([&](BuildingId, const sim::Building& ob) {
+    CHECK(ob.rot == 0);
+    ++n;
+  });
+  CHECK(n > 0);
+}
+
 TEST_CASE("defences: gates let citizens through but not raiders, walls are besieged, towers shoot") {
   auto w = flat_world(64);
   w->entry_tile = w->map.idx(0, 32);

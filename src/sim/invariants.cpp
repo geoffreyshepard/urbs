@@ -108,6 +108,8 @@ u32 InvariantChecker::check(const World& w, std::vector<std::string>& out, u32 l
 
   // 4. Map: every building's footprint points back at it, and no tile points at a dead building.
   B.for_each([&](BuildingId id, const Building& b) {
+    if (b.rot > 3 || (b.rot != 0 && !w.defs->b(b.def).rotatable))
+      fail("rotation: %s #%u has rot %u", bname(id), id.index(), b.rot);
     for (i32 y = b.y; y < b.y + b.h; ++y)
       for (i32 x = b.x; x < b.x + b.w; ++x)
         if (w.map.building[static_cast<size_t>(w.map.idx(x, y))] != id) {

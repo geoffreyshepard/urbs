@@ -265,6 +265,7 @@ Defs load_defs(const std::string& data_root, const std::vector<std::string>& mod
       b.layer = layer == "pipe" ? 1 : layer == "sewer" ? 2 : layer == "bridge" ? 3 : 0;
     }
     b.passable = get_or<bool>(j, "passable", false);
+    b.rotatable = get_or<bool>(j, "rotatable", !b.painted && b.layer == 0);
     b.needs_pipe = get_or<bool>(j, "needs_pipe", false);
     b.carts = get_or<bool>(j, "carts", false);
     b.crime_cut = get_or<u8>(j, "crime_cut", 0);

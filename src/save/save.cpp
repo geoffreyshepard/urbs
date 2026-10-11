@@ -11,6 +11,9 @@ namespace urbs::save {
 
 namespace {
 constexpr u32 kMagic = 0x53425255;  // "URBS"
+// Buildings are saved as raw structs.  v4 added Building::rot in former tail padding, so the
+// element size is the same in every version; a layout change needs a new version and a migration.
+static_assert(sizeof(sim::Building) == 72, "Building layout changed: bump kSaveVersion and migrate");
 
 template <typename IdT>
 void write_slots(Writer& w, const core::SlotAlloc<IdT>& s) {
@@ -201,6 +204,8 @@ void World::deserialize(save::Reader& r) {
   r.expect("BLDG");
   save::read_slots(r, buildings.ids);
   r.vec(buildings.b);
+  if (r.version < 4)  // before rotation: the byte was padding
+    for (auto& b : buildings.b) b.rot = 0;
   r.expect("CITZ");
   auto& C = citizens;
   save::read_slots(r, C.ids);

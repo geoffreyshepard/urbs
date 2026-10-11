@@ -42,6 +42,10 @@ struct Building {
   u32 skill_sum = 0;      // sum of present workers' skill x work trait (productivity)
   u8 burn = 0;            // hours left burning (state Burning)
   u8 plague = 0;          // days of active infection (houses)
+  // Orientation, quarter turns clockwise seen from above: the front (door) faces 0 south, 1 west,
+  // 2 north, 3 east.  w/h above are already the rotated footprint.  Lives in what was padding up to
+  // save v3, so sizeof(Building) is unchanged (save.cpp checks it).
+  u8 rot = 0;
 };
 
 struct Buildings {

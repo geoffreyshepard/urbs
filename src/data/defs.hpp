@@ -139,6 +139,9 @@ struct BuildingDef {
   BuildingKind kind = BuildingKind::Workplace;
   u8 w = 1, h = 1;
   bool painted = false;  // player paints an area; capacity scales with tiles
+  // Can be placed in four orientations (Building::rot).  Default: single-sprite buildings (not
+  // painted, not a pipe/sewer/bridge line); "rotatable" in buildings.json overrides it.
+  bool rotatable = true;
   u8 min_w = 1, min_h = 1, max_w = 16, max_h = 16;
   i32 cost_denarii = 0;
   std::vector<GoodAmount> cost_goods;
@@ -179,6 +182,16 @@ struct BuildingDef {
     u8 culture = 0;        // permanent culture rating points while it stands
   } dedication;
 };
+
+// Map footprint of a building placed with rotation `rot` (quarter turns clockwise, see
+// docs/13-isometric.md): `size` for even rot, swapped for odd rot.  Non-rotatable defs ignore rot.
+struct Footprint {
+  i32 w = 1, h = 1;
+};
+inline Footprint rotated_size(const BuildingDef& d, u8 rot) {
+  if (d.rotatable && (rot & 1)) return {d.h, d.w};
+  return {d.w, d.h};
+}
 
 struct Defs {
   std::vector<GoodDef> goods;

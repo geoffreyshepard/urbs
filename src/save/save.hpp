@@ -10,9 +10,10 @@
 namespace urbs::save {
 
 // Bump on any change to saved state; add a migration in load_world or reject with a clear error.
-// Version history: 1 = v0.1.0; 2 = civic crime cut (M12); 3 = mint ledger column, Nile flag (M13); v1.0.0 writes 3.
+// Version history: 1 = v0.1.0; 2 = civic crime cut (M12); 3 = mint ledger column, Nile flag (M13); v1.0.0 writes 3;
+// 4 = building rotation (Building::rot; older saves load with every building at rot 0).
 // Older versions still load.
-inline constexpr u32 kSaveVersion = 3;
+inline constexpr u32 kSaveVersion = 4;
 inline constexpr u32 kOldestSaveVersion = 1;
 
 struct SaveInfo {

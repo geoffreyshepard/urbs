@@ -133,8 +133,9 @@ void World::update_nav_rect(i32 x, i32 y, i32 w, i32 h) {
 }
 
 void World::compute_entrance(Building& b) {
-  // Perimeter scan: bottom side first (buildings face south), then sides, then top. Prefer tiles
-  // connected to the rest of the map (not a pocket cut off by water), then roads.
+  // Perimeter scan: the front side first (by Building::rot; rot 0 faces south), nearest its middle,
+  // then the two sides, then the back. Prefer tiles connected to the rest of the map (not a pocket
+  // cut off by water), then roads.
   i32 best = -1;
   int best_score = -1;
   auto consider = [&](i32 tx, i32 ty, int side_pref) {
@@ -148,12 +149,27 @@ void World::compute_entrance(Building& b) {
       best = i;
     }
   };
-  for (i32 tx = b.x; tx < b.x + b.w; ++tx) consider(tx, b.y + b.h, 30 - std::abs(tx - (b.x + b.w / 2)));
-  for (i32 ty = b.y; ty < b.y + b.h; ++ty) {
-    consider(b.x - 1, ty, 10);
-    consider(b.x + b.w, ty, 10);
+  const i32 x0 = b.x, y0 = b.y, x1 = b.x + b.w, y1 = b.y + b.h;  // x1, y1 exclusive
+  // Rows (along x) for a south/north front, columns (along y) for a west/east front.
+  const bool rows = (b.rot & 1) == 0;
+  // Outside line of the front and the back: south y1 / west x0-1 / north y0-1 / east x1.
+  const i32 front = b.rot == 0 ? y1 : b.rot == 1 ? x0 - 1 : b.rot == 2 ? y0 - 1 : x1;
+  const i32 back = b.rot == 0 ? y0 - 1 : b.rot == 1 ? x1 : b.rot == 2 ? y1 : x0 - 1;
+  if (rows) {
+    for (i32 tx = x0; tx < x1; ++tx) consider(tx, front, 30 - std::abs(tx - (x0 + b.w / 2)));
+    for (i32 ty = y0; ty < y1; ++ty) {
+      consider(x0 - 1, ty, 10);
+      consider(x1, ty, 10);
+    }
+    for (i32 tx = x0; tx < x1; ++tx) consider(tx, back, 0);
+  } else {
+    for (i32 ty = y0; ty < y1; ++ty) consider(front, ty, 30 - std::abs(ty - (y0 + b.h / 2)));
+    for (i32 tx = x0; tx < x1; ++tx) {
+      consider(tx, y0 - 1, 10);
+      consider(tx, y1, 10);
+    }
+    for (i32 ty = y0; ty < y1; ++ty) consider(back, ty, 0);
   }
-  for (i32 tx = b.x; tx < b.x + b.w; ++tx) consider(tx, b.y - 1, 0);
   b.entrance = best;
 }
 
@@ -182,7 +198,7 @@ namespace {
 const data::HousingTierDef* tier0(const data::Defs& d, const data::BuildingDef& bd) { return d.tier(bd.house_line, 0); }
 }  // namespace
 
-BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, bool instant) {
+BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, bool instant, u8 rot) {
   if (!can_place(def, x, y, w, h)) return BuildingId{};
   BuildingId id = buildings.ids.create();
   if (!id) return id;
@@ -194,6 +210,7 @@ BuildingId World::place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, 
   b.y = static_cast<i16>(y);
   b.w = static_cast<u8>(w);
   b.h = static_cast<u8>(h);
+  b.rot = bd.rotatable ? static_cast<u8>(rot & 3) : u8{0};
   const u32 area = static_cast<u32>(w * h);
   const u32 base_area = static_cast<u32>(bd.w * bd.h);
   b.jobs = bd.painted ? static_cast<u16>(std::max<u32>(1, bd.workers * area / std::max<u32>(1, base_area))) : bd.workers;
@@ -603,7 +620,8 @@ void World::apply_commands() {
         i64 cost = bd.painted ? std::max<i64>(1, bd.cost_denarii * area / std::max<i64>(1, base)) : bd.cost_denarii;
         if (tech(Tech::Arches) && (bd.id == "aqueduct" || bd.id == "grand_aqueduct")) cost /= 2;
         if (!pay(cost, econ::Money::Construction)) break;
-        BuildingId nb = place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0);
+        BuildingId nb =
+            place_building(d, c.x0, c.y0, c.x1, c.y1, (c.flags & 1) != 0, static_cast<u8>((c.flags >> 1) & 3));
         // Temples are dedicated to a god (Command::value); default: the first worshipped god.
         if (nb.valid() && bd.service.valid() && defs->services[bd.service.v].need == data::NeedKind::Religion &&
             bd.id != "shrine") {

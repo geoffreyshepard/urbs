@@ -34,7 +34,8 @@ The owner chose pre-rendered 3D art on an isometric camera (option C of the art 
 - **Free sprites** (citizens, units, trees, carts, ships, fire, smoke): anchor = the foot / ground
   contact point = `iso::project(world_pos, level)`.
 - Building footprints: `size: [w, h]` in `data/defs/buildings.json` is `fw` (x, east) by `fh`
-  (y, south). Fronts and doors face grid south (the front-left wall on screen).
+  (y, south). Unrotated, fronts and doors face grid south (the front-left wall on screen); see
+  Rotation below.
 - Directional sprites keep the grid names: `_n/_e/_s/_w` (and `_ne ...`) mean grid directions, drawn
   in the screen directions above. A citizen sprite `_e` walks toward the screen's lower right.
 - Dual-grid terrain masks keep their bits: NW corner = 1 (the diamond's top vertex), NE = 2 (right
@@ -45,6 +46,35 @@ The owner chose pre-rendered 3D art on an isometric camera (option C of the art 
 - `tools/atlas/pack.py` packs `assets/sprites_iso` plus the legacy `ui/` and `goods/` folders. It may
   pack below native size; `main.json` records `"scale"` (atlas texels per iso px) and the renderer
   divides by it (`Atlas::scale`, `iso_w`, `iso_h`).
+
+## Rotation
+
+Players turn a building before placing it (E clockwise, Q or Shift+E counter-clockwise; R stays the
+road tool). The contract between the sim, the game and the art:
+
+- `Building::rot` 0..3 = quarter turns **clockwise as seen from above (map north up)**. The front /
+  door faces 0 = south (+y, the unrotated default), 1 = west (-x), 2 = north (-y), 3 = east (+x).
+  On screen: 0 = down-left, 1 = up-left, 2 = up-right, 3 = down-right.
+- Footprint on the map: `size: [fw, fh]` for even rot, `(fh, fw)` for odd rot
+  (`data::rotated_size`). `Building::w/h` always hold the footprint as placed.
+- The entrance (`World::compute_entrance`) prefers the outside tiles along the front side, nearest
+  its middle, then the two sides, then the back (roads and reachability still outrank sides).
+- Sprite names: rot 0 is unchanged. For rot k > 0 insert `_r<k>` after the base / tier part and
+  before `_lit` / `@region`: `bld/bakery_r1`, `bld/bakery_r1@east`, `bld/bakery_r1_lit`,
+  `bld/house_x_t2_r3`, `bld/house_x_t2_r3_lit`. The canvas is that of the rotated footprint.
+- Anchor: unchanged, the bottom (SE) corner of the actual map footprint,
+  `iso::footprint_anchor(b.x, b.y, b.w, b.h, level)` with the rotated w/h.
+- Rotatable = buildings drawn as one footprint sprite (base or `_t<k>` tiers). Not rotatable: painted
+  area buildings (farms, plazas, gardens, stockpiles: `_tile_<v>`), line / autotiled structures
+  (aqueducts, walls, pipes, sewers, bridges: `_c`, `_n`...). The default is
+  `!painted && layer == none`; `"rotatable": true/false` in `buildings.json` overrides it. The sim
+  stores rot 0 for non-rotatable defs whatever the command says.
+- Missing art: `WorldView` resolves every rotated sprite once at init. A missing `_r<k>` sprite
+  falls back to the unrotated sprite for square footprints and to the size-matched placeholder
+  (`bld/placeholder_WxH`, rotated size) for non-square ones.
+- Commands carry the rotation in `Command::flags` bits 1-2 (x1, y1 = the rotated w, h), so replays
+  and the chaos player reproduce it; scenario `start.buildings` and `orders` accept `"rot"`.
+  The autoplay bot places everything at rot 0. Saves store it from version 4.
 
 ## Art kit (`tools/artgen3d/`)
 

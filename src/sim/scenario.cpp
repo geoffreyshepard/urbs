@@ -206,8 +206,12 @@ void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
       BuildingDefId d = defs.building(b["def"].get<std::string>());
       if (!d) throw std::runtime_error("scenario: unknown building " + b["def"].get<std::string>());
       const auto& bd = defs.b(d);
-      i32 bw = b.contains("size") ? b["size"][0].get<i32>() : bd.w, bh = b.contains("size") ? b["size"][1].get<i32>() : bd.h;
-      BuildingId id = w.place_building(d, b["x"], b["y"], bw, bh, true);
+      // "rot": quarter turns clockwise (0 = front faces south); odd turns swap the def's size.
+      const u8 rot = static_cast<u8>(b.value("rot", 0) & 3);
+      const data::Footprint fp = data::rotated_size(bd, rot);
+      i32 bw = b.contains("size") ? b["size"][0].get<i32>() : fp.w,
+          bh = b.contains("size") ? b["size"][1].get<i32>() : fp.h;
+      BuildingId id = w.place_building(d, b["x"], b["y"], bw, bh, true, rot);
       if (!id) throw std::runtime_error("scenario: cannot place " + bd.id + " at " + b["x"].dump() + "," + b["y"].dump());
       if (b.contains("stock"))
         for (auto& [g, n] : b["stock"].items()) w.add_stock(id, defs.good(g), n.get<u16>());
@@ -369,8 +373,11 @@ void setup_orders(const data::Defs& defs, ScenarioSpec& s) {
         c.def = d.v;
         c.x0 = o["x"];
         c.y0 = o["y"];
-        c.x1 = o.value("w", static_cast<i32>(defs.b(d).w));
-        c.y1 = o.value("h", static_cast<i32>(defs.b(d).h));
+        const u8 rot = static_cast<u8>(o.value("rot", 0) & 3);
+        const data::Footprint fp = data::rotated_size(defs.b(d), rot);
+        c.x1 = o.value("w", fp.w);
+        c.y1 = o.value("h", fp.h);
+        c.flags = static_cast<u8>(rot << 1);
       } else if (o.contains("road")) {
         c.type = CmdType::PlaceRoad;
         c.def = static_cast<u16>(parse_road(o.value("type", "paved")));

@@ -76,7 +76,8 @@ struct Command {
   u16 def = 0;    // building def / road type / policy id
   i32 x0 = 0, y0 = 0, x1 = 0, y1 = 0;
   i32 value = 0;
-  u8 flags = 0;   // PlaceBuilding: bit0 = instant (no construction)
+  u8 flags = 0;  // PlaceBuilding: bit0 = instant (no construction), bits 1-2 = rotation (Building::rot);
+                 // x1, y1 = the (rotated) footprint w, h
 };
 
 enum class CitizenEvent : u16 { Decide = 1, Arrive = 2 };
@@ -270,7 +271,9 @@ struct World {
   rng::Stream& stream(rng::StreamId id) { return rng[static_cast<size_t>(id)]; }
 
   // --- Structure (used by commands, scenarios and tests) ---
-  BuildingId place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, bool instant);
+  // w, h: the footprint on the map (already rotated: see data::rotated_size).  rot is ignored for
+  // non-rotatable defs.
+  BuildingId place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, bool instant, u8 rot = 0);
   bool can_place(BuildingDefId def, i32 x, i32 y, i32 w, i32 h) const;
   void place_road(i32 x, i32 y, Road type);
   void place_road_line(i32 x0, i32 y0, i32 x1, i32 y1, Road type);

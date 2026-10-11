@@ -51,8 +51,12 @@ void Chaos::act(World& w) {
     c.def = d;
     c.x0 = near_x();
     c.y0 = near_y();
-    c.x1 = bd.painted ? bd.min_w + below(std::max(1, bd.max_w - bd.min_w + 1)) : bd.w;
-    c.y1 = bd.painted ? bd.min_h + below(std::max(1, bd.max_h - bd.min_h + 1)) : bd.h;
+    // Rotation from the position (no extra draw, so the chaos stream is unchanged).
+    const u8 rot = static_cast<u8>((c.x0 + c.y0) & 3);
+    const data::Footprint fp = data::rotated_size(bd, rot);
+    c.x1 = bd.painted ? bd.min_w + below(std::max(1, bd.max_w - bd.min_w + 1)) : fp.w;
+    c.y1 = bd.painted ? bd.min_h + below(std::max(1, bd.max_h - bd.min_h + 1)) : fp.h;
+    c.flags = static_cast<u8>(rot << 1);
     c.value = below(4);
   } else if (roll < 45) {
     c.type = CmdType::PlaceRoad;

@@ -71,6 +71,7 @@ Kind-specific fields:
 | `needs_road` | Default true (false for farms and decor) |
 | `painted`, `min_size`, `max_size` | Area buildings (farms, aqueducts, pipes); cost and workers scale with area |
 | `layer` | `pipe`, `sewer` or `bridge` for underground and line structures |
+| `rotatable` | Can be turned before placing (default: true unless `painted` or `layer`); needs `_r1`..`_r3` sprites (docs/13-isometric.md) |
 | `passable` | Citizens walk through it (aqueduct arches) |
 | `needs_pipe` | Works only with piped water (fountain, thermae) |
 | `water_radius` | Wells and fountains: where houses count as watered |
@@ -131,7 +132,7 @@ A scenario is a folder with `scenario.json` and an optional `script.lua`.
 - `world`: `{"max_citizens", "max_buildings", "max_households", "max_soldiers"}`.
 
 **Starting conditions**
-- `start`: `{"treasury"}`.
+- `start`: `{"treasury", "roads", "buildings"}`. Each pre-placed building is `{"def", "x", "y"}` (top-left tile), with optional `"rot"` (0–3 quarter turns clockwise; 0 faces south), `"size"` (painted buildings) and `"stock"`.
 - `start_stock`: {good: n}, stored in a stockpile at the end of the entry road.
 - `start_slaves`.
 - `policy`: `{"wage", "rations", "slave_treatment", "manumission"}`.

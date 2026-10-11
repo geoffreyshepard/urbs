@@ -579,11 +579,12 @@ int main(int argc, char** argv) {
   if (dump) {
     world->buildings.for_each([&](BuildingId, const sim::Building& b) {
       const auto& d = defs.b(b.def);
-      std::printf("%-14s %s at %3d,%3d ent=%d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(),
-                  b.entrance >= 0 && world->entry_tile >= 0 && !world->nav.connected(b.entrance, world->entry_tile) ? "CUT" : "",
-                  b.x, b.y, b.entrance,
-                  static_cast<int>(b.state), b.jobs, b.employed, b.present, b.build_progress, b.build_needed,
-                  b.work_progress);
+      std::printf(
+          "%-14s %s at %3d,%3d rot=%u ent=%d state=%d jobs=%u emp=%u present=%u prog=%u/%u wp=%u inv:", d.id.c_str(),
+          b.entrance >= 0 && world->entry_tile >= 0 && !world->nav.connected(b.entrance, world->entry_tile) ? "CUT"
+                                                                                                            : "",
+          b.x, b.y, b.rot, b.entrance, static_cast<int>(b.state), b.jobs, b.employed, b.present, b.build_progress,
+          b.build_needed, b.work_progress);
       if (b.inv != econ::kNoInv)
         for (u32 g = 0; g < world->econ.goods; ++g) {
           GoodId gid{static_cast<u16>(g)};
