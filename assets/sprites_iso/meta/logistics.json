@@ -1,0 +1,326 @@
+{
+ "bld/aqueduct_c": {
+  "ax": 64,
+  "ay": 113
+ },
+ "bld/aqueduct_e": {
+  "ax": 64,
+  "ay": 113
+ },
+ "bld/aqueduct_n": {
+  "ax": 64,
+  "ay": 125
+ },
+ "bld/aqueduct_s": {
+  "ax": 64,
+  "ay": 113
+ },
+ "bld/aqueduct_w": {
+  "ax": 64,
+  "ay": 125
+ },
+ "bld/bridge_c": {
+  "ax": 64,
+  "ay": 71
+ },
+ "bld/bridge_e": {
+  "ax": 64,
+  "ay": 71
+ },
+ "bld/bridge_n": {
+  "ax": 64,
+  "ay": 75
+ },
+ "bld/bridge_s": {
+  "ax": 64,
+  "ay": 71
+ },
+ "bld/bridge_w": {
+  "ax": 64,
+  "ay": 75
+ },
+ "bld/cart_depot": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/engineers_post": {
+  "ax": 64,
+  "ay": 105
+ },
+ "bld/engineers_post@east": {
+  "ax": 64,
+  "ay": 105
+ },
+ "bld/engineers_post@egypt": {
+  "ax": 64,
+  "ay": 105
+ },
+ "bld/engineers_post@north": {
+  "ax": 64,
+  "ay": 114
+ },
+ "bld/fountain": {
+  "ax": 64,
+  "ay": 81
+ },
+ "bld/granary": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/granary@east": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/granary@egypt": {
+  "ax": 192,
+  "ay": 265
+ },
+ "bld/granary@north": {
+  "ax": 192,
+  "ay": 281
+ },
+ "bld/harbor": {
+  "ax": 256,
+  "ay": 283
+ },
+ "bld/harbor_lit": {
+  "ax": 256,
+  "ay": 283
+ },
+ "bld/market": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/market@east": {
+  "ax": 192,
+  "ay": 250
+ },
+ "bld/market@egypt": {
+  "ax": 192,
+  "ay": 250
+ },
+ "bld/market@north": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/olive_grove_hut": {
+  "ax": 64,
+  "ay": 88
+ },
+ "bld/olive_grove_tile_0": {
+  "ax": 64,
+  "ay": 81
+ },
+ "bld/olive_grove_tile_1": {
+  "ax": 64,
+  "ay": 91
+ },
+ "bld/olive_grove_tile_2": {
+  "ax": 64,
+  "ay": 73
+ },
+ "bld/olive_grove_tile_3": {
+  "ax": 64,
+  "ay": 83
+ },
+ "bld/pig_farm_hut": {
+  "ax": 64,
+  "ay": 82
+ },
+ "bld/pig_farm_tile_0": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pig_farm_tile_1": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pig_farm_tile_2": {
+  "ax": 64,
+  "ay": 77
+ },
+ "bld/pig_farm_tile_3": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pipe_c": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pipe_e": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pipe_n": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pipe_s": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/pipe_w": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/reservoir": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/sewer_c": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sewer_e": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sewer_n": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sewer_s": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sewer_w": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sheep_farm_hut": {
+  "ax": 64,
+  "ay": 93
+ },
+ "bld/sheep_farm_tile_0": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sheep_farm_tile_1": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sheep_farm_tile_2": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/sheep_farm_tile_3": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/stockpile_tile_0": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/stockpile_tile_1": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/stockpile_tile_2": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/stockpile_tile_3": {
+  "ax": 64,
+  "ay": 68
+ },
+ "bld/trade_post": {
+  "ax": 192,
+  "ay": 262
+ },
+ "bld/trade_post@east": {
+  "ax": 192,
+  "ay": 267
+ },
+ "bld/trade_post@egypt": {
+  "ax": 192,
+  "ay": 267
+ },
+ "bld/trade_post@north": {
+  "ax": 192,
+  "ay": 271
+ },
+ "bld/trade_post_lit": {
+  "ax": 192,
+  "ay": 262
+ },
+ "bld/vegetable_garden_hut": {
+  "ax": 64,
+  "ay": 79
+ },
+ "bld/vegetable_garden_tile_0": {
+  "ax": 64,
+  "ay": 71
+ },
+ "bld/vegetable_garden_tile_1": {
+  "ax": 64,
+  "ay": 73
+ },
+ "bld/vegetable_garden_tile_2": {
+  "ax": 64,
+  "ay": 69
+ },
+ "bld/vegetable_garden_tile_3": {
+  "ax": 64,
+  "ay": 74
+ },
+ "bld/vineyard_hut": {
+  "ax": 64,
+  "ay": 97
+ },
+ "bld/vineyard_tile_0": {
+  "ax": 64,
+  "ay": 85
+ },
+ "bld/vineyard_tile_1": {
+  "ax": 64,
+  "ay": 85
+ },
+ "bld/vineyard_tile_2": {
+  "ax": 64,
+  "ay": 85
+ },
+ "bld/vineyard_tile_3": {
+  "ax": 64,
+  "ay": 85
+ },
+ "bld/warehouse": {
+  "ax": 192,
+  "ay": 267
+ },
+ "bld/warehouse@east": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/warehouse@egypt": {
+  "ax": 192,
+  "ay": 272
+ },
+ "bld/warehouse@north": {
+  "ax": 192,
+  "ay": 282
+ },
+ "bld/well": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/wheat_farm_hut": {
+  "ax": 64,
+  "ay": 100
+ },
+ "bld/wheat_farm_tile_0": {
+  "ax": 64,
+  "ay": 75
+ },
+ "bld/wheat_farm_tile_1": {
+  "ax": 64,
+  "ay": 75
+ },
+ "bld/wheat_farm_tile_2": {
+  "ax": 64,
+  "ay": 75
+ },
+ "bld/wheat_farm_tile_3": {
+  "ax": 64,
+  "ay": 75
+ }
+}
