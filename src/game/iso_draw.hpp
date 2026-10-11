@@ -34,19 +34,8 @@ inline Vec2 clamp_to_map(const sim::TileMap& m, Vec2 c) {
 }
 
 // Sprite instance with the sprite's anchor at iso point a (sizes in iso px).
-inline render::SpriteInstance iso_instance(const render::Atlas& atlas, const render::Sprite& s, Vec2 a, f32 z,
-                                           u32 color = render::kWhite) {
-  const f32 k = 1.0f / atlas.scale();
-  return {a.x - static_cast<f32>(s.ax) * k,
-          a.y - static_cast<f32>(s.ay) * k,
-          z,
-          static_cast<f32>(s.w) * k,
-          static_cast<f32>(s.h) * k,
-          s.u,
-          s.v,
-          s.w,
-          s.h,
-          color};
+inline render::SpriteInstance iso_instance(const render::Sprite& s, Vec2 a, f32 z, u32 color = render::kWhite) {
+  return render::Renderer::instance(s, a.x, a.y, z, color);
 }
 
 // Sprite instance of fixed iso size (w x h) centred horizontally on a, bottom at a.y.  For UI-ish
@@ -54,26 +43,6 @@ inline render::SpriteInstance iso_instance(const render::Atlas& atlas, const ren
 inline render::SpriteInstance iso_icon(const render::Sprite& s, Vec2 a, f32 w, f32 h, f32 z,
                                        u32 color = render::kWhite) {
   return {a.x - w * 0.5f, a.y - h, z, w, h, s.u, s.v, s.w, s.h, color};
-}
-
-// Filled footprint parallelogram (fw x fh tiles at x0, y0, lifted by level) as horizontal strips.
-inline void push_diamond(render::Renderer& r, i32 x0, i32 y0, i32 fw, i32 fh, f32 level, f32 z, u32 color,
-                         bool translucent = true) {
-  using namespace render::iso;
-  const Vec2 top = from_tile(static_cast<f32>(x0), static_cast<f32>(y0), level);
-  const Vec2 right = from_tile(static_cast<f32>(x0 + fw), static_cast<f32>(y0), level);
-  const Vec2 bottom = from_tile(static_cast<f32>(x0 + fw), static_cast<f32>(y0 + fh), level);
-  const Vec2 left = from_tile(static_cast<f32>(x0), static_cast<f32>(y0 + fh), level);
-  // x extent of the parallelogram at height y
-  auto edge_x = [](Vec2 a, Vec2 b, f32 y) { return b.y == a.y ? a.x : a.x + (b.x - a.x) * (y - a.y) / (b.y - a.y); };
-  constexpr f32 kStrip = 2.0f;
-  for (f32 y = top.y; y < bottom.y; y += kStrip) {
-    const f32 ym = std::min(y + kStrip * 0.5f, bottom.y);
-    const f32 xl = ym < left.y ? edge_x(top, left, ym) : edge_x(left, bottom, ym);
-    const f32 xr = ym < right.y ? edge_x(top, right, ym) : edge_x(right, bottom, ym);
-    const f32 h = std::min(kStrip, bottom.y - y);
-    if (xr > xl) r.push_rect(xl, y, xr - xl, h, z, color, translucent);
-  }
 }
 
 // Outline of a footprint parallelogram, `t` iso px thick.

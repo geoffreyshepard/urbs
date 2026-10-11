@@ -131,7 +131,8 @@ struct Canvas {
 // Top-left texel of a piece: pieces are ground-attached iso sprites anchored at the bottom corner of
 // their tile (docs/13-isometric.md); tile (tx, ty) of the little layout sits on the iso grid.
 void piece_origin(const render::Atlas& atlas, const Piece& p, int& x, int& y) {
-  const float k = atlas.scale();
+  const float k = 1.0f / p.s.iso_per_texel;  // texels per iso px
+  (void)atlas;
   x = static_cast<int>(std::lround(static_cast<float>(p.tx - p.ty) * 64.0f * k)) - p.s.ax;
   y = static_cast<int>(std::lround((static_cast<float>(p.tx + p.ty) + 2.0f) * 32.0f * k)) - p.s.ay;
 }

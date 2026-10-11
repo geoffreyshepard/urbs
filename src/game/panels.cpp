@@ -1335,7 +1335,7 @@ void draw_selection(const sim::World& w, const Selection& sel, render::Renderer&
     const auto& un = A.units[sel.unit];
     if (un.target_tile >= 0) {
       const i32 tx = un.target_tile % w.map.w, ty = un.target_tile / w.map.w;
-      push_diamond(r, tx, ty, 1, 1, iso::level_at(w.map, tx, ty), 0.01f, render::rgba(255, 240, 120, 90));
+      r.push_diamond(tx, ty, 1, 1, iso::level_at(w.map, tx, ty), 0.01f, render::rgba(255, 240, 120, 90));
     }
   }
   if (sel.building.valid() && w.buildings.alive(sel.building)) {
