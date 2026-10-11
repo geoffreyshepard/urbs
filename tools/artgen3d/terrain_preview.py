@@ -48,6 +48,7 @@ def make_map(w=24, h=24, seed=3):
     hgt[(xx > 12) & (yy < 9)] = 1
     hgt[(xx > 15) & (yy < 6)] = 2
     hgt[(xx < 7) & (yy < 7)] = 1
+    hgt[(xx + 2 * yy > 30) & (xx + 2 * yy < 40)] += 1  # a terrace rising toward the viewer
     road = np.zeros((h, w), dtype=object)
     road[:] = None
     for x in range(2, 20):

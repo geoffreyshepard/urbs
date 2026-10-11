@@ -44,7 +44,7 @@ void main() {
     c.rgb = mix(c.rgb, vec3(l) * vec3(1.08, 0.98, 0.80), brown);
     // Worn earth around buildings and along roads.
     float wear = smoothstep(0.1, 0.9, g.r * (0.75 + 0.5 * veg));
-    c.rgb = mix(c.rgb, vec3(0.55, 0.45, 0.32) * (0.8 + 0.5 * l), wear * 0.55);
+    c.rgb = mix(c.rgb, vec3(0.55, 0.45, 0.32) * (0.8 + 0.5 * l), wear * 0.38);
   }
   if (terrain && water && g.a > 0.02) {
     // Lighter, greener shallows by the shore and a broken foam line that drifts.
