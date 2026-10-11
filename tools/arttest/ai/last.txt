@@ -1,0 +1,10 @@
+I’m blocked because the built-in `image_gen` tool is not exposed in this session. I read [tools/arttest/brief.md](/Users/geoffreyshepard/Roman-arttest/tools/arttest/brief.md), and I did not modify any files.
+
+The imagegen skill allows a CLI/API fallback, but only after explicit confirmation, and it requires `OPENAI_API_KEY`. Please confirm “use CLI fallback” and I’ll generate the six PNGs into:
+
+`tools/arttest/ai/raw/house_small.png`  
+`tools/arttest/ai/raw/house_large.png`  
+`tools/arttest/ai/raw/bakery.png`  
+`tools/arttest/ai/raw/blacksmith.png`  
+`tools/arttest/ai/raw/granary.png`  
+`tools/arttest/ai/raw/temple.png`

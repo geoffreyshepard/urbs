@@ -1,0 +1,26 @@
+<!doctype html><html><head><meta charset="utf-8"><title>URBS art test</title>
+<style>
+body{margin:0;background:#1d1b18;color:#eee;font:15px/1.4 -apple-system,system-ui,sans-serif}
+header{position:sticky;top:0;background:#1d1b18ee;padding:12px 20px;display:flex;gap:16px;align-items:center;border-bottom:1px solid #333;z-index:1}
+button{background:#333;color:#eee;border:1px solid #555;border-radius:6px;padding:6px 12px;cursor:pointer}
+button.on{background:#c9673d;border-color:#c9673d}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(520px,1fr));gap:20px;padding:20px}
+figure{margin:0;background:#262420;border-radius:8px;padding:12px;overflow:auto}
+figcaption{margin-bottom:8px}figcaption b{color:#f0b070}
+img{display:block;max-width:100%;image-rendering:pixelated}
+img.smooth{image-rendering:auto}
+</style></head><body>
+<header><b>URBS art test</b> — same 20×14 district, same six buildings, same readability brief
+<span style="flex:1"></span>Zoom:
+<button data-z="far">Far</button><button data-z="def" class="on">Default</button><button data-z="near">Close</button></header>
+<div class="grid">
+<figure><figcaption><b>Current</b> — today's sprites</figcaption><img data-far="current_1x.png" data-def="current_2x.png" data-near="current_4x.png"></figure>
+<figure><figcaption><b>A · Pixel, fixed</b> — same style, readability rules applied</figcaption><img data-far="pixel_1x.png" data-def="pixel_2x.png" data-near="pixel_4x.png"></figure>
+<figure><figcaption><b>C · Blender → isometric sprites</b></figcaption><img class="smooth" data-far="blender_1x.png" data-def="blender_2x.png" data-near="blender_near.png"></figure>
+<figure><figcaption><b>B · AI-painted sprites</b> — pending image generation</figcaption><img class="smooth" data-far="ai_1x.png" data-def="ai_2x.png" data-near="ai_near.png" onerror="this.replaceWith(Object.assign(document.createElement('p'),{textContent:'Not generated yet.'}))"></figure>
+</div>
+<script>
+function set(z){document.querySelectorAll('img').forEach(i=>{i.src=i.dataset[z];i.style.maxWidth=z==='near'?'none':'100%'});
+document.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.z===z))}
+document.querySelectorAll('button').forEach(b=>b.onclick=()=>set(b.dataset.z));set('def');
+</script></body></html>
