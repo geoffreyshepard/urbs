@@ -13,6 +13,7 @@
 
 #include "core/log.hpp"
 #include "core/profile.hpp"
+#include "game/iso_draw.hpp"
 #include "game/style.hpp"
 #include "save/save.hpp"
 
@@ -76,12 +77,12 @@ void App::after_world_change() {
                                                   : (world_->entry_tile >= 0 ? world_->entry_tile : -1);
   if (t >= 0 && world_->buildings.ids.count() == 0 && world_->entry_tile >= 0) {
     // Fresh mission: centre between the entry and the map centre.
-    cam.center = {static_cast<f32>((t % world_->map.w + world_->map.w / 2) / 2 * sim::kTilePx),
-                  static_cast<f32>((t / world_->map.w + world_->map.h / 2) / 2 * sim::kTilePx)};
+    cam.center = tile_center_iso(world_->map, (t % world_->map.w + world_->map.w / 2) / 2,
+                                 (t / world_->map.w + world_->map.h / 2) / 2);
   } else if (t >= 0) {
-    cam.center = {static_cast<f32>(t % world_->map.w * sim::kTilePx), static_cast<f32>(t / world_->map.w * sim::kTilePx)};
+    cam.center = tile_center_iso(world_->map, t % world_->map.w, t / world_->map.w);
   } else {
-    cam.center = {static_cast<f32>(world_->map.w * sim::kTilePx) / 2, static_cast<f32>(world_->map.h * sim::kTilePx) / 2};
+    cam.center = tile_center_iso(world_->map, world_->map.w / 2, world_->map.h / 2);
   }
   cam.zoom = 3;
 }
@@ -126,7 +127,7 @@ void App::menu_background() {
   world_->now = kTicksPerHour * 9;
   spec_ = sim::ScenarioSpec{};
   renderer_.set_map(&world_->map);
-  renderer_.camera().center = {64.0f * sim::kTilePx, 56.0f * sim::kTilePx};
+  renderer_.camera().center = tile_center_iso(world_->map, 64, 56);
   renderer_.camera().zoom = 2;
 }
 
@@ -302,7 +303,7 @@ bool App::init(const AppOptions& opt) {
     if (opt.screen == "editor") editor_new();
   }
   auto& cam = renderer_.camera();
-  if (opt.cam_x >= 0) cam.center = {opt.cam_x * sim::kTilePx, opt.cam_y * sim::kTilePx};
+  if (opt.cam_x >= 0) cam.center = render::iso::from_tile(opt.cam_x, opt.cam_y);
   if (opt.zoom >= 0) cam.zoom = std::min(opt.zoom, render::kZoomCount - 1);
   speed_ = std::clamp(opt.speed, 0, 3);
   overlay_ = static_cast<Overlay>(std::clamp(opt.overlay, 0, static_cast<int>(Overlay::Count) - 1));
@@ -452,8 +453,9 @@ void App::update_camera(f32 dt) {
   auto& cam = renderer_.camera();
   if (screen_ != Screen::Playing && screen_ != Screen::Editor) {
     // Slow drift behind the menus.
-    cam.center.x += dt * 6.0f;
-    if (cam.center.x > static_cast<f32>(world_->map.w * sim::kTilePx) * 0.8f) cam.center.x = static_cast<f32>(world_->map.w * sim::kTilePx) * 0.2f;
+    const render::iso::Rectf mb = render::iso::map_bounds(world_->map);
+    cam.center.x += dt * 6.0f * kIsoK;
+    if (cam.center.x > mb.x + mb.w * 0.7f) cam.center.x = mb.x + mb.w * 0.3f;
     return;
   }
   if (ImGui::GetIO().WantCaptureKeyboard) return;
@@ -473,8 +475,7 @@ void App::update_camera(f32 dt) {
     if (mx > static_cast<f32>(ww - 6)) cam.center.x += speed;
     if (my > static_cast<f32>(wh - 6)) cam.center.y += speed;
   }
-  cam.center.x = clamp(cam.center.x, 0.0f, static_cast<f32>(world_->map.w * sim::kTilePx));
-  cam.center.y = clamp(cam.center.y, 0.0f, static_cast<f32>(world_->map.h * sim::kTilePx));
+  cam.center = clamp_to_map(world_->map, cam.center);
 }
 
 void App::step_sim(f64 dt) {
@@ -517,27 +518,35 @@ void App::step_sim(f64 dt) {
 Vec2i App::mouse_tile() const {
   float mx, my;
   SDL_GetMouseState(&mx, &my);
-  Vec2 wp = const_cast<render::Renderer&>(renderer_).camera().screen_to_world({mx, my});
-  return {static_cast<i32>(std::floor(wp.x / static_cast<f32>(sim::kTilePx))),
-          static_cast<i32>(std::floor(wp.y / static_cast<f32>(sim::kTilePx)))};
+  const Vec2 ip = const_cast<render::Renderer&>(renderer_).camera().screen_to_world({mx, my});
+  i32 tx = -1, ty = -1;
+  if (render::iso::pick_tile(world_->map, ip, tx, ty)) return {tx, ty};
+  // Off the map: the tile on the ground plane (callers bounds-check).
+  const Vec2 t = render::iso::to_tile(ip);
+  return {static_cast<i32>(std::floor(t.x)), static_cast<i32>(std::floor(t.y))};
 }
 
 void App::pick_at_mouse() {
   float mx, my;
   SDL_GetMouseState(&mx, &my);
-  const Vec2 wp = renderer_.camera().screen_to_world({mx, my});
-  // Soldiers first (to select units), then walking citizens, then buildings.
+  const Vec2 wp = renderer_.camera().screen_to_world({mx, my});  // iso px
+  namespace iso = render::iso;
+  // Soldiers first (to select units), then walking citizens, then buildings.  Distances are to the
+  // middle of the figure, in iso px.
+  constexpr f32 kPickR = 28.0f, kBody = 18.0f;
   const auto& A = world_->army;
-  f32 best = 7.0f * 7.0f;
+  f32 best = kPickR * kPickR;
   for (u32 i = 0; i < A.ids.high_water(); ++i) {
     if (!A.ids.alive_index(i)) continue;
-    const f32 dx = A.x[i] * sim::kTilePx - wp.x, dy = A.y[i] * sim::kTilePx - 4 - wp.y;
+    const Vec2 f =
+        iso::from_tile(A.x[i], A.y[i], iso::level_at(world_->map, static_cast<i32>(A.x[i]), static_cast<i32>(A.y[i])));
+    const f32 dx = f.x - wp.x, dy = f.y - kBody - wp.y;
     if (dx * dx + dy * dy < best) {
       best = dx * dx + dy * dy;
       sel_.unit = A.unit[i];
     }
   }
-  if (best < 7.0f * 7.0f) {
+  if (best < kPickR * kPickR) {
     panel_ = Panel::Military;
     return;
   }
@@ -547,7 +556,8 @@ void App::pick_at_mouse() {
     if (!C.ids.alive_index(i) || C.activity[i] != sim::Activity::Walk) continue;
     Vec2 p;
     if (!world_->citizen_position(i, alpha_, p, nullptr)) continue;
-    const f32 dx = p.x - wp.x, dy = (p.y - 4) - wp.y;
+    const Vec2 f = iso::project(p, iso::level_at_world(world_->map, p.x, p.y));
+    const f32 dx = f.x - wp.x, dy = f.y - kBody - wp.y;
     if (dx * dx + dy * dy < best) {
       best = dx * dx + dy * dy;
       pick = C.ids.id_at(i);
@@ -599,11 +609,13 @@ void App::run() {
       if (sel_.follow && sel_.citizen.valid() && world_->citizens.alive(sel_.citizen)) {
         Vec2 p;
         const u32 ci = sel_.citizen.index();
-        if (world_->citizen_position(ci, alpha_, p, nullptr)) renderer_.camera().center = p;
-        else if (world_->citizens.loc[ci].valid() && world_->buildings.alive(world_->citizens.loc[ci])) {
+        if (world_->citizen_position(ci, alpha_, p, nullptr)) {
+          renderer_.camera().center = render::iso::project(p, render::iso::level_at_world(world_->map, p.x, p.y));
+        } else if (world_->citizens.loc[ci].valid() && world_->buildings.alive(world_->citizens.loc[ci])) {
           const auto& lb = world_->buildings[world_->citizens.loc[ci]];
-          renderer_.camera().center = {(static_cast<f32>(lb.x) + static_cast<f32>(lb.w) / 2) * sim::kTilePx,
-                                       (static_cast<f32>(lb.y) + static_cast<f32>(lb.h) / 2) * sim::kTilePx};
+          renderer_.camera().center = render::iso::from_tile(static_cast<f32>(lb.x) + static_cast<f32>(lb.w) / 2,
+                                                             static_cast<f32>(lb.y) + static_cast<f32>(lb.h) / 2,
+                                                             render::iso::level_at(world_->map, lb.x, lb.y));
         }
       }
       draw_selection(*world_, sel_, renderer_, alpha_);
@@ -636,9 +648,10 @@ void App::run() {
         const f32 speed = snow ? 0.08f : 0.9f;
         const f32 fy = std::fmod(fy0 + renderer_.time * speed, 1.0f);
         const f32 x = static_cast<f32>(vis.x) + fx * static_cast<f32>(vis.w) +
-                      (snow ? std::sin(renderer_.time + static_cast<f32>(k)) * 4 : 0);
+                      (snow ? std::sin(renderer_.time + static_cast<f32>(k)) * 4.0f * kIsoK : 0.0f);
         const f32 y = static_cast<f32>(vis.y) + fy * static_cast<f32>(vis.h);
-        renderer_.push_rect(x, y, 1, snow ? 1 : 5, 0.04f, snow ? render::rgba(250, 250, 255, 220) : render::rgba(180, 200, 230, 120));
+        renderer_.push_rect(x, y, kIsoK, (snow ? 1.0f : 5.0f) * kIsoK, 0.04f,
+                            snow ? render::rgba(250, 250, 255, 220) : render::rgba(180, 200, 230, 120));
       }
     }
     if (screen_ == Screen::Playing) tools_.draw(*world_, view_, renderer_);

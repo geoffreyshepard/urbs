@@ -13,6 +13,7 @@
 #include "game/app.hpp"
 #include "game/panel_kit.hpp"
 #include "game/style.hpp"
+#include "render/iso.hpp"
 #include "save/save.hpp"
 
 namespace urbs::game {
@@ -90,7 +91,10 @@ void App::draw_ui() {
         if (!open) panel_ = Panel::None;
         if (jump.valid() && world_->buildings.alive(jump)) {
           const auto& jb = world_->buildings[jump];
-          renderer_.camera().center = {static_cast<f32>(jb.x * sim::kTilePx), static_cast<f32>(jb.y * sim::kTilePx)};
+          renderer_.camera().center =
+              render::iso::from_tile(static_cast<f32>(jb.x) + static_cast<f32>(jb.w) * 0.5f,
+                                     static_cast<f32>(jb.y) + static_cast<f32>(jb.h) * 0.5f,
+                                     render::iso::level_at(world_->map, jb.x, jb.y));
           sel_.building = jump;
         }
       }
@@ -1157,9 +1161,8 @@ void App::draw_debug_ui() {
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
   float mx, my;
   SDL_GetMouseState(&mx, &my);
-  Vec2 wp = cam.screen_to_world({mx, my});
-  i32 tx = static_cast<i32>(wp.x) / sim::kTilePx, ty = static_cast<i32>(wp.y) / sim::kTilePx;
-  if (w.map.in_bounds(tx, ty)) {
+  i32 tx = -1, ty = -1;
+  if (render::iso::pick_tile(w.map, cam.screen_to_world({mx, my}), tx, ty)) {
     size_t i = static_cast<size_t>(w.map.idx(tx, ty));
     ImGui::Text("tile %d,%d %s h%u gw%u fert%u", tx, ty, sim::terrain_name(w.map.terrain[i]), w.map.height[i],
                 w.map.groundwater[i], w.map.fertility[i]);

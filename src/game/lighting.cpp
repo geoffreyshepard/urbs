@@ -216,8 +216,9 @@ void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 
   g.params[0] = p.contrast;
   g.params[2] = 1.0f - std::clamp(p.exposure * 1.6f - 0.6f, 0.0f, 1.0f);  // night amount (lights)
 
-  // Shadows lean right and down (the art is lit from the top left); they lengthen toward dawn and dusk.
-  const f32 strength = p.shadow * (1.0f - overcast);
+  // The isometric art bakes its own shadows (docs/13-isometric.md), so the renderer's sheared sprite
+  // shadows stay off.
+  const f32 strength = 0.0f * (1.0f - overcast);
   const f32 base[3] = {0.58f, 0.60f, 0.76f};
   for (int k = 0; k < 3; ++k) s.color[k] = lerp(1.0f, base[k], strength);
   s.shear[0] = p.shadow_len;
@@ -236,7 +237,7 @@ void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 
   blend(grade.params, g.params, 4);
   blend(shadows.color, s.color, 4);
   blend(shadows.shear, s.shear, 4);
-  shadows.enabled = s.enabled || shadows.color[0] < 0.98f;
+  shadows.enabled = false;
 
   // Ground: dryness, dry patches and browning follow the year (keyed mid-season, wrapping round),
   // settled snow follows the weather in sim time.
