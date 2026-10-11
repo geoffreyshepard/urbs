@@ -1,0 +1,86 @@
+{
+ "fx/alert": {
+  "ax": 18,
+  "ay": 36
+ },
+ "fx/dot": {
+  "ax": 2,
+  "ay": 2
+ },
+ "fx/plague_mark": {
+  "ax": 18,
+  "ay": 36
+ },
+ "fx/select_1x1": {
+  "ax": 64,
+  "ay": 64
+ },
+ "fx/select_1x2": {
+  "ax": 64,
+  "ay": 96
+ },
+ "fx/select_1x3": {
+  "ax": 64,
+  "ay": 128
+ },
+ "fx/select_1x4": {
+  "ax": 64,
+  "ay": 160
+ },
+ "fx/select_2x1": {
+  "ax": 128,
+  "ay": 96
+ },
+ "fx/select_2x2": {
+  "ax": 128,
+  "ay": 128
+ },
+ "fx/select_2x3": {
+  "ax": 128,
+  "ay": 160
+ },
+ "fx/select_2x4": {
+  "ax": 128,
+  "ay": 192
+ },
+ "fx/select_3x1": {
+  "ax": 192,
+  "ay": 128
+ },
+ "fx/select_3x2": {
+  "ax": 192,
+  "ay": 160
+ },
+ "fx/select_3x3": {
+  "ax": 192,
+  "ay": 192
+ },
+ "fx/select_3x4": {
+  "ax": 192,
+  "ay": 224
+ },
+ "fx/select_4x1": {
+  "ax": 256,
+  "ay": 160
+ },
+ "fx/select_4x2": {
+  "ax": 256,
+  "ay": 192
+ },
+ "fx/select_4x3": {
+  "ax": 256,
+  "ay": 224
+ },
+ "fx/select_4x4": {
+  "ax": 256,
+  "ay": 256
+ },
+ "fx/tile": {
+  "ax": 64,
+  "ay": 64
+ },
+ "fx/white": {
+  "ax": 0,
+  "ay": 0
+ }
+}
