@@ -4,7 +4,10 @@
 Sources:
 - assets/sprites_iso/**/*.png: isometric world art at native scale (128 x 64 px per tile), with
   anchors from assets/sprites_iso/meta/*.json.
-- assets/sprites/ui/** and goods/**: UI icons, packed unchanged (1 texel = 1 legacy px).
+- assets/sprites/ui/** and goods/**: UI icons, packed unchanged (1 texel = 1 legacy px).  An icon
+  of the same name in assets/sprites_iso/ui or goods (tools/artgen3d/icons.py: goods and build
+  category icons) wins over the legacy one; it is packed unchanged too, never resampled by
+  `scale` (the game draws icons at fixed on-screen sizes).
 - Any other legacy sprite in assets/sprites/ with no iso version yet is converted so the game
   stays runnable mid-migration: flat tiles (terrain, roads, farm/garden/plaza tiles, selection
   marks) are re-projected onto the iso diamond; everything else is upscaled with nearest
@@ -47,6 +50,7 @@ MIN_AUTO_SCALE = 0.5
 PAGE_BUDGET = 3  # 3 x 32 MB (+ mips) keeps the atlas near 128 MB of GPU memory
 UI_GROUPS = ("ui", "goods")
 UI_TEXELS_PER_ISO = 0.25  # a 16 px icon covers half a tile (64 iso px) when drawn in the world
+ISO_ICON_TEXELS_PER_ISO = 1.0  # rendered icons: 1 texel = 1 iso px (the game sizes them explicitly)
 TILE = 16  # legacy px per tile
 
 
@@ -133,6 +137,8 @@ def gather():
     for name, path in legacy.items():
         group = name.split("/", 1)[0]
         if group in UI_GROUPS:
+            if name in iso:
+                continue  # a rendered iso icon replaces the pixel-art one
             m = legacy_meta.get(name, {})
             items[name] = (load_png(path), (int(m.get("ax", 0)), int(m.get("ay", 0))), UI_TEXELS_PER_ISO)
         elif group == "terrain":
@@ -143,14 +149,13 @@ def gather():
             converted += 1
     missing_meta = []
     for name, path in iso.items():
-        if name.split("/", 1)[0] in UI_GROUPS:
-            continue
         im = load_png(path)
         m = iso_meta.get(name)
         if m is None:
             missing_meta.append(name)
             m = {"ax": im.width // 2, "ay": im.height}
-        items[name] = (im, (float(m["ax"]), float(m["ay"])), None)
+        icon = name.split("/", 1)[0] in UI_GROUPS
+        items[name] = (im, (float(m["ax"]), float(m["ay"])), ISO_ICON_TEXELS_PER_ISO if icon else None)
     if "fx/tile" not in items:
         im, anchor = tile_sprite()
         items["fx/tile"] = (im, anchor, None)
