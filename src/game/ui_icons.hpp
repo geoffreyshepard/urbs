@@ -11,7 +11,9 @@
 namespace urbs::game {
 
 // Crisp pixel-art images for ImGui: selected atlas sprites upscaled (nearest) into one texture,
-// because the ImGui backend samples linearly.
+// because the ImGui backend samples linearly.  Rendered icons (goods and build categories from
+// tools/artgen3d/icons.py, larger than 32 texels) go 1:1 into a second, mipmapped texture instead,
+// so they shrink smoothly to whatever size the layout asks for.
 class UiIcons {
  public:
   bool init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs);
@@ -36,8 +38,11 @@ class UiIcons {
  private:
   struct Entry {
     ImVec2 uv0, uv1;
+    bool hires = false;  // lives in hires_ rather than tex_
   };
+  [[nodiscard]] ImTextureRef ref(const Entry& e) const;
   SDL_GPUTexture* tex_ = nullptr;
+  SDL_GPUTexture* hires_ = nullptr;
   SDL_GPUTexture* big_ = nullptr;
   // The previous thumbnail texture is kept one rebuild longer: a draw list built this frame may still use it.
   SDL_GPUTexture* thumbs_ = nullptr;

@@ -4,10 +4,11 @@
 > trees, people, units and effects are Blender models built by Python scripts in `tools/artgen3d/`
 > (`kit.py` holds the camera, lights, materials and parts; one module per family; `run.py` renders
 > them headless into `assets/sprites_iso/`; ground textures come from `terrain_tex.py`). See
-> `docs/13-isometric.md` for the projection, sprite conventions and readability rules. The pixel-art
-> generators below still produce the UI icons (`ui/*`) and goods icons (`goods/*`); their world
-> sprites in `assets/sprites/` are no longer packed. The rest of this document describes the original
-> pixel-art pipeline.
+> `docs/13-isometric.md` for the projection, sprite conventions and readability rules. Goods icons
+> (`goods/*`) and build-category icons (`ui/cat_*`) are rendered too (`tools/artgen3d/icons.py`). The
+> pixel-art generators below still produce the other UI icons (`ui/*`: HUD, gods, advisors, logo);
+> their world sprites, goods and category icons in `assets/sprites/` are no longer packed. The rest
+> of this document describes the original pixel-art pipeline.
 
 
 ## Approach: art is code

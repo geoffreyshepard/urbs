@@ -42,10 +42,33 @@ The owner chose pre-rendered 3D art on an isometric camera (option C of the art 
   vertex), SW = 4 (left vertex), SE = 8 (bottom vertex).
 - `<name>_lit`: night window glow, same canvas and anchor, rendered by `kit.render_lit` (windows
   must use the `window` material).
-- `ui/*` and `goods/*` icons stay as they are in `assets/sprites/` (UI art, not world art).
-- `tools/atlas/pack.py` packs `assets/sprites_iso` plus the legacy `ui/` and `goods/` folders. It may
-  pack below native size; `main.json` records `"scale"` (atlas texels per iso px) and the renderer
-  divides by it (`Atlas::scale`, `iso_w`, `iso_h`).
+- Icons: goods icons (`goods/<id>`, `goods/<id>_16`) and build-category icons (`ui/cat_<id>`) are
+  rendered by `tools/artgen3d/icons.py` (see "Icons" below). The other `ui/*` art (HUD buttons, gods,
+  advisors, logo, province map) is still pixel art in `assets/sprites/ui/`.
+- `tools/atlas/pack.py` packs `assets/sprites_iso` plus the legacy `ui/` and `goods/` folders; an
+  `assets/sprites_iso` icon wins over a legacy sprite of the same name. World art may be packed below
+  native size; `main.json` records `"scale"` (atlas texels per iso px) and the renderer divides by it
+  (`Atlas::scale`, `iso_w`, `iso_h`). Icons (`ui/`, `goods/`) are never resampled: legacy ones keep
+  `s` = 0.25, rendered ones `s` = 1, and the game draws all of them at explicit sizes.
+
+## Icons (`tools/artgen3d/icons.py`)
+
+Each good and build category is a small model in the world-art look (same camera, sun, palette and
+materials), scaled by `fit()` to fill a fixed square canvas, centred (anchor = canvas centre), with a
+thin dark Freestyle contour so the silhouette survives small sizes.
+
+| Sprite | Canvas | Drawn at |
+|---|---|---|
+| `goods/<id>_16` | 64 x 64 | UI: panels, goods chips, trade rows, costs (`denarii_16`), ~20-30 points |
+| `goods/<id>` | 40 x 40 | over walking citizens: 20 iso px wide (`world_view.cpp`, `kCarriedIso`) |
+| `ui/cat_<id>` | 96 x 96 | build-menu category rail, 24-48 points |
+
+`game::UiIcons` copies icons larger than 32 texels 1:1 into a separate mipmapped texture (the pixel
+art keeps its x6 nearest-neighbour texture), so they shrink cleanly to any layout size. Rules: one
+distinct silhouette and colour per good; goods sharing a container differ by shape and colour (wine:
+slender amphora, red band, dark-red seal; olive oil: globular greenish amphora, green band, golden
+stopper; amphorae: two plain empty jars; garum: one-handled jug with a fish). Category icons are a
+miniature on a one-tile diamond of the category's ground, using the category accents below.
 
 ## Rotation
 

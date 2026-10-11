@@ -348,9 +348,12 @@ void WorldView::draw(const sim::World& w, render::Renderer& r, f32 alpha) {
     if (C.carrying[i]) {
       const Sprite& g = good_icon(GoodId{static_cast<u16>(C.carrying[i] - 1)}, false);
       if (g.valid) {
-        // Carried goods keep their icon art; size them for the iso figure.
+        // Carried goods: a fixed iso size whatever the icon's texel size (rendered 40 px icons,
+        // or 7 px pixel art in a legacy atlas), about half the figure's width.
+        constexpr f32 kCarriedIso = 20.0f;
         const f32 head = s.valid ? s.iso_h() : 40.0f;
-        const f32 gw = static_cast<f32>(g.w) * 2.5f, gh = static_cast<f32>(g.h) * 2.5f;
+        const f32 k = kCarriedIso / static_cast<f32>(std::max<u16>(1, std::max(g.w, g.h)));
+        const f32 gw = static_cast<f32>(g.w) * k, gh = static_cast<f32>(g.h) * k;
         r.push(iso_icon(g, {foot.x, foot.y - head + gh * 0.35f}, gw, gh, z - 0.00001f));
       }
     }

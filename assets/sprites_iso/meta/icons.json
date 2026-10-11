@@ -1,0 +1,414 @@
+{
+ "goods/amphorae": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/amphorae_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/armor": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/armor_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/bread": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/bread_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/bricks": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/bricks_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/clay": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/clay_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/clothing": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/clothing_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/concrete": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/concrete_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/cut_stone": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/cut_stone_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/denarii": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/denarii_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/dye": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/dye_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/dyed_clothing": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/dyed_clothing_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/fish": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/fish_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/flour": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/flour_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/furniture": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/furniture_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/garum": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/garum_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/glassware": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/glassware_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/gold": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/gold_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/grapes": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/grapes_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/iron": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/iron_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/iron_ore": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/iron_ore_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/jewelry": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/jewelry_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/lime": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/lime_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/limestone": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/limestone_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/marble": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/marble_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/meat": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/meat_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/olive_oil": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/olive_oil_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/olives": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/olives_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/papyrus": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/papyrus_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/planks": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/planks_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/pottery": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/pottery_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/pozzolana": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/pozzolana_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/salt": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/salt_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/sand": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/sand_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/scrolls": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/scrolls_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/silver": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/silver_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/silver_ore": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/silver_ore_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/statues": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/statues_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/stone": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/stone_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/tools": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/tools_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/vegetables": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/vegetables_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/weapons": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/weapons_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/wheat": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/wheat_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/wine": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/wine_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/wood": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/wood_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "goods/wool": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/wool_16": {
+  "ax": 32,
+  "ay": 32
+ },
+ "ui/cat_civic": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_culture": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_farms": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_food": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_health": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_housing": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_industry": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_military": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_monument": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_religion": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_roads": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_storage": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/cat_water": {
+  "ax": 48,
+  "ay": 48
+ }
+}

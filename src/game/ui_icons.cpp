@@ -3,11 +3,80 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <cstring>
 #include <vector>
 
 #include "render/gpu.hpp"
 
 namespace urbs::game {
+
+namespace {
+
+// RGBA texture with a full mip chain built on the CPU (alpha-weighted 2x2 boxes, so transparent
+// texels never darken the edges).  w and h must be divisible by 2^(levels - 1).
+SDL_GPUTexture* create_mipmapped(SDL_GPUDevice* dev, u32 w, u32 h, u32 levels, std::vector<u8> px) {
+  SDL_GPUTextureCreateInfo ti{};
+  ti.type = SDL_GPU_TEXTURETYPE_2D;
+  ti.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+  ti.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+  ti.width = w;
+  ti.height = h;
+  ti.layer_count_or_depth = 1;
+  ti.num_levels = levels;
+  SDL_GPUTexture* tex = SDL_CreateGPUTexture(dev, &ti);
+  if (!tex) return nullptr;
+  SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(dev);
+  SDL_GPUCopyPass* cp = SDL_BeginGPUCopyPass(cmd);
+  std::vector<SDL_GPUTransferBuffer*> xf;
+  for (u32 l = 0; l < levels; ++l) {
+    if (l > 0) {  // halve the previous level
+      const u32 nw = w / 2, nh = h / 2;
+      std::vector<u8> nx(static_cast<size_t>(nw) * nh * 4);
+      for (u32 y = 0; y < nh; ++y)
+        for (u32 x = 0; x < nw; ++x) {
+          float c[4] = {0, 0, 0, 0}, plain[3] = {0, 0, 0};
+          for (u32 k = 0; k < 4; ++k) {
+            const u8* q = &px[(static_cast<size_t>(y * 2 + k / 2) * w + x * 2 + k % 2) * 4];
+            const float a = q[3] / 255.0f;
+            for (int i = 0; i < 3; ++i) {
+              c[i] += q[i] * a;
+              plain[i] += q[i];
+            }
+            c[3] += a;
+          }
+          u8* d = &nx[(static_cast<size_t>(y) * nw + x) * 4];
+          for (int i = 0; i < 3; ++i) d[i] = static_cast<u8>(c[3] > 0 ? c[i] / c[3] : plain[i] / 4.0f);
+          d[3] = static_cast<u8>(std::lround(c[3] / 4.0f * 255.0f));
+        }
+      px = std::move(nx);
+      w = nw;
+      h = nh;
+    }
+    SDL_GPUTransferBufferCreateInfo xi{};
+    xi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+    xi.size = w * h * 4;
+    SDL_GPUTransferBuffer* xb = SDL_CreateGPUTransferBuffer(dev, &xi);
+    std::memcpy(SDL_MapGPUTransferBuffer(dev, xb, false), px.data(), xi.size);
+    SDL_UnmapGPUTransferBuffer(dev, xb);
+    SDL_GPUTextureTransferInfo src{};
+    src.transfer_buffer = xb;
+    SDL_GPUTextureRegion dst{};
+    dst.texture = tex;
+    dst.mip_level = l;
+    dst.w = w;
+    dst.h = h;
+    dst.d = 1;
+    SDL_UploadToGPUTexture(cp, &src, &dst, false);
+    xf.push_back(xb);
+  }
+  SDL_EndGPUCopyPass(cp);
+  SDL_SubmitGPUCommandBuffer(cmd);
+  SDL_WaitForGPUIdle(dev);
+  for (auto* x : xf) SDL_ReleaseGPUTransferBuffer(dev, x);
+  return tex;
+}
+
+}  // namespace
 
 bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs) {
   // Which sprites to include: advisors, gods, goods icons, HUD and category icons.
@@ -26,6 +95,16 @@ bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::D
   for (const char* c : {"roads", "housing", "farms", "food", "industry", "storage", "water", "health", "religion",
                         "culture", "civic", "military", "monument"})
     names.push_back(std::string("ui/cat_") + c);
+  // Rendered icons (bigger than the 32 px pixel art) are kept apart: copied 1:1, mipmapped.
+  std::vector<std::string> hires;
+  {
+    std::vector<std::string> pixel;
+    for (const std::string& n : names) {
+      const render::Sprite s = atlas.find(n);
+      (s.valid && (s.w > 32 || s.h > 32) ? hires : pixel).push_back(n);
+    }
+    names = std::move(pixel);
+  }
   constexpr int kScale = 6, kCell = 32 * kScale, kCols = 8;
   const int rows = static_cast<int>((names.size() + kCols - 1) / kCols);
   const u32 W = kCols * kCell, H = static_cast<u32>(rows) * kCell;
@@ -52,6 +131,32 @@ bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::D
   SDL_SubmitGPUCommandBuffer(cmd);
   SDL_WaitForGPUIdle(dev);
   for (auto* x : xf) SDL_ReleaseGPUTransferBuffer(dev, x);
+  if (!hires.empty()) {
+    int cell = 64;  // power of two holding the largest icon, so every mip level keeps cells apart
+    for (const std::string& n : hires) {
+      const render::Sprite sp = atlas.find(n);
+      while (cell < sp.w || cell < sp.h) cell *= 2;
+    }
+    constexpr int kHCols = 8;
+    constexpr u32 kLevels = 4;  // down to 1/8: a 64 px icon still has 8 texels at 8 px on screen
+    const int hrows = static_cast<int>((hires.size() + kHCols - 1) / kHCols);
+    const u32 HW = static_cast<u32>(kHCols * cell), HH = static_cast<u32>(hrows * cell);
+    std::vector<u8> hp(static_cast<size_t>(HW) * HH * 4, 0);
+    for (size_t k = 0; k < hires.size(); ++k) {
+      const render::Sprite sp = atlas.find(hires[k]);
+      const int cx = static_cast<int>(k % kHCols) * cell + (cell - sp.w) / 2;
+      const int cy = static_cast<int>(k / kHCols) * cell + (cell - sp.h) / 2;
+      for (int y = 0; y < sp.h; ++y)
+        std::memcpy(&hp[(static_cast<size_t>(cy + y) * HW + static_cast<size_t>(cx)) * 4],
+                    &src[(static_cast<size_t>(sp.v + y) * atlas.width() + sp.u) * 4], static_cast<size_t>(sp.w) * 4);
+      entries_[hires[k]] = Entry{
+          ImVec2(static_cast<float>(cx) / static_cast<float>(HW), static_cast<float>(cy) / static_cast<float>(HH)),
+          ImVec2(static_cast<float>(cx + sp.w) / static_cast<float>(HW),
+                 static_cast<float>(cy + sp.h) / static_cast<float>(HH)),
+          true};
+    }
+    hires_ = create_mipmapped(dev, HW, HH, kLevels, std::move(hp));
+  }
   // Big pictures, upscaled x3 into their own texture (stacked vertically).
   {
     const char* bigs[] = {"ui/province_map", "ui/logo"};
@@ -110,9 +215,9 @@ bool UiIcons::big_uv(const std::string& name, ImVec2& uv0, ImVec2& uv1) const {
 }
 
 void UiIcons::shutdown(SDL_GPUDevice* dev) {
-  for (SDL_GPUTexture* t : {tex_, big_, thumbs_, thumbs_old_})
+  for (SDL_GPUTexture* t : {tex_, hires_, big_, thumbs_, thumbs_old_})
     if (t) SDL_ReleaseGPUTexture(dev, t);
-  tex_ = big_ = thumbs_ = thumbs_old_ = nullptr;
+  tex_ = hires_ = big_ = thumbs_ = thumbs_old_ = nullptr;
 }
 
 namespace {
@@ -311,11 +416,15 @@ bool UiIcons::draw_thumb(const std::string& key, ImVec2 p0, float size) const {
   return true;
 }
 
+ImTextureRef UiIcons::ref(const Entry& e) const {
+  return ImTextureRef(static_cast<ImTextureID>(reinterpret_cast<intptr_t>(e.hires ? hires_ : tex_)));
+}
+
 bool UiIcons::draw_icon(const std::string& name, ImVec2 p0, float size) const {
   auto it = entries_.find(name);
-  if (it == entries_.end() || !tex_) return false;
-  ImGui::GetWindowDrawList()->AddImage(ImTextureRef(static_cast<ImTextureID>(reinterpret_cast<intptr_t>(tex_))), p0,
-                                       ImVec2(p0.x + size, p0.y + size), it->second.uv0, it->second.uv1);
+  if (it == entries_.end() || !(it->second.hires ? hires_ : tex_)) return false;
+  ImGui::GetWindowDrawList()->AddImage(ref(it->second), p0, ImVec2(p0.x + size, p0.y + size), it->second.uv0,
+                                       it->second.uv1);
   return true;
 }
 
@@ -323,19 +432,17 @@ bool UiIcons::icon_button(const char* id, const std::string& name, float size, b
   if (on) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
   auto it = entries_.find(name);
   const bool pressed =
-      it == entries_.end() || !tex_
+      it == entries_.end() || !(it->second.hires ? hires_ : tex_)
           ? ImGui::Button(id, ImVec2(size, size))
-          : ImGui::ImageButton(id, ImTextureRef(static_cast<ImTextureID>(reinterpret_cast<intptr_t>(tex_))),
-                               ImVec2(size, size), it->second.uv0, it->second.uv1);
+          : ImGui::ImageButton(id, ref(it->second), ImVec2(size, size), it->second.uv0, it->second.uv1);
   if (on) ImGui::PopStyleColor();
   return pressed;
 }
 
 bool UiIcons::image(const std::string& name, float size) const {
   auto it = entries_.find(name);
-  if (it == entries_.end() || !tex_) return false;
-  ImGui::Image(ImTextureRef(static_cast<ImTextureID>(reinterpret_cast<intptr_t>(tex_))), ImVec2(size, size), it->second.uv0,
-               it->second.uv1);
+  if (it == entries_.end() || !(it->second.hires ? hires_ : tex_)) return false;
+  ImGui::Image(ref(it->second), ImVec2(size, size), it->second.uv0, it->second.uv1);
   return true;
 }
 
