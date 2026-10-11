@@ -1,0 +1,2426 @@
+{
+ "obj/boulder_0": {
+  "ax": 40,
+  "ay": 24
+ },
+ "obj/boulder_1": {
+  "ax": 40,
+  "ay": 24
+ },
+ "obj/boulder_2": {
+  "ax": 40,
+  "ay": 24
+ },
+ "obj/bush_0": {
+  "ax": 40,
+  "ay": 24
+ },
+ "obj/bush_1": {
+  "ax": 40,
+  "ay": 24
+ },
+ "obj/bush_2": {
+  "ax": 40,
+  "ay": 24
+ },
+ "obj/reeds_0": {
+  "ax": 40,
+  "ay": 31
+ },
+ "obj/reeds_1": {
+  "ax": 40,
+  "ay": 37
+ },
+ "obj/reeds_2": {
+  "ax": 40,
+  "ay": 28
+ },
+ "obj/res_clay": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/res_fish": {
+  "ax": 14,
+  "ay": 10
+ },
+ "obj/res_iron": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/res_limestone": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/res_marble": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/res_pozzolana": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/res_silver": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/res_stone": {
+  "ax": 60,
+  "ay": 35
+ },
+ "obj/tree_0": {
+  "ax": 58,
+  "ay": 110
+ },
+ "obj/tree_1": {
+  "ax": 98,
+  "ay": 112
+ },
+ "obj/tree_2": {
+  "ax": 82,
+  "ay": 64
+ },
+ "obj/tree_3": {
+  "ax": 90,
+  "ay": 96
+ },
+ "obj/tree_4": {
+  "ax": 58,
+  "ay": 86
+ },
+ "obj/tree_5": {
+  "ax": 82,
+  "ay": 81
+ },
+ "obj/tree_6": {
+  "ax": 66,
+  "ay": 117
+ },
+ "road/dirt_c": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_e": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_fill_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_fill_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_fill_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_fill_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_n": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_s": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_w": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_c": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_e": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_fill_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_fill_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_fill_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_fill_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_n": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_s": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_w": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/cliff_e_0": {
+  "ax": 2,
+  "ay": 50
+ },
+ "terrain/cliff_e_1": {
+  "ax": 2,
+  "ay": 50
+ },
+ "terrain/cliff_s_0": {
+  "ax": 66,
+  "ay": 50
+ },
+ "terrain/cliff_s_1": {
+  "ax": 66,
+  "ay": 50
+ },
+ "terrain/deep_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/deep_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/deep_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/deep_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_fertile_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_forest_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_grass_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_marsh_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_rock_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_sand_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_10_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_10_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_10_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_10_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_11_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_11_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_11_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_11_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_12_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_12_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_12_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_12_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_13_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_13_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_13_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_13_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_14_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_14_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_14_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_14_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_4_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_4_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_4_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_4_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_5_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_5_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_5_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_5_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_6_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_6_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_6_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_6_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_7_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_7_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_7_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_7_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_8_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_8_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_8_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_8_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_9_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_9_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_9_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/dg_shallow_9_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/fertile_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/fertile_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/fertile_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/fertile_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/forest_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/forest_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/forest_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/forest_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/grass_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/grass_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/grass_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/grass_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/marsh_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/marsh_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/marsh_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/marsh_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_deep_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_fertile_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_forest_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_grass_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_marsh_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_rock_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_sand_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_0_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_0_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_0_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_0_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_1_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_1_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_1_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_1_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_2_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_2_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_2_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_2_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_3_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_3_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_3_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/q_shallow_3_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/rock_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/rock_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/rock_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/rock_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/sand_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/sand_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/sand_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/sand_3": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/shallow_0": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/shallow_1": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/shallow_2": {
+  "ax": 66,
+  "ay": 66
+ },
+ "terrain/shallow_3": {
+  "ax": 66,
+  "ay": 66
+ }
+}

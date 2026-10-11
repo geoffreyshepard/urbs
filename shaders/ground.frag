@@ -10,7 +10,8 @@ layout(location = 0) in vec2 v_uv;
 layout(location = 1) in vec4 v_color;
 layout(location = 2) in vec2 v_world;
 layout(location = 3) flat in float v_depth;
-layout(set = 2, binding = 0) uniform sampler2D tex;
+layout(location = 4) flat in float v_layer;
+layout(set = 2, binding = 0) uniform sampler2DArray tex;
 layout(set = 2, binding = 1) uniform sampler2D ground;
 layout(set = 3, binding = 0) uniform Ground {
   vec4 season;  // x: overall dryness, y: dry-patch strength, z: winter browning, w: snow cover
@@ -30,7 +31,7 @@ float bayer4(vec2 p) {
 float steps(float v, float n, float d) { return clamp(floor(v * n + d) / n, 0.0, 1.0); }
 
 void main() {
-  vec4 c = texture(tex, v_uv) * v_color;
+  vec4 c = texture(tex, vec3(v_uv, v_layer)) * v_color;
   if (c.a < 0.01) discard;
   vec2 cell = floor(v_world);
   vec4 g = texture(ground, (cell + 0.5) * u.map.xy);

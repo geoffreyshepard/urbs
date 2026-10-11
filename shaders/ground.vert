@@ -11,12 +11,14 @@ layout(set = 1, binding = 0) uniform Camera {
   vec2 scale;
   vec2 screen;
   vec2 tex_inv;
+  vec4 page;  // x: rows per atlas page
 } cam;
 
 layout(location = 0) out vec2 v_uv;
 layout(location = 1) out vec4 v_color;
 layout(location = 2) out vec2 v_world;
 layout(location = 3) flat out float v_depth;
+layout(location = 4) flat out float v_layer;
 
 void main() {
   int vid = gl_VertexIndex;
@@ -25,7 +27,9 @@ void main() {
   vec2 px = (world - cam.origin) * cam.scale;
   vec2 ndc = px / cam.screen * 2.0 - 1.0;
   gl_Position = vec4(ndc.x, -ndc.y, i_pos.z, 1.0);
-  v_uv = (vec2(i_rect.xy) + corner * vec2(i_rect.zw)) * cam.tex_inv;
+  uint rows = uint(cam.page.x);
+  v_layer = float(i_rect.y / rows);
+  v_uv = (vec2(float(i_rect.x), float(i_rect.y % rows)) + corner * vec2(i_rect.zw)) * cam.tex_inv;
   v_color = i_color;
   v_world = world;
   v_depth = i_pos.z;

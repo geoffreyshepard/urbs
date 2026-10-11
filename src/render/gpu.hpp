@@ -9,9 +9,9 @@ namespace urbs::render {
 
 // Per-instance sprite data. Matches shaders/sprite.vert. 32 bytes.
 struct SpriteInstance {
-  f32 x, y, z;    // world px (top-left), depth (0 near .. 1 far)
-  f32 w, h;       // world px size
-  u16 u, v, uw, vh;  // atlas texel rect
+  f32 x, y, z;    // iso px (top-left), depth (0 near .. 1 far)
+  f32 w, h;       // iso px size
+  u16 u, v, uw, vh;  // atlas texel rect (v runs through the stacked pages, see render::Sprite)
   u32 rgba;       // tint, little-endian RGBA8 (0xAABBGGRR)
 };
 static_assert(sizeof(SpriteInstance) == 32);
@@ -26,6 +26,7 @@ struct CameraUniform {
   f32 scale[2];
   f32 screen[2];
   f32 tex_inv[2];
+  f32 page[4];  // x: rows per atlas page
 };
 
 SDL_GPUShader* load_shader(SDL_GPUDevice* dev, SDL_GPUShaderStage stage, const unsigned char* spv, u32 spv_size,
