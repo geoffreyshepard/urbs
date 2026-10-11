@@ -11,10 +11,10 @@
 #include "core/profile.hpp"
 #include "shaders/ground_frag.h"
 #include "shaders/ground_vert.h"
+#include "shaders/isoquad_frag.h"
+#include "shaders/isoquad_vert.h"
 #include "shaders/post_frag.h"
 #include "shaders/post_vert.h"
-#include "shaders/shadow_frag.h"
-#include "shaders/shadow_vert.h"
 #include "shaders/sprite_frag.h"
 #include "shaders/sprite_vert.h"
 
@@ -24,7 +24,7 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   win_ = &win;
   dev_ = win.gpu;
 
-  // Prefer a depth format with stencil (shadows use it); fall back to plain depth.
+  // Prefer a depth format with stencil; fall back to plain depth.
   auto supports = [&](SDL_GPUTextureFormat f) {
     return SDL_GPUTextureSupportsFormat(dev_, f, SDL_GPU_TEXTURETYPE_2D, SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET);
   };
@@ -42,10 +42,10 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
                                   sprite_vert_msl, sprite_vert_msl_size, 0, 1);
   SDL_GPUShader* fs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, sprite_frag_spv, sprite_frag_spv_size,
                                   sprite_frag_msl, sprite_frag_msl_size, 1, 0);
-  SDL_GPUShader* svs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, shadow_vert_spv, shadow_vert_spv_size,
-                                   shadow_vert_msl, shadow_vert_msl_size, 0, 2);
-  SDL_GPUShader* sfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, shadow_frag_spv, shadow_frag_spv_size,
-                                   shadow_frag_msl, shadow_frag_msl_size, 1, 1);
+  SDL_GPUShader* qvs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, isoquad_vert_spv, isoquad_vert_spv_size,
+                                   isoquad_vert_msl, isoquad_vert_msl_size, 0, 1);
+  SDL_GPUShader* qfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, isoquad_frag_spv, isoquad_frag_spv_size,
+                                   isoquad_frag_msl, isoquad_frag_msl_size, 1, 0);
   SDL_GPUShader* pvs = load_shader(dev_, SDL_GPU_SHADERSTAGE_VERTEX, post_vert_spv, post_vert_spv_size, post_vert_msl,
                                    post_vert_msl_size, 0, 0);
   SDL_GPUShader* pfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, post_frag_spv, post_frag_spv_size,
@@ -54,7 +54,7 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
                                    ground_vert_msl, ground_vert_msl_size, 0, 1);
   SDL_GPUShader* gfs = load_shader(dev_, SDL_GPU_SHADERSTAGE_FRAGMENT, ground_frag_spv, ground_frag_spv_size,
                                    ground_frag_msl, ground_frag_msl_size, 2, 1);
-  if (!vs || !fs || !svs || !sfs || !pvs || !pfs || !gvs || !gfs) return false;
+  if (!vs || !fs || !qvs || !qfs || !pvs || !pfs || !gvs || !gfs) return false;
 
   SDL_GPUVertexBufferDescription vbd{};
   vbd.slot = 0;
@@ -102,31 +102,15 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   pi.depth_stencil_state.enable_depth_write = false;
   pipe_translucent_ = SDL_CreateGPUGraphicsPipeline(dev_, &pi);
 
-  // Shadows: multiply the ground (dst * src), depth-tested against what is already drawn so a
-  // shadow never lands on a sprite in front of it; the stencil lets each pixel darken only once.
-  SDL_GPUGraphicsPipelineCreateInfo spi = pi;
-  SDL_GPUColorTargetDescription sctd = ctd;
-  sctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_DST_COLOR;
-  sctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
-  sctd.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ZERO;
-  sctd.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-  spi.target_info.color_target_descriptions = &sctd;
-  spi.vertex_shader = svs;
-  spi.fragment_shader = sfs;
-  spi.depth_stencil_state.enable_depth_write = false;
-  if (has_stencil_) {
-    SDL_GPUStencilOpState so{};
-    so.compare_op = SDL_GPU_COMPAREOP_EQUAL;  // reference 0: not yet shadowed
-    so.pass_op = SDL_GPU_STENCILOP_INCREMENT_AND_CLAMP;
-    so.fail_op = SDL_GPU_STENCILOP_KEEP;
-    so.depth_fail_op = SDL_GPU_STENCILOP_KEEP;
-    spi.depth_stencil_state.enable_stencil_test = true;
-    spi.depth_stencil_state.front_stencil_state = so;
-    spi.depth_stencil_state.back_stencil_state = so;
-    spi.depth_stencil_state.compare_mask = 0xFF;
-    spi.depth_stencil_state.write_mask = 0xFF;
+  // Far zoom: the per-tile colour texture as one iso diamond (no vertex buffer).
+  {
+    SDL_GPUGraphicsPipelineCreateInfo qpi = pi;
+    qpi.vertex_shader = qvs;
+    qpi.fragment_shader = qfs;
+    qpi.vertex_input_state = {};
+    qpi.depth_stencil_state.enable_depth_write = true;
+    pipe_quad_ = SDL_CreateGPUGraphicsPipeline(dev_, &qpi);
   }
-  pipe_shadow_ = SDL_CreateGPUGraphicsPipeline(dev_, &spi);
 
   // Lights: additive, depth-tested (no writes) against the world pass, drawn on the graded frame.
   SDL_GPUGraphicsPipelineCreateInfo lpi = pi;
@@ -151,8 +135,8 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   ppi.target_info.num_color_targets = 1;
   pipe_post_ = SDL_CreateGPUGraphicsPipeline(dev_, &ppi);
 
-  for (SDL_GPUShader* sh : {vs, fs, svs, sfs, pvs, pfs, gvs, gfs}) SDL_ReleaseGPUShader(dev_, sh);
-  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_shadow_ || !pipe_post_ || !pipe_ground_ || !pipe_light_) {
+  for (SDL_GPUShader* sh : {vs, fs, qvs, qfs, pvs, pfs, gvs, gfs}) SDL_ReleaseGPUShader(dev_, sh);
+  if (!pipe_opaque_ || !pipe_translucent_ || !pipe_quad_ || !pipe_post_ || !pipe_ground_ || !pipe_light_) {
     URBS_LOG_ERROR("pipeline creation failed: {}", SDL_GetError());
     return false;
   }
@@ -162,20 +146,26 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   si.mag_filter = SDL_GPU_FILTER_NEAREST;
   si.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
   si.address_mode_u = si.address_mode_v = si.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-  sampler_ = SDL_CreateGPUSampler(dev_, &si);
+  nearest_ = SDL_CreateGPUSampler(dev_, &si);
   si.min_filter = si.mag_filter = SDL_GPU_FILTER_LINEAR;  // ground texture: smooth between tile centres
   linear_ = SDL_CreateGPUSampler(dev_, &si);
+  si.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_LINEAR;  // atlas: pre-rendered art, filtered and mipmapped
+  si.max_lod = 1000.0f;
+  sampler_ = SDL_CreateGPUSampler(dev_, &si);
 
   SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(dev_);
   SDL_GPUCopyPass* cp = SDL_BeginGPUCopyPass(cmd);
   std::vector<SDL_GPUTransferBuffer*> xfers;
-  bool ok = atlas_.load(dev_, cp, data_root + "assets/atlas/main.png", data_root + "assets/atlas/main.json", xfers);
+  bool ok = atlas_.load(dev_, cp, data_root + "assets/atlas/", xfers);
   SDL_EndGPUCopyPass(cp);
+  if (ok) atlas_.generate_mips(cmd);
   SDL_SubmitGPUCommandBuffer(cmd);
   SDL_WaitForGPUIdle(dev_);
   for (auto* x : xfers) SDL_ReleaseGPUTransferBuffer(dev_, x);
   if (!ok) return false;
   ts_.resolve(atlas_);
+  tile_ = atlas_.get("fx/tile");
+  white_ = atlas_.get("fx/white");
   cam_.density = SDL_GetWindowPixelDensity(win.window);
   return true;
 }
@@ -189,13 +179,12 @@ void Renderer::shutdown() {
   dyn_buf_.release(dev_);
   trans_buf_.release(dev_);
   light_buf_.release(dev_);
-  quad_buf_.release(dev_);
-  for (auto* t : {scene_, depth_, final_, far_tex_, overlay_tex_, ground_tex_})
+  for (auto* t : {scene_, depth_, final_, far_tex_, ground_tex_})
     if (t) SDL_ReleaseGPUTexture(dev_, t);
   atlas_.release(dev_);
-  for (auto* s : {sampler_, linear_})
+  for (auto* s : {sampler_, nearest_, linear_})
     if (s) SDL_ReleaseGPUSampler(dev_, s);
-  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_shadow_, pipe_post_, pipe_ground_, pipe_light_})
+  for (auto* p : {pipe_opaque_, pipe_translucent_, pipe_quad_, pipe_post_, pipe_ground_, pipe_light_})
     if (p) SDL_ReleaseGPUGraphicsPipeline(dev_, p);
   dev_ = nullptr;
 }
@@ -205,16 +194,15 @@ void Renderer::set_map(const sim::TileMap* map) {
     if (c.buf) SDL_ReleaseGPUBuffer(dev_, c.buf);
   chunks_.clear();
   map_ = map;
-  for (auto* t : {far_tex_, overlay_tex_, ground_tex_})
+  for (auto* t : {far_tex_, ground_tex_})
     if (t) SDL_ReleaseGPUTexture(dev_, t);
-  far_tex_ = overlay_tex_ = ground_tex_ = nullptr;
+  far_tex_ = ground_tex_ = nullptr;
   far_revision_ = 0xFFFFFFFFu;
   if (!map_) return;
   chunks_.resize(static_cast<size_t>(map_->chunks_x() * map_->chunks_y()));
   const_cast<sim::TileMap*>(map_)->mark_all_dirty();
   std::vector<SDL_GPUTransferBuffer*> unused;
   far_tex_ = create_texture_rgba(dev_, static_cast<u32>(map_->w), static_cast<u32>(map_->h), nullptr, nullptr, unused);
-  overlay_tex_ = create_texture_rgba(dev_, static_cast<u32>(map_->w), static_cast<u32>(map_->h), nullptr, nullptr, unused);
   ground_tex_ = create_texture_rgba(dev_, static_cast<u32>(map_->w), static_cast<u32>(map_->h), nullptr, nullptr, unused);
 }
 
@@ -223,18 +211,52 @@ void Renderer::set_overlay(const u32* tile_rgba) {
   overlay_dirty_ = tile_rgba != nullptr;
 }
 
-void Renderer::push_sprite(const Sprite& s, f32 wx, f32 wy, f32 z, u32 color) {
-  dynamic_.push_back(SpriteInstance{wx - static_cast<f32>(s.ax), wy - static_cast<f32>(s.ay), z, static_cast<f32>(s.w),
-                                    static_cast<f32>(s.h), s.u, s.v, s.w, s.h, color});
+void Renderer::push_rect(f32 x, f32 y, f32 w, f32 h, f32 z, u32 color, bool translucent) {
+  // Sample the middle of fx/white so filtering and mips never reach its transparent border.
+  const u16 cu = static_cast<u16>(white_.u + white_.w / 2), cv = static_cast<u16>(white_.v + white_.h / 2);
+  SpriteInstance si{x, y, z, w, h, cu, cv, 1, 1, color};
+  (translucent ? translucent_ : dynamic_).push_back(si);
 }
 
-void Renderer::push_rect(f32 x, f32 y, f32 w, f32 h, f32 z, u32 color, bool translucent) {
-  Sprite white = ts_.base[0][0];  // replaced below if available
-  static Sprite cached;
-  if (!cached.valid) cached = atlas_.find("fx/white");
-  if (cached.valid) white = cached;
-  SpriteInstance si{x, y, z, w, h, static_cast<u16>(white.u + 1), static_cast<u16>(white.v + 1), 1, 1, color};
-  (translucent ? translucent_ : dynamic_).push_back(si);
+void Renderer::push_diamond(i32 x0, i32 y0, i32 fw, i32 fh, f32 level, f32 z, u32 color, bool translucent) {
+  auto& out = translucent ? translucent_ : dynamic_;
+  for (i32 y = y0; y < y0 + fh; ++y)
+    for (i32 x = x0; x < x0 + fw; ++x) {
+      const Vec2 a = iso::tile_anchor(x, y, level);
+      out.push_back(instance(tile_, a.x, a.y, z, color));
+    }
+}
+
+void Renderer::push_overlay_tiles() {
+  if (!map_ || !overlay_pixels_) return;
+  const iso::TileRange r = iso::tiles_in_rect(*map_, view_rect(0), 1);
+  for (i32 y = r.y0; y <= r.y1; ++y)
+    for (i32 x = r.x0; x <= r.x1; ++x) {
+      u32 c = overlay_pixels_[static_cast<size_t>(y) * static_cast<size_t>(map_->w) + static_cast<size_t>(x)];
+      const u32 a = (c >> 24) * 230 / 255;
+      if (a == 0) continue;
+      c = (c & 0x00FFFFFFu) | (a << 24);
+      const Vec2 p = iso::tile_anchor(x, y, iso::level_at(*map_, x, y));
+      translucent_.push_back(instance(tile_, p.x, p.y, 0.02f, c));
+    }
+}
+
+iso::Rectf Renderer::view_rect(f32 margin) const {
+  const Vec2 o = cam_.origin();
+  const f32 s = cam_.scale();
+  return {o.x - margin, o.y - margin, cam_.screen.x / s + 2 * margin, cam_.screen.y / s + 2 * margin};
+}
+
+bool Renderer::chunk_visible(int cx, int cy, const iso::Rectf& v) const {
+  // Iso bounding box of the chunk's diamond, raised for terrain levels and tall decorations.
+  constexpr f32 kAbove = sim::kMaxHeight * iso::kLevelPx + 256.0f;
+  const i32 x0 = cx * sim::kChunkTiles, y0 = cy * sim::kChunkTiles;
+  const i32 x1 = std::min(map_->w, x0 + sim::kChunkTiles), y1 = std::min(map_->h, y0 + sim::kChunkTiles);
+  const f32 left = iso::from_tile(static_cast<f32>(x0), static_cast<f32>(y1)).x;
+  const f32 right = iso::from_tile(static_cast<f32>(x1), static_cast<f32>(y0)).x;
+  const f32 top = iso::from_tile(static_cast<f32>(x0), static_cast<f32>(y0)).y - kAbove;
+  const f32 bottom = iso::from_tile(static_cast<f32>(x1), static_cast<f32>(y1)).y + iso::kTileH;
+  return left < v.x + v.w && v.x < right && top < v.y + v.h && v.y < bottom;
 }
 
 void Renderer::ensure_targets(u32 w, u32 h) {
@@ -269,12 +291,8 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
   std::vector<Pending> pending;
   scratch_.clear();
   // Rebuild visible dirty chunks first, then the rest within budget.
-  const Recti vis = cam_.visible_world(64);
-  auto visible = [&](int cx, int cy) {
-    Recti cr{cx * sim::kChunkTiles * sim::kTilePx, cy * sim::kChunkTiles * sim::kTilePx, sim::kChunkTiles * sim::kTilePx,
-             sim::kChunkTiles * sim::kTilePx};
-    return cr.intersects(vis);
-  };
+  const iso::Rectf vis = view_rect(256.0f);
+  auto visible = [&](int cx, int cy) { return chunk_visible(cx, cy, vis); };
   for (int pass_i = 0; pass_i < 2 && budget > 0; ++pass_i)
     for (int cy = 0; cy < m.chunks_y() && budget > 0; ++cy)
       for (int cx = 0; cx < m.chunks_x() && budget > 0; ++cx) {
@@ -393,45 +411,56 @@ void Renderer::upload_far_texture(SDL_GPUCopyPass* pass) {
     upload(far_tex_, far_pixels_.data());
     far_revision_ = map_->revision;
   }
-  if (overlay_dirty_ && overlay_pixels_) {
-    upload(overlay_tex_, overlay_pixels_);
-    overlay_dirty_ = false;
-  }
 }
 
 void Renderer::draw_instances(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, SDL_GPUBuffer* buf, u32 count,
-                              SDL_GPUTexture* tex, u32 tex_w, u32 tex_h, SDL_GPUTexture* ground) {
+                              SDL_GPUTexture* ground) {
   if (!buf || count == 0) return;
   Vec2 o = cam_.origin();
   CameraUniform u{{o.x, o.y},
                   {cam_.scale(), cam_.scale()},
                   {static_cast<f32>(target_w_), static_cast<f32>(target_h_)},
-                  {1.0f / static_cast<f32>(tex_w), 1.0f / static_cast<f32>(tex_h)}};
+                  {1.0f / static_cast<f32>(atlas_.width()), 1.0f / static_cast<f32>(atlas_.height())},
+                  {static_cast<f32>(atlas_.height()), 0, 0, 0}};
   SDL_PushGPUVertexUniformData(cmd, 0, &u, sizeof(u));
   SDL_GPUBufferBinding bb{buf, 0};
   SDL_BindGPUVertexBuffers(rp, 0, &bb, 1);
-  SDL_GPUTextureSamplerBinding tsb[2] = {{tex, sampler_}, {ground, linear_}};
+  SDL_GPUTextureSamplerBinding tsb[2] = {{atlas_.texture(), sampler_}, {ground, linear_}};
   SDL_BindGPUFragmentSamplers(rp, 0, tsb, ground ? 2 : 1);
   SDL_DrawGPUPrimitives(rp, 6, count, 0, 0);
 }
 
-void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd, bool main_pass) {
-  const Recti vis = cam_.visible_world(64);
-  const i32 cpx = sim::kChunkTiles * sim::kTilePx;
-  int cx0 = std::max(0, vis.x / cpx), cy0 = std::max(0, vis.y / cpx);
-  int cx1 = std::min(map_->chunks_x() - 1, (vis.x + vis.w) / cpx);
-  int cy1 = std::min(map_->chunks_y() - 1, (vis.y + vis.h) / cpx);
-  for (int cy = cy0; cy <= cy1; ++cy)
-    for (int cx = cx0; cx <= cx1; ++cx) {
+void Renderer::draw_visible_chunks(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd) {
+  const iso::Rectf vis = view_rect(0.0f);
+  for (int cy = 0; cy < map_->chunks_y(); ++cy)
+    for (int cx = 0; cx < map_->chunks_x(); ++cx) {
       const Chunk& c = chunks_[static_cast<size_t>(cy * map_->chunks_x() + cx)];
-      if (!c.buf || c.count == 0) continue;
-      draw_instances(rp, cmd, c.buf, c.count, atlas_.texture(), atlas_.width(), atlas_.height(),
-                     main_pass ? ground_tex_ : nullptr);
-      if (main_pass) {
-        ++stats_.chunks_drawn;
-        stats_.chunk_instances += c.count;
-      }
+      if (!c.buf || c.count == 0 || !chunk_visible(cx, cy, vis)) continue;
+      draw_instances(rp, cmd, c.buf, c.count, ground_tex_);
+      ++stats_.chunks_drawn;
+      stats_.chunk_instances += c.count;
     }
+}
+
+void Renderer::draw_far(SDL_GPURenderPass* rp, SDL_GPUCommandBuffer* cmd) {
+  const Vec2 o = cam_.origin();
+  const f32 q[12] = {o.x,
+                     o.y,
+                     cam_.scale(),
+                     cam_.scale(),
+                     static_cast<f32>(target_w_),
+                     static_cast<f32>(target_h_),
+                     static_cast<f32>(map_->w),
+                     static_cast<f32>(map_->h),
+                     iso::kTileW * 0.5f,
+                     iso::kTileH * 0.5f,
+                     kDepthTerrain,
+                     0.0f};
+  SDL_BindGPUGraphicsPipeline(rp, pipe_quad_);
+  SDL_PushGPUVertexUniformData(cmd, 0, q, sizeof(q));
+  SDL_GPUTextureSamplerBinding tsb{far_tex_, nearest_};
+  SDL_BindGPUFragmentSamplers(rp, 0, &tsb, 1);
+  SDL_DrawGPUPrimitives(rp, 6, 1, 0, 0);
 }
 
 void Renderer::render(ImDrawData* draw_data) {
@@ -456,18 +485,12 @@ void Renderer::render(ImDrawData* draw_data) {
   bool first = map_ && std::all_of(chunks_.begin(), chunks_.end(), [](const Chunk& c) { return c.buf == nullptr; });
   rebuild_dirty_chunks(cp, first ? 1 << 30 : 24);
   upload_far_texture(cp);
+  push_overlay_tiles();
   const u32 n_dyn = static_cast<u32>(dynamic_.size()), n_trans = static_cast<u32>(translucent_.size());
   dyn_buf_.upload(dev_, cp, dynamic_.data(), n_dyn * sizeof(SpriteInstance));
   trans_buf_.upload(dev_, cp, translucent_.data(), n_trans * sizeof(SpriteInstance));
   const u32 n_light = static_cast<u32>(lights_.size());
   light_buf_.upload(dev_, cp, lights_.data(), n_light * sizeof(SpriteInstance));
-  SpriteInstance quads[2];
-  if (map_) {
-    f32 mw = static_cast<f32>(map_->w * sim::kTilePx), mh = static_cast<f32>(map_->h * sim::kTilePx);
-    quads[0] = {0, 0, kDepthTerrain, mw, mh, 0, 0, static_cast<u16>(map_->w), static_cast<u16>(map_->h), kWhite};
-    quads[1] = {0, 0, 0.02f, mw, mh, 0, 0, static_cast<u16>(map_->w), static_cast<u16>(map_->h), rgba(255, 255, 255, 230)};
-    quad_buf_.upload(dev_, cp, quads, sizeof(quads));
-  }
   SDL_EndGPUCopyPass(cp);
   if (draw_data) ImGui_ImplSDLGPU3_PrepareDrawData(draw_data, cmd);
 
@@ -486,48 +509,22 @@ void Renderer::render(ImDrawData* draw_data) {
   dt.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
   dt.clear_stencil = 0;
   SDL_GPURenderPass* rp = SDL_BeginGPURenderPass(cmd, &ct, 1, &dt);
-  SDL_BindGPUGraphicsPipeline(rp, pipe_opaque_);
   if (map_) {
     if (cam_.far()) {
-      draw_instances(rp, cmd, quad_buf_.buf, 1, far_tex_, static_cast<u32>(map_->w), static_cast<u32>(map_->h));
+      draw_far(rp, cmd);
     } else {
       SDL_BindGPUGraphicsPipeline(rp, pipe_ground_);
       const f32 gu[8] = {ground_season[0], ground_season[1], ground_season[2], ground_season[3],
                          1.0f / static_cast<f32>(map_->w * sim::kTilePx), 1.0f / static_cast<f32>(map_->h * sim::kTilePx),
                          time, (kDepthTerrain + kDepthRoad) * 0.5f};
       SDL_PushGPUFragmentUniformData(cmd, 0, gu, sizeof(gu));
-      draw_visible_chunks(rp, cmd, true);
-      SDL_BindGPUGraphicsPipeline(rp, pipe_opaque_);
+      draw_visible_chunks(rp, cmd);
     }
   }
-  draw_instances(rp, cmd, dyn_buf_.buf, n_dyn, atlas_.texture(), atlas_.width(), atlas_.height());
-  if (map_ && shadows.enabled && !cam_.far()) {
-    // Same instance buffers again; the shadow vertex shader keeps only y-sorted casters.
-    SDL_BindGPUGraphicsPipeline(rp, pipe_shadow_);
-    if (has_stencil_) SDL_SetGPUStencilReference(rp, 0);
-    const f32 sp[8] = {shadows.shear[0], shadows.shear[1], shadows.shear[2], shadows.shear[3],
-                       kDepthShadow,     kDepthShadow,     kDepthOverlayMax, 0.0f};
-    SDL_PushGPUVertexUniformData(cmd, 1, sp, sizeof(sp));
-    SDL_PushGPUFragmentUniformData(cmd, 0, shadows.color, sizeof(shadows.color));
-    draw_visible_chunks(rp, cmd, false);
-    draw_instances(rp, cmd, dyn_buf_.buf, n_dyn, atlas_.texture(), atlas_.width(), atlas_.height());
-  }
+  SDL_BindGPUGraphicsPipeline(rp, pipe_opaque_);
+  draw_instances(rp, cmd, dyn_buf_.buf, n_dyn);
   SDL_BindGPUGraphicsPipeline(rp, pipe_translucent_);
-  draw_instances(rp, cmd, trans_buf_.buf, n_trans, atlas_.texture(), atlas_.width(), atlas_.height());
-  if (map_ && overlay_pixels_) {
-    // Second quad instance (offset 32 bytes) is the overlay.
-    Vec2 o = cam_.origin();
-    CameraUniform u{{o.x, o.y},
-                    {cam_.scale(), cam_.scale()},
-                    {static_cast<f32>(target_w_), static_cast<f32>(target_h_)},
-                    {1.0f / static_cast<f32>(map_->w), 1.0f / static_cast<f32>(map_->h)}};
-    SDL_PushGPUVertexUniformData(cmd, 0, &u, sizeof(u));
-    SDL_GPUBufferBinding bb{quad_buf_.buf, sizeof(SpriteInstance)};
-    SDL_BindGPUVertexBuffers(rp, 0, &bb, 1);
-    SDL_GPUTextureSamplerBinding tsb{overlay_tex_, sampler_};
-    SDL_BindGPUFragmentSamplers(rp, 0, &tsb, 1);
-    SDL_DrawGPUPrimitives(rp, 6, 1, 0, 0);
-  }
+  draw_instances(rp, cmd, trans_buf_.buf, n_trans);
   SDL_EndGPURenderPass(rp);
   stats_.dynamic_instances = n_dyn + n_trans;
   dynamic_.clear();
@@ -543,7 +540,7 @@ void Renderer::render(ImDrawData* draw_data) {
     SDL_BindGPUGraphicsPipeline(gp, pipe_post_);
     grade.params[1] = time;
     SDL_PushGPUFragmentUniformData(cmd, 0, &grade, sizeof(grade));
-    SDL_GPUTextureSamplerBinding tsb{scene_, sampler_};
+    SDL_GPUTextureSamplerBinding tsb{scene_, nearest_};
     SDL_BindGPUFragmentSamplers(gp, 0, &tsb, 1);
     SDL_DrawGPUPrimitives(gp, 3, 1, 0, 0);
     SDL_EndGPURenderPass(gp);
@@ -561,7 +558,7 @@ void Renderer::render(ImDrawData* draw_data) {
     ld.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
     SDL_GPURenderPass* lp = SDL_BeginGPURenderPass(cmd, &lt, 1, &ld);
     SDL_BindGPUGraphicsPipeline(lp, pipe_light_);
-    draw_instances(lp, cmd, light_buf_.buf, n_light, atlas_.texture(), atlas_.width(), atlas_.height());
+    draw_instances(lp, cmd, light_buf_.buf, n_light);
     SDL_EndGPURenderPass(lp);
   }
   lights_.clear();
