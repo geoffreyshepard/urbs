@@ -6,7 +6,7 @@
 
 namespace urbs::platform {
 
-bool create_window(Window& out, const char* title, int w, int h) {
+bool create_window(Window& out, const char* title, int w, int h, bool vsync) {
   if (!SDL_Init(SDL_INIT_VIDEO)) {
     URBS_LOG_ERROR("SDL_Init failed: {}", SDL_GetError());
     return false;
@@ -32,7 +32,12 @@ bool create_window(Window& out, const char* title, int w, int h) {
     URBS_LOG_ERROR("SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
     return false;
   }
-  SDL_SetGPUSwapchainParameters(out.gpu, out.window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, SDL_GPU_PRESENTMODE_VSYNC);
+  SDL_GPUPresentMode mode = SDL_GPU_PRESENTMODE_VSYNC;
+  if (!vsync) {  // perf measurement: don't wait for the display
+    if (SDL_WindowSupportsGPUPresentMode(out.gpu, out.window, SDL_GPU_PRESENTMODE_IMMEDIATE)) mode = SDL_GPU_PRESENTMODE_IMMEDIATE;
+    else if (SDL_WindowSupportsGPUPresentMode(out.gpu, out.window, SDL_GPU_PRESENTMODE_MAILBOX)) mode = SDL_GPU_PRESENTMODE_MAILBOX;
+  }
+  SDL_SetGPUSwapchainParameters(out.gpu, out.window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, mode);
   out.swapchain_format = SDL_GetGPUSwapchainTextureFormat(out.gpu, out.window);
   URBS_LOG_INFO("GPU driver: {}", SDL_GetGPUDeviceDriver(out.gpu));
   return true;

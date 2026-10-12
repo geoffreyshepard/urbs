@@ -1,6 +1,8 @@
 #pragma once
 #include <memory>
+#include <array>
 #include <string>
+#include <vector>
 
 #include "data/defs.hpp"
 #include "game/lighting.hpp"
@@ -43,6 +45,8 @@ struct AppOptions {
   bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
   bool mute = false;      // no audio device (screenshot runs are always silent)
   int career = -1;        // screenshots: pretend the first N campaign missions are won (never saved)
+  int perf = 0;           // measure this many frames (after a warm-up), log frame-time percentiles, quit
+  bool no_vsync = false;  // present without waiting for vsync (perf runs: shows the real frame cost)
 };
 
 AppOptions parse_args(int argc, char** argv);
@@ -93,6 +97,7 @@ class App {
  private:
   void handle_event(const SDL_Event& e);
   void update_camera(f32 dt);
+  void record_perf(f32 frame, f32 sim, f32 ui, f32 world, f32 render);
   void step_sim(f64 dt);
   void new_world(const std::string& scenario_path);
   void start_scenario(sim::ScenarioSpec spec);
@@ -152,6 +157,7 @@ class App {
   UiSkin skin_;
   UiPicture province_map_;  // the campaign's painted map (assets/ui), loaded the first time it is shown
   bool province_map_tried_ = false;
+  std::vector<std::array<f32, 7>> perf_;  // --perf: per-frame timings (ms) and instance counts
   Settings settings_;
   CampaignDef campaign_;
   CampaignProfile profile_;

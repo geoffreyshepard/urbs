@@ -64,6 +64,7 @@ Balance is measured separately with `tools/bot_missions.sh [days] [difficulty] [
 - **`--roundtrip D`:** every D days, save, load into a fresh world, and run both for a game day with the same inputs: the bot and the chaos player play the original and their commands are replayed into the copy. They must stay identical (compared every game hour), and the run goes on exactly as it would without the round-trip, so an audit run is the same game as a plain one. On a mismatch the run names the parts that differ (`save::world_hash_parts`). It also reports the slowest save and load and the largest file.
 - **`--keep-playing`:** keep going after the mission is won or lost.
 - **Diagnostics:** `--watch goods`, `--ascii x0 y0 x1 y1`, `--verbose`, `--dump`.
+- **`--slow-ticks MS`:** print every tick slower than MS with its per-system laps (`TickStats::sys_ms`: 0 dirty rebuilds, 1 services, 2 daily/needs, 3 hourly labor, 4 goods matching, 5 events + military, 6 pathfinding). Use it to find the source of hitches.
 
 Any failure gives exit status 3. Unknown flags are rejected.
 
@@ -78,3 +79,11 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **The bot's jobs:** with every good above its stock limit the bot found nothing to build for the unemployed, so big cities stalled short of their goal while the treasury grew past 100,000. It now tries further export goods made from local materials, then services.
 - **The audit changed the game it audited:** during each round-trip day the original world played without the bot, so audit runs drifted from plain runs (Londinium lost under `--roundtrip` and won without it). Both worlds now get the same inputs.
 - **The bot's reservoirs:** the bot rebuilt a reservoir on the same cut-off shore spot again and again (45 times in one Antioch run), draining the treasury. Its stalled-site notes now say why a site was cleared (`cut off`, `no builders`, `no materials`, `waited too long`) and where.
+
+## Frame-time measurement (the game)
+
+`urbs --scenario S --cam X Y --zoom Z --speed N --perf 600 --no-vsync --mute --show nomsg,noend` skips a 120-frame warm-up,
+records 600 frames and logs avg / p50 / p95 / p99 / max for the whole frame and its parts (sim ticks, UI build, world
+draw-list build, render submit), plus the sprite instance counts, then quits. Without `--no-vsync` the frame time is
+what the player sees (capped at the display rate). Measure on an idle machine: other heavy processes inflate the
+tails several times over.

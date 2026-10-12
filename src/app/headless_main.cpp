@@ -133,6 +133,7 @@ int main(int argc, char** argv) {
   std::vector<std::string> mods;
   i32 ascii[4] = {-1, -1, -1, -1};  // --ascii x0 y0 x1 y1: print that part of the map at the end
   std::vector<std::string> watch;    // --watch a,b,c: print these goods' city stock in the daily trace
+  double slow_ticks = 0;  // --slow-ticks MS: print every tick slower than MS with its per-system laps
   bool check = false;                // --check: consistency checks every game day (docs/testing.md)
   bool keep_playing = false;         // --keep-playing: run all ticks even after the mission ends
   u32 chaos = 0;                     // --chaos N: N random player commands per game hour
@@ -156,6 +157,7 @@ int main(int argc, char** argv) {
     else if (is("--seed") && i + 1 < argc) seed_override = std::strtoull(argv[++i], nullptr, 10);
     else if (is("--mod") && i + 1 < argc) mods.emplace_back(argv[++i]);
     else if (is("--check")) check = true;
+    else if (is("--slow-ticks") && i + 1 < argc) slow_ticks = std::atof(argv[++i]);
     else if (is("--keep-playing")) keep_playing = true;
     else if (is("--chaos") && i + 1 < argc) chaos = static_cast<u32>(std::atoi(argv[++i]));
     else if (is("--roundtrip") && i + 1 < argc) roundtrip = static_cast<u32>(std::atoi(argv[++i]));
@@ -446,6 +448,12 @@ int main(int argc, char** argv) {
             });
     }
     ms.push_back(world->stats.tick_ms);
+    if (slow_ticks > 0 && world->stats.tick_ms > slow_ticks)
+      std::printf("slow tick %llu (hour %u, tick of hour %u): %.2f ms  systems %.2f %.2f %.2f %.2f %.2f %.2f %.2f %.2f\n",
+                  static_cast<unsigned long long>(world->now), sim::hour_of_day(world->now),
+                  static_cast<unsigned>(world->now % kTicksPerHour), world->stats.tick_ms, world->stats.sys_ms[0],
+                  world->stats.sys_ms[1], world->stats.sys_ms[2], world->stats.sys_ms[3], world->stats.sys_ms[4],
+                  world->stats.sys_ms[5], world->stats.sys_ms[6], world->stats.sys_ms[7]);
     decisions += world->stats.decisions;
     path_req += world->stats.path_requests;
     arrivals += world->stats.arrivals;
