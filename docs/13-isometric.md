@@ -62,7 +62,7 @@ thin dark Freestyle contour so the silhouette survives small sizes.
 | Sprite | Canvas | Drawn at |
 |---|---|---|
 | `goods/<id>_16` | 64 x 64 | UI: panels, goods chips, trade rows, costs (`denarii_16`), ~20-30 points |
-| `goods/<id>` | 40 x 40 | over walking citizens: 20 iso px wide (`world_view.cpp`, `kCarriedIso`) |
+| `goods/<id>` | 40 x 40 | on walking citizens' heads: 12 iso px wide (`world_view.cpp`, `kCarriedIso`) |
 | `ui/cat_<id>` | 96 x 96 | build-menu category rail, 24-48 points |
 | `ui/icon_<id>` | 96 x 96 | top-bar stats and buttons (~21 points), panel headers (~38 points) |
 | `ui/god_<id>` | 128 x 128 | religion panel (~48 points), temple info (~24 points) |
