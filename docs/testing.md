@@ -59,6 +59,7 @@ Balance is measured separately with `tools/bot_missions.sh [days] [difficulty] [
 - **`--roundtrip D`:** every D days, save, load into a fresh world, and run both for a game day. They must stay identical (compared every game hour). On a mismatch the run names the parts that differ (`save::world_hash_parts`). It also reports the slowest save and load and the largest file.
 - **`--keep-playing`:** keep going after the mission is won or lost.
 - **Diagnostics:** `--watch goods`, `--ascii x0 y0 x1 y1`, `--verbose`, `--dump`.
+- **`--slow-ticks MS`:** print every tick slower than MS with its per-system laps (`TickStats::sys_ms`: 0 dirty rebuilds, 1 services, 2 daily/needs, 3 hourly labor, 4 goods matching, 5 events + military, 6 pathfinding). Use it to find the source of hitches.
 
 Any failure gives exit status 3. Unknown flags are rejected.
 
@@ -68,3 +69,11 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **Stale flow fields:** raiders kept marching on flow fields computed before the map changed (walls breached, roads built).
 - **Estates:** an heirless household's estate was booked in the ledger as an expense.
 - **Blocked entrances:** buildings whose entrance was built over could never be staffed or supplied.
+
+## Frame-time measurement (the game)
+
+`urbs --scenario S --cam X Y --zoom Z --speed N --perf 600 --no-vsync --mute --show nomsg,noend` skips a 120-frame warm-up,
+records 600 frames and logs avg / p50 / p95 / p99 / max for the whole frame and its parts (sim ticks, UI build, world
+draw-list build, render submit), plus the sprite instance counts, then quits. Without `--no-vsync` the frame time is
+what the player sees (capped at the display rate). Measure on an idle machine: other heavy processes inflate the
+tails several times over.

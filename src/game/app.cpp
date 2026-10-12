@@ -4,6 +4,7 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cmath>
 #include <cstdlib>
@@ -57,6 +58,8 @@ AppOptions parse_args(int argc, char** argv) {
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
     else if (std::strcmp(argv[i], "--mute") == 0) o.mute = true;
+    else if (std::strcmp(argv[i], "--no-vsync") == 0) o.no_vsync = true;
+    else if (arg("--perf")) o.perf = std::atoi(argv[++i]);
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -290,7 +293,7 @@ bool App::init(const AppOptions& opt) {
   opt_ = opt;
   user_dir_ = platform::user_data_dir();
   settings_.load(user_dir_);
-  if (!platform::create_window(win_, "Urbs", 1600, 900)) return false;
+  if (!platform::create_window(win_, "Urbs", 1600, 900, !opt.no_vsync)) return false;
   if (settings_.fullscreen) SDL_SetWindowFullscreen(win_.window, true);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -667,7 +670,10 @@ void App::run() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) handle_event(e);
     update_camera(static_cast<f32>(dt));
+    using PerfClock = std::chrono::steady_clock;
+    const auto pt0 = PerfClock::now();
     step_sim(dt);
+    const auto pt1 = PerfClock::now();
     {
       const MusicContext ctx = screen_ == Screen::Playing    ? MusicContext::Playing
                                : screen_ == Screen::Menu     ? MusicContext::Menu
@@ -686,6 +692,7 @@ void App::run() {
     draw_ui();
     ImGui::Render();
     skin_.process(ImGui::GetDrawData());
+    const auto pt2 = PerfClock::now();
 
     if (screen_ == Screen::Playing) {
       if (sel_.follow && sel_.citizen.valid() && world_->citizens.alive(sel_.citizen)) {
@@ -741,7 +748,14 @@ void App::run() {
     if (screen_ == Screen::Playing) tools_.draw(*world_, view_, renderer_);
     ++frame_;
     if (!opt_.screenshot.empty() && frame_ == opt_.frames) renderer_.request_screenshot(opt_.screenshot, !opt_.no_ui);
+    const auto pt3 = PerfClock::now();
     renderer_.render(ImGui::GetDrawData());
+    if (opt_.perf > 0) {
+      const auto ms = [](PerfClock::time_point a, PerfClock::time_point b) {
+        return static_cast<f32>(std::chrono::duration<f64, std::milli>(b - a).count());
+      };
+      record_perf(static_cast<f32>(dt) * 1000.0f, ms(pt0, pt1), ms(pt1, pt2), ms(pt2, pt3), ms(pt3, PerfClock::now()));
+    }
     if (!opt_.screenshot.empty() && frame_ >= opt_.frames) running_ = false;
   }
   // Screenshot runs leave the player's career and settings alone.
@@ -749,6 +763,34 @@ void App::run() {
     profile_.save(user_dir_);
     settings_.save(user_dir_);
   }
+}
+
+void App::record_perf(f32 frame, f32 sim, f32 ui, f32 world, f32 render) {
+  // --perf N: skip a warm-up (chunk builds, texture uploads), then keep N frames and report percentiles.
+  constexpr u64 kWarmup = 120;
+  if (frame_ <= kWarmup) return;
+  if (perf_.empty()) perf_.reserve(static_cast<size_t>(opt_.perf));
+  const render::FrameStats& st = renderer_.stats();
+  perf_.push_back({frame, sim, ui, world, render, static_cast<f32>(st.dynamic_instances), static_cast<f32>(st.chunk_instances)});
+  if (perf_.size() < static_cast<size_t>(opt_.perf)) return;
+  const char* names[] = {"frame", "sim", "ui", "world", "render", "dyn_inst", "chunk_inst"};
+  u32 walking = 0;
+  const auto& C = world_->citizens;
+  for (u32 i = 0; i < C.ids.high_water(); ++i)
+    if (C.ids.alive_index(i) && C.activity[i] == sim::Activity::Walk) ++walking;
+  URBS_LOG_INFO("perf: {} frames, zoom {}, speed x{}, citizens {}, walking {}, buildings {}", perf_.size(),
+                renderer_.camera().zoom, kSpeeds[speed_], world_->citizens.ids.count(), walking,
+                world_->buildings.ids.count());
+  for (size_t k = 0; k < std::size(names); ++k) {
+    std::vector<f32> v(perf_.size());
+    f64 sum = 0;
+    for (size_t f = 0; f < perf_.size(); ++f) sum += (v[f] = perf_[f][k]);
+    std::sort(v.begin(), v.end());
+    const auto pct = [&](f64 p) { return v[std::min(v.size() - 1, static_cast<size_t>(p * static_cast<f64>(v.size())))]; };
+    URBS_LOG_INFO("perf {:>10}: avg {:7.2f}  p50 {:7.2f}  p95 {:7.2f}  p99 {:7.2f}  max {:7.2f}", names[k],
+                  sum / static_cast<f64>(v.size()), pct(0.5), pct(0.95), pct(0.99), v.back());
+  }
+  running_ = false;
 }
 
 void App::shutdown() {

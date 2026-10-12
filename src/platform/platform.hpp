@@ -12,7 +12,7 @@ struct Window {
 };
 
 // Initializes SDL video, creates the window and the GPU device and claims the window.
-bool create_window(Window& out, const char* title, int w, int h);
+bool create_window(Window& out, const char* title, int w, int h, bool vsync = true);
 void destroy_window(Window& w);
 
 // Directory for saves and settings (SDL_GetPrefPath).
