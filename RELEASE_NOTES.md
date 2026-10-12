@@ -10,6 +10,7 @@ The city in three dimensions: Urbs is now isometric, with new art, a new interfa
 - **Alerts that say what is wrong:** a building with no workers, an idle workshop and the input it is missing, a producer with nowhere to store its output, a full store, an empty market, homelessness, unemployment and emigration.
 - **While paused** you can still build, demolish and change policies; it all takes effect at once.
 - **Sound effects:** generated like the music, no samples: clicks, stone set down for a new building, gravel for roads, crumbling walls, coins for trade and payments, a scroll for letters, a bronze bell for alerts, fire, collapses, sword and shield fights, horns for raids and marching cohorts, and cheering crowds for festivals and victories. Fires, collapses and fights are heard where they happen when they are on or near the screen. A quiet city ambience (murmur, birds) rises with the people on screen. A new **Sound effects volume** in Settings.
+- **Mods can ship their own sprites:** buildings (with turns, night lights and regional looks), goods icons and other art. Put PNGs named like the game's sprites in the mod's `sprites/` folder, and they replace or add to the game's art in the mods' load order. The example mod's vintner's cellar and amber wine now have their own art, rendered with the game's Blender kit. See `docs/10-modding.md`, "Sprites".
 - **Fixes:**
   - Choices in letters (paying the merchants, the Senate's offers, festivals) now reach the mission scripts; in v1.0 they were ignored.
   - Letters already read no longer come back after loading a save.
@@ -24,7 +25,6 @@ The city in three dimensions: Urbs is now isometric, with new art, a new interfa
 
 ## Requirements and limitations
 - Requirements are as for v1.0 (below). The download is larger: the isometric sprite atlas is about 60 MB.
-- Mods cannot ship their own sprites yet.
 - Shores are drawn as low cliffs rather than beaches.
 - The autoplay bot wins every mission on every difficulty (144 of 144 runs), and scripted playtests drive the real interface, but human play is still the best test: pacing and clarity reports are welcome (docs/playtest-checklist.md).
 

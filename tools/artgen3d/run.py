@@ -4,9 +4,11 @@
         <family> [name-or-prefix[=]...] [--samples N] [--list] [--lit-only] [--rot K[,K..]|all]
         [--resume EPOCH]
 
-<family> is a module in this folder exposing SPRITES = {name: spec}.  name is the atlas name
-("bld/bakery", "people/pleb_s_0"); the PNG goes to assets/sprites_iso/<name>.png and the anchor
-to assets/sprites_iso/meta/<family>.json.  spec keys:
+<family> is a module in this folder exposing SPRITES = {name: spec}, or the path of a .py file
+elsewhere (a mod's art, e.g. mods/example_vintners_guild/art/vintners_art.py, rendered with
+URBS_ART_OUT=<mod>/sprites; docs/10-modding.md).  name is the atlas name ("bld/bakery",
+"people/pleb_s_0"); the PNG goes to assets/sprites_iso/<name>.png and the anchor to
+assets/sprites_iso/meta/<family>.json.  spec keys:
 
   build(M)        builds the scene (M = kit.palette()); required
   fp=(fw, fh)     ground-attached sprite: anchor = footprint's bottom corner (see kit.frame_footprint)
@@ -129,6 +131,9 @@ def main():
         print("usage: run.py -- <family> [names...]")
         return
     family, wanted = argv[0], argv[1:]
+    if family.endswith(".py"):  # a family outside this folder (a mod's art): import it from its path
+        sys.path.insert(1, os.path.dirname(os.path.abspath(family)))
+        family = os.path.splitext(os.path.basename(family))[0]
     mod = importlib.import_module(family)
     # a name ending in "=" matches exactly (bld/house_plot_t2= skips the @region variants)
     names = [n for n in mod.SPRITES

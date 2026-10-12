@@ -1,0 +1,36 @@
+# The Mods screen: enable the example mod, turn it off and on again (its sprites go into extra atlas
+# pages and out again), then play its scenario and hold its vintner's cellar, drawn with the mod's own
+# sprite, over the map.
+wait 60
+expect screen == menu
+button Mods
+wait 20
+button on
+button Apply
+wait 20
+shot mods_on.png
+button on
+button Apply
+wait 20
+button on
+button Apply
+wait 20
+expect screen == mods
+button Back
+wait 10
+button Custom scenarios
+wait 20
+button Play
+wait 30
+expect screen == playing
+read
+button Build Food
+wait 10
+shot build_food.png
+button Vintner's cellar
+wait 5
+mouse 640 420
+wait 10
+expect tool == vintner
+shot vintner_ghost.png
+quit

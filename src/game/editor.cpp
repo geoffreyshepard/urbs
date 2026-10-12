@@ -64,16 +64,31 @@ bool input_string(const char* label, std::string& s, size_t cap = 64) {
 
 bool App::reload_defs(std::string* err) {
   try {
-    data::Defs d = data::load_defs(root_ + "data", enabled_mod_dirs(settings_, mods_));
+    const std::vector<std::string> dirs = enabled_mod_dirs(settings_, mods_);
+    data::Defs d = data::load_defs(root_ + "data", dirs);
     base_defs_ = std::move(d);
     defs_ = base_defs_;
+    // The mods' sprites (docs/10-modding.md, "Sprites"), in the same load order as their defs; the
+    // building footprints give bld/ sprites their anchor.  Refused files only warn.
+    render::ModSpriteConfig sc;
+    for (const auto& b : defs_.buildings) sc.footprints.emplace(b.sprite, std::make_pair(int{b.w}, int{b.h}));
+    mod_sprite_warnings_ = renderer_.set_mod_sprites(dirs, sc);
     view_.init(renderer_.atlas(), defs_, world_ ? world_->region : std::string());
+    icons_.init(win_.gpu, renderer_.atlas(), defs_);
     icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, world_ ? world_->region : std::string());
     return true;
   } catch (const std::exception& e) {
     if (err) *err = e.what();
     return false;
   }
+}
+
+std::string App::mod_sprite_status() const {
+  if (mod_sprite_warnings_.empty()) return std::string();
+  std::string s = " Mod sprite refused: " + mod_sprite_warnings_.front();
+  if (mod_sprite_warnings_.size() > 1)
+    s += " (and " + std::to_string(mod_sprite_warnings_.size() - 1) + " more, listed in the console log)";
+  return s;
 }
 
 void App::draw_mods() {
@@ -117,6 +132,7 @@ void App::draw_mods() {
     std::string err;
     if (reload_defs(&err)) {
       status_ = settings_.mods.empty() ? "Playing without mods." : "Mods loaded.";
+      status_ += mod_sprite_status();
       menu_background();
     } else {
       status_ = "Mod error: " + err;
@@ -210,6 +226,7 @@ void App::draw_custom() {
       if (ImGui::Button("Edit", ImVec2(bw, 0))) editor_open(list[k].second);
     }
     ImGui::SetCursorPosY(row_y + fs * 2.6f);
+    ImGui::Dummy(ImVec2(0, 0));  // an item after the cursor move, or ImGui asserts on the last row
     if (k + 1 < list.size()) ImGui::Separator();
     ImGui::PopID();
   }

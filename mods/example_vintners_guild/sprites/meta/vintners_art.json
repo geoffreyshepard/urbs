@@ -1,0 +1,42 @@
+{
+ "bld/vintner": {
+  "ax": 128,
+  "ay": 186
+ },
+ "bld/vintner_lit": {
+  "ax": 128,
+  "ay": 186
+ },
+ "bld/vintner_r1": {
+  "ax": 128,
+  "ay": 155
+ },
+ "bld/vintner_r1_lit": {
+  "ax": 128,
+  "ay": 155
+ },
+ "bld/vintner_r2": {
+  "ax": 128,
+  "ay": 142
+ },
+ "bld/vintner_r2_lit": {
+  "ax": 128,
+  "ay": 142
+ },
+ "bld/vintner_r3": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/vintner_r3_lit": {
+  "ax": 128,
+  "ay": 173
+ },
+ "goods/amber_wine": {
+  "ax": 20,
+  "ay": 20
+ },
+ "goods/amber_wine_16": {
+  "ax": 32,
+  "ay": 32
+ }
+}

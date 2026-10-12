@@ -9,6 +9,7 @@
 #include "render/camera.hpp"
 #include "render/gpu.hpp"
 #include "render/iso.hpp"
+#include "render/mod_sprites.hpp"
 #include "render/terrain.hpp"
 #include "sim/map.hpp"
 
@@ -27,6 +28,11 @@ class Renderer {
  public:
   bool init(platform::Window& win, const std::string& data_root);
   void shutdown();
+  // Packs the sprites of these mod folders (load order) into the atlas, replacing the previous mods'
+  // (render/mod_sprites.hpp; cfg supplies the building footprints, the atlas the rest).  Load time
+  // only: waits for the GPU.  Sprites resolved earlier (WorldView, UiIcons) must be resolved again.
+  // Returns the warnings about refused files.
+  std::vector<std::string> set_mod_sprites(const std::vector<std::string>& mod_dirs, const ModSpriteConfig& cfg);
 
   // Static world layer. The renderer rebuilds dirty chunks of this map each frame.
   void set_map(const sim::TileMap* map);

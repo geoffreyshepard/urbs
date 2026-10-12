@@ -359,6 +359,9 @@ bool App::init(const AppOptions& opt) {
       }
       status_ = "Mods disabled: " + err;
       status_time_ = 12;
+    } else if (!mod_sprite_warnings_.empty()) {
+      status_ = mod_sprite_status().substr(1);
+      status_time_ = 12;
     }
   }
   campaign_.load(root_);
@@ -371,9 +374,6 @@ bool App::init(const AppOptions& opt) {
     }
   }
   selected_mission_ = profile_.next_index(campaign_);
-  view_.init(renderer_.atlas(), defs_);
-  icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, std::string());
-  icons_.init(win_.gpu, renderer_.atlas(), defs_);
   gen_.size = 192;
   gen_.seed = opt.seed;
   gen_.coast = 2;

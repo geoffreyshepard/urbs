@@ -170,6 +170,35 @@ bool Renderer::init(platform::Window& win, const std::string& data_root) {
   return true;
 }
 
+std::vector<std::string> Renderer::set_mod_sprites(const std::vector<std::string>& mod_dirs,
+                                                   const ModSpriteConfig& cfg) {
+  ModSpriteConfig c = cfg;
+  c.page_w = atlas_.width();
+  c.page_h = atlas_.height();
+  c.first_page = atlas_.base_pages();
+  c.world_scale = atlas_.scale();
+  const ModSpritePack pack = pack_mod_sprites(mod_dirs, c);
+  std::vector<SDL_GPUTransferBuffer*> xfers;
+  if (pack.pages == 0 && atlas_.pages() == atlas_.base_pages()) {
+    atlas_.set_mod_sprites(dev_, nullptr, pack, xfers);  // names only: the texture stays as it is
+  } else {
+    SDL_GPUCommandBuffer* cmd = SDL_AcquireGPUCommandBuffer(dev_);
+    SDL_GPUCopyPass* cp = SDL_BeginGPUCopyPass(cmd);
+    atlas_.set_mod_sprites(dev_, cp, pack, xfers);
+    SDL_EndGPUCopyPass(cp);
+    atlas_.generate_mips(cmd);
+    SDL_SubmitGPUCommandBuffer(cmd);
+    SDL_WaitForGPUIdle(dev_);
+    for (auto* x : xfers) SDL_ReleaseGPUTransferBuffer(dev_, x);
+  }
+  // Terrain, roads and props may be modded too: resolve them again and rebuild the static chunks.
+  ts_.resolve(atlas_);
+  tile_ = atlas_.get("fx/tile");
+  white_ = atlas_.get("fx/white");
+  if (map_) set_map(map_);
+  return pack.warnings;
+}
+
 void Renderer::shutdown() {
   if (!dev_) return;
   SDL_WaitForGPUIdle(dev_);
