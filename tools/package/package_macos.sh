@@ -23,6 +23,7 @@ rsync -a --delete data/ "$RES/data/"
 mkdir -p "$RES/assets"
 rsync -a --delete assets/atlas/ "$RES/assets/atlas/"
 [ -d assets/sprites ] && rsync -a --delete assets/sprites/ "$RES/assets/sprites/"
+rsync -a --delete assets/ui/ "$RES/assets/ui/"
 rsync -a --delete assets/music/ "$RES/assets/music/"
 for f in LICENSE.md LICENSE-ASSETS.txt NOTICE README.md RELEASE_NOTES.md; do
   [ -f "$f" ] && cp "$f" "$RES/"

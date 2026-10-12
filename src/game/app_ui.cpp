@@ -172,124 +172,644 @@ void App::draw_ui() {
   }
 }
 
+void dim_backdrop(int alpha) {
+  ImGui::GetBackgroundDrawList()->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, IM_COL32(18, 12, 8, alpha));
+}
+
+namespace {
+
+std::string roman(int n) {
+  static const std::pair<int, const char*> kNum[] = {{50, "L"}, {40, "XL"}, {10, "X"}, {9, "IX"},
+                                                     {5, "V"},  {4, "IV"},  {1, "I"}};
+  std::string out;
+  for (const auto& [v, s] : kNum)
+    while (n >= v) {
+      out += s;
+      n -= v;
+    }
+  return out;
+}
+
+// "Capua - Campania" -> {"Capua", "Campania"}.
+std::pair<std::string, std::string> split_name(const std::string& name) {
+  const size_t k = name.find(" - ");
+  if (k == std::string::npos) return {name, std::string()};
+  return {name.substr(0, k), name.substr(k + 3)};
+}
+
+// Title-screen colours: light text on the dark column over the city.
+constexpr ImU32 kMenuInk = IM_COL32(16, 11, 7, 228);
+constexpr ImU32 kMenuText = IM_COL32(236, 224, 198, 255);
+constexpr ImU32 kMenuMuted = IM_COL32(186, 168, 136, 255);
+constexpr ImU32 kMenuGold = IM_COL32(232, 192, 112, 255);
+constexpr ImU32 kTerracotta = IM_COL32(170, 66, 40, 255), kTerracottaHi = IM_COL32(196, 84, 52, 255),
+                kTerracottaLo = IM_COL32(136, 50, 30, 255);
+
+// A big call-to-action button in terracotta (the main menu's Campaign, the dossier's Begin).
+bool primary_button(const char* label, ImVec2 size) {
+  ImGui::PushStyleColor(ImGuiCol_Button, kTerracotta);
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered, kTerracottaHi);
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive, kTerracottaLo);
+  ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(255, 244, 222, 255));
+  ImGui::PushFont(ui_fonts().heading, std::round(ImGui::GetStyle().FontSizeBase * 1.3f));
+  const bool r = ImGui::Button(label, size);
+  ImGui::PopFont();
+  ImGui::PopStyleColor(4);
+  return r;
+}
+
+// A title-screen entry: Cinzel text on the dark column, a gold bar and a soft band when hovered, and an
+// optional caption below it.
+bool menu_entry(const char* label, const std::string& caption, float width, bool enabled = true) {
+  const UiFonts& f = ui_fonts();
+  const float fs = ImGui::GetStyle().FontSizeBase, ts = std::round(fs * 1.18f);
+  const float h = std::round(caption.empty() ? fs * 2.0f : fs * 2.9f);
+  const ImVec2 p = ImGui::GetCursorScreenPos();
+  ImGui::PushID(label);
+  const bool clicked = ImGui::InvisibleButton("##entry", ImVec2(width, h)) && enabled;
+  ImGui::PopID();
+  const bool hot = enabled && ImGui::IsItemHovered();
+  ImDrawList* dl = ImGui::GetWindowDrawList();
+  if (hot) {
+    dl->AddRectFilledMultiColor(p, ImVec2(p.x + width, p.y + h), IM_COL32(232, 192, 112, 46),
+                                IM_COL32(232, 192, 112, 0), IM_COL32(232, 192, 112, 0), IM_COL32(232, 192, 112, 46));
+    dl->AddRectFilled(p, ImVec2(p.x + 3, p.y + h), kMenuGold);
+  }
+  const float ty = caption.empty() ? p.y + (h - ts) * 0.5f : p.y + fs * 0.35f;
+  dl->AddText(f.heading, ts, ImVec2(p.x + fs * 0.9f, ty),
+              !enabled ? IM_COL32(120, 108, 90, 255)
+              : hot    ? IM_COL32(255, 232, 178, 255)
+                       : kMenuText,
+              label);
+  if (!caption.empty())
+    dl->AddText(f.body, std::round(fs * 0.86f), ImVec2(p.x + fs * 0.9f, ty + ts + fs * 0.12f), kMenuMuted,
+                caption.c_str());
+  return clicked;
+}
+
+}  // namespace
+
 void App::draw_main_menu() {
-  center_next(360, 540);
-  begin_window("##menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove);
-  ImGui::SetCursorPosX((360 - 300) * 0.5f);
-  if (!icons_.picture("ui/logo", ImVec2(300, 90))) {
-    heading("U R B S", 2.4f);
+  const ImVec2 ds = display();
+  const float fs = ImGui::GetStyle().FontSizeBase;
+  const UiFonts& f = ui_fonts();
+  // Shade the city: a dark column on the left that fades into it, and darker top and bottom edges.
+  ImDrawList* bg = ImGui::GetBackgroundDrawList();
+  const float col_w = std::round(std::clamp(ds.x * 0.30f, fs * 21.0f, fs * 30.0f));
+  const ImU32 clear = IM_COL32(16, 11, 7, 0);
+  bg->AddRectFilled(ImVec2(0, 0), ImVec2(col_w, ds.y), kMenuInk);
+  bg->AddRectFilledMultiColor(ImVec2(col_w, 0), ImVec2(col_w + ds.x * 0.22f, ds.y), kMenuInk, clear, clear, kMenuInk);
+  bg->AddRectFilledMultiColor(ImVec2(0, 0), ImVec2(ds.x, ds.y * 0.16f), IM_COL32(16, 11, 7, 120),
+                              IM_COL32(16, 11, 7, 120), clear, clear);
+  bg->AddRectFilledMultiColor(ImVec2(0, ds.y * 0.78f), ImVec2(ds.x, ds.y), clear, clear, IM_COL32(16, 11, 7, 150),
+                              IM_COL32(16, 11, 7, 150));
+  bg->AddLine(ImVec2(col_w - 1, 0), ImVec2(col_w - 1, ds.y), IM_COL32(232, 192, 112, 0));
+
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(col_w, ds.y), ImGuiCond_Always);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+  ImGui::Begin("##menu", nullptr,
+               ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoMove |
+                   ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
+  ImGui::PopStyleVar();
+  const float pad = std::round(fs * 2.2f), inner = col_w - 2 * pad;
+  ImDrawList* dl = ImGui::GetWindowDrawList();
+  const bool dialog = show_saveload_ || show_settings_;  // the column waits behind an open dialog
+  if (dialog) ImGui::BeginDisabled();
+  float y = std::round(std::max(fs * 2.0f, ds.y * 0.07f));
+  // The logo at its own aspect (the atlas knows its size), then the motto.
+  {
+    const render::Sprite logo = renderer_.atlas().find("ui/logo");
+    const float aspect = logo.valid && logo.h > 0 ? static_cast<float>(logo.w) / static_cast<float>(logo.h) : 3.33f;
+    const float lw = std::min(inner, fs * 20.0f), lh = std::round(lw / aspect);
+    ImGui::SetCursorPos(ImVec2(pad - fs * 0.4f, y));
+    if (!icons_.picture("ui/logo", ImVec2(lw, lh))) {
+      ImGui::PushFont(f.heading, std::round(fs * 4.0f));
+      ImGui::PushStyleColor(ImGuiCol_Text, kMenuText);
+      ImGui::TextUnformatted("URBS");
+      ImGui::PopStyleColor();
+      ImGui::PopFont();
+    }
+    y = ImGui::GetCursorPosY() + fs * 0.3f;
+    const char* motto = "Build Rome one family at a time";
+    dl->AddText(f.body, std::round(fs * 1.08f), ImVec2(ImGui::GetWindowPos().x + pad, ImGui::GetWindowPos().y + y),
+                kMenuMuted, motto);
+    y += fs * 1.2f;
+    const float rx = ImGui::GetWindowPos().x + pad, ry = ImGui::GetWindowPos().y + y + fs * 0.9f;
+    dl->AddLine(ImVec2(rx, ry), ImVec2(rx + inner, ry), IM_COL32(232, 192, 112, 90), 1.0f);
+    dl->AddQuadFilled(ImVec2(rx + inner * 0.5f, ry - 4), ImVec2(rx + inner * 0.5f + 4, ry),
+                      ImVec2(rx + inner * 0.5f, ry + 4), ImVec2(rx + inner * 0.5f - 4, ry), kMenuGold);
+    y += fs * 2.4f;
   }
-  const char* sub = "Build Rome one family at a time";
-  ImGui::SetCursorPosX((360 - ImGui::CalcTextSize(sub).x) * 0.5f);
-  ImGui::TextDisabled("%s", sub);
-  ImGui::Dummy(ImVec2(0, 14));
-  const float x = (360 - 260) * 0.5f;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Campaign")) screen_ = Screen::Campaign;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Sandbox")) screen_ = Screen::Sandbox;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Custom scenarios")) screen_ = Screen::Custom;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Scenario editor")) editor_new();
-  ImGui::SetCursorPosX(x);
-  if (big_button("Mods")) screen_ = Screen::Mods;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Load game")) {
-    show_saveload_ = true;
-    saveload_saving_ = false;
+
+  // The campaign is the main call to action; its caption says where the career stands.
+  ImGui::SetCursorPos(ImVec2(pad, y));
+  if (primary_button("Campaign", ImVec2(inner, std::round(fs * 2.9f)))) screen_ = Screen::Campaign;
+  {
+    const int next = profile_.next_index(campaign_);
+    std::string cap;
+    if (next >= 0 && next < static_cast<int>(campaign_.missions.size())) {
+      const auto& m = campaign_.missions[static_cast<size_t>(next)];
+      cap = (profile_.completed.empty() ? "Begins with " : "Next: ") + roman(next + 1) + ". " +
+            split_name(m.name).first + "  \xC2\xB7  " + m.rank;
+    } else if (!campaign_.missions.empty()) {
+      cap = "Every mission won. The career is complete.";
+    }
+    ImGui::SetCursorPosX(pad);
+    ImGui::PushStyleColor(ImGuiCol_Text, kMenuMuted);
+    ImGui::TextUnformatted(cap.c_str());
+    ImGui::PopStyleColor();
   }
-  ImGui::SetCursorPosX(x);
-  if (big_button("Settings")) show_settings_ = true;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Quit")) running_ = false;
-  ImGui::Dummy(ImVec2(0, 10));
-  ImGui::TextDisabled("v%s  -  noncommercial, source available", URBS_VERSION);
+  ImGui::Dummy(ImVec2(0, fs * 0.6f));
+
+  // Continue: the most recent save, if there is one.
+  {
+    static const char* kSlots[] = {"autosave", "quicksave", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"};
+    std::string best;
+    std::filesystem::file_time_type best_t{};
+    for (const char* sl : kSlots) {
+      std::error_code ec;
+      const auto t = std::filesystem::last_write_time(save_path(sl), ec);
+      if (!ec && (best.empty() || t > best_t)) {
+        best = sl;
+        best_t = t;
+      }
+    }
+    save::SaveInfo info;
+    if (!best.empty() && save::read_info(save_path(best), info)) {
+      const int mi = campaign_.index_of(info.mission);
+      const std::string where = mi >= 0 ? split_name(campaign_.missions[static_cast<size_t>(mi)].name).first
+                                        : (info.mission.empty() ? std::string("Sandbox") : info.mission);
+      const std::string cap = where + ", year " + std::to_string(sim::year_index(info.now) + 1) + "  \xC2\xB7  " +
+                              with_commas(info.citizens) + " people  \xC2\xB7  " + best;
+      ImGui::SetCursorPosX(pad - fs * 0.9f);
+      if (menu_entry("Continue", cap, inner + fs * 0.9f)) load_slot(best);
+    }
+  }
+  struct Entry {
+    const char* label;
+    int action;
+  };
+  const Entry entries[] = {{"Sandbox", 0},   {"Custom scenarios", 1}, {"Scenario editor", 2}, {"Mods", 3},
+                           {"Load game", 4}, {nullptr, -1},           {"Settings", 5},        {"Quit", 6}};
+  for (const Entry& e : entries) {
+    if (!e.label) {
+      const ImVec2 p(ImGui::GetWindowPos().x + pad, ImGui::GetCursorScreenPos().y);
+      dl->AddLine(ImVec2(p.x, p.y + fs * 0.5f), ImVec2(p.x + inner * 0.35f, p.y + fs * 0.5f),
+                  IM_COL32(232, 192, 112, 70));
+      ImGui::Dummy(ImVec2(0, fs));
+      continue;
+    }
+    ImGui::SetCursorPosX(pad - fs * 0.9f);
+    if (!menu_entry(e.label, std::string(), inner + fs * 0.9f)) continue;
+    switch (e.action) {
+      case 0:
+        screen_ = Screen::Sandbox;
+        break;
+      case 1:
+        screen_ = Screen::Custom;
+        break;
+      case 2:
+        editor_new();
+        break;
+      case 3:
+        screen_ = Screen::Mods;
+        break;
+      case 4:
+        show_saveload_ = true;
+        saveload_saving_ = false;
+        break;
+      case 5:
+        show_settings_ = true;
+        break;
+      case 6:
+        running_ = false;
+        break;
+      default:
+        break;
+    }
+  }
+  // Version and licence, small, at the foot of the column.
+  {
+    char line[96];
+    std::snprintf(line, sizeof line, "v%s  \xC2\xB7  noncommercial, source available", URBS_VERSION);
+    const float ls = std::round(fs * 0.82f);
+    dl->AddText(f.body, ls, ImVec2(ImGui::GetWindowPos().x + pad, ImGui::GetWindowPos().y + ds.y - pad * 0.6f - ls),
+                IM_COL32(150, 134, 108, 255), line);
+  }
+  if (dialog) {
+    ImGui::EndDisabled();
+    dim_backdrop(150);
+    dl->AddRectFilled(ImGui::GetWindowPos(), ImVec2(ImGui::GetWindowPos().x + col_w, ImGui::GetWindowPos().y + ds.y),
+                      IM_COL32(18, 12, 8, 150));
+  }
   ImGui::End();
 }
 
+// The province map with the career's missions as medallions, and the selected mission's dossier:
+// title, region, rank and salary, the letter of appointment as a scroll, difficulty and Begin.
 void App::draw_campaign() {
   const ImVec2 ds = display();
-  ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(ds.x - 40, ds.y - 40), ImGuiCond_Always);
-  begin_window(
-      "##campaign", nullptr,
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-  menu_title("Cursus honorum");
-  float map_w = (ds.x - 40) * 0.64f, map_h = ds.y - 160;
-  map_h = std::min(map_h, (map_w - 16) * 288.0f / 512.0f + 16);
-  // Stylised Mediterranean: sea, land masses as soft blobs, the road of the career between missions.
-  ImGui::BeginChild("map", ImVec2(map_w, map_h), true);
-  ImDrawList* dl = ImGui::GetWindowDrawList();
-  const ImVec2 o = ImGui::GetCursorScreenPos();
-  const float W = map_w - 16, H = map_h - 16;
-  ImVec2 uv0, uv1;
-  if (icons_.big_uv("ui/province_map", uv0, uv1)) {
-    dl->AddImage(icons_.big_texture(), o, ImVec2(o.x + W, o.y + H), uv0, uv1);
-  } else {
-    dl->AddRectFilled(o, ImVec2(o.x + W, o.y + H), IM_COL32(64, 104, 140, 255));
+  const float fs = ImGui::GetStyle().FontSizeBase;
+  const UiFonts& f = ui_fonts();
+  dim_backdrop(214);
+  if (!province_map_.valid() && !province_map_tried_) {
+    province_map_tried_ = true;
+    province_map_.load(win_.gpu, root_ + "assets/ui/province_map.png");
   }
-  // Path of the career.
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ds, ImGuiCond_Always);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+  ImGui::Begin("##campaign", nullptr,
+               ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoMove |
+                   ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus);
+  ImGui::PopStyleVar();
+  ImDrawList* dl = ImGui::GetWindowDrawList();
   const auto& M = campaign_.missions;
   const int next = profile_.next_index(campaign_);
-  for (size_t k = 1; k < M.size() && static_cast<int>(k) <= next; ++k)
-    dl->AddLine(ImVec2(o.x + M[k - 1].x * W, o.y + M[k - 1].y * H), ImVec2(o.x + M[k].x * W, o.y + M[k].y * H),
-                IM_COL32(150, 60, 35, 200), 2.0f);
-  for (size_t k = 0; k < M.size(); ++k) {
-    const ImVec2 p(o.x + M[k].x * W, o.y + M[k].y * H);
-    const bool done = profile_.done(M[k].id), open = static_cast<int>(k) <= next;
-    const ImU32 col = done ? IM_COL32(220, 180, 60, 255) : open ? IM_COL32(190, 70, 50, 255) : IM_COL32(110, 100, 90, 255);
-    dl->AddCircleFilled(p, static_cast<int>(k) == selected_mission_ ? 9.0f : 6.0f, col);
-    dl->AddCircle(p, static_cast<int>(k) == selected_mission_ ? 9.0f : 6.0f, IM_COL32(40, 25, 15, 255), 0, 2);
-    ImGui::SetCursorScreenPos(ImVec2(p.x - 9, p.y - 9));
-    ImGui::PushID(static_cast<int>(k));
-    if (ImGui::InvisibleButton("m", ImVec2(18, 18)) && open) selected_mission_ = static_cast<int>(k);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%zu. %s", k + 1, M[k].name.c_str());
-    ImGui::PopID();
+  const float m = std::round(fs * 1.3f);
+
+  // Header: the title on the left, the career on the right, a thin gold rule below.
+  const float head_h = std::round(fs * 3.4f);
+  {
+    const float ts = std::round(fs * 2.1f);
+    dl->AddText(f.heading, ts, ImVec2(m, (head_h - ts) * 0.5f + fs * 0.2f), kMenuText, "Cursus honorum");
+    char career[160];
+    std::snprintf(career, sizeof career, "Career  %zu of %zu missions    \xC2\xB7    Personal savings  %s denarii",
+                  profile_.completed.size(), M.size(), with_commas(profile_.savings).c_str());
+    const float cs = std::round(fs * 1.0f);
+    const ImVec2 sz = f.body->CalcTextSizeA(cs, FLT_MAX, 0, career);
+    dl->AddText(f.body, cs, ImVec2(ds.x - m - sz.x, (head_h - cs) * 0.5f + fs * 0.25f), kMenuMuted, career);
+    dl->AddLine(ImVec2(m, head_h), ImVec2(ds.x - m, head_h), IM_COL32(232, 192, 112, 90), 1.0f);
   }
-  ImGui::EndChild();
-  ImGui::SameLine();
-  ImGui::BeginChild("brief", ImVec2(0, map_h), true);
-  if (selected_mission_ >= 0 && selected_mission_ < static_cast<int>(M.size())) {
-    const auto& m = M[static_cast<size_t>(selected_mission_)];
-    heading((std::to_string(selected_mission_ + 1) + ". " + m.name).c_str(), 1.5f);
-    ImGui::TextDisabled("%s  -  rank: %s  -  salary %d/day", m.region.c_str(), m.rank.c_str(), m.salary);
-    ImGui::Separator();
-    ImGui::TextWrapped("%s", m.blurb.c_str());
-    if (!m.letter.empty()) {
-      ImGui::Spacing();
-      ImGui::BeginChild("letter", ImVec2(0, std::max(120.0f, map_h - 300.0f)), true);
-      ImGui::TextWrapped("%s", m.letter.c_str());
-      ImGui::EndChild();
+  const float foot_h = std::round(fs * 3.6f);
+  const float body_y0 = head_h + m * 0.8f, body_y1 = ds.y - foot_h;
+  const float dossier_w = std::round(std::clamp(ds.x * 0.30f, fs * 22.0f, fs * 30.0f));
+  // The map takes the width left of the dossier at its own aspect; the career's timeline sits below it.
+  // When the window is too short for both, the map gives up some of its far north and south (never
+  // its missions), and only then some width.
+  const float time_h = std::round(fs * 4.4f);
+  constexpr float kAspect = 16.0f / 9.0f;
+  float mw = ds.x - dossier_w - 3 * m, mh = mw / kAspect;
+  const float box_h = body_y1 - body_y0 - time_h;
+  float u0 = 0, u1 = 1, v0 = 0, v1 = 1;
+  if (mh > box_h) {
+    const float fy = std::max(0.78f, box_h / mh);
+    v0 = std::clamp(0.47f - fy * 0.5f, 0.0f, 1.0f - fy);
+    v1 = v0 + fy;
+    mh *= fy;
+    if (mh > box_h) {
+      mw *= box_h / mh;
+      mh = box_h;
     }
-    ImGui::Spacing();
-    if (profile_.done(m.id)) ImGui::TextColored(ImVec4(0.55f, 0.4f, 0.05f, 1), "Completed");
-    const bool available = std::filesystem::exists(root_ + "data/scenarios/" + m.id + "/scenario.json");
-    ImGui::Spacing();
-    ImGui::SetNextItemWidth(220);
-    ImGui::Combo("Difficulty", &settings_.difficulty, kDifficulty, 3);
+  }
+  const float mx0 = m, my0 = body_y0;
+  const ImVec2 mp0(mx0, my0), mp1(std::round(mx0 + mw), std::round(my0 + mh));
+  // Frame: a soft drop shadow, a dark bronze border and a thin gold inner line.
+  for (int k = 1; k <= 4; ++k) {
+    const float o = static_cast<float>(k);
+    dl->AddRect(ImVec2(mp0.x - o, mp0.y - o + 2), ImVec2(mp1.x + o, mp1.y + o + 2), IM_COL32(0, 0, 0, 60 - k * 12), 0,
+                0, 2.0f);
+  }
+  if (province_map_.valid()) {
+    dl->AddImage(province_map_.texture(), mp0, mp1, ImVec2(u0, v0), ImVec2(u1, v1));
+  } else {
+    ImVec2 a, b;
+    if (icons_.big_uv("ui/province_map", a, b)) {
+      dl->AddImage(icons_.big_texture(), mp0, mp1, ImVec2(a.x + (b.x - a.x) * u0, a.y + (b.y - a.y) * v0),
+                   ImVec2(a.x + (b.x - a.x) * u1, a.y + (b.y - a.y) * v1));
+    } else {
+      dl->AddRectFilled(mp0, mp1, IM_COL32(52, 98, 136, 255));
+    }
+  }
+  dl->AddRect(ImVec2(mp0.x - 2, mp0.y - 2), ImVec2(mp1.x + 2, mp1.y + 2), IM_COL32(92, 62, 34, 255), 0, 0, 3.0f);
+  dl->AddRect(ImVec2(mp0.x + 3, mp0.y + 3), ImVec2(mp1.x - 3, mp1.y - 3), IM_COL32(232, 200, 130, 110), 0, 0, 1.0f);
+
+  // Mission medallions: at their places, nudged apart where they crowd (Latium and Campania), with a
+  // short leader line back to the true spot.
+  const float r = std::round(fs * 0.78f);
+  const size_t n = M.size();
+  std::vector<ImVec2> at(n), pos(n);
+  for (size_t k = 0; k < n; ++k) {
+    at[k] = ImVec2(mp0.x + (M[k].x - u0) / (u1 - u0) * (mp1.x - mp0.x),
+                   mp0.y + (M[k].y - v0) / (v1 - v0) * (mp1.y - mp0.y));
+    pos[k] = at[k];
+  }
+  const float dmin = 2 * r + fs * 0.3f;
+  for (int it = 0; it < 60; ++it)
+    for (size_t a = 0; a < n; ++a)
+      for (size_t b = a + 1; b < n; ++b) {
+        float dx = pos[b].x - pos[a].x, dy = pos[b].y - pos[a].y;
+        float d = std::sqrt(dx * dx + dy * dy);
+        if (d >= dmin) continue;
+        if (d < 1e-3f) {  // same spot: separate along a fixed direction
+          dx = 1;
+          dy = 0.3f;
+          d = std::sqrt(dx * dx + dy * dy);
+        }
+        const float push = (dmin - d) * 0.5f;
+        pos[a].x -= dx / d * push;
+        pos[a].y -= dy / d * push;
+        pos[b].x += dx / d * push;
+        pos[b].y += dy / d * push;
+      }
+  // The road of the career so far: a dashed line through the missions in order.
+  for (size_t k = 1; k < n && static_cast<int>(k) <= next; ++k) {
+    const ImVec2 a = pos[k - 1], b = pos[k];
+    const float len = std::sqrt((b.x - a.x) * (b.x - a.x) + (b.y - a.y) * (b.y - a.y));
+    const int dashes = std::max(1, static_cast<int>(len / (fs * 0.55f)));
+    for (int d = 0; d < dashes; d += 2) {
+      const float t0 = static_cast<float>(d) / static_cast<float>(dashes),
+                  t1 = static_cast<float>(d + 1) / static_cast<float>(dashes);
+      dl->AddLine(ImVec2(a.x + (b.x - a.x) * t0, a.y + (b.y - a.y) * t0),
+                  ImVec2(a.x + (b.x - a.x) * t1, a.y + (b.y - a.y) * t1), IM_COL32(120, 40, 24, 210), 2.0f);
+    }
+  }
+  int hovered = -1;
+  const float pulse = 0.5f + 0.5f * std::sin(static_cast<float>(ImGui::GetTime()) * 3.0f);
+  for (size_t k = 0; k < n; ++k) {
+    const ImVec2 p = pos[k];
+    const bool done = profile_.done(M[k].id), open = static_cast<int>(k) <= next,
+               sel = static_cast<int>(k) == selected_mission_;
+    const float dx = p.x - at[k].x, dy = p.y - at[k].y;
+    if (dx * dx + dy * dy > 9) {
+      dl->AddLine(at[k], p, IM_COL32(40, 26, 14, 200), 1.5f);
+      dl->AddCircleFilled(at[k], 2.5f, IM_COL32(40, 26, 14, 230));
+    }
+    ImGui::SetCursorScreenPos(ImVec2(p.x - r, p.y - r));
+    ImGui::PushID(static_cast<int>(k));
+    if (ImGui::InvisibleButton("m", ImVec2(2 * r, 2 * r)) && open) selected_mission_ = static_cast<int>(k);
+    if (ImGui::IsItemHovered()) hovered = static_cast<int>(k);
+    ImGui::PopID();
+    const float rr = open ? r : r * 0.82f;
+    dl->AddCircleFilled(ImVec2(p.x + 1.5f, p.y + 2.5f), rr + 1, IM_COL32(0, 0, 0, 90));
+    ImU32 fill, ring, ink;
+    if (done) {
+      fill = IM_COL32(204, 158, 70, 255);
+      ring = IM_COL32(110, 72, 26, 255);
+      ink = IM_COL32(70, 40, 12, 255);
+    } else if (open) {
+      fill = kTerracotta;
+      ring = IM_COL32(236, 196, 110, 255);
+      ink = IM_COL32(255, 242, 220, 255);
+      dl->AddCircle(p, rr + 3 + pulse * 4, IM_COL32(236, 196, 110, static_cast<int>(200 * (1 - pulse))), 0, 2.0f);
+    } else {
+      fill = IM_COL32(170, 162, 146, 220);
+      ring = IM_COL32(104, 94, 80, 230);
+      ink = IM_COL32(84, 74, 62, 255);
+    }
+    dl->AddCircleFilled(p, rr, fill);
+    if (done) dl->AddCircle(p, rr - 3, IM_COL32(246, 214, 140, 255), 0, 1.0f);
+    dl->AddCircle(p, rr, ring, 0, 2.0f);
+    if (sel) dl->AddCircle(p, rr + 3.5f, IM_COL32(255, 244, 214, 255), 0, 2.5f);
+    const std::string num = roman(static_cast<int>(k) + 1);
+    const float ns = std::round(fs * (num.size() > 3 ? 0.62f : 0.74f));
+    const ImVec2 nsz = f.bold->CalcTextSizeA(ns, FLT_MAX, 0, num.c_str());
+    dl->AddText(f.bold, ns, ImVec2(std::round(p.x - nsz.x * 0.5f), std::round(p.y - nsz.y * 0.5f)), ink, num.c_str());
+  }
+  // The cursus honorum itself: every mission in order under its rank, on one line below the map.
+  {
+    const float tx0 = mp0.x + fs * 2.6f, tx1 = mp1.x - fs * 3.2f;
+    const float ty = std::round(mp1.y + std::max(time_h, body_y1 - mp1.y) * 0.5f + fs * 0.7f);
+    const float tr = std::round(fs * 0.6f);
+    int groups = 0;
+    for (size_t k = 0; k < n; ++k)
+      if (k == 0 || M[k].rank != M[k - 1].rank) ++groups;
+    // Missions are spaced evenly with an extra half step between ranks.
+    const float steps = static_cast<float>(n - 1) + 0.6f * static_cast<float>(std::max(0, groups - 1));
+    const float step = n > 1 ? (tx1 - tx0) / steps : 0.0f;
+    std::vector<float> tx(n);
+    float x = tx0;
+    for (size_t k = 0; k < n; ++k) {
+      if (k > 0) x += step * (M[k].rank != M[k - 1].rank ? 1.6f : 1.0f);
+      tx[k] = x;
+    }
+    for (size_t k = 1; k < n; ++k)
+      dl->AddLine(ImVec2(tx[k - 1], ty), ImVec2(tx[k], ty),
+                  static_cast<int>(k) <= next ? IM_COL32(232, 192, 112, 220) : IM_COL32(150, 134, 108, 120),
+                  static_cast<int>(k) <= next ? 2.5f : 1.5f);
+    const float rs = std::round(fs * 0.78f);
+    for (size_t a = 0, b; a < n; a = b) {  // rank names over their groups
+      for (b = a + 1; b < n && M[b].rank == M[a].rank;) ++b;
+      const float cx = (tx[a] + tx[b - 1]) * 0.5f;
+      // Narrow windows: a rank name longer than its stretch of the line gets a smaller face.
+      const float room = tx[b - 1] - tx[a] + step * 1.5f;
+      float rsz = rs;
+      ImVec2 sz = f.heading->CalcTextSizeA(rsz, FLT_MAX, 0, M[a].rank.c_str());
+      if (sz.x > room) {
+        rsz = std::max(std::round(fs * 0.55f), std::floor(rs * room / sz.x));
+        sz = f.heading->CalcTextSizeA(rsz, FLT_MAX, 0, M[a].rank.c_str());
+      }
+      const bool reached = static_cast<int>(a) <= next;
+      dl->AddText(f.heading, rsz, ImVec2(std::round(cx - sz.x * 0.5f), ty - tr - fs * 0.5f - sz.y),
+                  reached ? kMenuGold : IM_COL32(150, 134, 108, 255), M[a].rank.c_str());
+    }
+    for (size_t k = 0; k < n; ++k) {
+      const ImVec2 p(tx[k], ty);
+      const bool done = profile_.done(M[k].id), open = static_cast<int>(k) <= next,
+                 sel = static_cast<int>(k) == selected_mission_;
+      ImGui::SetCursorScreenPos(ImVec2(p.x - tr, p.y - tr));
+      ImGui::PushID(1000 + static_cast<int>(k));
+      if (ImGui::InvisibleButton("t", ImVec2(2 * tr, 2 * tr)) && open) selected_mission_ = static_cast<int>(k);
+      if (ImGui::IsItemHovered()) hovered = static_cast<int>(k);
+      ImGui::PopID();
+      const ImU32 fill = done ? IM_COL32(204, 158, 70, 255) : open ? kTerracotta : IM_COL32(64, 54, 44, 255);
+      dl->AddCircleFilled(p, tr, fill);
+      dl->AddCircle(p, tr,
+                    done   ? IM_COL32(246, 214, 140, 255)
+                    : open ? IM_COL32(236, 196, 110, 255)
+                           : IM_COL32(150, 134, 108, 200),
+                    0, 1.5f);
+      if (sel) dl->AddCircle(p, tr + 3.5f, IM_COL32(255, 244, 214, 255), 0, 2.0f);
+      const std::string num = roman(static_cast<int>(k) + 1);
+      const float ns = std::round(fs * (num.size() > 3 ? 0.5f : 0.6f));
+      const ImVec2 nsz = f.bold->CalcTextSizeA(ns, FLT_MAX, 0, num.c_str());
+      dl->AddText(f.bold, ns, ImVec2(std::round(p.x - nsz.x * 0.5f), std::round(p.y - nsz.y * 0.5f)),
+                  done   ? IM_COL32(70, 40, 12, 255)
+                  : open ? IM_COL32(255, 242, 220, 255)
+                         : IM_COL32(170, 154, 128, 255),
+                  num.c_str());
+    }
+  }
+
+  // Name plaques: the selected mission and the one under the mouse.
+  auto plaque = [&](int k) {
+    if (k < 0 || k >= static_cast<int>(n)) return;
+    const std::string label = split_name(M[static_cast<size_t>(k)].name).first;
+    const float ls = std::round(fs * 0.95f);
+    const ImVec2 sz = f.bold->CalcTextSizeA(ls, FLT_MAX, 0, label.c_str());
+    const ImVec2 p = pos[static_cast<size_t>(k)];
+    const float w = sz.x + fs * 1.0f, h = sz.y + fs * 0.4f;
+    float x = p.x + r + fs * 0.5f;
+    if (x + w > mp1.x - 4) x = p.x - r - fs * 0.5f - w;
+    const float y = p.y - h * 0.5f;
+    dl->AddRectFilled(ImVec2(x + 1, y + 2), ImVec2(x + w + 1, y + h + 2), IM_COL32(0, 0, 0, 70), 3);
+    dl->AddRectFilled(ImVec2(x, y), ImVec2(x + w, y + h), IM_COL32(244, 232, 204, 240), 3);
+    dl->AddRect(ImVec2(x, y), ImVec2(x + w, y + h), IM_COL32(92, 62, 34, 255), 3, 0, 1.5f);
+    dl->AddText(f.bold, ls, ImVec2(x + fs * 0.5f, y + fs * 0.2f), IM_COL32(52, 32, 18, 255), label.c_str());
+  };
+  plaque(selected_mission_);
+  if (hovered != selected_mission_) plaque(hovered);
+  if (hovered >= 0) {
+    const auto& hm = M[static_cast<size_t>(hovered)];
+    const bool done = profile_.done(hm.id), open = hovered <= next;
+    ImGui::SetTooltip("%s. %s\n%s", roman(hovered + 1).c_str(), hm.name.c_str(),
+                      done   ? "Completed: click to read the letter again or replay it"
+                      : open ? "The next post of your career"
+                             : "Not yet: finish the missions before it");
+  }
+
+  // The dossier: a parchment card beside the map, the full height of the screen body.
+  const ImVec2 dp0(std::round(ds.x - m - dossier_w), body_y0);
+  const ImVec2 dsz(dossier_w, body_y1 - body_y0);
+  ImGui::SetCursorScreenPos(dp0);
+  ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::GetStyleColorVec4(ImGuiCol_WindowBg));
+  ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(std::round(fs * 1.2f), std::round(fs * 1.0f)));
+  ImGui::BeginChild("dossier", dsz, ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding,
+                    ImGuiWindowFlags_NoScrollbar);
+  if (selected_mission_ >= 0 && selected_mission_ < static_cast<int>(n)) {
+    const auto& mi = M[static_cast<size_t>(selected_mission_)];
+    const auto [place, subtitle] = split_name(mi.name);
+    const bool done = profile_.done(mi.id);
+    ImDrawList* cl = ImGui::GetWindowDrawList();
+    const float cw = ImGui::GetContentRegionAvail().x;
+    // Mission number and status.
+    {
+      const std::string kicker = "Mission " + roman(selected_mission_ + 1) + " of " + roman(static_cast<int>(n));
+      ImGui::PushFont(f.bold, std::round(fs * 0.85f));
+      ImGui::TextDisabled("%s", kicker.c_str());
+      ImGui::PopFont();
+      const char* st = done ? "Completed" : selected_mission_ == next ? "Your next post" : "";
+      if (*st) {
+        ImGui::SameLine();
+        const ImU32 sc = done ? IM_COL32(150, 106, 30, 255) : kTerracotta;
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + cw - ImGui::GetCursorPosX() -
+                             f.bold->CalcTextSizeA(std::round(fs * 0.85f), FLT_MAX, 0, st).x +
+                             ImGui::GetStyle().WindowPadding.x);
+        ImGui::PushFont(f.bold, std::round(fs * 0.85f));
+        ImGui::PushStyleColor(ImGuiCol_Text, sc);
+        ImGui::TextUnformatted(st);
+        ImGui::PopStyleColor();
+        ImGui::PopFont();
+      }
+    }
+    ImGui::PushFont(f.heading, std::round(fs * 2.0f));
+    ImGui::TextUnformatted(place.c_str());
+    ImGui::PopFont();
+    if (!subtitle.empty()) {
+      ImGui::PushFont(f.body, std::round(fs * 1.15f));
+      ImGui::TextDisabled("%s", subtitle.c_str());
+      ImGui::PopFont();
+    }
+    divider();
+    // Region, rank and salary in three labelled cells.
+    {
+      const std::string salary = std::to_string(mi.salary) + " denarii a day";
+      const char* labels[] = {"Province", "Rank", "Salary"};
+      const std::string values[] = {mi.region, mi.rank, salary};
+      const float x0 = ImGui::GetCursorPosX(), cell = cw / 3.0f;
+      const float y0 = ImGui::GetCursorPosY();
+      for (int c = 0; c < 3; ++c) {
+        ImGui::SetCursorPos(ImVec2(x0 + cell * static_cast<float>(c), y0));
+        ImGui::BeginGroup();
+        ImGui::PushFont(f.bold, std::round(fs * 0.75f));
+        ImGui::TextDisabled("%s", labels[c]);
+        ImGui::PopFont();
+        ImGui::PushFont(f.bold, 0.0f);
+        ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + cell - fs * 0.4f);
+        ImGui::TextWrapped("%s", values[c].c_str());
+        ImGui::PopTextWrapPos();
+        ImGui::PopFont();
+        ImGui::EndGroup();
+      }
+    }
+    ImGui::Dummy(ImVec2(0, fs * 0.3f));
+    ImGui::TextWrapped("%s", mi.blurb.c_str());
+    ImGui::Dummy(ImVec2(0, fs * 0.4f));
+    // The letter of appointment as a scroll: a lighter sheet between two rods, filling the room left
+    // above the difficulty and the Begin button.
+    const float controls_h = std::round(fs * 6.2f);
+    const float letter_h = ImGui::GetContentRegionAvail().y - controls_h;
+    if (!mi.letter.empty() && letter_h > fs * 4) {
+      const ImVec2 sp0 = ImGui::GetCursorScreenPos();
+      const float rod = std::round(fs * 0.55f), ov = std::round(fs * 0.45f);
+      const ImVec2 s0(sp0.x, sp0.y + rod * 0.5f), s1(sp0.x + cw, sp0.y + letter_h - rod * 0.5f);
+      cl->AddRectFilled(ImVec2(s0.x + 2, s0.y + 3), ImVec2(s1.x + 2, s1.y + 3), IM_COL32(60, 40, 20, 40));
+      cl->AddRectFilledMultiColor(s0, s1, IM_COL32(250, 242, 222, 255), IM_COL32(250, 242, 222, 255),
+                                  IM_COL32(238, 224, 192, 255), IM_COL32(238, 224, 192, 255));
+      cl->AddLine(ImVec2(s0.x, s0.y), ImVec2(s0.x, s1.y), IM_COL32(190, 166, 120, 255));
+      cl->AddLine(ImVec2(s1.x, s0.y), ImVec2(s1.x, s1.y), IM_COL32(190, 166, 120, 255));
+      for (const float ry : {sp0.y, sp0.y + letter_h - rod}) {
+        const ImVec2 r0(s0.x - ov, ry), r1(s1.x + ov, ry + rod);
+        cl->AddRectFilledMultiColor(r0, r1, IM_COL32(150, 98, 52, 255), IM_COL32(150, 98, 52, 255),
+                                    IM_COL32(92, 56, 26, 255), IM_COL32(92, 56, 26, 255));
+        cl->AddLine(ImVec2(r0.x + 2, r0.y + 2), ImVec2(r1.x - 2, r0.y + 2), IM_COL32(206, 150, 90, 200));
+        cl->AddCircleFilled(ImVec2(r0.x, ry + rod * 0.5f), rod * 0.62f, IM_COL32(110, 70, 34, 255));
+        cl->AddCircleFilled(ImVec2(r1.x, ry + rod * 0.5f), rod * 0.62f, IM_COL32(110, 70, 34, 255));
+      }
+      ImGui::SetCursorScreenPos(ImVec2(s0.x + fs * 0.9f, s0.y + rod * 0.5f + fs * 0.5f));
+      ImGui::BeginChild("letter", ImVec2(cw - fs * 1.4f, letter_h - 2 * rod - fs * 0.8f), ImGuiChildFlags_None,
+                        ImGuiWindowFlags_NoBackground);
+      ImGui::PushStyleColor(ImGuiCol_Text, IM_COL32(52, 34, 20, 255));
+      ImGui::TextWrapped("%s", mi.letter.c_str());
+      ImGui::PopStyleColor();
+      ImGui::EndChild();
+      ImGui::SetCursorScreenPos(ImVec2(sp0.x, sp0.y + letter_h));
+    }
+    // Difficulty and Begin, at the foot of the card.
+    ImGui::SetCursorPosY(
+        std::max(ImGui::GetCursorPosY() + fs * 0.4f,
+                 ImGui::GetWindowHeight() - ImGui::GetStyle().WindowPadding.y - controls_h + fs * 0.6f));
+    const bool available = std::filesystem::exists(root_ + "data/scenarios/" + mi.id + "/scenario.json");
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted("Difficulty");
+    ImGui::SameLine(fs * 6.0f + ImGui::GetStyle().WindowPadding.x);
+    ImGui::SetNextItemWidth(cw - fs * 6.0f);
+    ImGui::Combo("##difficulty", &settings_.difficulty, kDifficulty, 3);
+    ImGui::Dummy(ImVec2(0, fs * 0.3f));
     if (available) {
-      if (big_button("Begin the mission")) start_mission(selected_mission_);
+      if (primary_button(done ? "Play the mission again" : "Begin the mission", ImVec2(cw, std::round(fs * 2.8f))))
+        start_mission(selected_mission_);
     } else {
       ImGui::TextDisabled("This mission is still being written.");
     }
   }
-  ImGui::Separator();
-  ImGui::Text("Career: %zu of %zu missions", profile_.completed.size(), campaign_.missions.size());
-  ImGui::Text("Personal savings: %s denarii", with_commas(profile_.savings).c_str());
-  ImGui::TextWrapped("The cities you have built trade with you in later missions.");
   ImGui::EndChild();
-  if (big_button("Back", 160)) screen_ = Screen::Menu;
-  ImGui::SameLine();
-  if (big_button("Reset career", 160)) {
-    profile_ = CampaignProfile{};
-    profile_.save(user_dir_);
-    selected_mission_ = 0;
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor();
+
+  // Footer: Back and Reset career on the left, a reminder of how missions connect on the right.
+  ImGui::SetCursorScreenPos(ImVec2(m, body_y1 + (foot_h - fs * 2.2f) * 0.5f));
+  if (ImGui::Button("Back", ImVec2(std::round(fs * 9), std::round(fs * 2.2f)))) screen_ = Screen::Menu;
+  ImGui::SameLine(0, fs * 0.8f);
+  if (ImGui::Button("Reset career", ImVec2(std::round(fs * 9), std::round(fs * 2.2f)))) ImGui::OpenPopup("##reset");
+  {
+    const char* hint = "The cities you have built trade with you in later missions.";
+    const float hs = std::round(fs * 0.92f);
+    const ImVec2 sz = f.body->CalcTextSizeA(hs, FLT_MAX, 0, hint);
+    dl->AddText(f.body, hs, ImVec2(ds.x - m - sz.x, body_y1 + (foot_h - sz.y) * 0.5f), kMenuMuted, hint);
+  }
+  ImGui::SetNextWindowPos(ImVec2(ds.x * 0.5f, ds.y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+  if (ImGui::BeginPopupModal("##reset", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize)) {
+    heading("Reset the career?", 1.3f);
+    ImGui::TextUnformatted("Every mission won and all personal savings are forgotten.");
+    ImGui::Spacing();
+    if (ImGui::Button("Reset", ImVec2(fs * 8, 0))) {
+      profile_ = CampaignProfile{};
+      profile_.save(user_dir_);
+      selected_mission_ = 0;
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Keep it", ImVec2(fs * 8, 0))) ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
   }
   ImGui::End();
 }
 
 void App::draw_sandbox_setup() {
+  dim_backdrop();
   center_next(420, 480);
   begin_window(
       "##sandbox", nullptr,
@@ -654,22 +1174,27 @@ void App::draw_saveload() {
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   menu_title(saveload_saving_ ? "Save game" : "Load game");
   const char* slots[] = {"autosave", "quicksave", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"};
-  for (const char* s : slots) {
-    if (saveload_saving_ && (std::string(s) == "autosave")) continue;
+  const char* names[] = {"Autosave", "Quicksave", "Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5", "Slot 6"};
+  const float fs = ImGui::GetFontSize();
+  ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
+  for (int k = 0; k < 8; ++k) {
+    const char* s = slots[k];
+    if (saveload_saving_ && k == 0) continue;
     save::SaveInfo info;
     const bool exists = save::read_info(save_path(s), info);
-    std::string label = std::string(s) + ": ";
+    std::string detail = "empty";
     if (exists) {
-      label += (info.mission.empty() ? std::string("city") : info.mission) + ", year " +
-               std::to_string(sim::year_index(info.now) + 1) + " day " + std::to_string(sim::day_of_year(info.now) + 1) +
-               ", " + std::to_string(info.citizens) + " people";
-    } else {
-      label += "(empty)";
+      const int mi = campaign_.index_of(info.mission);
+      const std::string where = mi >= 0 ? campaign_.missions[static_cast<size_t>(mi)].name
+                                        : (info.mission.empty() ? std::string("City") : info.mission);
+      detail = where + "  \xC2\xB7  year " + std::to_string(sim::year_index(info.now) + 1) + ", day " +
+               std::to_string(sim::day_of_year(info.now) + 1) + "  \xC2\xB7  " + with_commas(info.citizens) + " people";
     }
     ImGui::PushID(s);
     const bool can = saveload_saving_ || exists;
     if (!can) ImGui::BeginDisabled();
-    if (ImGui::Button(label.c_str(), ImVec2(420, 30))) {
+    const ImVec2 p = ImGui::GetCursorScreenPos();
+    if (ImGui::Button("##slot", ImVec2(420, std::round(fs * 1.9f)))) {
       if (saveload_saving_) {
         save_slot(s);
       } else {
@@ -678,9 +1203,15 @@ void App::draw_saveload() {
       }
       show_saveload_ = false;
     }
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const float ty = p.y + (std::round(fs * 1.9f) - fs) * 0.5f;
+    dl->AddText(ui_fonts().bold, fs, ImVec2(p.x + fs * 0.6f, ty), ImGui::GetColorU32(ImGuiCol_Text), names[k]);
+    dl->AddText(ui_fonts().body, fs, ImVec2(p.x + fs * 5.6f, ty),
+                ImGui::GetColorU32(exists ? ImGuiCol_Text : ImGuiCol_TextDisabled), detail.c_str());
     if (!can) ImGui::EndDisabled();
     ImGui::PopID();
   }
+  ImGui::PopStyleVar();
   ImGui::Spacing();
   if (big_button("Back", 160)) show_saveload_ = false;
   ImGui::End();

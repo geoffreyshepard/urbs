@@ -44,7 +44,8 @@ The owner chose pre-rendered 3D art on an isometric camera (option C of the art 
   must use the `window` material).
 - Icons: goods icons (`goods/<id>`, `goods/<id>_16`) and build-category icons (`ui/cat_<id>`) are
   rendered by `tools/artgen3d/icons.py` (see "Icons" below). The other `ui/*` art (HUD buttons, gods,
-  advisors, logo, province map) is still pixel art in `assets/sprites/ui/`.
+  advisors, logo) is still pixel art in `assets/sprites/ui/`; the campaign's province map is a painted
+  2560x1440 picture in `assets/ui/` (docs/07-art-pipeline.md, "Province map").
 - `tools/atlas/pack.py` packs `assets/sprites_iso` plus the legacy `ui/` and `goods/` folders; an
   `assets/sprites_iso` icon wins over a legacy sprite of the same name. World art may be packed below
   native size; `main.json` records `"scale"` (atlas texels per iso px) and the renderer divides by it

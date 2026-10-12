@@ -22,6 +22,14 @@ namespace urbs::game {
 namespace {
 constexpr int kSpeeds[] = {0, 1, 2, 4};
 constexpr f64 kTickSeconds = 1.0 / static_cast<f64>(kTicksPerSecond);
+// The menu city's head start, so the streets are busy on the first frame (about 0.15 s in a release
+// build; debug builds, ten times slower per tick, take a shorter one).
+#ifdef NDEBUG
+constexpr int kMenuWarmTicks = 300;
+#else
+constexpr int kMenuWarmTicks = 30;
+#endif
+constexpr f32 kMenuHour = 16.5f;  // the menu city's light: a fixed late afternoon, whatever its clock says
 }  // namespace
 
 AppOptions parse_args(int argc, char** argv) {
@@ -42,6 +50,8 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--build-group")) o.build_group = std::atoi(argv[++i]);
     else if (arg("--show")) o.show = argv[++i];
     else if (arg("--weather")) o.weather = argv[++i];
+    else if (arg("--career"))
+      o.career = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
     else if (std::strcmp(argv[i], "--autoplay") == 0) o.autoplay = true;
     else if (std::strcmp(argv[i], "--mute") == 0) o.mute = true;
@@ -115,20 +125,60 @@ void App::new_world(const std::string& scenario) {
 }
 
 void App::menu_background() {
-  // A quiet generated landscape behind the menus.
-  world_ = std::make_unique<sim::World>();
-  sim::MapGenParams p;
-  p.size = 128;
-  p.seed = 77;
-  p.coast = 2;
-  p.hills = 0.4f;
-  sim::generate_map(world_->map, p);
-  world_->init(sim::WorldConfig{}, defs_);
-  world_->now = kTicksPerHour * 9;
+  // The title screens play over a finished, living city: a scripted scenario frozen from a city the
+  // autoplay bot built (data/menu/backdrop, made by tools/menu_backdrop.sh), ticking quietly behind the
+  // menus.  If it is missing or will not load (a mod removed one of its buildings), a plain generated
+  // landscape stands in.
+  const auto t0 = std::chrono::steady_clock::now();
+  menu_live_ = false;
+  const std::string path = root_ + "data/menu/backdrop/scenario.json";
+  if (std::filesystem::exists(path)) {
+    try {
+      sim::ScenarioSpec spec = sim::load_scenario(path);
+      auto w = std::make_unique<sim::World>();
+      sim::setup_scenario(*w, defs_, spec);
+      // A few game minutes so the streets are already busy on the first frame.
+      for (int t = 0; t < kMenuWarmTicks; ++t) w->tick();
+      world_ = std::move(w);
+      menu_live_ = true;
+    } catch (const std::exception& e) {
+      URBS_LOG_WARN("menu backdrop: {}", e.what());
+    }
+  }
+  if (!menu_live_) {
+    world_ = std::make_unique<sim::World>();
+    sim::MapGenParams p;
+    p.size = 128;
+    p.seed = 77;
+    p.coast = 2;
+    p.hills = 0.4f;
+    sim::generate_map(world_->map, p);
+    world_->init(sim::WorldConfig{}, defs_);
+    world_->now = kTicksPerHour * 9;
+  }
   spec_ = sim::ScenarioSpec{};
+  view_.init(renderer_.atlas(), defs_, world_->region);
   renderer_.set_map(&world_->map);
-  renderer_.camera().center = tile_center_iso(world_->map, 64, 56);
-  renderer_.camera().zoom = 2;
+  // The drift circles the middle of the built-up area (the bounding box of the buildings).
+  i32 x0 = world_->map.w, y0 = world_->map.h, x1 = 0, y1 = 0;
+  world_->buildings.for_each([&](BuildingId, const sim::Building& b) {
+    x0 = std::min<i32>(x0, b.x);
+    y0 = std::min<i32>(y0, b.y);
+    x1 = std::max<i32>(x1, b.x + b.w);
+    y1 = std::max<i32>(y1, b.y + b.h);
+  });
+  if (x1 <= x0) {
+    x0 = y0 = world_->map.w / 4;
+    x1 = y1 = world_->map.w * 3 / 4;
+  }
+  menu_focus_ = tile_center_iso(world_->map, (x0 + x1) / 2, (y0 + y1) / 2);
+  menu_radius_ = static_cast<f32>(std::max(x1 - x0, y1 - y0)) * 64.0f * 0.16f;  // a tile is 128 iso px wide
+  menu_clock_ = 0;
+  renderer_.camera().center = menu_focus_;
+  renderer_.camera().zoom = 3;
+  URBS_LOG_INFO("menu backdrop: {} ({} buildings, {} people) in {:.0f} ms", menu_live_ ? "city" : "landscape",
+                world_->buildings.ids.count(), world_->citizens.ids.count(),
+                std::chrono::duration<f64, std::milli>(std::chrono::steady_clock::now() - t0).count());
 }
 
 void App::defs_for_mission(int index) {
@@ -274,6 +324,13 @@ bool App::init(const AppOptions& opt) {
   }
   campaign_.load(root_);
   profile_.load(user_dir_);
+  if (opt.career >= 0) {  // screenshots of a career in progress; run() does not save it
+    profile_ = CampaignProfile{};
+    for (int k = 0; k < std::min<int>(opt.career, static_cast<int>(campaign_.missions.size())); ++k) {
+      profile_.completed.push_back(campaign_.missions[static_cast<size_t>(k)].id);
+      profile_.savings += 1200;
+    }
+  }
   selected_mission_ = profile_.next_index(campaign_);
   view_.init(renderer_.atlas(), defs_);
   icons_.build_thumbs(win_.gpu, renderer_.atlas(), defs_, std::string());
@@ -455,10 +512,13 @@ void App::handle_event(const SDL_Event& e) {
 void App::update_camera(f32 dt) {
   auto& cam = renderer_.camera();
   if (screen_ != Screen::Playing && screen_ != Screen::Editor) {
-    // Slow drift behind the menus.
-    const render::iso::Rectf mb = render::iso::map_bounds(world_->map);
-    cam.center.x += dt * 6.0f * kIsoK;
-    if (cam.center.x > mb.x + mb.w * 0.7f) cam.center.x = mb.x + mb.w * 0.3f;
+    // A slow drift behind the menus: a wide ellipse around the middle of the city, one lap in about
+    // seven minutes, with the city pushed right of centre so the menu column on the left stays calm.
+    menu_clock_ += dt;
+    const f32 a = menu_clock_ * 0.015f + 0.8f;
+    const f32 shift = cam.screen.x * 0.14f / cam.scale();
+    cam.center =
+        Vec2{menu_focus_.x - shift + std::cos(a) * menu_radius_, menu_focus_.y + std::sin(a) * menu_radius_ * 0.5f};
     return;
   }
   if (ImGui::GetIO().WantCaptureKeyboard) return;
@@ -482,6 +542,17 @@ void App::update_camera(f32 dt) {
 }
 
 void App::step_sim(f64 dt) {
+  if (menu_live_ && screen_ != Screen::Playing && screen_ != Screen::Editor) {
+    // The menu city lives at normal speed (no bot, no saves, no salary).
+    accum_ += std::min(dt, 0.1);
+    for (int n = 0; accum_ >= kTickSeconds && n < 4; ++n) {
+      world_->tick();
+      accum_ -= kTickSeconds;
+    }
+    accum_ = std::min(accum_, kTickSeconds);
+    alpha_ = static_cast<f32>(accum_ / kTickSeconds);
+    return;
+  }
   if (screen_ != Screen::Playing || paused_menu_) {
     alpha_ = 0;
     return;
@@ -635,7 +706,9 @@ void App::run() {
     sim::Weather weather = world_->weather;
     for (int k = 0; k < static_cast<int>(sim::Weather::Count); ++k)
       if (opt_.weather == sim::weather_name(static_cast<sim::Weather>(k))) weather = static_cast<sim::Weather>(k);
-    lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt));
+    const bool menu_city = menu_live_ && screen_ != Screen::Playing && screen_ != Screen::Editor;
+    if (menu_city && opt_.weather.empty()) weather = sim::Weather::Clear;
+    lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt), menu_city ? kMenuHour : -1.0f);
     renderer_.grade = lighting_.grade;
     renderer_.shadows = lighting_.shadows;
     for (int k = 0; k < 4; ++k) renderer_.ground_season[k] = lighting_.ground[k];
@@ -663,13 +736,17 @@ void App::run() {
     renderer_.render(ImGui::GetDrawData());
     if (!opt_.screenshot.empty() && frame_ >= opt_.frames) running_ = false;
   }
-  profile_.save(user_dir_);
-  settings_.save(user_dir_);
+  // Screenshot runs leave the player's career and settings alone.
+  if (opt_.screenshot.empty()) {
+    profile_.save(user_dir_);
+    settings_.save(user_dir_);
+  }
 }
 
 void App::shutdown() {
   audio_.shutdown();
   icons_.shutdown(win_.gpu);
+  province_map_.release(win_.gpu);
   renderer_.shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();

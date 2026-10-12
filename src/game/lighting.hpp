@@ -15,8 +15,9 @@ struct Lighting {
   Tick last_tick = 0;
   bool primed = false;
 
-  // dt: real seconds since the last frame (0 snaps to the target).
-  void update(const sim::World& w, sim::Weather weather, f32 alpha, f32 dt);
+  // dt: real seconds since the last frame (0 snaps to the target).  fixed_hour >= 0 lights the scene
+  // at that hour instead of the world's clock (the main menu's city).
+  void update(const sim::World& w, sim::Weather weather, f32 alpha, f32 dt, f32 fixed_hour = -1.0f);
 };
 
 }  // namespace urbs::game

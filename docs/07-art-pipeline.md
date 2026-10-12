@@ -63,6 +63,31 @@ inspector sits beside the build rail, where the build lists pop out, so opening 
 (Rome, Finance, Goods and the rest) hang from their top-bar button at the right edge, with a notch pointing at it, one
 at a time; the latest-news line moves left of an open panel.
 
+**Title screens:** the main menu plays over a living city (`data/menu/backdrop`), a scripted scenario frozen from a
+city the autoplay bot built in a campaign mission. `tools/menu_backdrop.sh [mission] [ticks]` (release build; defaults
+`m05_syracuse`, 110000 ticks, about 45 s, deterministic) runs `urbs_headless --export-city`, which writes the map with
+its roads (`map.urbsmap`) and every finished building with its house tier, stock and families (`scenario.json`; see
+`start` in docs/10-modding.md). The game loads it in about 0.25 s (release, 667 buildings and 3,500 people, including a
+15-second head start so the streets are busy), lets it tick at normal speed behind the menus under a fixed
+late-afternoon light and clear weather, and drifts the camera in a slow ellipse around it. A dark column on the left
+carries the logo and the menu; the sub-screens (campaign, sandbox, custom scenarios, mods, dialogs) dim it. If the
+backdrop will not load (a defs change or a mod removed one of its buildings; ctest `menu_backdrop` catches the first),
+a plain generated landscape stands in; regenerate it with the script.
+
+**Province map (campaign screen):** `tools/artgen/province_map_hd.py` (numpy + Pillow, deterministic, about 8 s)
+paints `assets/ui/province_map.png`, 2560x1440, with the same projection and coastline polygons as the pixel map in
+`worldmap.py`, so the campaign's normalised mission positions still fit: a relief built from distance inland, fractal
+noise and the mountain ranges, hill-shaded from the north-west; land coloured by climate (green Gaul and Italy, olive
+Iberia and Greece, ochre and sand Africa, a green Nile valley), forest masses, rock and snow on the high ranges; sea by
+depth with a line of surf; rivers; Latin names for seas and lands in Cinzel; paper grain and a vignette. It is not
+packed into the atlas: `game/ui_picture.cpp` loads it into its own mipmapped texture the first time the campaign
+screen opens (the 512x288 pixel map stays in the atlas as a fallback). The screen draws the missions over it as
+medallions numbered in Roman numerals (gold: won; terracotta with a pulse: the next post; grey: locked; a light ring:
+selected), nudged apart where they crowd with a leader line to the true place, a dashed road through the career so
+far, and below the map the cursus honorum as a line of medallions under their ranks. The dossier on the right holds
+the mission's title, province, rank and salary, the blurb, the letter of appointment as a scroll, the difficulty and
+the Begin button.
+
 ## Generator structure
 
 ```
