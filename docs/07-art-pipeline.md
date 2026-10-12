@@ -55,13 +55,60 @@ Asclepius, temple front, lyre, SPQR standard, scutum, triumphal arch. The rows t
 sprite. `game/ui_icons.cpp` composes these thumbnails at startup: a 2x2 field with its hut for farms, a three-piece
 run for walls, aqueducts and roads, and the city's regional variant when there is one.
 
-**Panels:** every panel is built from the pieces in `game/panel_kit.hpp`, in the look of the top bar: parchment with
-no title bar, a header with a framed picture (the panel's icon, or the building's own thumbnail), the title in Cinzel
-and one summary line; small-caps section labels between thin rules; the top bar's bars (green when a goal is met,
-amber when short, red when failing, ochre with no goal); goods named with their icons. The building and citizen
-inspector sits beside the build rail, where the build lists pop out, so opening a list closes it. The report panels
-(Rome, Finance, Goods and the rest) hang from their top-bar button at the right edge, with a notch pointing at it, one
-at a time; the latest-news line moves left of an open panel.
+**Panels:** every panel is built from the pieces in `game/panel_kit.hpp`: a carved frame with no title bar, a
+header (the title on the red band, a framed picture hanging from it: the panel's icon on a medallion, the building's
+own thumbnail or a portrait on a tile, and one summary line), small-caps section labels in Pompeian red under laurel
+rules, inlaid bars (green when a goal is met, amber when short, red when failing, ochre with no goal) and goods named
+with their icons. The building and citizen inspector sits beside the build rail, where the build lists pop out, so
+opening a list closes it. The report panels (Rome, Finance, Goods and the rest) hang from their top-bar button at the
+right edge, with a little stone gable pointing at it, one at a time; the latest-news card moves left of an open panel.
+
+## UI chrome (generated)
+
+The frames, buttons and ornaments round the UI are drawn by `tools/uiart/gen_chrome.py` (Python, numpy and Pillow;
+no Blender). Each piece is a small height field (a moulding profile, a bead, a dish, a dentil row) shaded with the
+world's sun from the upper left, coloured with procedural materials (travertine with faint layers and pores, bronze
+and gilt from colour ramps with a specular glint, parchment with fibres and warm age stains, fresco-red with
+mottling), and packed into one atlas at 2 texels per UI point (retina):
+
+```
+python3 tools/uiart/gen_chrome.py [--preview sheet.png]
+  -> assets/sprites_iso/ui/chrome/chrome.png    the atlas (not part of the world atlas; loaded directly)
+  -> assets/sprites_iso/ui/chrome/chrome.json   per piece: rect, 9-slice margins `m`, outset `o` (shadows reach
+                                                 beyond the rectangle), tiling `t`, frame border width `i`
+```
+
+Centres and edges that tile (stone grain, parchment) come from periodic noise, so a 9-slice repeats them instead of
+stretching. Never edit the PNG; change the script and run it again. `game/ui_skin.{hpp,cpp}` loads the atlas
+(mipmapped) and draws the pieces.
+
+## UI style
+
+One look everywhere, matching the lit 3D world:
+
+| Element | Look |
+|---|---|
+| Panels, dialogs | Carved travertine frame (torus, cove, fillet), a bronze bead inside it, bronze rosettes at the corners, warm parchment with an inner shadow, a soft drop shadow on the world |
+| Titles | Report panels and the build list: Cinzel in cream on a Pompeian-red band (#8e3324) with gilt hairlines across the top of the frame. Menus and dialogs: the same red on a tabula ansata plaque, centred |
+| Buttons | Raised polished stone with a bronze rim; hover warms the stone and gilds the rim; pressed sinks; selected is Pompeian red with a gilt rim and cream text; disabled is greyed and flat |
+| Icon buttons | Top bar: round bronze-rimmed medallions with an ivory enamel face (red when on). Build rail and portraits: square bronze-rimmed tiles |
+| Top bar | A marble cornice across the screen (fillet, frieze, bead, dentils, cyma, shadow) holding recessed slots: money and people, the ratings, date and speed, the panels, then alerts, help and menu |
+| Build rail | A travertine pilaster with capital, fluted shaft and base, holding the group tiles |
+| Tooltips, popups, toasts | Small parchment cards with a bronze edge |
+| Inputs, checkboxes, sliders, scrollbars | Sunken parchment wells with a bronze hairline; bronze knobs and rods; red tick |
+| Dividers | A bronze rule fading at both ends with a lozenge between laurel sprigs |
+| Text | Ink #2b1c12 on parchment, captions #68543e, section labels Pompeian red; spacing follows the font size, so the UI scale setting applies to the chrome too |
+
+**How ImGui gets the skin.** The style gives every ImGui colour that fills a frame (window, popup and child
+backgrounds, buttons, frames, headers, slider grabs, scrollbars) a *skin colour*: RGB (1, 3, piece). After
+`ImGui::Render()`, `UiSkin::process()` walks the draw lists and replaces each rectangle filled with a skin colour by
+that piece's 9-slice, in place, so the draw order is kept; a faded colour means a disabled widget and picks the
+disabled picture. Rounding and ImGui's own borders are off so these stay plain rectangles; a skin colour on any
+other shape (a radio button's circle) is repainted with a plain colour. Custom drawing (title bands, plaques, bars,
+dividers, medallion pictures, the top bar's slots) calls `UiSkin::draw()` directly. `begin_window()` takes the piece a
+window is drawn as (`Panel`, `Card`, `Cornice`, `Column`, or `None`) and its padding; panels also get an invisible
+border as wide as the stone, which keeps scrolled content and the scrollbar inside the frame. Without the chrome
+files the same code falls back to flat colours.
 
 ## Generator structure
 

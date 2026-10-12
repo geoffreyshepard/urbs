@@ -253,6 +253,10 @@ bool App::init(const AppOptions& opt) {
 
   root_ = platform::data_root();
   load_ui_fonts(root_);
+  if (skin_.init(win_.gpu, root_)) {
+    set_ui_skin(&skin_);
+    apply_roman_style(settings_.ui_scale);
+  }
   if (!renderer_.init(win_, root_)) return false;
   if (opt.screenshot.empty() && !opt.mute && audio_.init()) audio_.set_volume(settings_.music_volume);
   music_.init(root_, &audio_);
@@ -607,6 +611,7 @@ void App::run() {
     ImGui::NewFrame();
     draw_ui();
     ImGui::Render();
+    skin_.process(ImGui::GetDrawData());
 
     if (screen_ == Screen::Playing) {
       if (sel_.follow && sel_.citizen.valid() && world_->citizens.alive(sel_.citizen)) {
@@ -670,6 +675,8 @@ void App::run() {
 void App::shutdown() {
   audio_.shutdown();
   icons_.shutdown(win_.gpu);
+  set_ui_skin(nullptr);
+  skin_.shutdown(win_.gpu);
   renderer_.shutdown();
   ImGui_ImplSDL3_Shutdown();
   ImGui_ImplSDLGPU3_Shutdown();

@@ -42,7 +42,7 @@ void App::draw_ui() {
       {
         Dock d;
         d.pos = ImVec2(rail_r_ + 6, hud_h_ + 8);
-        d.width = std::round(ImGui::GetFontSize() * 25);
+        d.width = std::round(ImGui::GetFontSize() * 26.5f);
         d.max_h = display().y - d.pos.y - 8;
         draw_inspector(*world_, sel_, icons_, d);
       }
@@ -106,7 +106,7 @@ void App::draw_ui() {
                 ? &campaign_.missions[static_cast<size_t>(mission_index_)]
                 : nullptr;
         const bool finale = mi && world_->mission == sim::MissionState::Won && !mi->epilogue.empty();
-        const float end_w = finale ? 600.0f : 460.0f;
+        const float end_w = std::round(ImGui::GetFontSize() * (finale ? 36.0f : 28.0f));
         center_next(end_w, 0);
         ImGui::SetNextWindowSize(ImVec2(end_w, 0), ImGuiCond_Always);
         begin_window("##end", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
@@ -122,10 +122,11 @@ void App::draw_ui() {
             ImGui::EndChild();
             ImGui::TextDisabled("The campaign is complete.");
           }
-          ImGui::Spacing();
-          ImGui::Text("Personal savings: %s denarii", with_commas(profile_.savings).c_str());
+          divider();
+          value_row("Personal savings", with_commas(profile_.savings) + " denarii");
+          ImGui::Dummy(ImVec2(0, std::round(ImGui::GetFontSize() * 0.3f)));
           if (mission_index_ >= 0) {
-            if (big_button("To the province map")) {
+            if (dialog_button("To the province map")) {
               const auto& id = campaign_.missions[static_cast<size_t>(mission_index_)].id;
               if (!profile_.done(id)) {
                 profile_.completed.push_back(id);
@@ -137,7 +138,7 @@ void App::draw_ui() {
               screen_ = Screen::Campaign;
             }
           }
-          if (big_button("Keep building this city")) end_dismissed_ = true;
+          if (dialog_button("Keep building this city")) end_dismissed_ = true;
         } else {
           menu_title("Recalled");
           ImGui::TextWrapped("%s", world_->lost_reason.c_str());
@@ -145,13 +146,13 @@ void App::draw_ui() {
           ImGui::TextWrapped(mi ? "A letter recalls you to Rome, and the post goes to someone else. The city is not "
                                   "finished with you, though: load a save or begin again."
                                 : "The city is lost. Load a save or begin again.");
-          if (big_button("Load a saved game")) {
+          if (dialog_button("Load a saved game")) {
             show_saveload_ = true;
             saveload_saving_ = false;
             end_dismissed_ = true;
           }
-          if (mission_index_ >= 0 && big_button("Restart the mission")) start_mission(mission_index_);
-          if (big_button("Return to the main menu")) {
+          if (mission_index_ >= 0 && dialog_button("Restart the mission")) start_mission(mission_index_);
+          if (dialog_button("Return to the main menu")) {
             menu_background();
             screen_ = Screen::Menu;
           }
@@ -165,8 +166,9 @@ void App::draw_ui() {
   if (show_saveload_) draw_saveload();
   if (status_time_ > 0 && !status_.empty()) {
     ImGui::SetNextWindowPos(ImVec2(display().x * 0.5f, display().y - 60), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
-    ImGui::SetNextWindowBgAlpha(0.9f);
-    begin_window("##status", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs);
+    begin_window("##status", nullptr,
+                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs,
+                 Skin::Card);
     ImGui::TextUnformatted(status_.c_str());
     ImGui::End();
   }
@@ -290,7 +292,8 @@ void App::draw_campaign() {
 }
 
 void App::draw_sandbox_setup() {
-  center_next(420, 480);
+  const float fs = ImGui::GetFontSize();
+  center_next(std::round(fs * 27), 0);
   begin_window(
       "##sandbox", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
@@ -321,41 +324,69 @@ void App::draw_sandbox_setup() {
     gen_.forest = static_cast<f32>((gen_.seed / 50) % 10) / 10.0f;
     gen_.river = (gen_.seed / 500) % 4 != 0;
   }
-  ImGui::Spacing();
-  if (big_button("Found the city")) start_sandbox();
-  if (big_button("Back")) screen_ = Screen::Menu;
+  divider();
+  if (dialog_button("Found the city")) start_sandbox();
+  if (dialog_button("Back")) screen_ = Screen::Menu;
   ImGui::End();
 }
 
-// The top bar, in three zones: the city's numbers on the left (each rating with a small bar and its mission goal),
-// date and speed in the centre, and the panels as picture buttons on the right. The latest news shows below it.
+// The top bar: a marble cornice across the screen holding recessed slots. Left: money and people, then the ratings
+// (each with a small inlaid bar and its mission goal). Centre: the date and the speed medallions. Right: the overlay
+// and the panels as bronze medallions, then alerts, help and the menu. The latest news shows below it.
 void App::draw_hud() {
   const sim::World& w = *world_;
   const ImVec2 ds = display();
   const float fs = ImGui::GetFontSize();
   const UiFonts& fonts = ui_fonts();
-  const float icon = std::round(fs * 1.25f), pad = std::round(fs * 0.32f), btn = icon + 2 * pad,
-              gap = std::round(fs * 1.1f);
+  const bool sk = skinned();
+  const float icon = std::round(fs * 1.2f), pad = std::round(fs * 0.38f), btn = icon + 2 * pad,
+              gap = std::round(fs * 1.0f);
+  // Slots: recesses in the frieze, `spx` / `spy` of air round their contents.
+  const float spx = std::round(fs * 0.55f), spy = std::round(fs * 0.2f), slot_gap = std::round(fs * 0.55f);
+  const float edge_top = sk ? ui_skin()->edge(Skin::Cornice, 1) : 0.0f,
+              edge_bot = sk ? ui_skin()->edge(Skin::Cornice, 3) : 0.0f;
+  const float frieze = std::round(fs * 0.3f);
+  const float bar_h = edge_top + frieze + spy + btn + spy + frieze + edge_bot;
+  const float top = edge_top + frieze + spy;  // window y of the row of contents
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(ds.x, 0), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(ds.x, bar_h), ImGuiCond_Always);
+  const float padx = std::round(fs * 0.6f) + spx;
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padx, 0));
   begin_window("##hud", nullptr,
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                   ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings);
+                   ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings,
+               Skin::Cornice);
+  ImGui::PopStyleVar();
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(pad, pad));
   ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(std::round(fs * 0.25f), 0));
-  const float top = ImGui::GetCursorPosY();
   ImDrawList* dl = ImGui::GetWindowDrawList();
-  bool first = true;
-  auto next = [&](float space) {
-    if (!first) ImGui::SameLine(0, space);
+  // Slots go on a channel under the contents, once their groups are measured.
+  dl->ChannelsSplit(2);
+  dl->ChannelsSetCurrent(1);
+  ImVec2 slots[8][2];
+  int nslots = 0;
+  bool first = true, first_in_slot = true;
+  auto slot_begin = [&](float x = -1) {
+    if (x >= 0)
+      ImGui::SameLine(x);
+    else if (!first)
+      ImGui::SameLine(0, slot_gap + 2 * spx);
     first = false;
+    first_in_slot = true;
+    ImGui::SetCursorPosY(top);
+    ImGui::BeginGroup();
   };
-  auto separator = [&]() {
-    next(gap * 0.6f);
-    const ImVec2 p = ImGui::GetCursorScreenPos();
-    dl->AddLine(ImVec2(p.x, p.y + btn * 0.12f), ImVec2(p.x, p.y + btn * 0.88f), ImGui::GetColorU32(ImGuiCol_Separator),
-                1.5f);
-    ImGui::Dummy(ImVec2(1, btn));
+  auto slot_end = [&]() {
+    ImGui::EndGroup();
+    if (nslots < 8) {
+      slots[nslots][0] = ImGui::GetItemRectMin();
+      slots[nslots][1] = ImGui::GetItemRectMax();
+      ++nslots;
+    }
+  };
+  auto next = [&](float space) {
+    if (!first_in_slot) ImGui::SameLine(0, space);
+    first_in_slot = false;
   };
   // A number with its icon and, below it, either a small caption or a bar (0..1) with an optional goal tick.
   auto stat = [&](const char* icon_name, const std::string& value, const std::string& sub, ImU32 sub_col, float bar,
@@ -367,41 +398,36 @@ void App::draw_hud() {
     ImGui::SameLine(0, std::round(fs * 0.3f));
     const float tx = ImGui::GetCursorPosX();
     const bool two = !sub.empty() || bar >= 0;
-    ImGui::SetCursorPosY(top + (two ? btn * 0.5f - fs * 0.95f : (btn - fs) * 0.5f));
+    ImGui::SetCursorPosY(top + (two ? btn * 0.5f - fs * 0.98f : (btn - fs) * 0.5f));
     ImGui::PushFont(fonts.bold, 0.0f);
     ImGui::TextUnformatted(value.c_str());
     ImGui::PopFont();
     if (!sub.empty()) {
-      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.02f));
-      ImGui::PushFont(fonts.body, fs * 0.78f);
+      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.0f));
+      ImGui::PushFont(fonts.body, fs * 0.8f);
       ImGui::PushStyleColor(ImGuiCol_Text, sub_col);
       ImGui::TextUnformatted(sub.c_str());
       ImGui::PopStyleColor();
       ImGui::PopFont();
     } else if (bar >= 0) {
-      const float bw = std::round(fs * 2.6f), bh = std::max(3.0f, std::round(fs * 0.22f));
-      const ImVec2 p0(ImGui::GetWindowPos().x + tx, ImGui::GetWindowPos().y + top + btn * 0.5f + fs * 0.35f);
-      dl->AddRectFilled(p0, ImVec2(p0.x + bw, p0.y + bh), kColTrack, bh);
-      dl->AddRectFilled(p0, ImVec2(p0.x + bw * std::clamp(bar, 0.0f, 1.0f), p0.y + bh), bar_col, bh);
-      if (goal > 0) {
-        const float gx = std::round(p0.x + bw * goal);
-        dl->AddLine(ImVec2(gx, p0.y - bh), ImVec2(gx, p0.y + bh * 2), kColTick, 2.0f);
-      }
-      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.35f));
+      const float bw = std::round(fs * 2.8f), bh = std::max(4.0f, std::round(fs * 0.36f));
+      const ImVec2 p0(ImGui::GetWindowPos().x + tx, std::round(ImGui::GetWindowPos().y + top + btn * 0.5f + fs * 0.3f));
+      draw_bar(dl, p0, bw, bh, bar, bar_col, goal > 0 ? goal : -1.0f);
+      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.3f));
       ImGui::Dummy(ImVec2(bw, bh));
     }
     ImGui::EndGroup();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tip.c_str());
   };
-  const ImU32 kGreen = kColGood, kAmber = kColWarn, kOchre = kColPlain, kRed = kColBad,
-              kInk2 = ImGui::GetColorU32(ImGuiCol_TextDisabled);
+  const ImU32 kGreen = kColGood, kAmber = kColWarn, kOchre = kColPlain, kRed = kColBad, kInk2 = kColInk2;
 
-  // Left: money, people, the ratings.
+  // Left: money and people, then the ratings.
   {
     const auto& L = w.econ.money;
     i64 net = 0;
     for (int k = 0; k < econ::kMoneyCount; ++k)
       net += (econ::money_is_income(static_cast<econ::Money>(k)) ? 1 : -1) * L.yesterday[k];
+    slot_begin();
     stat("goods/denarii_16", with_commas(w.econ.treasury), (net >= 0 ? "+" : "") + with_commas(net) + " yesterday",
          net >= 0 ? kGreen : kRed, -1, 0, 0, "Treasury, and yesterday's income minus spending", gap);
     const u32 pop = w.population();
@@ -410,7 +436,7 @@ void App::draw_hud() {
          w.goals.population ? "Population (mission goal " + with_commas(w.goals.population) + ")"
                             : std::string("Population"),
          gap);
-    separator();
+    slot_end();
     auto rating = [&](const char* icon_name, int v, int goal, const char* name) {
       const ImU32 col = goal ? (v >= goal ? kGreen : kAmber) : kOchre;
       std::string tip = std::string(name) + ": " + std::to_string(v) + " of 100";
@@ -418,8 +444,9 @@ void App::draw_hud() {
         tip +=
             v >= goal ? "  (goal " + std::to_string(goal) + " met)" : "  (mission goal " + std::to_string(goal) + ")";
       stat(icon_name, std::to_string(v), std::string(), 0, static_cast<float>(v) / 100.0f,
-           static_cast<float>(goal) / 100.0f, col, tip, gap * 0.6f);
+           static_cast<float>(goal) / 100.0f, col, tip, gap * 0.75f);
     };
+    slot_begin();
     const int mood = w.avg_happiness;
     stat("ui/icon_happiness", std::to_string(mood), std::string(), 0, static_cast<float>(mood) / 255.0f,
          128.0f / 255.0f, mood >= 128 ? kGreen : kAmber, "Mood of the people (128 = content)", gap);
@@ -427,6 +454,7 @@ void App::draw_hud() {
     rating("ui/icon_prosperity", w.ratings.prosperity, w.goals.prosperity, "Prosperity");
     rating("ui/icon_security", w.ratings.security, w.goals.security, "Security");
     rating("ui/icon_favor", w.favor, w.goals.favor, "Favor with Rome");
+    slot_end();
   }
 
   // Centre: date and speed, centred on the screen when there is room.
@@ -436,21 +464,21 @@ void App::draw_hud() {
   std::snprintf(date2, sizeof date2, "Year %llu  \xC2\xB7  %02u:00",
                 static_cast<unsigned long long>(sim::year_index(w.now) + 1), sim::hour_of_day(w.now));
   const float date_w = std::max(fonts.bold->CalcTextSizeA(fs, FLT_MAX, 0, date1.c_str()).x,
-                                fonts.body->CalcTextSizeA(fs * 0.78f, FLT_MAX, 0, date2).x);
+                                fonts.body->CalcTextSizeA(fs * 0.8f, FLT_MAX, 0, date2).x);
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float centre_w = date_w + gap + 4 * btn + 3 * spacing;
   {
     ImGui::SameLine(0, 0);
     const float want = std::round((ds.x - centre_w) * 0.5f);
-    const float x = std::max(ImGui::GetCursorPosX() + gap * 1.5f, want);
-    ImGui::SameLine(x);
+    const float x = std::max(ImGui::GetCursorPosX() + slot_gap + 2 * spx, want);
+    slot_begin(x);
     ImGui::BeginGroup();
-    ImGui::SetCursorPosY(top + btn * 0.5f - fs * 0.95f);
+    ImGui::SetCursorPosY(top + btn * 0.5f - fs * 0.98f);
     ImGui::PushFont(fonts.bold, 0.0f);
     ImGui::TextUnformatted(date1.c_str());
     ImGui::PopFont();
-    ImGui::SetCursorPosY(top + btn * 0.5f + fs * 0.02f);
-    ImGui::PushFont(fonts.body, fs * 0.78f);
+    ImGui::SetCursorPosY(top + btn * 0.5f + fs * 0.0f);
+    ImGui::PushFont(fonts.body, fs * 0.8f);
     ImGui::TextDisabled("%s", date2);
     ImGui::PopFont();
     ImGui::EndGroup();
@@ -465,6 +493,7 @@ void App::draw_hud() {
       ImGui::PopID();
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", kSpeedTips[i]);
     }
+    slot_end();
   }
 
   // Right: overlay, panels, alerts, help, menu.
@@ -487,13 +516,12 @@ void App::draw_hud() {
     panel_x_[static_cast<int>(p)] = std::round((ImGui::GetItemRectMin().x + ImGui::GetItemRectMax().x) * 0.5f);
   };
   constexpr int kPanels = static_cast<int>(sizeof(panels) / sizeof(panels[0]));
-  const int right_buttons = 1 + kPanels + 3;  // overlay, panels, alerts + help + menu
-  const float right_w = static_cast<float>(right_buttons) * (btn + spacing) + 2 * gap;
+  const float right_w = static_cast<float>(1 + kPanels + 3) * btn + static_cast<float>(kPanels + 2) * spacing +
+                        2 * gap * 0.5f + slot_gap + 2 * spx;
   {
     ImGui::SameLine(0, 0);
-    const float x = std::max(ImGui::GetCursorPosX() + gap * 1.5f, ds.x - right_w - ImGui::GetStyle().WindowPadding.x);
-    ImGui::SameLine(x);
-    ImGui::SetCursorPosY(top);
+    const float x = std::max(ImGui::GetCursorPosX() + slot_gap + 2 * spx, ds.x - right_w - padx);
+    slot_begin(x);
     // Map overlays: a picture button that opens the list.
     if (icons_.icon_button("##overlay", "ui/icon_overlay", icon, overlay_ != Overlay::None))
       ImGui::OpenPopup("##overlays");
@@ -524,7 +552,7 @@ void App::draw_hud() {
       ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(std::round(fs * 0.25f), 0));
       ImGui::EndPopup();
     }
-    ImGui::SameLine(0, gap);
+    ImGui::SameLine(0, gap * 0.5f);
     for (int k = 0; k < kPanels; ++k) {
       if (k) ImGui::SameLine();
       ImGui::PushID(k);
@@ -533,7 +561,8 @@ void App::draw_hud() {
       mark(panels[k].panel);
       if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", panels[k].tip);
     }
-    ImGui::SameLine(0, gap);
+    slot_end();
+    slot_begin();
     // Alerts, with a count of the ones that came in since the panel was last open.
     if (panel_ == Panel::Alerts) alerts_seen_ = w.now;
     int unread = 0;
@@ -545,13 +574,13 @@ void App::draw_hud() {
     if (unread) {
       const ImVec2 mx = ImGui::GetItemRectMax(), mn = ImGui::GetItemRectMin();
       const std::string n = unread > 99 ? std::string("99") : std::to_string(unread);
-      const float r = fs * 0.5f;
-      const ImVec2 c(mx.x - r * 0.4f, mn.y + r * 0.4f);
+      const float r = std::round(fs * 0.52f);
+      const ImVec2 c(std::round(mx.x - r * 0.35f), std::round(mn.y + r * 0.35f));
+      dl->AddCircleFilled(ImVec2(c.x + 0.5f, c.y + 1.5f), r, IM_COL32(30, 12, 6, 90));
       dl->AddCircleFilled(c, r, IM_COL32(176, 40, 28, 255));
-      dl->AddCircle(c, r, IM_COL32(60, 20, 10, 255), 0, 1.5f);
+      dl->AddCircle(c, r, IM_COL32(222, 178, 98, 255), 0, 1.5f);
       const ImVec2 ts = fonts.bold->CalcTextSizeA(fs * 0.7f, FLT_MAX, 0, n.c_str());
-      dl->AddText(fonts.bold, fs * 0.7f, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), IM_COL32(255, 246, 228, 255),
-                  n.c_str());
+      dl->AddText(fonts.bold, fs * 0.7f, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), kColCream, n.c_str());
     }
     ImGui::SameLine();
     if (icons_.icon_button("##help", "ui/icon_help", icon, panel_ == Panel::Help)) toggle_panel(Panel::Help);
@@ -560,21 +589,34 @@ void App::draw_hud() {
     ImGui::SameLine();
     if (icons_.icon_button("##menu", "ui/icon_menu", icon, paused_menu_)) paused_menu_ = true;
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Menu (Esc)\nSave, load, settings");
+    slot_end();
   }
   ImGui::PopStyleVar(2);
+  // The slots, under their contents.
+  dl->ChannelsSetCurrent(0);
+  for (int k = 0; k < nslots; ++k) {
+    const ImVec2 a(slots[k][0].x - spx, ImGui::GetWindowPos().y + top - spy),
+        b(slots[k][1].x + spx, ImGui::GetWindowPos().y + top + btn + spy);
+    if (sk)
+      ui_skin()->draw(dl, Skin::Slot, a, b);
+    else if (k)
+      dl->AddLine(ImVec2(a.x - slot_gap * 0.5f, a.y + 4), ImVec2(a.x - slot_gap * 0.5f, b.y - 4), kColBronze, 1.5f);
+  }
+  dl->ChannelsMerge();
   hud_h_ = ImGui::GetWindowHeight();
   ImGui::End();
 
   // The latest news, for a day, under the right end of the bar; a click opens the alerts.
   if (!w.alerts.empty() && w.now - w.alerts.back().t < kTicksPerDay) {
     // Left of an open panel, so it does not cover it.
-    const float right = panel_ == Panel::None ? ds.x - 8 : ds.x - 16 - panel_dock(panel_).width;
-    ImGui::SetNextWindowPos(ImVec2(right, hud_h_ + 6), ImGuiCond_Always, ImVec2(1, 0));
+    const float right = panel_ == Panel::None ? ds.x - 10 : ds.x - 22 - panel_dock(panel_).width;
+    ImGui::SetNextWindowPos(ImVec2(right, hud_h_ + 4), ImGuiCond_Always, ImVec2(1, 0));
     begin_window("##news", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
-                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.15f, 0.08f, 1));
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav,
+                 Skin::Card);
+    ImGui::PushStyleColor(ImGuiCol_Text, kColLink);
     if (ImGui::Selectable(alert_text(w, w.alerts.back()).c_str(), false)) panel_ = Panel::Alerts;
     ImGui::PopStyleColor();
     ImGui::End();
@@ -582,8 +624,9 @@ void App::draw_hud() {
 }
 
 Dock App::panel_dock(Panel p) const {
-  // Widths in font sizes, in top-bar order (Rome .. Help).
-  static constexpr float kWidth[kPanelCount] = {27, 30, 28, 27, 32, 27, 28, 28, 28, 30, 30};
+  // Widths in font sizes, in top-bar order (Rome .. Help); the frame's padding is included.
+  static constexpr float kWidth[kPanelCount] = {28.5f, 31.5f, 29.5f, 30,    33.5f, 28.5f,
+                                                29.5f, 29.5f, 29.5f, 31.5f, 31.5f};
   const float fs = ImGui::GetFontSize();
   Dock d;
   d.right = true;
@@ -595,28 +638,24 @@ Dock App::panel_dock(Panel p) const {
 }
 
 void App::draw_pause() {
-  center_next(320, 300);
+  const float fs = ImGui::GetFontSize();
+  center_next(std::round(fs * 20), 0);
   begin_window(
       "##paused", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   menu_title("Paused");
-  const float x = (320 - 260) * 0.5f;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Resume")) paused_menu_ = false;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Save game")) {
+  if (dialog_button("Resume")) paused_menu_ = false;
+  if (dialog_button("Save game")) {
     show_saveload_ = true;
     saveload_saving_ = true;
   }
-  ImGui::SetCursorPosX(x);
-  if (big_button("Load game")) {
+  if (dialog_button("Load game")) {
     show_saveload_ = true;
     saveload_saving_ = false;
   }
-  ImGui::SetCursorPosX(x);
-  if (big_button("Settings")) show_settings_ = true;
-  ImGui::SetCursorPosX(x);
-  if (big_button("Exit to main menu")) {
+  if (dialog_button("Settings")) show_settings_ = true;
+  divider();
+  if (dialog_button("Exit to main menu")) {
     profile_.save(user_dir_);
     paused_menu_ = false;
     menu_background();
@@ -626,21 +665,35 @@ void App::draw_pause() {
 }
 
 void App::draw_settings() {
-  center_next(400, 360);
+  const float fs = ImGui::GetFontSize();
+  center_next(std::round(fs * 26), 0);
   begin_window(
       "##settings", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   menu_title("Settings");
-  if (ImGui::SliderFloat("UI scale", &settings_.ui_scale, 0.75f, 2.0f, "%.2f")) apply_roman_style(settings_.ui_scale);
+  const float label_w = std::round(fs * 9);
+  // A label on the left, the control filling the rest of the line.
+  auto row = [&](const char* label) {
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(label);
+    ImGui::SameLine(label_w);
+    ImGui::SetNextItemWidth(-FLT_MIN);
+  };
+  row("UI scale");
+  if (ImGui::SliderFloat("##scale", &settings_.ui_scale, 0.75f, 2.0f, "%.2f")) apply_roman_style(settings_.ui_scale);
+  if (ImGui::Checkbox("Fullscreen", &settings_.fullscreen)) SDL_SetWindowFullscreen(win_.window, settings_.fullscreen);
+  if (ImGui::Checkbox("Colour-blind friendly overlays", &settings_.colorblind))
+    set_overlay_colorblind(settings_.colorblind);
   ImGui::Checkbox("Scroll at screen edges", &settings_.edge_scroll);
   ImGui::Checkbox("Autosave every four days", &settings_.autosave);
-  if (ImGui::Checkbox("Colour-blind friendly overlays", &settings_.colorblind)) set_overlay_colorblind(settings_.colorblind);
-  if (ImGui::Checkbox("Fullscreen", &settings_.fullscreen)) SDL_SetWindowFullscreen(win_.window, settings_.fullscreen);
-  if (ImGui::SliderFloat("Music volume", &settings_.music_volume, 0.0f, 1.0f, "%.2f"))
+  row("Difficulty");
+  ImGui::Combo("##difficulty", &settings_.difficulty, kDifficulty, 3);
+  ImGui::TextDisabled("Difficulty applies to newly started missions.");
+  row("Music volume");
+  if (ImGui::SliderFloat("##music", &settings_.music_volume, 0.0f, 1.0f, "%.2f"))
     audio_.set_volume(settings_.music_volume);
-  ImGui::Combo("Difficulty", &settings_.difficulty, kDifficulty, 3);
-  ImGui::TextWrapped("Difficulty applies to newly started missions.");
-  if (big_button("Done")) {
+  divider();
+  if (dialog_button("Done", std::round(fs * 9))) {
     settings_.save(user_dir_);
     show_settings_ = false;
   }
@@ -648,7 +701,8 @@ void App::draw_settings() {
 }
 
 void App::draw_saveload() {
-  center_next(460, 470);
+  const float fs = ImGui::GetFontSize();
+  center_next(std::round(fs * 30), 0);
   begin_window(
       "##saveload", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
@@ -669,7 +723,10 @@ void App::draw_saveload() {
     ImGui::PushID(s);
     const bool can = saveload_saving_ || exists;
     if (!can) ImGui::BeginDisabled();
-    if (ImGui::Button(label.c_str(), ImVec2(420, 30))) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.0f, 0.5f));
+    const bool clicked = ImGui::Button(label.c_str(), ImVec2(-FLT_MIN, std::round(fs * 1.9f)));
+    ImGui::PopStyleVar();
+    if (clicked) {
       if (saveload_saving_) {
         save_slot(s);
       } else {
@@ -681,8 +738,8 @@ void App::draw_saveload() {
     if (!can) ImGui::EndDisabled();
     ImGui::PopID();
   }
-  ImGui::Spacing();
-  if (big_button("Back", 160)) show_saveload_ = false;
+  ImGui::Dummy(ImVec2(0, std::round(fs * 0.4f)));
+  if (dialog_button("Back", std::round(fs * 9))) show_saveload_ = false;
   ImGui::End();
 }
 
@@ -691,7 +748,7 @@ void App::draw_research(const Dock& dock, bool* open) {
     end_panel();
     return;
   }
-  if (!panel_header(icons_, "ui/icon_research", false, "Research",
+  if (!panel_header(icons_, "ui/icon_research", Pic::Icon, "Research",
                     with_commas(world_->scientia) + " scientia to spend"))
     *open = false;
   ImGui::TextDisabled("Scholars in schools, libraries and academies produce scientia.");
@@ -708,15 +765,14 @@ void App::draw_research(const Dock& dock, bool* open) {
     ImGui::PushFont(ui_fonts().bold, 0.0f);
     ImGui::TextUnformatted(tech.name.c_str());
     ImGui::PopFont();
-    ImGui::PushTextWrapPos(ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - fs * 6.5f);
+    ImGui::PushTextWrapPos(panel_right() - ImGui::GetWindowPos().x - fs * 6.5f);
     ImGui::TextDisabled("%s", tech.desc.c_str());
     ImGui::PopTextWrapPos();
     ImGui::EndGroup();
     const float y1 = ImGui::GetCursorScreenPos().y;
     ImGui::SameLine(0, 0);
     const float bw = std::round(fs * 5.6f);
-    ImGui::SetCursorScreenPos(
-        ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - bw, y0 + 2));
+    ImGui::SetCursorScreenPos(ImVec2(panel_right() - bw, y0 + 2));
     if (known) {
       ImGui::Dummy(ImVec2(bw, 1));
     } else {
@@ -732,7 +788,7 @@ void App::draw_research(const Dock& dock, bool* open) {
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
         ImGui::SetTooltip(can ? "Costs %u scientia" : "Needs %u scientia", tech.cost);
     }
-    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + ImGui::GetStyle().WindowPadding.x, y1));
+    ImGui::SetCursorScreenPos(ImVec2(panel_left(), y1));
     ImGui::Dummy(ImVec2(0, 0));
     ImGui::PopID();
   }
@@ -755,7 +811,7 @@ void App::draw_help(const Dock& dock, bool* open) {
     end_panel();
     return;
   }
-  if (!panel_header(icons_, "ui/icon_help", false, "How to play", "Keys, and how the city works")) *open = false;
+  if (!panel_header(icons_, "ui/icon_help", Pic::Icon, "How to play", "Keys, and how the city works")) *open = false;
   ImGui::TextWrapped(
       "Camera: WASD or arrow keys to pan, right- or middle-drag to pan, mouse wheel to zoom.\n"
       "Time: Space pauses, 1/2/3 set speed.\n"
@@ -909,15 +965,20 @@ void App::draw_build_menu() {
 
   if (show_build_) {
     const int buttons = kGroupCount + (members[kOtherGroup].empty() ? 0 : 1);
-    const ImGuiStyle& st = ImGui::GetStyle();
-    const float per = st.FramePadding.y * 2 + st.ItemSpacing.y;
-    const float avail = ds.y - hud_h_ - 16 - st.WindowPadding.y * 2;
-    const float icon = std::clamp(avail / static_cast<float>(buttons) - per, 24.0f, 48.0f);
-    ImGui::SetNextWindowPos(ImVec2(8, hud_h_ + 8), ImGuiCond_Always);
+    const float fs = ImGui::GetFontSize();
+    const ImVec2 wpad = skinned() ? window_padding(Skin::Column) : ImGui::GetStyle().WindowPadding;
+    const float fpad = std::round(fs * 0.3f), vgap = std::round(fs * 0.3f);
+    const float per = fpad * 2 + vgap;
+    const float avail = ds.y - hud_h_ - 16 - wpad.y * 2;
+    const float icon = std::clamp(std::floor(avail / static_cast<float>(buttons) - per), 24.0f, 46.0f);
+    ImGui::SetNextWindowPos(ImVec2(8, hud_h_ + 4), ImGuiCond_Always);
     begin_window("##buildrail", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar |
-                     ImGuiWindowFlags_NoSavedSettings);
+                     ImGuiWindowFlags_NoSavedSettings,
+                 Skin::Column);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(fpad, fpad));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(vgap, vgap));
     for (int g = 0; g < buttons; ++g) {
       const bool other = g == kOtherGroup;
       const bool roads = g == 0;
@@ -926,7 +987,7 @@ void App::draw_build_menu() {
       if (!any) ImGui::BeginDisabled();
       const std::string icon_name = other ? std::string("ui/icon_build") : std::string("ui/cat_") + kGroups[g].id;
       ImGui::PushID(g);
-      if (icons_.icon_button("##grp", icon_name, icon, build_group_ == g || active == g)) {
+      if (icons_.icon_button("##grp", icon_name, icon, build_group_ == g || active == g, true)) {
         build_group_ = build_group_ == g ? -1 : g;
         build_fly_y_ = y;
         opened = true;
@@ -946,17 +1007,22 @@ void App::draw_build_menu() {
         ImGui::EndTooltip();
       }
     }
+    ImGui::PopStyleVar(2);
     rail_r_ = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
     ImGui::End();
   } else {
     // The rail is hidden (B): one small button brings it back.
     build_group_ = -1;
-    ImGui::SetNextWindowPos(ImVec2(8, hud_h_ + 8), ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2(8, hud_h_ + 4), ImGuiCond_Always);
     begin_window("##buildshow", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings);
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings,
+                 Skin::None);
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                        ImVec2(std::round(ImGui::GetFontSize() * 0.38f), std::round(ImGui::GetFontSize() * 0.38f)));
     if (icons_.icon_button("##showbuild", "ui/icon_build", std::round(ImGui::GetFontSize() * 1.25f), false))
       show_build_ = true;
+    ImGui::PopStyleVar();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("Build (B)");
     rail_r_ = ImGui::GetWindowPos().x + ImGui::GetWindowWidth();
     ImGui::End();
@@ -964,15 +1030,14 @@ void App::draw_build_menu() {
 
   if (build_group_ >= 0) {
     const int g = build_group_;
-    const float y = std::clamp(build_fly_y_ - 10, hud_h_ + 8, std::max(hud_h_ + 8, ds.y - build_fly_h_ - 8));
-    ImGui::SetNextWindowPos(ImVec2(rail_r_ + 6, y), ImGuiCond_Always);
+    const float y = std::clamp(build_fly_y_ - 30, hud_h_ + 8, std::max(hud_h_ + 8, ds.y - build_fly_h_ - 8));
+    ImGui::SetNextWindowPos(ImVec2(rail_r_ + 4, y), ImGuiCond_Always);
     if (opened) ImGui::SetNextWindowFocus();
     begin_window("##buildfly", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoScrollbar |
                      ImGuiWindowFlags_NoSavedSettings);
-    heading(g == kOtherGroup ? "Other" : kGroups[g].name, 1.25f);
-    ImGui::Separator();
+    title_band(g == kOtherGroup ? "Other" : kGroups[g].name);
 
     const UiFonts& f = ui_fonts();
     const float fs = ImGui::GetFontSize();
@@ -985,9 +1050,12 @@ void App::draw_build_menu() {
       ImGui::PopID();
       ImDrawList* dl = ImGui::GetWindowDrawList();
       dl->PushClipRect(p, ImVec2(p.x + row_w, p.y + rh), true);
-      dl->AddRectFilled(ImVec2(p.x + 1, p.y + 2), ImVec2(p.x + 1 + thumb, p.y + 2 + thumb),
-                        ImGui::GetColorU32(ImGuiCol_FrameBg), 3);
-      icons_.draw_thumb(key, ImVec2(p.x + 1, p.y + 2), thumb);
+      if (skinned())
+        ui_skin()->draw(dl, Skin::Frame, ImVec2(p.x + 1, p.y + 2), ImVec2(p.x + 1 + thumb, p.y + 2 + thumb));
+      else
+        dl->AddRectFilled(ImVec2(p.x + 1, p.y + 2), ImVec2(p.x + 1 + thumb, p.y + 2 + thumb),
+                          ImGui::GetColorU32(ImGuiCol_FrameBg), 3);
+      icons_.draw_thumb(key, ImVec2(p.x + 3, p.y + 4), thumb - 4);
       const float tx = p.x + thumb + 10;
       float cost_w = 0;
       if (cost > 0) {
@@ -1055,7 +1123,7 @@ void App::draw_build_menu() {
     if (tools_.kind == ToolKind::Build && tools_.def.valid() && group_of(defs_.buildings[tools_.def.v].category) == g) {
       const auto& d = defs_.buildings[tools_.def.v];
       if (d.service.valid() && defs_.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine") {
-        ImGui::Separator();
+        divider();
         ImGui::TextDisabled("Dedicate to:");
         for (u8 gd = 0; gd < defs_.gods.size(); ++gd) {
           if (!w.god_available[gd]) continue;
@@ -1075,11 +1143,12 @@ void App::draw_build_menu() {
                            ? std::string(tools_.road == sim::Road::Paved ? "Paved road" : "Dirt road")
                        : tools_.def.valid() ? defs_.buildings[tools_.def.v].name
                                             : std::string();
-    ImGui::SetNextWindowPos(ImVec2(rail_r_ + 6, ds.y - 8), ImGuiCond_Always, ImVec2(0, 1));
+    ImGui::SetNextWindowPos(ImVec2(rail_r_ + 8, ds.y - 10), ImGuiCond_Always, ImVec2(0, 1));
     begin_window("##toolchip", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
                      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
-                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoInputs);
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoInputs,
+                 Skin::Card);
     ImGui::PushFont(ui_fonts().bold, 0.0f);
     ImGui::TextUnformatted(what.c_str());
     ImGui::PopFont();
@@ -1105,7 +1174,7 @@ void App::draw_stock_window(const Dock& dock, bool* open) {
     end_panel();
     return;
   }
-  if (!panel_header(icons_, "ui/icon_goods", false, "Goods", "What the city holds, made and used yesterday"))
+  if (!panel_header(icons_, "ui/icon_goods", Pic::Icon, "Goods", "What the city holds, made and used yesterday"))
     *open = false;
   const auto& e = world_->econ;
   const float fs = ImGui::GetFontSize();

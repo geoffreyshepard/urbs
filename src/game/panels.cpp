@@ -148,7 +148,7 @@ void draw_building(sim::World& w, Selection& sel, const UiIcons& icons) {
   } else {
     sub = "Standing";
   }
-  if (!panel_header(icons, d.id, true, tier ? tier->name : d.name, sub, sub_col)) sel = Selection{};
+  if (!panel_header(icons, d.id, Pic::Thumb, tier ? tier->name : d.name, sub, sub_col)) sel = Selection{};
   if (b.plague || (b.state == sim::BState::Active && b.fire_risk > 150) || b.damage > 150) {
     bool first = true;
     auto t = [&](const char* label, ImU32 col) {
@@ -362,7 +362,7 @@ void draw_citizen(sim::World& w, Selection& sel, const UiIcons& icons) {
   const auto& D = *w.defs;
   std::string sub = std::string(C.sex[i] ? "Woman" : "Man") + ", " + std::to_string(C.age_years(i, w.now)) +
                     "  \xC2\xB7  " + sim::class_name(C.cls[i]);
-  if (!panel_header(icons, "ui/icon_population", false, w.citizen_name(i), sub)) sel = Selection{};
+  if (!panel_header(icons, "ui/icon_population", Pic::Icon, w.citizen_name(i), sub)) sel = Selection{};
   if (sel.building.valid() && w.buildings.alive(sel.building)) {
     if (link(("Back to the " + D.b(w.buildings[sel.building].def).name).c_str())) sel.citizen = CitizenId{};
     ImGui::SameLine();
@@ -531,7 +531,7 @@ void draw_labor_panel(sim::World& w, const UiIcons& icons, const Dock& dock, boo
     ++workforce;
     if (!w.citizens.work[i].valid()) ++unemployed;
   }
-  if (!panel_header(icons, "ui/icon_labor", false, "Labor",
+  if (!panel_header(icons, "ui/icon_labor", Pic::Icon, "Labor",
                     with_commas(workforce) + " of working age  \xC2\xB7  " + with_commas(unemployed) + " without work",
                     workforce && unemployed * 10 > workforce ? kColBad : 0))
     *open = false;
@@ -567,7 +567,7 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
     i64 net = 0;
     for (int k = 0; k < econ::kMoneyCount; ++k)
       net += (econ::money_is_income(static_cast<econ::Money>(k)) ? 1 : -1) * M.yesterday[k];
-    if (!panel_header(icons, "ui/icon_finance", false, "Finance",
+    if (!panel_header(icons, "ui/icon_finance", Pic::Icon, "Finance",
                       with_commas(w.econ.treasury) + " denarii  \xC2\xB7  " + signed_commas(net) + " yesterday",
                       net >= 0 ? kColGood : kColBad))
       *open = false;
@@ -611,7 +611,7 @@ void draw_finance_panel(sim::World& w, const UiIcons& icons, const Dock& dock, b
     {
       // A rule above the net line.
       const ImVec2 p = ImGui::GetCursorScreenPos();
-      const float x1 = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x;
+      const float x1 = panel_right();
       ImGui::GetWindowDrawList()->AddLine(ImVec2(p.x, p.y + 1), ImVec2(x1, p.y + 1),
                                           ImGui::GetColorU32(ImGuiCol_Border), 1.5f);
       ImGui::Dummy(ImVec2(0, 3));
@@ -699,7 +699,7 @@ void draw_trade_panel(sim::World& w, const UiIcons& icons, const Dock& dock, boo
     int n = 0;
     for (const auto& r : w.routes) n += r.open ? 1 : 0;
     if (!panel_header(
-            icons, "ui/icon_trade", false, "Trade",
+            icons, "ui/icon_trade", Pic::Icon, "Trade",
             n == 0 ? std::string("No routes open yet") : std::to_string(n) + (n == 1 ? " route open" : " routes open")))
       *open = false;
   }
@@ -743,9 +743,7 @@ void draw_trade_panel(sim::World& w, const UiIcons& icons, const Dock& dock, boo
     } else {
       ImGui::SameLine(0, 0);
       const float bw = std::round(fs * 8.5f);
-      ImGui::SetCursorScreenPos(
-          ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - bw,
-                 ImGui::GetCursorScreenPos().y));
+      ImGui::SetCursorScreenPos(ImVec2(panel_right() - bw, ImGui::GetCursorScreenPos().y));
       if (coin_button(icons, "Open route", pd.open_cost, w.econ.treasury >= pd.open_cost)) {
         sim::Command c;
         c.type = sim::CmdType::OpenRoute;
@@ -827,7 +825,7 @@ void draw_religion_panel(sim::World& w, const UiIcons& icons, const Dock& dock, 
     std::string weather = sim::weather_name(w.weather);
     if (!weather.empty())
       weather[0] = static_cast<char>(weather[0] >= 'a' && weather[0] <= 'z' ? weather[0] - 32 : weather[0]);
-    if (!panel_header(icons, "ui/icon_religion", false, "Religion",
+    if (!panel_header(icons, "ui/icon_religion", Pic::Icon, "Religion",
                       weather + " today  \xC2\xB7  " + std::to_string(pleased) + " pleased, " + std::to_string(angry) +
                           " displeased",
                       angry > pleased ? kColBad : 0))
@@ -844,10 +842,7 @@ void draw_religion_panel(sim::World& w, const UiIcons& icons, const Dock& dock, 
     const ImU32 col = m >= 65 ? kColGood : m >= 35 ? kColWarn : kColBad;
     // Portrait in a frame.
     const ImVec2 p = ImGui::GetCursorScreenPos();
-    ImDrawList* dl = ImGui::GetWindowDrawList();
-    dl->AddRectFilled(p, ImVec2(p.x + pic, p.y + pic), IM_COL32(246, 236, 210, 255), 4);
-    dl->AddRect(p, ImVec2(p.x + pic, p.y + pic), ImGui::GetColorU32(ImGuiCol_Border), 4, 0, 1.5f);
-    icons.draw_icon("ui/god_" + god.id, ImVec2(p.x + 3, p.y + 3), pic - 6);
+    framed_picture(icons, "ui/god_" + god.id, Pic::Portrait, p, pic);
     ImGui::Dummy(ImVec2(pic, pic));
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("%s\nFeast day: day %u of the year", god.name.c_str(), god.festival_day + 1u);
@@ -859,7 +854,7 @@ void draw_religion_panel(sim::World& w, const UiIcons& icons, const Dock& dock, 
     ImGui::TextDisabled("%s", god.domain.c_str());
     ImGui::EndGroup();
     ImGui::SameLine(0, 0);
-    const float right = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x;
+    const float right = panel_right();
     const float bw = std::round(fs * 5), btn = std::round(fs * 5.2f);
     ImGui::SetCursorScreenPos(ImVec2(right - btn - fs - bw, p.y + std::round(fs * 0.25f)));
     ImGui::BeginGroup();
@@ -912,7 +907,7 @@ void draw_military_panel(sim::World& w, Selection& sel, const UiIcons& icons, co
     std::string sub =
         units == 0 ? std::string("No units raised") : std::to_string(units) + (units == 1 ? " unit" : " units");
     if (enemies) sub += "  \xC2\xB7  " + std::to_string(enemies) + " enemy " + (enemies == 1 ? "band" : "bands") + "!";
-    if (!panel_header(icons, "ui/icon_military", false, "Military", sub, enemies ? kColBad : 0)) *open = false;
+    if (!panel_header(icons, "ui/icon_military", Pic::Icon, "Military", sub, enemies ? kColBad : 0)) *open = false;
   }
   ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
   ImGui::TextWrapped("Click a soldier or a unit below, then right-click the map to march. Raise units at a barracks.");
@@ -1010,7 +1005,7 @@ void draw_rome_panel(sim::World& w, const UiIcons& icons, const Dock& dock, bool
     return;
   }
   if (!panel_header(
-          icons, "ui/icon_rome", false, "Rome",
+          icons, "ui/icon_rome", Pic::Icon, "Rome",
           std::string(w.empire ? "The Emperor" : "The Senate") + "  \xC2\xB7  favor " + std::to_string(w.favor)))
     *open = false;
   const float fs = ImGui::GetFontSize();
@@ -1025,7 +1020,7 @@ void draw_rome_panel(sim::World& w, const UiIcons& icons, const Dock& dock, bool
     ImGui::TextUnformatted(name.c_str());
     if (frac >= 0) {
       ImGui::SameLine(0, 0);
-      const float bx = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - fs * 13;
+      const float bx = panel_right() - fs * 13;
       ImGui::SetCursorScreenPos(ImVec2(bx, ImGui::GetCursorScreenPos().y));
       bar(fs * 8, frac, ok ? kColGood : kColWarn, tick);
     }
@@ -1091,7 +1086,7 @@ void draw_rome_panel(sim::World& w, const UiIcons& icons, const Dock& dock, bool
       ImGui::SameLine();
       ImGui::TextUnformatted(r.name);
       ImGui::SameLine(0, 0);
-      const float bx = ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - fs * 13;
+      const float bx = panel_right() - fs * 13;
       ImGui::SetCursorScreenPos(ImVec2(bx, ImGui::GetCursorScreenPos().y));
       bar(fs * 8, static_cast<float>(r.v) / 100.0f, kColPlain);
       text_right(std::to_string(r.v));
@@ -1129,9 +1124,7 @@ void draw_rome_panel(sim::World& w, const UiIcons& icons, const Dock& dock, bool
     ImGui::EndGroup();
     ImGui::SameLine(0, 0);
     const float bw = std::round(fs * 4.2f);
-    ImGui::SetCursorScreenPos(
-        ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x - bw,
-               ImGui::GetCursorScreenPos().y + fs * 0.3f));
+    ImGui::SetCursorScreenPos(ImVec2(panel_right() - bw, ImGui::GetCursorScreenPos().y + fs * 0.3f));
     if (ImGui::Button("Send", ImVec2(bw, 0))) {
       sim::Command c;
       c.type = sim::CmdType::FulfillRequest;
@@ -1166,11 +1159,16 @@ void draw_advisors_panel(const sim::World& w, const UiIcons& icons, int* advisor
     end_panel();
     return;
   }
-  if (!panel_header(icons, kAdvisorSprites[*advisor], false, "Advisors", kAdvisorNames[*advisor])) *open = false;
+  if (!panel_header(icons, kAdvisorSprites[*advisor], Pic::Portrait, "Advisors", kAdvisorNames[*advisor]))
+    *open = false;
   for (int a = 1; a <= 5; ++a) {
     if (a > 1) ImGui::SameLine();
     ImGui::PushID(a);
-    if (icons.icon_button("##adv", kAdvisorSprites[a], 56, *advisor == a)) *advisor = a;
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                        ImVec2(std::round(ImGui::GetFontSize() * 0.4f), std::round(ImGui::GetFontSize() * 0.4f)));
+    if (icons.icon_button("##adv", kAdvisorSprites[a], std::round(ImGui::GetFontSize() * 2.8f), *advisor == a, true))
+      *advisor = a;
+    ImGui::PopStyleVar();
     if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", kAdvisorNames[a]);
     ImGui::PopID();
   }
@@ -1180,31 +1178,44 @@ void draw_advisors_panel(const sim::World& w, const UiIcons& icons, int* advisor
 }
 
 void draw_messages(sim::World& w, const UiIcons& icons, u16* last_seen) {
-  // Show the oldest unread message (or unanswered choice) as a dialogue.
+  // Show the oldest unread message (or unanswered choice) as a letter: the advisor's portrait and name, the title,
+  // the text, and the answers.
   for (auto& m : w.messages) {
     if (m.id <= *last_seen && (m.options.empty() || m.answered)) continue;
-    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.35f),
+    const float fs = ImGui::GetFontSize();
+    ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.4f),
                             ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize({460, 0}, ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize({std::round(fs * 31), 0}, ImGuiCond_Appearing);
     begin_window(("##msg" + std::to_string(m.id)).c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     if (m.advisor > 0 && m.advisor <= 5) {
-      icons.image(kAdvisorSprites[m.advisor], 64);
-      ImGui::SameLine();
+      content_bounds();
+      const float pic = std::round(fs * 4.2f);
+      const ImVec2 p = ImGui::GetCursorScreenPos();
+      framed_picture(icons, kAdvisorSprites[m.advisor], Pic::Portrait, p, pic);
+      ImGui::Dummy(ImVec2(pic, pic));
+      ImGui::SameLine(0, std::round(fs * 0.8f));
       ImGui::BeginGroup();
-      ImGui::TextDisabled("%s", kAdvisorNames[m.advisor]);
+      ImGui::Dummy(ImVec2(0, std::round(fs * 0.4f)));
+      ImGui::PushFont(ui_fonts().heading, std::round(fs * 0.86f));
+      ImGui::PushStyleColor(ImGuiCol_Text, kColSection);
+      ImGui::TextUnformatted(kAdvisorNames[m.advisor]);
+      ImGui::PopStyleColor();
+      ImGui::PopFont();
+      ImGui::PushTextWrapPos(panel_right() - ImGui::GetWindowPos().x);
+      heading(m.title.c_str(), 1.3f);
+      ImGui::PopTextWrapPos();
+      ImGui::EndGroup();
+      divider();
     } else {
-      ImGui::BeginGroup();
+      menu_title(m.title.c_str());
     }
-    ImGui::Text("%s", m.title.c_str());
-    ImGui::EndGroup();
-    ImGui::Separator();
     ImGui::TextWrapped("%s", m.text.c_str());
-    ImGui::Spacing();
+    ImGui::Dummy(ImVec2(0, std::round(fs * 0.5f)));
     if (m.options.empty()) {
-      if (ImGui::Button("Very well")) *last_seen = m.id;
+      if (dialog_button("Very well", std::round(fs * 9))) *last_seen = m.id;
     } else {
       for (size_t k = 0; k < m.options.size(); ++k)
-        if (ImGui::Button((m.options[k] + "##o" + std::to_string(k)).c_str())) {
+        if (dialog_button((m.options[k] + "##o" + std::to_string(k)).c_str())) {
           sim::Command c;
           c.type = sim::CmdType::Answer;
           c.def = m.id;
@@ -1223,15 +1234,17 @@ void draw_mission_end(const sim::World& w, bool* dismissed) {
   if (w.mission == sim::MissionState::Running || *dismissed) return;
   ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.4f), ImGuiCond_Always,
                           ImVec2(0.5f, 0.5f));
-  begin_window("##end", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar);
+  ImGui::SetNextWindowSize(ImVec2(std::round(ImGui::GetFontSize() * 26), 0), ImGuiCond_Always);
+  begin_window("##end", nullptr, ImGuiWindowFlags_NoTitleBar);
   if (w.mission == sim::MissionState::Won) {
-    ImGui::Text("Victory!");
+    menu_title("Victoria!");
     ImGui::TextWrapped("The Senate is pleased with your work. A greater task awaits.");
   } else {
-    ImGui::Text("Defeat");
+    menu_title("Defeat");
     ImGui::TextWrapped("%s", w.lost_reason.c_str());
   }
-  if (ImGui::Button("Continue")) *dismissed = true;
+  ImGui::Spacing();
+  if (dialog_button("Continue")) *dismissed = true;
   ImGui::End();
 }
 
@@ -1272,7 +1285,7 @@ BuildingId draw_alerts_panel(const sim::World& w, const UiIcons& icons, const Do
     end_panel();
     return jump;
   }
-  if (!panel_header(icons, "ui/icon_alerts", false, "Alerts",
+  if (!panel_header(icons, "ui/icon_alerts", Pic::Icon, "Alerts",
                     w.alerts.empty() ? std::string("All is quiet")
                                      : std::to_string(w.alerts.size()) + (w.alerts.size() == 1 ? " alert" : " alerts") +
                                            ", newest first"))

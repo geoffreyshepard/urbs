@@ -3,14 +3,15 @@
 #include <string>
 
 #include "data/defs.hpp"
-#include "game/music.hpp"
 #include "game/lighting.hpp"
+#include "game/music.hpp"
 #include "game/overlays.hpp"
 #include "game/panel_kit.hpp"
 #include "game/panels.hpp"
 #include "game/profile.hpp"
 #include "game/tools.hpp"
 #include "game/ui_icons.hpp"
+#include "game/ui_skin.hpp"
 #include "game/world_view.hpp"
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
@@ -142,6 +143,7 @@ class App {
   WorldView view_;
   Tools tools_;
   UiIcons icons_;
+  UiSkin skin_;
   Settings settings_;
   CampaignDef campaign_;
   CampaignProfile profile_;

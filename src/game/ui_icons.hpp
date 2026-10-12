@@ -4,11 +4,16 @@
 
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "data/defs.hpp"
 #include "render/atlas.hpp"
 
 namespace urbs::game {
+
+// An RGBA texture with `levels` mip levels averaged on the CPU (alpha-weighted, so transparent texels never darken
+// edges). `w` and `h` must be divisible by 2^(levels - 1). Returns null on failure.
+SDL_GPUTexture* create_mipmapped(SDL_GPUDevice* dev, u32 w, u32 h, u32 levels, std::vector<u8> px);
 
 // Crisp pixel-art images for ImGui: selected atlas sprites upscaled (nearest) into one texture,
 // because the ImGui backend samples linearly.  Rendered icons (goods and build categories from
@@ -31,8 +36,8 @@ class UiIcons {
   bool draw_thumb(const std::string& key, ImVec2 p0, float size) const;
   // Draws a cached icon (e.g. "goods/denarii_16") into the current window's draw list.
   bool draw_icon(const std::string& name, ImVec2 p0, float size) const;
-  // An image button with a category icon; `on` keeps it highlighted.
-  bool icon_button(const char* id, const std::string& name, float size, bool on) const;
+  // An image button with an icon: a round bronze medallion, or a square tile when `tile`; `on` keeps it selected.
+  bool icon_button(const char* id, const std::string& name, float size, bool on, bool tile = false) const;
   [[nodiscard]] bool big_uv(const std::string& name, ImVec2& uv0, ImVec2& uv1) const;
 
  private:

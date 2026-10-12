@@ -26,12 +26,29 @@ struct Dock {
 // Begins a docked panel window; always pair with end_panel(). Returns false when it is collapsed or clipped.
 bool begin_panel(const char* id, const Dock& d);
 void end_panel();
+// Screen x of the current panel's content edges (set by begin_panel, menu_title and title_band).
+float panel_left();
+float panel_right();
+// Takes the current window's content edges as the panel's (dialogs that start without menu_title).
+void content_bounds();
+// A dialog's button: centred in the panel, a common width (or `w`), a little taller than a plain button.
+bool dialog_button(const char* label, float w = 0);
 
-// Header: a framed picture (an icon from UiIcons, or a building thumbnail when `thumb` is set), the title in Cinzel,
-// one summary line under it, and a close button. Returns false when the close button was clicked.
-bool panel_header(const UiIcons& icons, const std::string& picture, bool thumb, const std::string& title,
+// How a picture is framed: an icon on a round bronze medallion, a building thumbnail on a square ivory tile, or a
+// portrait (gods, advisors) filling a square tile.
+enum class Pic : u8 { Icon, Thumb, Portrait };
+// Header: the panel's title in Cinzel on a red band across its top, a framed picture hanging from the band (`kind`:
+// an icon, a building thumbnail, a portrait), one summary line under the band, and a close button at the band's right
+// end. Returns false when the close button was clicked.
+bool panel_header(const UiIcons& icons, const std::string& picture, Pic kind, const std::string& title,
                   const std::string& sub, ImU32 sub_col = 0);
-// A menu's title (pause, settings, save and load, setup screens): centred Cinzel over the panels' divider.
+// A framed picture; `p` is the top-left corner, `size` the side.
+void framed_picture(const UiIcons& icons, const std::string& picture, Pic kind, ImVec2 p, float size);
+// A round bronze close button centred on `c`, `d` across. Returns true when clicked. Moves the cursor.
+bool close_button(ImVec2 c, float d);
+// A window's title on the red band across its top (windows without a picture, such as the build list).
+void title_band(const char* title);
+// A menu's title (pause, settings, save and load, setup screens): Cinzel on a red tabula ansata, centred.
 void menu_title(const char* title);
 // A coloured tag ("Plague", "On fire") on the current line.
 void tag(const char* label, ImU32 col);
@@ -39,7 +56,10 @@ void tag(const char* label, ImU32 col);
 void section(const char* label);
 void divider();
 
-// The top bar's bar, larger: `frac` 0..1 filled in `col`, with a goal marker at `goal` (0..1) when >= 0.
+// An inlaid bar at `p` (top-left), `width` x `h`: `frac` 0..1 filled in `col`, a goal marker at `goal` (0..1) when
+// >= 0. Used by the top bar and by bar().
+void draw_bar(ImDrawList* dl, ImVec2 p, float width, float h, float frac, ImU32 col, float goal = -1);
+// The top bar's bar, larger, on the current line.
 void bar(float width, float frac, ImU32 col, float goal = -1);
 // One row: label on the left, a bar in the middle, the value right-aligned. `tip` shows on hover.
 void meter_row(const char* label, float frac, ImU32 col, const std::string& value, float goal = -1,
@@ -53,6 +73,8 @@ void table_headings(const char* const* names, int n);
 // A label/value row with no bar.
 void value_row(const char* label, const std::string& value, ImU32 col = 0);
 
+// A button that shows a selected state (Pompeian red, cream lettering) when `on`. Returns true when clicked.
+bool selectable_button(const char* label, bool on, ImVec2 size = ImVec2(0, 0));
 // Compact controls. Each returns true when the value changed.
 bool stepper(const char* id, int* v, int lo, int hi, const char* unit = "", int step = 1);
 bool choice(const char* id, int* v, const char* const* options, int n, float each_w = 0);

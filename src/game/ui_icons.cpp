@@ -6,11 +6,10 @@
 #include <cstring>
 #include <vector>
 
+#include "game/style.hpp"
 #include "render/gpu.hpp"
 
 namespace urbs::game {
-
-namespace {
 
 // RGBA texture with a full mip chain built on the CPU (alpha-weighted 2x2 boxes, so transparent
 // texels never darken the edges).  w and h must be divisible by 2^(levels - 1).
@@ -75,8 +74,6 @@ SDL_GPUTexture* create_mipmapped(SDL_GPUDevice* dev, u32 w, u32 h, u32 levels, s
   for (auto* x : xf) SDL_ReleaseGPUTransferBuffer(dev, x);
   return tex;
 }
-
-}  // namespace
 
 bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs) {
   // Which sprites to include: advisors, gods, goods icons, HUD and category icons.
@@ -428,14 +425,26 @@ bool UiIcons::draw_icon(const std::string& name, ImVec2 p0, float size) const {
   return true;
 }
 
-bool UiIcons::icon_button(const char* id, const std::string& name, float size, bool on) const {
-  if (on) ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+bool UiIcons::icon_button(const char* id, const std::string& name, float size, bool on, bool tile) const {
+  // Skinned: a round bronze medallion (or a square tile), Pompeian red when on.
+  int pushed = 0;
+  if (skinned()) {
+    const Skin n = tile ? Skin::Tile : Skin::Medal, h = tile ? Skin::TileHov : Skin::MedalHov,
+               a = tile ? Skin::TileAct : Skin::MedalAct, sel = tile ? Skin::TileSel : Skin::MedalSel;
+    ImGui::PushStyleColor(ImGuiCol_Button, skin_col4(on ? sel : n));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, skin_col4(on ? sel : h));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, skin_col4(a));
+    pushed = 3;
+  } else if (on) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+    pushed = 1;
+  }
   auto it = entries_.find(name);
   const bool pressed =
       it == entries_.end() || !(it->second.hires ? hires_ : tex_)
           ? ImGui::Button(id, ImVec2(size, size))
           : ImGui::ImageButton(id, ref(it->second), ImVec2(size, size), it->second.uv0, it->second.uv1);
-  if (on) ImGui::PopStyleColor();
+  ImGui::PopStyleColor(pushed);
   return pressed;
 }
 
