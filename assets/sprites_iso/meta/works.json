@@ -1,7 +1,7 @@
 {
  "bld/bakery": {
   "ax": 128,
-  "ay": 171
+  "ay": 173
  },
  "bld/bakery@east": {
   "ax": 128,
@@ -13,15 +13,15 @@
  },
  "bld/bakery@north": {
   "ax": 128,
-  "ay": 182
+  "ay": 184
  },
  "bld/bakery_lit": {
   "ax": 128,
-  "ay": 171
+  "ay": 173
  },
  "bld/bakery_r1": {
   "ax": 128,
-  "ay": 148
+  "ay": 149
  },
  "bld/bakery_r1@east": {
   "ax": 128,
@@ -33,11 +33,11 @@
  },
  "bld/bakery_r1@north": {
   "ax": 128,
-  "ay": 158
+  "ay": 160
  },
  "bld/bakery_r1_lit": {
   "ax": 128,
-  "ay": 148
+  "ay": 149
  },
  "bld/bakery_r2": {
   "ax": 128,
@@ -145,11 +145,11 @@
  },
  "bld/carpenter": {
   "ax": 128,
-  "ay": 173
+  "ay": 175
  },
  "bld/carpenter_r1": {
   "ax": 128,
-  "ay": 140
+  "ay": 142
  },
  "bld/carpenter_r2": {
   "ax": 128,
@@ -157,7 +157,7 @@
  },
  "bld/carpenter_r3": {
   "ax": 128,
-  "ay": 165
+  "ay": 167
  },
  "bld/clay_pit": {
   "ax": 128,
@@ -177,11 +177,11 @@
  },
  "bld/concrete_works": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/concrete_works_lit": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/concrete_works_r1": {
   "ax": 192,
@@ -209,19 +209,19 @@
  },
  "bld/dye_works": {
   "ax": 192,
-  "ay": 217
+  "ay": 219
  },
  "bld/dye_works_lit": {
   "ax": 192,
-  "ay": 217
+  "ay": 219
  },
  "bld/dye_works_r1": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/dye_works_r1_lit": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/dye_works_r2": {
   "ax": 192,
@@ -241,11 +241,11 @@
  },
  "bld/dyer": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/dyer_lit": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/dyer_r1": {
   "ax": 128,
@@ -265,19 +265,19 @@
  },
  "bld/dyer_r3": {
   "ax": 128,
-  "ay": 160
+  "ay": 162
  },
  "bld/dyer_r3_lit": {
   "ax": 128,
-  "ay": 160
+  "ay": 162
  },
  "bld/fishing_wharf": {
   "ax": 128,
-  "ay": 133
+  "ay": 135
  },
  "bld/fishing_wharf_r1": {
   "ax": 128,
-  "ay": 175
+  "ay": 176
  },
  "bld/fishing_wharf_r2": {
   "ax": 128,
@@ -289,19 +289,19 @@
  },
  "bld/garum_workshop": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/garum_workshop_lit": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/garum_workshop_r1": {
   "ax": 128,
-  "ay": 141
+  "ay": 143
  },
  "bld/garum_workshop_r1_lit": {
   "ax": 128,
-  "ay": 141
+  "ay": 143
  },
  "bld/garum_workshop_r2": {
   "ax": 128,
@@ -313,27 +313,27 @@
  },
  "bld/garum_workshop_r3": {
   "ax": 128,
-  "ay": 158
+  "ay": 160
  },
  "bld/garum_workshop_r3_lit": {
   "ax": 128,
-  "ay": 158
+  "ay": 160
  },
  "bld/glassworks": {
   "ax": 192,
-  "ay": 216
+  "ay": 218
  },
  "bld/glassworks_lit": {
   "ax": 192,
-  "ay": 216
+  "ay": 218
  },
  "bld/glassworks_r1": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/glassworks_r1_lit": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/glassworks_r2": {
   "ax": 192,
@@ -365,23 +365,23 @@
  },
  "bld/iron_mine_r3": {
   "ax": 192,
-  "ay": 201
+  "ay": 202
  },
  "bld/jeweler": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/jeweler_lit": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/jeweler_r1": {
   "ax": 128,
-  "ay": 150
+  "ay": 152
  },
  "bld/jeweler_r1_lit": {
   "ax": 128,
-  "ay": 150
+  "ay": 152
  },
  "bld/jeweler_r2": {
   "ax": 128,
@@ -393,11 +393,11 @@
  },
  "bld/jeweler_r3": {
   "ax": 128,
-  "ay": 161
+  "ay": 163
  },
  "bld/jeweler_r3_lit": {
   "ax": 128,
-  "ay": 161
+  "ay": 163
  },
  "bld/lime_kiln": {
   "ax": 128,
@@ -441,11 +441,11 @@
  },
  "bld/lumber_camp_r2": {
   "ax": 128,
-  "ay": 132
+  "ay": 133
  },
  "bld/lumber_camp_r3": {
   "ax": 128,
-  "ay": 164
+  "ay": 165
  },
  "bld/marble_quarry": {
   "ax": 192,
@@ -465,7 +465,7 @@
  },
  "bld/mill": {
   "ax": 128,
-  "ay": 174
+  "ay": 176
  },
  "bld/mill@east": {
   "ax": 128,
@@ -477,11 +477,11 @@
  },
  "bld/mill@north": {
   "ax": 128,
-  "ay": 185
+  "ay": 187
  },
  "bld/mill_lit": {
   "ax": 128,
-  "ay": 174
+  "ay": 176
  },
  "bld/mill_r1": {
   "ax": 128,
@@ -525,7 +525,7 @@
  },
  "bld/mill_r3": {
   "ax": 128,
-  "ay": 148
+  "ay": 150
  },
  "bld/mill_r3@east": {
   "ax": 128,
@@ -537,19 +537,19 @@
  },
  "bld/mill_r3@north": {
   "ax": 128,
-  "ay": 159
+  "ay": 161
  },
  "bld/mill_r3_lit": {
   "ax": 128,
-  "ay": 148
+  "ay": 150
  },
  "bld/olive_press": {
   "ax": 128,
-  "ay": 179
+  "ay": 181
  },
  "bld/olive_press_lit": {
   "ax": 128,
-  "ay": 179
+  "ay": 181
  },
  "bld/olive_press_r1": {
   "ax": 128,
@@ -569,11 +569,11 @@
  },
  "bld/olive_press_r3": {
   "ax": 128,
-  "ay": 157
+  "ay": 160
  },
  "bld/olive_press_r3_lit": {
   "ax": 128,
-  "ay": 157
+  "ay": 160
  },
  "bld/papyrus_marsh_tile_0": {
   "ax": 64,
@@ -593,7 +593,7 @@
  },
  "bld/potter": {
   "ax": 128,
-  "ay": 171
+  "ay": 173
  },
  "bld/potter@east": {
   "ax": 128,
@@ -605,15 +605,15 @@
  },
  "bld/potter@north": {
   "ax": 128,
-  "ay": 182
+  "ay": 184
  },
  "bld/potter_lit": {
   "ax": 128,
-  "ay": 171
+  "ay": 173
  },
  "bld/potter_r1": {
   "ax": 128,
-  "ay": 137
+  "ay": 139
  },
  "bld/potter_r1@east": {
   "ax": 128,
@@ -625,11 +625,11 @@
  },
  "bld/potter_r1@north": {
   "ax": 128,
-  "ay": 148
+  "ay": 150
  },
  "bld/potter_r1_lit": {
   "ax": 128,
-  "ay": 137
+  "ay": 139
  },
  "bld/potter_r2": {
   "ax": 128,
@@ -713,11 +713,11 @@
  },
  "bld/salt_works_r2": {
   "ax": 192,
-  "ay": 166
+  "ay": 167
  },
  "bld/salt_works_r3": {
   "ax": 128,
-  "ay": 205
+  "ay": 206
  },
  "bld/sand_pit": {
   "ax": 128,
@@ -737,11 +737,11 @@
  },
  "bld/sawmill": {
   "ax": 192,
-  "ay": 202
+  "ay": 204
  },
  "bld/sawmill_r1": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/sawmill_r2": {
   "ax": 192,
@@ -749,15 +749,15 @@
  },
  "bld/sawmill_r3": {
   "ax": 128,
-  "ay": 167
+  "ay": 169
  },
  "bld/scriptorium": {
   "ax": 128,
-  "ay": 185
+  "ay": 187
  },
  "bld/scriptorium_r1": {
   "ax": 128,
-  "ay": 153
+  "ay": 155
  },
  "bld/scriptorium_r2": {
   "ax": 128,
@@ -765,15 +765,15 @@
  },
  "bld/scriptorium_r3": {
   "ax": 128,
-  "ay": 165
+  "ay": 167
  },
  "bld/sculptor": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/sculptor_lit": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/sculptor_r1": {
   "ax": 128,
@@ -813,15 +813,15 @@
  },
  "bld/silver_mine_r3": {
   "ax": 192,
-  "ay": 201
+  "ay": 202
  },
  "bld/silver_smelter": {
   "ax": 192,
-  "ay": 211
+  "ay": 213
  },
  "bld/silver_smelter_r1": {
   "ax": 128,
-  "ay": 180
+  "ay": 182
  },
  "bld/silver_smelter_r2": {
   "ax": 192,
@@ -829,7 +829,7 @@
  },
  "bld/silver_smelter_r3": {
   "ax": 128,
-  "ay": 175
+  "ay": 178
  },
  "bld/smelter": {
   "ax": 192,
@@ -849,19 +849,19 @@
  },
  "bld/stonemason": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/stonemason_lit": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/stonemason_r1": {
   "ax": 128,
-  "ay": 142
+  "ay": 144
  },
  "bld/stonemason_r1_lit": {
   "ax": 128,
-  "ay": 142
+  "ay": 144
  },
  "bld/stonemason_r2": {
   "ax": 128,
@@ -873,15 +873,15 @@
  },
  "bld/stonemason_r3": {
   "ax": 128,
-  "ay": 167
+  "ay": 168
  },
  "bld/stonemason_r3_lit": {
   "ax": 128,
-  "ay": 167
+  "ay": 168
  },
  "bld/weaver": {
   "ax": 128,
-  "ay": 181
+  "ay": 183
  },
  "bld/weaver@east": {
   "ax": 128,
@@ -893,11 +893,11 @@
  },
  "bld/weaver@north": {
   "ax": 128,
-  "ay": 191
+  "ay": 194
  },
  "bld/weaver_lit": {
   "ax": 128,
-  "ay": 181
+  "ay": 183
  },
  "bld/weaver_r1": {
   "ax": 128,
@@ -913,7 +913,7 @@
  },
  "bld/weaver_r1@north": {
   "ax": 128,
-  "ay": 152
+  "ay": 154
  },
  "bld/weaver_r1_lit": {
   "ax": 128,
@@ -941,7 +941,7 @@
  },
  "bld/weaver_r3": {
   "ax": 128,
-  "ay": 161
+  "ay": 163
  },
  "bld/weaver_r3@east": {
   "ax": 128,
@@ -953,27 +953,27 @@
  },
  "bld/weaver_r3@north": {
   "ax": 128,
-  "ay": 172
+  "ay": 174
  },
  "bld/weaver_r3_lit": {
   "ax": 128,
-  "ay": 161
+  "ay": 163
  },
  "bld/winery": {
   "ax": 192,
-  "ay": 214
+  "ay": 216
  },
  "bld/winery_lit": {
   "ax": 192,
-  "ay": 214
+  "ay": 216
  },
  "bld/winery_r1": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/winery_r1_lit": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/winery_r2": {
   "ax": 192,

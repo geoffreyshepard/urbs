@@ -33,8 +33,18 @@ Recti Tools::footprint(const sim::World& w) const {
     }
     return {x0, y0, ww, hh};
   }
-  const data::Footprint fp = data::rotated_size(d, rot());
+  const data::Footprint fp = data::rotated_size(d, rot(w));
   return {hover_.x - (fp.w - 1) / 2, hover_.y - (fp.h - 1) / 2, fp.w, fp.h};
+}
+
+u8 Tools::rot(const sim::World& w) const {
+  if (kind != ToolKind::Build || !def.valid() || def.v >= w.defs->buildings.size()) return 0;
+  const u8 r = def.v < rot_.size() ? rot_[def.v] : kAutoRot;
+  if (r != kAutoRot) return r;
+  const auto& d = w.defs->b(def);
+  // Houses (square footprints, so the turn never moves the footprint) face the street.
+  if (d.kind != data::BuildingKind::House || !d.rotatable || d.painted || d.w != d.h) return 0;
+  return w.road_facing_rot(hover_.x - (d.w - 1) / 2, hover_.y - (d.h - 1) / 2, d.w, d.h);
 }
 
 bool Tools::can_rotate(const sim::World& w) const {
@@ -43,8 +53,9 @@ bool Tools::can_rotate(const sim::World& w) const {
 
 bool Tools::rotate(const sim::World& w, int dir) {
   if (!can_rotate(w)) return false;
-  if (rot_.size() < w.defs->buildings.size()) rot_.resize(w.defs->buildings.size(), 0);
-  rot_[def.v] = static_cast<u8>((rot_[def.v] + 4 + dir) & 3);
+  const u8 cur = rot(w);
+  if (rot_.size() < w.defs->buildings.size()) rot_.resize(w.defs->buildings.size(), kAutoRot);
+  rot_[def.v] = static_cast<u8>((cur + 4 + dir) & 3);
   return true;
 }
 
@@ -97,7 +108,7 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
       c.y0 = f.y;
       c.x1 = f.w;
       c.y1 = f.h;
-      c.flags = static_cast<u8>(rot() << 1);
+      c.flags = static_cast<u8>(rot(w) << 1);
       w.push(c);
       break;
     }
@@ -159,13 +170,13 @@ void Tools::draw(const sim::World& w, const WorldView& view, render::Renderer& r
       const auto& d = w.defs->b(def);
       if (d.rotatable) {
         // The door side: the tile in front of the middle of the front (where the entrance goes first).
-        const u8 k = rot();
+        const u8 k = rot(w);
         const i32 dx = k == 0 || k == 2 ? f.x + f.w / 2 : k == 1 ? f.x - 1 : f.x + f.w;
         const i32 dy = k == 1 || k == 3 ? f.y + f.h / 2 : k == 0 ? f.y + f.h : f.y - 1;
         if (w.map.in_bounds(dx, dy)) tile(dx, dy, render::rgba(250, 230, 150, 120));
       }
       if (!d.painted) {
-        const render::Sprite& s = view.building_sprite(def, f.w, f.h, 0, rot());  // rotated footprint and art
+        const render::Sprite& s = view.building_sprite(def, f.w, f.h, 0, rot(w));  // rotated footprint and art
         if (s.valid)
           r.push_translucent(iso_instance(s, iso::footprint_anchor(f.x, f.y, f.w, f.h, level), 0.02f,
                                           render::rgba(255, 255, 255, 170)));

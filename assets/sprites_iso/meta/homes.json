@@ -17,11 +17,11 @@
  },
  "bld/domus_plot_t0": {
   "ax": 192,
-  "ay": 212
+  "ay": 214
  },
  "bld/domus_plot_t0@east": {
   "ax": 192,
-  "ay": 212
+  "ay": 214
  },
  "bld/domus_plot_t0@egypt": {
   "ax": 192,
@@ -33,11 +33,11 @@
  },
  "bld/domus_plot_t0_r1": {
   "ax": 192,
-  "ay": 230
+  "ay": 232
  },
  "bld/domus_plot_t0_r1@east": {
   "ax": 192,
-  "ay": 230
+  "ay": 232
  },
  "bld/domus_plot_t0_r1@egypt": {
   "ax": 192,
@@ -45,15 +45,15 @@
  },
  "bld/domus_plot_t0_r1@north": {
   "ax": 192,
-  "ay": 230
+  "ay": 232
  },
  "bld/domus_plot_t0_r2": {
   "ax": 192,
-  "ay": 230
+  "ay": 232
  },
  "bld/domus_plot_t0_r2@east": {
   "ax": 192,
-  "ay": 230
+  "ay": 232
  },
  "bld/domus_plot_t0_r2@egypt": {
   "ax": 192,
@@ -61,15 +61,15 @@
  },
  "bld/domus_plot_t0_r2@north": {
   "ax": 192,
-  "ay": 230
+  "ay": 232
  },
  "bld/domus_plot_t0_r3": {
   "ax": 192,
-  "ay": 212
+  "ay": 214
  },
  "bld/domus_plot_t0_r3@east": {
   "ax": 192,
-  "ay": 212
+  "ay": 214
  },
  "bld/domus_plot_t0_r3@egypt": {
   "ax": 192,
@@ -77,7 +77,199 @@
  },
  "bld/domus_plot_t0_r3@north": {
   "ax": 192,
-  "ay": 212
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v1": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v1@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v1@egypt": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t0_v1@north": {
+  "ax": 192,
+  "ay": 233
+ },
+ "bld/domus_plot_t0_v1_r1": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v1_r1@east": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v1_r1@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v1_r1@north": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v1_r2": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v1_r2@east": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v1_r2@egypt": {
+  "ax": 192,
+  "ay": 236
+ },
+ "bld/domus_plot_t0_v1_r2@north": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v1_r3": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v1_r3@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v1_r3@egypt": {
+  "ax": 192,
+  "ay": 216
+ },
+ "bld/domus_plot_t0_v1_r3@north": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v2": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v2@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v2@egypt": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t0_v2@north": {
+  "ax": 192,
+  "ay": 233
+ },
+ "bld/domus_plot_t0_v2_r1": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v2_r1@east": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v2_r1@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v2_r1@north": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v2_r2": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v2_r2@east": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v2_r2@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v2_r2@north": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v2_r3": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v2_r3@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v2_r3@egypt": {
+  "ax": 192,
+  "ay": 216
+ },
+ "bld/domus_plot_t0_v2_r3@north": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v3": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v3@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v3@egypt": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t0_v3@north": {
+  "ax": 192,
+  "ay": 233
+ },
+ "bld/domus_plot_t0_v3_r1": {
+  "ax": 192,
+  "ay": 253
+ },
+ "bld/domus_plot_t0_v3_r1@east": {
+  "ax": 192,
+  "ay": 253
+ },
+ "bld/domus_plot_t0_v3_r1@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v3_r1@north": {
+  "ax": 192,
+  "ay": 260
+ },
+ "bld/domus_plot_t0_v3_r2": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v3_r2@east": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v3_r2@egypt": {
+  "ax": 192,
+  "ay": 234
+ },
+ "bld/domus_plot_t0_v3_r2@north": {
+  "ax": 192,
+  "ay": 232
+ },
+ "bld/domus_plot_t0_v3_r3": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v3_r3@east": {
+  "ax": 192,
+  "ay": 214
+ },
+ "bld/domus_plot_t0_v3_r3@egypt": {
+  "ax": 192,
+  "ay": 216
+ },
+ "bld/domus_plot_t0_v3_r3@north": {
+  "ax": 192,
+  "ay": 214
  },
  "bld/domus_plot_t1": {
   "ax": 192,
@@ -101,11 +293,11 @@
  },
  "bld/domus_plot_t1_r1": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r1@east": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r1@egypt": {
   "ax": 192,
@@ -113,19 +305,19 @@
  },
  "bld/domus_plot_t1_r1@north": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r1_lit": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r2": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r2@east": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r2@egypt": {
   "ax": 192,
@@ -133,19 +325,19 @@
  },
  "bld/domus_plot_t1_r2@north": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r2_lit": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/domus_plot_t1_r3": {
   "ax": 192,
-  "ay": 236
+  "ay": 239
  },
  "bld/domus_plot_t1_r3@east": {
   "ax": 192,
-  "ay": 235
+  "ay": 237
  },
  "bld/domus_plot_t1_r3@egypt": {
   "ax": 192,
@@ -153,11 +345,251 @@
  },
  "bld/domus_plot_t1_r3@north": {
   "ax": 192,
-  "ay": 244
+  "ay": 246
  },
  "bld/domus_plot_t1_r3_lit": {
   "ax": 192,
-  "ay": 236
+  "ay": 239
+ },
+ "bld/domus_plot_t1_v1": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v1@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v1@egypt": {
+  "ax": 192,
+  "ay": 235
+ },
+ "bld/domus_plot_t1_v1@north": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_v1_lit": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v1_r1": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r1@east": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r1@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_v1_r1@north": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r1_lit": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r2": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r2@east": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r2@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_v1_r2@north": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r2_lit": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r3": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/domus_plot_t1_v1_r3@east": {
+  "ax": 192,
+  "ay": 237
+ },
+ "bld/domus_plot_t1_v1_r3@egypt": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v1_r3@north": {
+  "ax": 192,
+  "ay": 246
+ },
+ "bld/domus_plot_t1_v1_r3_lit": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/domus_plot_t1_v2": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v2@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v2@egypt": {
+  "ax": 192,
+  "ay": 235
+ },
+ "bld/domus_plot_t1_v2@north": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_v2_lit": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v2_r1": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r1@east": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r1@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_v2_r1@north": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r1_lit": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r2": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r2@east": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r2@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_v2_r2@north": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r2_lit": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r3": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/domus_plot_t1_v2_r3@east": {
+  "ax": 192,
+  "ay": 237
+ },
+ "bld/domus_plot_t1_v2_r3@egypt": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v2_r3@north": {
+  "ax": 192,
+  "ay": 241
+ },
+ "bld/domus_plot_t1_v2_r3_lit": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/domus_plot_t1_v3": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v3@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v3@egypt": {
+  "ax": 192,
+  "ay": 235
+ },
+ "bld/domus_plot_t1_v3@north": {
+  "ax": 192,
+  "ay": 238
+ },
+ "bld/domus_plot_t1_v3_lit": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t1_v3_r1": {
+  "ax": 192,
+  "ay": 260
+ },
+ "bld/domus_plot_t1_v3_r1@east": {
+  "ax": 192,
+  "ay": 259
+ },
+ "bld/domus_plot_t1_v3_r1@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_v3_r1@north": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t1_v3_r1_lit": {
+  "ax": 192,
+  "ay": 260
+ },
+ "bld/domus_plot_t1_v3_r2": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v3_r2@east": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v3_r2@egypt": {
+  "ax": 192,
+  "ay": 242
+ },
+ "bld/domus_plot_t1_v3_r2@north": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v3_r2_lit": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v3_r3": {
+  "ax": 192,
+  "ay": 239
+ },
+ "bld/domus_plot_t1_v3_r3@east": {
+  "ax": 192,
+  "ay": 237
+ },
+ "bld/domus_plot_t1_v3_r3@egypt": {
+  "ax": 192,
+  "ay": 240
+ },
+ "bld/domus_plot_t1_v3_r3@north": {
+  "ax": 192,
+  "ay": 246
+ },
+ "bld/domus_plot_t1_v3_r3_lit": {
+  "ax": 192,
+  "ay": 239
  },
  "bld/domus_plot_t2": {
   "ax": 192,
@@ -177,11 +609,11 @@
  },
  "bld/domus_plot_t2_r1": {
   "ax": 192,
-  "ay": 261
+  "ay": 264
  },
  "bld/domus_plot_t2_r1@east": {
   "ax": 192,
-  "ay": 261
+  "ay": 263
  },
  "bld/domus_plot_t2_r1@egypt": {
   "ax": 192,
@@ -189,15 +621,15 @@
  },
  "bld/domus_plot_t2_r1@north": {
   "ax": 192,
-  "ay": 261
+  "ay": 264
  },
  "bld/domus_plot_t2_r2": {
   "ax": 192,
-  "ay": 261
+  "ay": 264
  },
  "bld/domus_plot_t2_r2@east": {
   "ax": 192,
-  "ay": 261
+  "ay": 263
  },
  "bld/domus_plot_t2_r2@egypt": {
   "ax": 192,
@@ -205,7 +637,7 @@
  },
  "bld/domus_plot_t2_r2@north": {
   "ax": 192,
-  "ay": 261
+  "ay": 264
  },
  "bld/domus_plot_t2_r3": {
   "ax": 192,
@@ -220,6 +652,198 @@
   "ay": 252
  },
  "bld/domus_plot_t2_r3@north": {
+  "ax": 192,
+  "ay": 253
+ },
+ "bld/domus_plot_t2_v1": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v1@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v1@egypt": {
+  "ax": 192,
+  "ay": 229
+ },
+ "bld/domus_plot_t2_v1@north": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v1_r1": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v1_r1@east": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/domus_plot_t2_v1_r1@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_v1_r1@north": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v1_r2": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v1_r2@east": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/domus_plot_t2_v1_r2@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_v1_r2@north": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v1_r3": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v1_r3@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v1_r3@egypt": {
+  "ax": 192,
+  "ay": 252
+ },
+ "bld/domus_plot_t2_v1_r3@north": {
+  "ax": 192,
+  "ay": 253
+ },
+ "bld/domus_plot_t2_v2": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v2@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v2@egypt": {
+  "ax": 192,
+  "ay": 229
+ },
+ "bld/domus_plot_t2_v2@north": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v2_r1": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v2_r1@east": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/domus_plot_t2_v2_r1@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_v2_r1@north": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v2_r2": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v2_r2@east": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/domus_plot_t2_v2_r2@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_v2_r2@north": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v2_r3": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v2_r3@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v2_r3@egypt": {
+  "ax": 192,
+  "ay": 252
+ },
+ "bld/domus_plot_t2_v2_r3@north": {
+  "ax": 192,
+  "ay": 253
+ },
+ "bld/domus_plot_t2_v3": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v3@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v3@egypt": {
+  "ax": 192,
+  "ay": 229
+ },
+ "bld/domus_plot_t2_v3@north": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v3_r1": {
+  "ax": 192,
+  "ay": 282
+ },
+ "bld/domus_plot_t2_v3_r1@east": {
+  "ax": 192,
+  "ay": 281
+ },
+ "bld/domus_plot_t2_v3_r1@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_v3_r1@north": {
+  "ax": 192,
+  "ay": 288
+ },
+ "bld/domus_plot_t2_v3_r2": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v3_r2@east": {
+  "ax": 192,
+  "ay": 263
+ },
+ "bld/domus_plot_t2_v3_r2@egypt": {
+  "ax": 192,
+  "ay": 266
+ },
+ "bld/domus_plot_t2_v3_r2@north": {
+  "ax": 192,
+  "ay": 264
+ },
+ "bld/domus_plot_t2_v3_r3": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v3_r3@east": {
+  "ax": 192,
+  "ay": 231
+ },
+ "bld/domus_plot_t2_v3_r3@egypt": {
+  "ax": 192,
+  "ay": 252
+ },
+ "bld/domus_plot_t2_v3_r3@north": {
   "ax": 192,
   "ay": 253
  },
@@ -335,9 +959,201 @@
   "ax": 128,
   "ay": 133
  },
+ "bld/house_plot_t0_v1": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t0_v1@east": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t0_v1@egypt": {
+  "ax": 128,
+  "ay": 143
+ },
+ "bld/house_plot_t0_v1@north": {
+  "ax": 128,
+  "ay": 134
+ },
+ "bld/house_plot_t0_v1_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v1_r1@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v1_r1@egypt": {
+  "ax": 128,
+  "ay": 134
+ },
+ "bld/house_plot_t0_v1_r1@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v1_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v1_r2@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v1_r2@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/house_plot_t0_v1_r2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v1_r3": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_v1_r3@east": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_v1_r3@egypt": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t0_v1_r3@north": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_v2": {
+  "ax": 128,
+  "ay": 138
+ },
+ "bld/house_plot_t0_v2@east": {
+  "ax": 128,
+  "ay": 138
+ },
+ "bld/house_plot_t0_v2@egypt": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r1@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r1@egypt": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/house_plot_t0_v2_r1@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r2@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r2@egypt": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t0_v2_r2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v2_r3": {
+  "ax": 128,
+  "ay": 138
+ },
+ "bld/house_plot_t0_v2_r3@east": {
+  "ax": 128,
+  "ay": 138
+ },
+ "bld/house_plot_t0_v2_r3@egypt": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/house_plot_t0_v2_r3@north": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_v3": {
+  "ax": 128,
+  "ay": 141
+ },
+ "bld/house_plot_t0_v3@east": {
+  "ax": 128,
+  "ay": 141
+ },
+ "bld/house_plot_t0_v3@egypt": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/house_plot_t0_v3@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r1": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r1@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r1@egypt": {
+  "ax": 128,
+  "ay": 137
+ },
+ "bld/house_plot_t0_v3_r1@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r2": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r2@east": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r2@egypt": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r2@north": {
+  "ax": 128,
+  "ay": 132
+ },
+ "bld/house_plot_t0_v3_r3": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_v3_r3@east": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t0_v3_r3@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/house_plot_t0_v3_r3@north": {
+  "ax": 128,
+  "ay": 133
+ },
  "bld/house_plot_t1": {
   "ax": 128,
-  "ay": 150
+  "ay": 152
  },
  "bld/house_plot_t1@east": {
   "ax": 128,
@@ -353,7 +1169,7 @@
  },
  "bld/house_plot_t1_r1": {
   "ax": 128,
-  "ay": 134
+  "ay": 136
  },
  "bld/house_plot_t1_r1@east": {
   "ax": 128,
@@ -399,13 +1215,205 @@
   "ax": 128,
   "ay": 166
  },
+ "bld/house_plot_t1_v1": {
+  "ax": 128,
+  "ay": 165
+ },
+ "bld/house_plot_t1_v1@east": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/house_plot_t1_v1@egypt": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/house_plot_t1_v1@north": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/house_plot_t1_v1_r1": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/house_plot_t1_v1_r1@east": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t1_v1_r1@egypt": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t1_v1_r1@north": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t1_v1_r2": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/house_plot_t1_v1_r2@east": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t1_v1_r2@egypt": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/house_plot_t1_v1_r2@north": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t1_v1_r3": {
+  "ax": 128,
+  "ay": 143
+ },
+ "bld/house_plot_t1_v1_r3@east": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v1_r3@egypt": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v1_r3@north": {
+  "ax": 128,
+  "ay": 146
+ },
+ "bld/house_plot_t1_v2": {
+  "ax": 128,
+  "ay": 179
+ },
+ "bld/house_plot_t1_v2@east": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t1_v2@egypt": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t1_v2@north": {
+  "ax": 128,
+  "ay": 134
+ },
+ "bld/house_plot_t1_v2_r1": {
+  "ax": 128,
+  "ay": 152
+ },
+ "bld/house_plot_t1_v2_r1@east": {
+  "ax": 128,
+  "ay": 140
+ },
+ "bld/house_plot_t1_v2_r1@egypt": {
+  "ax": 128,
+  "ay": 169
+ },
+ "bld/house_plot_t1_v2_r1@north": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/house_plot_t1_v2_r2": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v2_r2@east": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v2_r2@egypt": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v2_r2@north": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v2_r3": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/house_plot_t1_v2_r3@east": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/house_plot_t1_v2_r3@egypt": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/house_plot_t1_v2_r3@north": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/house_plot_t1_v3": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t1_v3@east": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t1_v3@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t1_v3@north": {
+  "ax": 128,
+  "ay": 143
+ },
+ "bld/house_plot_t1_v3_r1": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t1_v3_r1@east": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/house_plot_t1_v3_r1@egypt": {
+  "ax": 128,
+  "ay": 147
+ },
+ "bld/house_plot_t1_v3_r1@north": {
+  "ax": 128,
+  "ay": 139
+ },
+ "bld/house_plot_t1_v3_r2": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t1_v3_r2@east": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t1_v3_r2@egypt": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t1_v3_r2@north": {
+  "ax": 128,
+  "ay": 133
+ },
+ "bld/house_plot_t1_v3_r3": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/house_plot_t1_v3_r3@east": {
+  "ax": 128,
+  "ay": 135
+ },
+ "bld/house_plot_t1_v3_r3@egypt": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/house_plot_t1_v3_r3@north": {
+  "ax": 128,
+  "ay": 166
+ },
  "bld/house_plot_t2": {
   "ax": 128,
-  "ay": 158
+  "ay": 160
  },
  "bld/house_plot_t2@east": {
   "ax": 128,
-  "ay": 157
+  "ay": 159
  },
  "bld/house_plot_t2@egypt": {
   "ax": 128,
@@ -413,19 +1421,19 @@
  },
  "bld/house_plot_t2@north": {
   "ax": 128,
-  "ay": 159
+  "ay": 161
  },
  "bld/house_plot_t2_lit": {
   "ax": 128,
-  "ay": 158
+  "ay": 160
  },
  "bld/house_plot_t2_r1": {
   "ax": 128,
-  "ay": 139
+  "ay": 141
  },
  "bld/house_plot_t2_r1@east": {
   "ax": 128,
-  "ay": 138
+  "ay": 140
  },
  "bld/house_plot_t2_r1@egypt": {
   "ax": 128,
@@ -433,11 +1441,11 @@
  },
  "bld/house_plot_t2_r1@north": {
   "ax": 128,
-  "ay": 140
+  "ay": 142
  },
  "bld/house_plot_t2_r1_lit": {
   "ax": 128,
-  "ay": 139
+  "ay": 141
  },
  "bld/house_plot_t2_r2": {
   "ax": 128,
@@ -465,7 +1473,7 @@
  },
  "bld/house_plot_t2_r3@east": {
   "ax": 128,
-  "ay": 144
+  "ay": 146
  },
  "bld/house_plot_t2_r3@egypt": {
   "ax": 128,
@@ -479,13 +1487,253 @@
   "ax": 128,
   "ay": 150
  },
+ "bld/house_plot_t2_v1": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/house_plot_t2_v1@east": {
+  "ax": 128,
+  "ay": 160
+ },
+ "bld/house_plot_t2_v1@egypt": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/house_plot_t2_v1@north": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/house_plot_t2_v1_lit": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/house_plot_t2_v1_r1": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r1@east": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v1_r1@egypt": {
+  "ax": 128,
+  "ay": 149
+ },
+ "bld/house_plot_t2_v1_r1@north": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r1_lit": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r2": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r2@east": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r2@egypt": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r2@north": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r2_lit": {
+  "ax": 128,
+  "ay": 153
+ },
+ "bld/house_plot_t2_v1_r3": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/house_plot_t2_v1_r3@east": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v1_r3@egypt": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/house_plot_t2_v1_r3@north": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/house_plot_t2_v1_r3_lit": {
+  "ax": 128,
+  "ay": 148
+ },
+ "bld/house_plot_t2_v2": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/house_plot_t2_v2@east": {
+  "ax": 128,
+  "ay": 160
+ },
+ "bld/house_plot_t2_v2@egypt": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/house_plot_t2_v2@north": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/house_plot_t2_v2_lit": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/house_plot_t2_v2_r1": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t2_v2_r1@east": {
+  "ax": 128,
+  "ay": 150
+ },
+ "bld/house_plot_t2_v2_r1@egypt": {
+  "ax": 128,
+  "ay": 154
+ },
+ "bld/house_plot_t2_v2_r1@north": {
+  "ax": 128,
+  "ay": 163
+ },
+ "bld/house_plot_t2_v2_r1_lit": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t2_v2_r2": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v2_r2@east": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v2_r2@egypt": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v2_r2@north": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v2_r2_lit": {
+  "ax": 128,
+  "ay": 145
+ },
+ "bld/house_plot_t2_v2_r3": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/house_plot_t2_v2_r3@east": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/house_plot_t2_v2_r3@egypt": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/house_plot_t2_v2_r3@north": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/house_plot_t2_v2_r3_lit": {
+  "ax": 128,
+  "ay": 164
+ },
+ "bld/house_plot_t2_v3": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/house_plot_t2_v3@east": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/house_plot_t2_v3@egypt": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/house_plot_t2_v3@north": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/house_plot_t2_v3_lit": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/house_plot_t2_v3_r1": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t2_v3_r1@east": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t2_v3_r1@egypt": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t2_v3_r1@north": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t2_v3_r1_lit": {
+  "ax": 128,
+  "ay": 136
+ },
+ "bld/house_plot_t2_v3_r2": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/house_plot_t2_v3_r2@east": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/house_plot_t2_v3_r2@egypt": {
+  "ax": 128,
+  "ay": 168
+ },
+ "bld/house_plot_t2_v3_r2@north": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t2_v3_r2_lit": {
+  "ax": 128,
+  "ay": 151
+ },
+ "bld/house_plot_t2_v3_r3": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/house_plot_t2_v3_r3@east": {
+  "ax": 128,
+  "ay": 170
+ },
+ "bld/house_plot_t2_v3_r3@egypt": {
+  "ax": 128,
+  "ay": 166
+ },
+ "bld/house_plot_t2_v3_r3@north": {
+  "ax": 128,
+  "ay": 177
+ },
+ "bld/house_plot_t2_v3_r3_lit": {
+  "ax": 128,
+  "ay": 177
+ },
  "bld/house_plot_t3": {
   "ax": 128,
-  "ay": 185
+  "ay": 187
  },
  "bld/house_plot_t3@east": {
   "ax": 128,
-  "ay": 183
+  "ay": 186
  },
  "bld/house_plot_t3@egypt": {
   "ax": 128,
@@ -493,19 +1741,19 @@
  },
  "bld/house_plot_t3@north": {
   "ax": 128,
-  "ay": 186
+  "ay": 188
  },
  "bld/house_plot_t3_lit": {
   "ax": 128,
-  "ay": 185
+  "ay": 187
  },
  "bld/house_plot_t3_r1": {
   "ax": 128,
-  "ay": 175
+  "ay": 177
  },
  "bld/house_plot_t3_r1@east": {
   "ax": 128,
-  "ay": 174
+  "ay": 176
  },
  "bld/house_plot_t3_r1@egypt": {
   "ax": 128,
@@ -513,19 +1761,19 @@
  },
  "bld/house_plot_t3_r1@north": {
   "ax": 128,
-  "ay": 176
+  "ay": 178
  },
  "bld/house_plot_t3_r1_lit": {
   "ax": 128,
-  "ay": 175
+  "ay": 177
  },
  "bld/house_plot_t3_r2": {
   "ax": 128,
-  "ay": 167
+  "ay": 169
  },
  "bld/house_plot_t3_r2@east": {
   "ax": 128,
-  "ay": 166
+  "ay": 168
  },
  "bld/house_plot_t3_r2@egypt": {
   "ax": 128,
@@ -533,19 +1781,19 @@
  },
  "bld/house_plot_t3_r2@north": {
   "ax": 128,
-  "ay": 168
+  "ay": 170
  },
  "bld/house_plot_t3_r2_lit": {
   "ax": 128,
-  "ay": 167
+  "ay": 169
  },
  "bld/house_plot_t3_r3": {
   "ax": 128,
-  "ay": 177
+  "ay": 179
  },
  "bld/house_plot_t3_r3@east": {
   "ax": 128,
-  "ay": 175
+  "ay": 178
  },
  "bld/house_plot_t3_r3@egypt": {
   "ax": 128,
@@ -553,19 +1801,259 @@
  },
  "bld/house_plot_t3_r3@north": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/house_plot_t3_r3_lit": {
   "ax": 128,
+  "ay": 179
+ },
+ "bld/house_plot_t3_v1": {
+  "ax": 128,
+  "ay": 196
+ },
+ "bld/house_plot_t3_v1@east": {
+  "ax": 128,
+  "ay": 189
+ },
+ "bld/house_plot_t3_v1@egypt": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v1@north": {
+  "ax": 128,
+  "ay": 196
+ },
+ "bld/house_plot_t3_v1_lit": {
+  "ax": 128,
+  "ay": 196
+ },
+ "bld/house_plot_t3_v1_r1": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/house_plot_t3_v1_r1@east": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/house_plot_t3_v1_r1@egypt": {
+  "ax": 128,
+  "ay": 183
+ },
+ "bld/house_plot_t3_v1_r1@north": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/house_plot_t3_v1_r1_lit": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/house_plot_t3_v1_r2": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/house_plot_t3_v1_r2@east": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t3_v1_r2@egypt": {
+  "ax": 128,
+  "ay": 171
+ },
+ "bld/house_plot_t3_v1_r2@north": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/house_plot_t3_v1_r2_lit": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/house_plot_t3_v1_r3": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v1_r3@east": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v1_r3@egypt": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v1_r3@north": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v1_r3_lit": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v2": {
+  "ax": 128,
+  "ay": 192
+ },
+ "bld/house_plot_t3_v2@east": {
+  "ax": 128,
+  "ay": 192
+ },
+ "bld/house_plot_t3_v2@egypt": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v2@north": {
+  "ax": 128,
+  "ay": 194
+ },
+ "bld/house_plot_t3_v2_lit": {
+  "ax": 128,
+  "ay": 192
+ },
+ "bld/house_plot_t3_v2_r1": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/house_plot_t3_v2_r1@east": {
+  "ax": 128,
+  "ay": 172
+ },
+ "bld/house_plot_t3_v2_r1@egypt": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v2_r1@north": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v2_r1_lit": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/house_plot_t3_v2_r2": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t3_v2_r2@east": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t3_v2_r2@egypt": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t3_v2_r2@north": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t3_v2_r2_lit": {
+  "ax": 128,
+  "ay": 159
+ },
+ "bld/house_plot_t3_v2_r3": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/house_plot_t3_v2_r3@east": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/house_plot_t3_v2_r3@egypt": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v2_r3@north": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v2_r3_lit": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/house_plot_t3_v3": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/house_plot_t3_v3@east": {
+  "ax": 128,
+  "ay": 185
+ },
+ "bld/house_plot_t3_v3@egypt": {
+  "ax": 128,
+  "ay": 187
+ },
+ "bld/house_plot_t3_v3@north": {
+  "ax": 128,
+  "ay": 186
+ },
+ "bld/house_plot_t3_v3_lit": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/house_plot_t3_v3_r1": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v3_r1@east": {
+  "ax": 128,
+  "ay": 173
+ },
+ "bld/house_plot_t3_v3_r1@egypt": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v3_r1@north": {
+  "ax": 128,
+  "ay": 174
+ },
+ "bld/house_plot_t3_v3_r1_lit": {
+  "ax": 128,
+  "ay": 175
+ },
+ "bld/house_plot_t3_v3_r2": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t3_v3_r2@east": {
+  "ax": 128,
+  "ay": 165
+ },
+ "bld/house_plot_t3_v3_r2@egypt": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t3_v3_r2@north": {
+  "ax": 128,
+  "ay": 165
+ },
+ "bld/house_plot_t3_v3_r2_lit": {
+  "ax": 128,
+  "ay": 167
+ },
+ "bld/house_plot_t3_v3_r3": {
+  "ax": 128,
+  "ay": 180
+ },
+ "bld/house_plot_t3_v3_r3@east": {
+  "ax": 128,
   "ay": 177
+ },
+ "bld/house_plot_t3_v3_r3@egypt": {
+  "ax": 128,
+  "ay": 179
+ },
+ "bld/house_plot_t3_v3_r3@north": {
+  "ax": 128,
+  "ay": 178
+ },
+ "bld/house_plot_t3_v3_r3_lit": {
+  "ax": 128,
+  "ay": 180
  },
  "bld/house_plot_t4": {
   "ax": 128,
-  "ay": 215
+  "ay": 217
  },
  "bld/house_plot_t4@east": {
   "ax": 128,
-  "ay": 215
+  "ay": 217
  },
  "bld/house_plot_t4@egypt": {
   "ax": 128,
@@ -573,19 +2061,19 @@
  },
  "bld/house_plot_t4@north": {
   "ax": 128,
-  "ay": 223
+  "ay": 225
  },
  "bld/house_plot_t4_lit": {
   "ax": 128,
-  "ay": 215
+  "ay": 217
  },
  "bld/house_plot_t4_r1": {
   "ax": 128,
-  "ay": 189
+  "ay": 191
  },
  "bld/house_plot_t4_r1@east": {
   "ax": 128,
-  "ay": 189
+  "ay": 191
  },
  "bld/house_plot_t4_r1@egypt": {
   "ax": 128,
@@ -593,11 +2081,11 @@
  },
  "bld/house_plot_t4_r1@north": {
   "ax": 128,
-  "ay": 197
+  "ay": 199
  },
  "bld/house_plot_t4_r1_lit": {
   "ax": 128,
-  "ay": 189
+  "ay": 191
  },
  "bld/house_plot_t4_r2": {
   "ax": 128,
@@ -639,6 +2127,246 @@
   "ax": 128,
   "ay": 222
  },
+ "bld/house_plot_t4_v1": {
+  "ax": 128,
+  "ay": 224
+ },
+ "bld/house_plot_t4_v1@east": {
+  "ax": 128,
+  "ay": 223
+ },
+ "bld/house_plot_t4_v1@egypt": {
+  "ax": 128,
+  "ay": 223
+ },
+ "bld/house_plot_t4_v1@north": {
+  "ax": 128,
+  "ay": 224
+ },
+ "bld/house_plot_t4_v1_lit": {
+  "ax": 128,
+  "ay": 224
+ },
+ "bld/house_plot_t4_v1_r1": {
+  "ax": 128,
+  "ay": 214
+ },
+ "bld/house_plot_t4_v1_r1@east": {
+  "ax": 128,
+  "ay": 209
+ },
+ "bld/house_plot_t4_v1_r1@egypt": {
+  "ax": 128,
+  "ay": 213
+ },
+ "bld/house_plot_t4_v1_r1@north": {
+  "ax": 128,
+  "ay": 214
+ },
+ "bld/house_plot_t4_v1_r1_lit": {
+  "ax": 128,
+  "ay": 214
+ },
+ "bld/house_plot_t4_v1_r2": {
+  "ax": 128,
+  "ay": 213
+ },
+ "bld/house_plot_t4_v1_r2@east": {
+  "ax": 128,
+  "ay": 207
+ },
+ "bld/house_plot_t4_v1_r2@egypt": {
+  "ax": 128,
+  "ay": 212
+ },
+ "bld/house_plot_t4_v1_r2@north": {
+  "ax": 128,
+  "ay": 213
+ },
+ "bld/house_plot_t4_v1_r2_lit": {
+  "ax": 128,
+  "ay": 213
+ },
+ "bld/house_plot_t4_v1_r3": {
+  "ax": 128,
+  "ay": 223
+ },
+ "bld/house_plot_t4_v1_r3@east": {
+  "ax": 128,
+  "ay": 221
+ },
+ "bld/house_plot_t4_v1_r3@egypt": {
+  "ax": 128,
+  "ay": 221
+ },
+ "bld/house_plot_t4_v1_r3@north": {
+  "ax": 128,
+  "ay": 223
+ },
+ "bld/house_plot_t4_v1_r3_lit": {
+  "ax": 128,
+  "ay": 223
+ },
+ "bld/house_plot_t4_v2": {
+  "ax": 128,
+  "ay": 218
+ },
+ "bld/house_plot_t4_v2@east": {
+  "ax": 128,
+  "ay": 214
+ },
+ "bld/house_plot_t4_v2@egypt": {
+  "ax": 128,
+  "ay": 216
+ },
+ "bld/house_plot_t4_v2@north": {
+  "ax": 128,
+  "ay": 216
+ },
+ "bld/house_plot_t4_v2_lit": {
+  "ax": 128,
+  "ay": 218
+ },
+ "bld/house_plot_t4_v2_r1": {
+  "ax": 128,
+  "ay": 199
+ },
+ "bld/house_plot_t4_v2_r1@east": {
+  "ax": 128,
+  "ay": 195
+ },
+ "bld/house_plot_t4_v2_r1@egypt": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v2_r1@north": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v2_r1_lit": {
+  "ax": 128,
+  "ay": 199
+ },
+ "bld/house_plot_t4_v2_r2": {
+  "ax": 128,
+  "ay": 199
+ },
+ "bld/house_plot_t4_v2_r2@east": {
+  "ax": 128,
+  "ay": 195
+ },
+ "bld/house_plot_t4_v2_r2@egypt": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v2_r2@north": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v2_r2_lit": {
+  "ax": 128,
+  "ay": 199
+ },
+ "bld/house_plot_t4_v2_r3": {
+  "ax": 128,
+  "ay": 220
+ },
+ "bld/house_plot_t4_v2_r3@east": {
+  "ax": 128,
+  "ay": 220
+ },
+ "bld/house_plot_t4_v2_r3@egypt": {
+  "ax": 128,
+  "ay": 220
+ },
+ "bld/house_plot_t4_v2_r3@north": {
+  "ax": 128,
+  "ay": 220
+ },
+ "bld/house_plot_t4_v2_r3_lit": {
+  "ax": 128,
+  "ay": 220
+ },
+ "bld/house_plot_t4_v3": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_v3@east": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_v3@egypt": {
+  "ax": 128,
+  "ay": 224
+ },
+ "bld/house_plot_t4_v3@north": {
+  "ax": 128,
+  "ay": 235
+ },
+ "bld/house_plot_t4_v3_lit": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_v3_r1": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v3_r1@east": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v3_r1@egypt": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v3_r1@north": {
+  "ax": 128,
+  "ay": 201
+ },
+ "bld/house_plot_t4_v3_r1_lit": {
+  "ax": 128,
+  "ay": 197
+ },
+ "bld/house_plot_t4_v3_r2": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/house_plot_t4_v3_r2@east": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/house_plot_t4_v3_r2@egypt": {
+  "ax": 128,
+  "ay": 190
+ },
+ "bld/house_plot_t4_v3_r2@north": {
+  "ax": 128,
+  "ay": 201
+ },
+ "bld/house_plot_t4_v3_r2_lit": {
+  "ax": 128,
+  "ay": 188
+ },
+ "bld/house_plot_t4_v3_r3": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_v3_r3@east": {
+  "ax": 128,
+  "ay": 222
+ },
+ "bld/house_plot_t4_v3_r3@egypt": {
+  "ax": 128,
+  "ay": 224
+ },
+ "bld/house_plot_t4_v3_r3@north": {
+  "ax": 128,
+  "ay": 235
+ },
+ "bld/house_plot_t4_v3_r3_lit": {
+  "ax": 128,
+  "ay": 222
+ },
  "bld/plaza_tile_0": {
   "ax": 64,
   "ay": 64
@@ -657,11 +2385,11 @@
  },
  "bld/shrine": {
   "ax": 64,
-  "ay": 104
+  "ay": 105
  },
  "bld/shrine@east": {
   "ax": 64,
-  "ay": 104
+  "ay": 105
  },
  "bld/shrine@egypt": {
   "ax": 64,
@@ -669,7 +2397,7 @@
  },
  "bld/shrine@north": {
   "ax": 64,
-  "ay": 94
+  "ay": 95
  },
  "bld/shrine_r1": {
   "ax": 64,
@@ -685,7 +2413,7 @@
  },
  "bld/shrine_r1@north": {
   "ax": 64,
-  "ay": 82
+  "ay": 84
  },
  "bld/shrine_r2": {
   "ax": 64,
@@ -705,11 +2433,11 @@
  },
  "bld/shrine_r3": {
   "ax": 64,
-  "ay": 104
+  "ay": 105
  },
  "bld/shrine_r3@east": {
   "ax": 64,
-  "ay": 104
+  "ay": 105
  },
  "bld/shrine_r3@egypt": {
   "ax": 64,
@@ -765,7 +2493,7 @@
  },
  "bld/temple@north": {
   "ax": 192,
-  "ay": 236
+  "ay": 237
  },
  "bld/temple_r1": {
   "ax": 192,
@@ -781,7 +2509,7 @@
  },
  "bld/temple_r1@north": {
   "ax": 192,
-  "ay": 236
+  "ay": 237
  },
  "bld/temple_r2": {
   "ax": 192,
@@ -797,7 +2525,7 @@
  },
  "bld/temple_r2@north": {
   "ax": 192,
-  "ay": 236
+  "ay": 237
  },
  "bld/temple_r3": {
   "ax": 192,

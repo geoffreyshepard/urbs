@@ -516,6 +516,26 @@ TEST_CASE("rotation: odd turns swap the footprint, the entrance prefers the fron
   for (const auto& line : bad) CHECK_MESSAGE(line.find("rotation") == std::string::npos, line);
 }
 
+TEST_CASE("houses face the street: road_facing_rot picks the side with the most road") {
+  auto w = flat_world(64);
+  // A 2x2 lot at (20, 20): front lines are y 22 (rot 0), x 19 (rot 1), y 19 (rot 2), x 22 (rot 3).
+  CHECK(w->road_facing_rot(20, 20, 2, 2) == 0);         // no road: rot 0
+  w->place_road_line(20, 19, 21, 19, sim::Road::Dirt);  // north side, 2 tiles
+  CHECK(w->road_facing_rot(20, 20, 2, 2) == 2);
+  w->place_road(22, 20, sim::Road::Dirt);  // east side, 1 tile: north still wins
+  CHECK(w->road_facing_rot(20, 20, 2, 2) == 2);
+  w->place_road(22, 21, sim::Road::Dirt);  // east 2 = north 2: the camera-facing east wins the tie
+  CHECK(w->road_facing_rot(20, 20, 2, 2) == 3);
+  w->place_road_line(20, 22, 21, 22, sim::Road::Dirt);  // south 2: south first among ties
+  CHECK(w->road_facing_rot(20, 20, 2, 2) == 0);
+  // Corners do not count: a road only diagonal to the lot leaves it at rot 0.
+  auto v = flat_world(64);
+  v->place_road(19, 19, sim::Road::Dirt);
+  CHECK(v->road_facing_rot(20, 20, 2, 2) == 0);
+  v->place_road_line(19, 20, 19, 21, sim::Road::Dirt);  // west side
+  CHECK(v->road_facing_rot(20, 20, 2, 2) == 1);
+}
+
 TEST_CASE("rotation survives save/load; older saves load with every building at rot 0") {
   const auto& D = defs();
   auto w = flat_world(64);

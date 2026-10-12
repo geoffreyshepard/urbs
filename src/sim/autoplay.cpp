@@ -288,6 +288,9 @@ bool Autoplay::place(World& w, BuildingDefId def, i32 nx, i32 ny, bool painted_b
     c.y0 = y;
     c.x1 = bw;
     c.y1 = bh;
+    // Houses face their street (square footprints: the rotation never changes the footprint).
+    if (d.kind == BuildingKind::House && d.rotatable && bw == bh)
+      c.flags = static_cast<u8>(w.road_facing_rot(x, y, bw, bh) << 1);
     w.push(c);
     pending_.push_back(def.v);
     note(d.name);

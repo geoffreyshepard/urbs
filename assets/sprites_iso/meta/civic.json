@@ -1,7 +1,7 @@
 {
  "bld/academy": {
   "ax": 256,
-  "ay": 307
+  "ay": 309
  },
  "bld/academy_r1": {
   "ax": 256,
@@ -13,7 +13,7 @@
  },
  "bld/academy_r3": {
   "ax": 256,
-  "ay": 307
+  "ay": 309
  },
  "bld/amphitheater": {
   "ax": 448,
@@ -129,11 +129,11 @@
  },
  "bld/basilica": {
   "ax": 384,
-  "ay": 376
+  "ay": 378
  },
  "bld/basilica@east": {
   "ax": 384,
-  "ay": 376
+  "ay": 378
  },
  "bld/basilica@egypt": {
   "ax": 384,
@@ -141,11 +141,11 @@
  },
  "bld/basilica@north": {
   "ax": 384,
-  "ay": 403
+  "ay": 405
  },
  "bld/basilica_lit": {
   "ax": 384,
-  "ay": 376
+  "ay": 378
  },
  "bld/basilica_r1": {
   "ax": 256,
@@ -161,7 +161,7 @@
  },
  "bld/basilica_r1@north": {
   "ax": 256,
-  "ay": 374
+  "ay": 376
  },
  "bld/basilica_r1_lit": {
   "ax": 256,
@@ -181,7 +181,7 @@
  },
  "bld/basilica_r2@north": {
   "ax": 384,
-  "ay": 374
+  "ay": 376
  },
  "bld/basilica_r2_lit": {
   "ax": 384,
@@ -189,11 +189,11 @@
  },
  "bld/basilica_r3": {
   "ax": 256,
-  "ay": 376
+  "ay": 378
  },
  "bld/basilica_r3@east": {
   "ax": 256,
-  "ay": 376
+  "ay": 378
  },
  "bld/basilica_r3@egypt": {
   "ax": 256,
@@ -201,19 +201,19 @@
  },
  "bld/basilica_r3@north": {
   "ax": 256,
-  "ay": 403
+  "ay": 405
  },
  "bld/basilica_r3_lit": {
   "ax": 256,
-  "ay": 376
+  "ay": 378
  },
  "bld/circus": {
   "ax": 1024,
-  "ay": 713
+  "ay": 714
  },
  "bld/circus_r1": {
   "ax": 320,
-  "ay": 710
+  "ay": 711
  },
  "bld/circus_r2": {
   "ax": 1024,
@@ -305,51 +305,51 @@
  },
  "bld/governor_palace": {
   "ax": 320,
-  "ay": 373
+  "ay": 376
  },
  "bld/governor_palace_lit": {
   "ax": 320,
-  "ay": 373
+  "ay": 376
  },
  "bld/governor_palace_r1": {
   "ax": 320,
-  "ay": 341
+  "ay": 344
  },
  "bld/governor_palace_r1_lit": {
   "ax": 320,
-  "ay": 341
+  "ay": 344
  },
  "bld/governor_palace_r2": {
   "ax": 320,
-  "ay": 341
+  "ay": 344
  },
  "bld/governor_palace_r2_lit": {
   "ax": 320,
-  "ay": 341
+  "ay": 344
  },
  "bld/governor_palace_r3": {
   "ax": 320,
-  "ay": 373
+  "ay": 376
  },
  "bld/governor_palace_r3_lit": {
   "ax": 320,
-  "ay": 373
+  "ay": 376
  },
  "bld/hospital": {
   "ax": 256,
-  "ay": 298
+  "ay": 301
  },
  "bld/hospital_lit": {
   "ax": 256,
-  "ay": 298
+  "ay": 301
  },
  "bld/hospital_r1": {
   "ax": 256,
-  "ay": 274
+  "ay": 277
  },
  "bld/hospital_r1_lit": {
   "ax": 256,
-  "ay": 274
+  "ay": 277
  },
  "bld/hospital_r2": {
   "ax": 256,
@@ -361,15 +361,15 @@
  },
  "bld/hospital_r3": {
   "ax": 256,
-  "ay": 298
+  "ay": 301
  },
  "bld/hospital_r3_lit": {
   "ax": 256,
-  "ay": 298
+  "ay": 301
  },
  "bld/latrina": {
   "ax": 128,
-  "ay": 164
+  "ay": 167
  },
  "bld/latrina@east": {
   "ax": 128,
@@ -381,11 +381,11 @@
  },
  "bld/latrina@north": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/latrina_r1": {
   "ax": 128,
-  "ay": 146
+  "ay": 148
  },
  "bld/latrina_r1@east": {
   "ax": 128,
@@ -397,11 +397,11 @@
  },
  "bld/latrina_r1@north": {
   "ax": 128,
-  "ay": 159
+  "ay": 161
  },
  "bld/latrina_r2": {
   "ax": 128,
-  "ay": 146
+  "ay": 148
  },
  "bld/latrina_r2@east": {
   "ax": 128,
@@ -413,11 +413,11 @@
  },
  "bld/latrina_r2@north": {
   "ax": 128,
-  "ay": 159
+  "ay": 161
  },
  "bld/latrina_r3": {
   "ax": 128,
-  "ay": 164
+  "ay": 167
  },
  "bld/latrina_r3@east": {
   "ax": 128,
@@ -429,11 +429,11 @@
  },
  "bld/latrina_r3@north": {
   "ax": 128,
-  "ay": 178
+  "ay": 180
  },
  "bld/library": {
   "ax": 192,
-  "ay": 256
+  "ay": 258
  },
  "bld/library@east": {
   "ax": 192,
@@ -445,11 +445,11 @@
  },
  "bld/library@north": {
   "ax": 192,
-  "ay": 272
+  "ay": 274
  },
  "bld/library_r1": {
   "ax": 192,
-  "ay": 220
+  "ay": 223
  },
  "bld/library_r1@east": {
   "ax": 192,
@@ -461,11 +461,11 @@
  },
  "bld/library_r1@north": {
   "ax": 192,
-  "ay": 237
+  "ay": 239
  },
  "bld/library_r2": {
   "ax": 192,
-  "ay": 220
+  "ay": 223
  },
  "bld/library_r2@east": {
   "ax": 192,
@@ -477,11 +477,11 @@
  },
  "bld/library_r2@north": {
   "ax": 192,
-  "ay": 237
+  "ay": 239
  },
  "bld/library_r3": {
   "ax": 192,
-  "ay": 256
+  "ay": 258
  },
  "bld/library_r3@east": {
   "ax": 192,
@@ -493,11 +493,11 @@
  },
  "bld/library_r3@north": {
   "ax": 192,
-  "ay": 272
+  "ay": 274
  },
  "bld/mint": {
   "ax": 192,
-  "ay": 244
+  "ay": 246
  },
  "bld/mint_r1": {
   "ax": 192,
@@ -513,7 +513,7 @@
  },
  "bld/odeon": {
   "ax": 256,
-  "ay": 298
+  "ay": 301
  },
  "bld/odeon_r1": {
   "ax": 256,
@@ -525,11 +525,11 @@
  },
  "bld/odeon_r3": {
   "ax": 256,
-  "ay": 298
+  "ay": 301
  },
  "bld/physician": {
   "ax": 64,
-  "ay": 98
+  "ay": 99
  },
  "bld/physician@east": {
   "ax": 64,
@@ -541,11 +541,11 @@
  },
  "bld/physician@north": {
   "ax": 64,
-  "ay": 115
+  "ay": 116
  },
  "bld/physician_r1": {
   "ax": 64,
-  "ay": 89
+  "ay": 90
  },
  "bld/physician_r1@east": {
   "ax": 64,
@@ -557,11 +557,11 @@
  },
  "bld/physician_r1@north": {
   "ax": 64,
-  "ay": 106
+  "ay": 107
  },
  "bld/physician_r2": {
   "ax": 64,
-  "ay": 89
+  "ay": 90
  },
  "bld/physician_r2@east": {
   "ax": 64,
@@ -573,11 +573,11 @@
  },
  "bld/physician_r2@north": {
   "ax": 64,
-  "ay": 106
+  "ay": 107
  },
  "bld/physician_r3": {
   "ax": 64,
-  "ay": 98
+  "ay": 99
  },
  "bld/physician_r3@east": {
   "ax": 64,
@@ -589,11 +589,11 @@
  },
  "bld/physician_r3@north": {
   "ax": 64,
-  "ay": 115
+  "ay": 116
  },
  "bld/school": {
   "ax": 128,
-  "ay": 165
+  "ay": 168
  },
  "bld/school@east": {
   "ax": 128,
@@ -605,7 +605,7 @@
  },
  "bld/school@north": {
   "ax": 128,
-  "ay": 187
+  "ay": 189
  },
  "bld/school_r1": {
   "ax": 128,
@@ -641,7 +641,7 @@
  },
  "bld/school_r3": {
   "ax": 128,
-  "ay": 165
+  "ay": 168
  },
  "bld/school_r3@east": {
   "ax": 128,
@@ -653,11 +653,11 @@
  },
  "bld/school_r3@north": {
   "ax": 128,
-  "ay": 187
+  "ay": 189
  },
  "bld/tavern": {
   "ax": 128,
-  "ay": 169
+  "ay": 171
  },
  "bld/tavern@east": {
   "ax": 128,
@@ -669,15 +669,15 @@
  },
  "bld/tavern@north": {
   "ax": 128,
-  "ay": 188
+  "ay": 190
  },
  "bld/tavern_lit": {
   "ax": 128,
-  "ay": 169
+  "ay": 171
  },
  "bld/tavern_r1": {
   "ax": 128,
-  "ay": 147
+  "ay": 149
  },
  "bld/tavern_r1@east": {
   "ax": 128,
@@ -689,11 +689,11 @@
  },
  "bld/tavern_r1@north": {
   "ax": 128,
-  "ay": 166
+  "ay": 168
  },
  "bld/tavern_r1_lit": {
   "ax": 128,
-  "ay": 147
+  "ay": 149
  },
  "bld/tavern_r2": {
   "ax": 128,
@@ -709,7 +709,7 @@
  },
  "bld/tavern_r2@north": {
   "ax": 128,
-  "ay": 166
+  "ay": 168
  },
  "bld/tavern_r2_lit": {
   "ax": 128,
@@ -717,7 +717,7 @@
  },
  "bld/tavern_r3": {
   "ax": 128,
-  "ay": 169
+  "ay": 171
  },
  "bld/tavern_r3@east": {
   "ax": 128,
@@ -729,11 +729,11 @@
  },
  "bld/tavern_r3@north": {
   "ax": 128,
-  "ay": 188
+  "ay": 190
  },
  "bld/tavern_r3_lit": {
   "ax": 128,
-  "ay": 169
+  "ay": 171
  },
  "bld/theater": {
   "ax": 320,

@@ -131,14 +131,62 @@ road tool). The contract between the sim, the game and the art:
   (`bld/placeholder_WxH`, rotated size) for non-square ones.
 - Commands carry the rotation in `Command::flags` bits 1-2 (x1, y1 = the rotated w, h), so replays
   and the chaos player reproduce it; scenario `start.buildings` and `orders` accept `"rot"`.
-  The autoplay bot places everything at rot 0. Saves store it from version 4.
+  The autoplay bot places everything at rot 0 except houses, which face their street (see House
+  facing). Saves store it from version 4.
+
+### House facing
+
+Houses (2x2 `house_plot`, 3x3 `domus_plot`: square footprints, so a turn never moves the footprint)
+turn their front to a road by themselves. `World::road_facing_rot(x, y, w, h)` counts the road
+tiles along the outside line of each side and returns the rotation whose front touches the most;
+ties go to the fronts the camera sees (0 south, 3 east, then 1 west, 2 north); no road gives rot 0.
+The result goes into the ordinary place command's rotation bits, so it is replayed like any other
+rotation. Who uses it: the player's build tool (the ghost and the door mark follow the street under
+the cursor; pressing E / Q switches that house type to the player's own turn, picking it from the
+build menu again returns to auto-facing), the autoplay bot, and the town generator's house ring.
+
+## House variants
+
+Every housing tier has four looks so a block of houses does not read as wallpaper. Names:
+`bld/<house>_t<k>_v<n>` for n = 1..3; variant 0 keeps the plain `bld/<house>_t<k>` (the build menu
+and the placement ghost show it). Rotation comes after the variant, then `_lit`, then the region:
+`bld/house_plot_t2_v1`, `bld/house_plot_t2_v1_r3`, `bld/house_plot_t3_v2_r1_lit`,
+`bld/domus_plot_t1_v3_r2@east`.
+
+- Rendered for `house_plot` t0-t4 and `domus_plot` t0-t2, every region, all four rotations, `_lit`
+  where the tier has night lights (Italian casa and insulae t2-t4, grand domus t1).
+- Same footprint and the same tier cues: thatch and canvas up to t1, tiles from t2, one storey (t2),
+  two (t3), three (t4), base bands from t3, gardens and peristyles for the domus. Variants change the
+  roof form (hip, gable end to the street, lean-to, a light well), the plaster (cream, ochre, pale
+  pink, white, light terracotta tones; regional palettes in the provinces), shutters and doors
+  (brown, green, red, blue), the roof tone (`kit.TERRACOTTA`, `M["roof_v<n>"]`), and the lot: an
+  annex or wing, a vine pergola, a walled garden, a shop with an awning on the street (insulae and
+  domus v2), an upper room (domus v3), chimneys, washing lines, animals. A variant keeps its index
+  through the tiers (a pink v2 casa grows into a pink v2 insula).
+- `WorldView` picks the look from the building's map position (`WorldView::variant_at`, a hash of
+  x and y): render only, nothing in the sim or the save. It counts the variants that exist per tier
+  at init (contiguous from v1); in a province a variant counts only if it has that province's art
+  (or the tier has no regional art at all), so an eastern city never shows an Italian variant. A
+  look missing in some rotation falls back to variant 0 in that rotation.
+
+## Roofs
+
+Terracotta, slate, timber, marble and patina roofs use `kind="tiles"` (`kit._tiles`), drawn to stay
+readable at medium zoom (atlas 0.625 x zoom 0.5): columns of round imbrex caps over flat tegulae and
+courses with a shadow under each lip, scaled to about 4 screen px; every tile takes its own shade
+between the two material colours (and `tile_var` recolours a small share as old replaced tiles), so
+roofs read as crisp tile rows instead of mottled noise; no grey weathering wash on roofs. `hip`,
+`gable`, `ring_roof` and the homes `shed` add ridge and hip caps (`kit.roof_caps`) in a lighter tone
+of the roof (`kit.ridge_material`); pass `caps=False` to skip them. House roof tones: `kit.TERRACOTTA`.
 
 ## Art kit (`tools/artgen3d/`)
 
 `kit.py` holds the camera, lights, materials (`kit.palette()`), parts (boxes, gable/hip/ring roofs,
 columns, steps, fences, sacks, amphorae, carts, trees, lots) and the framing/render helpers.
 `run.py` renders one family module: `Blender -b --python tools/artgen3d/run.py -- <family> [names]
-[--samples N]`. Each family module declares `SPRITES = {name: spec}` (see `run.py`) and may define
+[--samples N]` (a name is a prefix; end it with `=` to match exactly, e.g. `bld/house_plot_t2=`
+without its `@region` variants). `URBS_ART_OUT=<dir>` renders into another folder (with its own
+meta) for test sheets. Each family module declares `SPRITES = {name: spec}` (see `run.py`) and may define
 its own extra materials and parts. Families never edit `kit.py`; shared fixes go through the lead.
 
 ### Rotated buildings
@@ -193,8 +241,8 @@ Streets must read as the city's grid at every zoom (owner's critique, 2026-10-11
 
 ## Readability rules (from the art test brief)
 
-Each category owns an accent no other category uses: housing is quiet (muted plaster, faded
-terracotta); food = saffron awnings and warm ochre; industry = charcoal slate roofs, soot yards,
+Each category owns an accent no other category uses: housing is quiet (soft plaster tones, warm
+terracotta, no awning stripes); food = saffron awnings and warm ochre; industry = charcoal slate roofs, soot yards,
 fire glow; storage = dark timber and tan stone, big doors, paved loading yards; religion = white
 marble and gold; civic/government = travertine with bronze/green-patina roofs and red banners;
 entertainment = striped awnings, banners, curved seating; health/baths = blue-green water, white

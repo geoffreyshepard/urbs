@@ -173,6 +173,30 @@ void World::compute_entrance(Building& b) {
   b.entrance = best;
 }
 
+u8 World::road_facing_rot(i32 x, i32 y, i32 w, i32 h) const {
+  auto road_at = [&](i32 tx, i32 ty) {
+    return map.in_bounds(tx, ty) && map.road[static_cast<size_t>(map.idx(tx, ty))] != Road::None ? 1 : 0;
+  };
+  static constexpr u8 kOrder[4] = {0, 3, 1, 2};
+  u8 best = 0;
+  int best_n = 0;
+  for (const u8 k : kOrder) {
+    int n = 0;
+    if (k == 0 || k == 2) {
+      const i32 ty = k == 0 ? y + h : y - 1;
+      for (i32 tx = x; tx < x + w; ++tx) n += road_at(tx, ty);
+    } else {
+      const i32 tx = k == 1 ? x - 1 : x + w;
+      for (i32 ty = y; ty < y + h; ++ty) n += road_at(tx, ty);
+    }
+    if (n > best_n) {
+      best_n = n;
+      best = k;
+    }
+  }
+  return best;
+}
+
 void World::refresh_entrances() {
   entrances_dirty_ = false;
   // Building, demolishing or changing roads can block a neighbour's entrance or leave it in a pocket

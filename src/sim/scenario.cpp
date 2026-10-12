@@ -304,8 +304,10 @@ void setup_town(World& w, const data::Defs& defs, const ScenarioSpec& s) {
         const char* id = small_cycle[sc++ % 18];
         BuildingDefId d = B(id);
         const auto& bd = defs.b(d);
-        BuildingId b = w.place_building(d, ox + l[0], oy + l[1], bd.w, bd.h, true);
-        if (b && bd.kind == data::BuildingKind::House) {
+        const bool house = bd.kind == data::BuildingKind::House;
+        const u8 rot = house ? w.road_facing_rot(ox + l[0], oy + l[1], bd.w, bd.h) : u8{0};  // face the street
+        BuildingId b = w.place_building(d, ox + l[0], oy + l[1], bd.w, bd.h, true, rot);
+        if (b && house) {
           houses.push_back(b);
           ++placed_houses;
         }
