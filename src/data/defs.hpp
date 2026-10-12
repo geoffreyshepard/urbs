@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -193,6 +194,15 @@ inline Footprint rotated_size(const BuildingDef& d, u8 rot) {
   return {d.w, d.h};
 }
 
+// Lets the id maps be searched with a string_view: building a std::string key from a literal
+// allocates when it is longer than the library's short-string buffer (15 chars in libstdc++),
+// and lookups run inside the tick.
+struct IdHash {
+  using is_transparent = void;
+  size_t operator()(std::string_view s) const noexcept { return std::hash<std::string_view>{}(s); }
+};
+using IdMap = std::unordered_map<std::string, u16, IdHash, std::equal_to<>>;
+
 struct Defs {
   std::vector<GoodDef> goods;
   std::vector<RecipeDef> recipes;
@@ -204,12 +214,12 @@ struct Defs {
   std::vector<GodDef> gods;
   std::vector<UnitDef> units;
   std::vector<TechniqueDef> techniques;
-  [[nodiscard]] UnitDefId unit(const std::string& id) const {
+  [[nodiscard]] UnitDefId unit(std::string_view id) const {
     for (size_t k = 0; k < units.size(); ++k)
       if (units[k].id == id) return UnitDefId{static_cast<u16>(k)};
     return UnitDefId{};
   }
-  [[nodiscard]] u8 god(const std::string& id) const {
+  [[nodiscard]] u8 god(std::string_view id) const {
     for (size_t k = 0; k < gods.size(); ++k)
       if (gods[k].id == id) return static_cast<u8>(k);
     return 0xFF;
@@ -227,12 +237,12 @@ struct Defs {
     return m;
   }
 
-  std::unordered_map<std::string, u16> good_ids, recipe_ids, service_ids, building_ids;
+  IdMap good_ids, recipe_ids, service_ids, building_ids;
 
-  [[nodiscard]] GoodId good(const std::string& id) const;
-  [[nodiscard]] RecipeId recipe(const std::string& id) const;
-  [[nodiscard]] ServiceId service(const std::string& id) const;
-  [[nodiscard]] BuildingDefId building(const std::string& id) const;
+  [[nodiscard]] GoodId good(std::string_view id) const;
+  [[nodiscard]] RecipeId recipe(std::string_view id) const;
+  [[nodiscard]] ServiceId service(std::string_view id) const;
+  [[nodiscard]] BuildingDefId building(std::string_view id) const;
   [[nodiscard]] const BuildingDef& b(BuildingDefId id) const { return buildings[id.v]; }
   [[nodiscard]] const GoodDef& g(GoodId id) const { return goods[id.v]; }
 };

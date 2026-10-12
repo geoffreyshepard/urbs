@@ -111,19 +111,19 @@ u8 parse_resource(const Merged& m, const std::string& id, const std::string& s) 
 
 }  // namespace
 
-GoodId Defs::good(const std::string& id) const {
+GoodId Defs::good(std::string_view id) const {
   auto it = good_ids.find(id);
   return it == good_ids.end() ? GoodId{} : GoodId{it->second};
 }
-RecipeId Defs::recipe(const std::string& id) const {
+RecipeId Defs::recipe(std::string_view id) const {
   auto it = recipe_ids.find(id);
   return it == recipe_ids.end() ? RecipeId{} : RecipeId{it->second};
 }
-ServiceId Defs::service(const std::string& id) const {
+ServiceId Defs::service(std::string_view id) const {
   auto it = service_ids.find(id);
   return it == service_ids.end() ? ServiceId{} : ServiceId{it->second};
 }
-BuildingDefId Defs::building(const std::string& id) const {
+BuildingDefId Defs::building(std::string_view id) const {
   auto it = building_ids.find(id);
   return it == building_ids.end() ? BuildingDefId{} : BuildingDefId{it->second};
 }
