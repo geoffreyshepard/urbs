@@ -50,7 +50,8 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--build-group")) o.build_group = std::atoi(argv[++i]);
     else if (arg("--show")) o.show = argv[++i];
     else if (arg("--weather")) o.weather = argv[++i];
-    else if (arg("--hour")) o.hour = static_cast<float>(std::atof(argv[++i]));
+    else if (arg("--hour"))
+      o.hour = static_cast<float>(std::atof(argv[++i]));
     else if (arg("--career"))
       o.career = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;

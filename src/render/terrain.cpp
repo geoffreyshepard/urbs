@@ -198,7 +198,7 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
       const f32 zr = ground_depth(x + y + 1, kLayerRoad), zk = ground_depth(x + y + 1, kLayerKerb);
       const u32 road_code = ground_code_color(kKindRoad, lv);
       // One road piece: its edge band one sub-layer under its surface (see TerrainSprites).
-      auto piece = [&](const Sprite (&p)[2]) {
+      auto piece = [&](const Sprite(&p)[2]) {
         if (p[1].valid) out.push_back(anchored(p[1], corner, zk, road_code));
         out.push_back(anchored(p[0], corner, zr, road_code));
       };
@@ -256,14 +256,18 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
           const i32 nx = tx + kDir4X[s], ny = ty + kDir4Y[s];
           if (R(nx, ny) != Road::None) trodden = true;
         }
-        const int n = static_cast<int>((h & 0xFF) < (trodden ? 90u : 170u)) + static_cast<int>(!trodden && ((h >> 8) & 0xFF) < 80u);
+        const int n = static_cast<int>((h & 0xFF) < (trodden ? 90u : 170u)) +
+                      static_cast<int>(!trodden && ((h >> 8) & 0xFF) < 80u);
         for (int k = 0; k < n; ++k) {
           const u32 hk = (h >> (k * 7 + 3)) * 0x27D4EB2Du ^ h;
           const u32 pick = (hk >> 4) % 100;
           const TerrainSprites::Decor* d;
-          if (pick < (trodden ? 70u : 48u)) d = &ts.tuft[(hk >> 12) % (fertile ? 2 : 3)];  // fertile: no dry tufts
-          else if (!trodden && pick < 86u) d = &ts.flowers[(hk >> 14) % 4];
-          else d = &ts.pebbles[(hk >> 16) % 2];
+          if (pick < (trodden ? 70u : 48u))
+            d = &ts.tuft[(hk >> 12) % (fertile ? 2 : 3)];  // fertile: no dry tufts
+          else if (!trodden && pick < 86u)
+            d = &ts.flowers[(hk >> 14) % 4];
+          else
+            d = &ts.pebbles[(hk >> 16) % 2];
           if (!d->body.valid) continue;
           const f32 ox = (static_cast<f32>((hk >> 18) & 15) / 15.0f - 0.5f) * 0.7f;
           const f32 oy = (static_cast<f32>((hk >> 22) & 15) / 15.0f - 0.5f) * 0.7f;
@@ -283,12 +287,16 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
         }
         case Terrain::Grass:
           // Nothing tall on buildable ground: trees grow only where the sim has forest.
-          if (var % 23 == 0 || var % 41 == 1) put(ts.bush[var % 3], jx, jy);
-          else meadow(x, y, false);
+          if (var % 23 == 0 || var % 41 == 1)
+            put(ts.bush[var % 3], jx, jy);
+          else
+            meadow(x, y, false);
           break;
         case Terrain::Fertile:
-          if (var % 61 == 2) put(ts.bush[var % 3], jx, jy);
-          else meadow(x, y, true);
+          if (var % 61 == 2)
+            put(ts.bush[var % 3], jx, jy);
+          else
+            meadow(x, y, true);
           break;
         case Terrain::Marsh:
           if (var % 5 < 2) put(ts.reeds[var % 3], jx, jy);

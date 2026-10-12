@@ -68,7 +68,7 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
   static const char* kDirs[4] = {"n", "e", "s", "w"};
   // Clothing variants: variant 0 is people/<class>_<d>_<f>, k > 0 people/<class>_v<k>_<d>_<f>; a
   // variant counts only when all 16 frames exist.
-  auto load_people = [&](const std::string& cn, render::Sprite (&out)[kPeopleVariants][4][4]) {
+  auto load_people = [&](const std::string& cn, render::Sprite(&out)[kPeopleVariants][4][4]) {
     int n = 0;
     for (int v = 0; v < kPeopleVariants; ++v) {
       const std::string base = "people/" + cn + (v ? "_v" + std::to_string(v) : std::string()) + "_";

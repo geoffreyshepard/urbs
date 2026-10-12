@@ -59,8 +59,7 @@ enum GroundLayer : int { kLayerCell = 0, kLayerKerb = 1, kLayerRoad = 2, kLayerQ
 inline constexpr int kGroundLayers = 5;
 inline f32 ground_depth(int slot, int layer) {
   constexpr f32 k = (kDepthGroundFar - kDepthGroundNear) / static_cast<f32>(kGroundLayers * (kGroundSlots + 2));
-  return kDepthGroundNear +
-         static_cast<f32>((kGroundSlots - slot) * kGroundLayers + (kGroundLayers - 1 - layer)) * k;
+  return kDepthGroundNear + static_cast<f32>((kGroundSlots - slot) * kGroundLayers + (kGroundLayers - 1 - layer)) * k;
 }
 static_assert(kDepthFlat < kDepthDecorShadow && kDepthDecorShadow < kDepthGroundNear &&
               kDepthRoad - 0.0004f < kDepthGroundNear);
