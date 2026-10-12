@@ -4,6 +4,7 @@ The city in three dimensions: Urbs is now isometric, with new art, a new interfa
 
 ## What's new since v1.0
 - **Isometric city:** every building, citizen, tree and street is rendered in 3D (Blender) and seen from an isometric camera, with cast shadows, a colour grade that follows the hour and the season, lit windows at night, terraced ground with cliff faces, and wide streets with kerbs.
+- **Beaches and smooth coasts:** low land meets the sea, lakes and rivers on sandy, pebbly beaches that slope into clear shallows, with waves running up the sand; high ground keeps its rock cliffs, with fallen stones at their foot. Diagonal coastlines run as smooth lines instead of tile steps.
 - **Turning buildings:** E and Q turn the building in hand; its door faces the front. Houses turn to face their street by themselves, and each house tier comes in four looks. Drag the housing tool to lay out a row or a block of houses at once.
 - **New interface:** a carved travertine and bronze skin; a build rail with pop-out lists; a top bar in three zones that shrinks to fit smaller windows; report panels that hang from their buttons; rendered icons, portraits and goods. The title screen plays over a living city, and the campaign has a painted province map.
 - **One story:** the sixteen missions are now one career told through letters from a patron, five advisors with their own voices, and events, with an ending.
@@ -24,7 +25,6 @@ The city in three dimensions: Urbs is now isometric, with new art, a new interfa
 ## Requirements and limitations
 - Requirements are as for v1.0 (below). The download is larger: the isometric sprite atlas is about 60 MB.
 - No sound effects yet; mods cannot ship their own sprites yet.
-- Shores are drawn as low cliffs rather than beaches.
 - The autoplay bot wins every mission on every difficulty (144 of 144 runs), and scripted playtests drive the real interface, but human play is still the best test: pacing and clarity reports are welcome (docs/playtest-checklist.md).
 
 ---

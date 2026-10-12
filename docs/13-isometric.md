@@ -246,6 +246,49 @@ Streets must read as the city's grid at every zoom (owner's critique, 2026-10-11
   quad under them would be hidden by the lot.
 - Screenshots: `--hour H` lights the world at a fixed hour (presentation only), alongside `--weather NAME`.
 
+## Coasts
+
+Render only: the map keeps its tile terrain and heights (water on level 0, land on 1..7); nothing in the sim or
+the save changes.
+
+- **Who gets a beach:** land 1 or 2 levels above the water beside it (`render::kBeachMaxRise`). The sand climbs one
+  level from the water to the land's edge, so low land (level 1) has no cliff face over the water; level-2 land keeps
+  one level of face, a low bluff behind the beach. Higher ground keeps its rock cliffs all the way down, with a scree
+  apron of fallen stones at their foot. Cliffs between land levels (terraces) are unchanged.
+- **Shore pieces** (`tools/artgen3d/terrain_tex.py shores()`, `terrain/shore_<mask>_<p>`): one piece per water tile
+  beside land, drawn on the water tile, anchored like a flat tile with 16 px of extra canvas for the raised sand.
+  `mask` = the tile's corners that touch land (NW=1, NE=2, SW=4, SE=8, as the dual grid); a marching-squares field
+  over the tile is 1 at those corners and 0 at the others (bilinear; the saddles 6 and 9 keep the water between
+  them open), the waterline is the field's 0.5 line, and the beach profile rises from it to one level at the land.
+  Pieces agree along shared edges, so a staircase of land tiles gets one straight waterline at 45 degrees and a
+  convex corner a rounded one. A small noise (periodic over two tiles, hence the position class `p`) makes the
+  waterline meander. A water tile whose four corners all touch land (a channel or inlet one tile wide) uses a lagoon
+  piece, `terrain/shore_x<open>_<p>`: water around the tile's centre that reaches the middle of each edge whose
+  neighbour is another such tile (N=1, E=2, S=4, W=8), so a one-tile channel stays a channel, closed by a sand bar
+  where it meets open water.
+- **Pieces are data, not colour** (rendered by ray-marching the beach's height field through the camera): R = slope
+  light / 1.5, G = height above the water ((h + 0.6) / 1.6; under 0 the sand is under water), B = the field, A =
+  coverage. `shaders/ground.frag` (`kKindShore`) paints them: sand (`sand_color`: broad patches, grain, faint ripples,
+  a few pebbles) or, toward corners that touch high ground, scree (`scree_color`; the instance colour's red byte
+  carries those corners), wet sand near the water, a swash sheet with a foam edge that runs up and drains back out
+  of step along the coast, a foam band on the waterline, and the sand seen through clear turquoise water that fades
+  into the water tile beneath.
+- **Sand fringe:** on level-1 land the shader blends the same `sand_color` in toward the water. It reads the ground
+  texture (`render::build_ground_texels`), which holds one texel per tile corner (the four tiles there averaged:
+  wear, luminance, vegetation) and is sampled half a texel up-left, so filtering interpolates between corners; its
+  alpha is the land at the corner (1 when all four tiles are land, else count / 6). The beach's top therefore follows
+  a smooth line across the land tiles, not their stepped edges. On water the same field drives the lighter shallows
+  and the surf under rock cliffs.
+- **Draw order:** shore pieces ride with a chunk's decorations, so they are drawn after every chunk's ground (their
+  water part is translucent and must land on finished water whichever chunk owns it), at depth slot `x + y + 1`,
+  sub-layer `kLayerShore`: over the tile's own water cells, under the quarters of the land in front.
+- Cost: one instance per shore tile in the static chunks (no per-frame CPU work; the ground texture is still one
+  sample per fragment). The GPU paints the shore pieces procedurally: about +1 ms per frame (2880 x 1602) on a view
+  that is mostly coast, about +0.1-0.2 ms on the 50k-citizen city.
+- Not smoothed: rock cliffs and terraces stay on the tile grid (their scree apron smooths the waterline, not the
+  faces), and land two or more levels up whose water lies behind it (north or west) hides its beach, so its stepped
+  outline still shows against the water.
+
 ## Readability rules (from the art test brief)
 
 Each category owns an accent no other category uses: housing is quiet (soft plaster tones, warm
