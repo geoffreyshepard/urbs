@@ -61,7 +61,7 @@ Balance is measured separately with `tools/bot_missions.sh [days] [difficulty] [
   - 3% garbage commands with out-of-range ids and coordinates.
 
   The chaos player has its own random stream, so a run is reproducible.
-- **`--roundtrip D`:** every D days, save, load into a fresh world, and run both for a game day. They must stay identical (compared every game hour). On a mismatch the run names the parts that differ (`save::world_hash_parts`). It also reports the slowest save and load and the largest file.
+- **`--roundtrip D`:** every D days, save, load into a fresh world, and run both for a game day with the same inputs: the bot and the chaos player play the original and their commands are replayed into the copy. They must stay identical (compared every game hour), and the run goes on exactly as it would without the round-trip, so an audit run is the same game as a plain one. On a mismatch the run names the parts that differ (`save::world_hash_parts`). It also reports the slowest save and load and the largest file.
 - **`--keep-playing`:** keep going after the mission is won or lost.
 - **Diagnostics:** `--watch goods`, `--ascii x0 y0 x1 y1`, `--verbose`, `--dump`.
 
@@ -76,4 +76,5 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **Exports stranded at the trade post:** goods staged for export were never handed back out, even when the city's stock fell to the export level, so the goods the player chose to keep could sit at the post while construction sites waited for them. The bot abandoned 428 sites in one Antioch run and lost to debt; with the fix it won in 141 days.
 - **A trade post full of unsold goods:** exports a partner had stopped buying for the year stayed at the post until it was full, after which no import fit. In one Colonia run the siege workshop waited 150 days for 10 iron that two open routes sold.
 - **The bot's jobs:** with every good above its stock limit the bot found nothing to build for the unemployed, so big cities stalled short of their goal while the treasury grew past 100,000. It now tries further export goods made from local materials, then services.
+- **The audit changed the game it audited:** during each round-trip day the original world played without the bot, so audit runs drifted from plain runs (Londinium lost under `--roundtrip` and won without it). Both worlds now get the same inputs.
 - **The bot's reservoirs:** the bot rebuilt a reservoir on the same cut-off shore spot again and again (45 times in one Antioch run), draining the treasury. Its stalled-site notes now say why a site was cleared (`cut off`, `no builders`, `no materials`, `waited too long`) and where.

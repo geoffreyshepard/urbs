@@ -269,7 +269,9 @@ int main(int argc, char** argv) {
       }
     }
     if (roundtrip && world->now % (kTicksPerDay * roundtrip) == kTicksPerHour * 13) {
-      // Save, load into a fresh world, run both for a day without the bot: they must not diverge.
+      // Save, load into a fresh world and run both for a day with the same inputs (the bot and the chaos
+      // player play the original; their commands are replayed into the copy): they must not diverge,
+      // and the run itself goes on exactly as it would without the round-trip.
       std::string err;
       const auto t0 = std::chrono::steady_clock::now();
       const bool saved = save::save_world(*world, rt_path, "roundtrip", &err);
@@ -290,10 +292,17 @@ int main(int argc, char** argv) {
         u64 diverged_at = 0;
         if (h0 != h1) diverged_at = 1;
         // Compare every game hour (hashing every tick doubles the cost of the day).
-        for (Tick k = 1; k <= kTicksPerDay && !diverged_at; ++k) {
+        Tick k = 0;
+        while (k < kTicksPerDay && !diverged_at) {
+          sim::push_due_orders(*world, spec);
+          if (autoplay) bot.step(*world);
+          chaos_player.step(*world, chaos);
+          for (const sim::Command& c : world->commands) copy->push(c);
           world->tick();
           copy->tick();
+          ++k;
           if (k % kTicksPerHour == 0 && save::world_hash(*world) != save::world_hash(*copy)) diverged_at = k / kTicksPerHour + 1;
+          if (autoplay && !keep_playing && world->mission != sim::MissionState::Running) break;
         }
         if (diverged_at) {
           const auto pa = save::world_hash_parts(*world), pb = save::world_hash_parts(*copy);
@@ -306,9 +315,10 @@ int main(int argc, char** argv) {
                       diverged_at == 1 ? "immediately after loading"
                                        : ("within " + std::to_string(diverged_at - 1) + " game hours").c_str());
         }
-        t += kTicksPerDay;
+        t += k;
       }
       std::filesystem::remove(rt_path);
+      if (autoplay && !keep_playing && world->mission != sim::MissionState::Running) break;
     }
     if (world->now % kTicksPerDay == kTicksPerHour * 10) {
       att_present = att_employed = 0;
