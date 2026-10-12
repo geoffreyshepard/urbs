@@ -257,9 +257,7 @@ void World::labor_allocate() {
   scratch_u32_.clear();
   for (u32 i = 0; i < C.ids.high_water(); ++i) {
     if (!C.ids.alive_index(i) || C.work[i].valid() || !C.home[i].valid() || !buildings.alive(C.home[i])) continue;
-    const u32 age = C.age_years(i, now);
-    if (age < 14 || age >= 60) continue;
-    if (C.cls[i] == CitizenClass::Patrician || C.cls[i] == CitizenClass::Soldier) continue;
+    if (!job_seeker_class(i)) continue;
     if (C.activity[i] == Activity::Leave) continue;
     const i32 he = buildings[C.home[i]].entrance;
     if (he < 0) continue;
@@ -723,8 +721,7 @@ void World::alerts_daily() {
   for (u32 i = 0; i < citizens.ids.high_water(); ++i) {
     if (!citizens.ids.alive_index(i) || (citizens.flags[i] & kFlagVisitor)) continue;
     if (!citizens.home[i].valid()) ++homeless;
-    const u32 age = citizens.age_years(i, now);
-    if (age < 14 || age >= 60) continue;
+    if (!job_seeker_class(i)) continue;
     ++adults;
     if (!citizens.work[i].valid()) ++unemployed;
   }

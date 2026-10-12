@@ -15,7 +15,7 @@ The autoplay bot proves that every mission can be won. It cannot tell whether a 
 | 2 Ostia | 45 min | First trade route and first request from Rome. On Imperium the bot once lost here to failed requests. |
 | 4 Capua | 75 min | First production chains with several steps, and patrician housing. |
 | 12 Alexandria | 4 h | The Nile flood and the lighthouse. Historically the bot's hardest mission. |
-| 13 Colonia, 15 Antioch | 4.25 h, 5 h | The bot wins these only about half the time (raids, debt, requests). |
+| 13 Colonia, 15 Antioch | 4.25 h, 5 h | Raids, debt and requests. The bot wins them now, but they were its hardest and are the likeliest to feel unfair. |
 
 ## For each mission, write down
 1. **Time:** real time from start to win (or to giving up), and the speed you used most (1×, 2× or 4×).

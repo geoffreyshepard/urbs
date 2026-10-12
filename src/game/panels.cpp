@@ -529,9 +529,7 @@ void draw_labor_panel(sim::World& w, const UiIcons& icons, const Dock& dock, boo
   });
   u32 unemployed = 0, workforce = 0;
   for (u32 i = 0; i < w.citizens.ids.high_water(); ++i) {
-    if (!w.citizens.ids.alive_index(i)) continue;
-    const u32 a = w.citizens.age_years(i, w.now);
-    if (a < 14 || a >= 60) continue;
+    if (!w.citizens.ids.alive_index(i) || !w.job_seeker_class(i)) continue;
     ++workforce;
     if (!w.citizens.work[i].valid()) ++unemployed;
   }

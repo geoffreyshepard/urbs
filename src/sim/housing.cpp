@@ -27,6 +27,14 @@ Sector World::sector_of(const Building& b) const {
   }
 }
 
+bool World::job_seeker_class(u32 ci) const {
+  const auto& C = citizens;
+  if (C.flags[ci] & kFlagVisitor) return false;
+  if (C.cls[ci] == CitizenClass::Patrician || C.cls[ci] == CitizenClass::Soldier) return false;
+  const u32 age = C.age_years(ci, now);
+  return age >= 14 && age < 60;
+}
+
 void World::add_alert(AlertKind k, BuildingId b, u16 arg) {
   for (auto it = alerts.rbegin(); it != alerts.rend(); ++it) {
     if (now - it->t > kTicksPerDay) break;

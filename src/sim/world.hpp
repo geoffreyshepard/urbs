@@ -365,6 +365,8 @@ struct World {
 
   // --- Society (sim/housing.cpp) ---
   [[nodiscard]] Sector sector_of(const Building& b) const;
+  // A resident of working age who may take an ordinary job (patricians and soldiers don't).
+  [[nodiscard]] bool job_seeker_class(u32 ci) const;
   void add_alert(AlertKind k, BuildingId b, u16 arg = 0);
   [[nodiscard]] bool requirement_met(const Building& b, const data::HousingReq& r) const;
   [[nodiscard]] int first_unmet(const Building& b, u8 tier) const;  // index into tier reqs or -1
