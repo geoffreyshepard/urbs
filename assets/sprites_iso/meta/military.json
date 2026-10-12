@@ -1,11 +1,11 @@
 {
  "bld/armory": {
   "ax": 192,
-  "ay": 232
+  "ay": 234
  },
  "bld/armory_lit": {
   "ax": 192,
-  "ay": 232
+  "ay": 234
  },
  "bld/armory_r1": {
   "ax": 128,
@@ -17,23 +17,23 @@
  },
  "bld/armory_r2": {
   "ax": 192,
-  "ay": 208
+  "ay": 210
  },
  "bld/armory_r2_lit": {
   "ax": 192,
-  "ay": 208
+  "ay": 210
  },
  "bld/armory_r3": {
   "ax": 128,
-  "ay": 232
+  "ay": 234
  },
  "bld/armory_r3_lit": {
   "ax": 128,
-  "ay": 232
+  "ay": 234
  },
  "bld/barracks": {
   "ax": 256,
-  "ay": 309
+  "ay": 311
  },
  "bld/barracks@east": {
   "ax": 256,
@@ -45,11 +45,11 @@
  },
  "bld/barracks@north": {
   "ax": 256,
-  "ay": 323
+  "ay": 325
  },
  "bld/barracks_lit": {
   "ax": 256,
-  "ay": 309
+  "ay": 311
  },
  "bld/barracks_r1": {
   "ax": 256,
@@ -93,7 +93,7 @@
  },
  "bld/barracks_r3": {
   "ax": 256,
-  "ay": 309
+  "ay": 311
  },
  "bld/barracks_r3@east": {
   "ax": 256,
@@ -105,11 +105,11 @@
  },
  "bld/barracks_r3@north": {
   "ax": 256,
-  "ay": 323
+  "ay": 325
  },
  "bld/barracks_r3_lit": {
   "ax": 256,
-  "ay": 309
+  "ay": 311
  },
  "bld/circus_maximus": {
   "ax": 1536,
@@ -209,7 +209,7 @@
  },
  "bld/guard_post": {
   "ax": 128,
-  "ay": 176
+  "ay": 178
  },
  "bld/guard_post@east": {
   "ax": 128,
@@ -221,7 +221,7 @@
  },
  "bld/guard_post@north": {
   "ax": 128,
-  "ay": 189
+  "ay": 191
  },
  "bld/guard_post_r1": {
   "ax": 128,
@@ -237,7 +237,7 @@
  },
  "bld/guard_post_r1@north": {
   "ax": 128,
-  "ay": 163
+  "ay": 165
  },
  "bld/guard_post_r2": {
   "ax": 128,
@@ -305,7 +305,7 @@
  },
  "bld/militia_post": {
   "ax": 128,
-  "ay": 173
+  "ay": 175
  },
  "bld/militia_post@east": {
   "ax": 128,
@@ -317,11 +317,11 @@
  },
  "bld/militia_post@north": {
   "ax": 128,
-  "ay": 183
+  "ay": 185
  },
  "bld/militia_post_lit": {
   "ax": 128,
-  "ay": 173
+  "ay": 175
  },
  "bld/militia_post_r1": {
   "ax": 128,
@@ -365,7 +365,7 @@
  },
  "bld/militia_post_r3": {
   "ax": 128,
-  "ay": 173
+  "ay": 175
  },
  "bld/militia_post_r3@east": {
   "ax": 128,
@@ -377,11 +377,11 @@
  },
  "bld/militia_post_r3@north": {
   "ax": 128,
-  "ay": 183
+  "ay": 185
  },
  "bld/militia_post_r3_lit": {
   "ax": 128,
-  "ay": 173
+  "ay": 175
  },
  "bld/pantheon": {
   "ax": 512,
@@ -481,11 +481,11 @@
  },
  "bld/siege_workshop": {
   "ax": 256,
-  "ay": 286
+  "ay": 288
  },
  "bld/siege_workshop_r1": {
   "ax": 192,
-  "ay": 238
+  "ay": 240
  },
  "bld/siege_workshop_r2": {
   "ax": 256,
@@ -497,7 +497,7 @@
  },
  "bld/stables": {
   "ax": 256,
-  "ay": 273
+  "ay": 275
  },
  "bld/stables_r1": {
   "ax": 192,
@@ -509,7 +509,7 @@
  },
  "bld/stables_r3": {
   "ax": 192,
-  "ay": 273
+  "ay": 275
  },
  "bld/temple_of_jupiter": {
   "ax": 512,
@@ -545,7 +545,7 @@
  },
  "bld/training_ground": {
   "ax": 320,
-  "ay": 353
+  "ay": 355
  },
  "bld/training_ground_r1": {
   "ax": 320,
@@ -577,7 +577,7 @@
  },
  "bld/vigiles_post": {
   "ax": 64,
-  "ay": 108
+  "ay": 109
  },
  "bld/vigiles_post@east": {
   "ax": 64,
@@ -589,11 +589,11 @@
  },
  "bld/vigiles_post@north": {
   "ax": 64,
-  "ay": 115
+  "ay": 116
  },
  "bld/vigiles_post_r1": {
   "ax": 64,
-  "ay": 97
+  "ay": 98
  },
  "bld/vigiles_post_r1@east": {
   "ax": 64,
@@ -605,11 +605,11 @@
  },
  "bld/vigiles_post_r1@north": {
   "ax": 64,
-  "ay": 104
+  "ay": 105
  },
  "bld/vigiles_post_r2": {
   "ax": 64,
-  "ay": 96
+  "ay": 98
  },
  "bld/vigiles_post_r2@east": {
   "ax": 64,
@@ -621,11 +621,11 @@
  },
  "bld/vigiles_post_r2@north": {
   "ax": 64,
-  "ay": 103
+  "ay": 105
  },
  "bld/vigiles_post_r3": {
   "ax": 64,
-  "ay": 107
+  "ay": 108
  },
  "bld/vigiles_post_r3@east": {
   "ax": 64,
@@ -637,7 +637,7 @@
  },
  "bld/vigiles_post_r3@north": {
   "ax": 64,
-  "ay": 114
+  "ay": 115
  },
  "bld/wall_c": {
   "ax": 64,

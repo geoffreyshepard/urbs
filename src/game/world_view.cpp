@@ -48,8 +48,30 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
     for (int k = 0; k < 4; ++k) {
       rotated(b.sprite, k, ds.base[k], ds.base_lit[k], ds.base[0], ds.base_lit[0]);
       for (int t = 0; t < 5; ++t)
-        rotated(b.sprite + "_t" + std::to_string(t), k, ds.tier[k][t], ds.tier_lit[k][t], ds.tier[0][t],
-                ds.tier_lit[0][t]);
+        rotated(b.sprite + "_t" + std::to_string(t), k, ds.tier[0][k][t], ds.tier_lit[0][k][t], ds.tier[0][0][t],
+                ds.tier_lit[0][0][t]);
+    }
+    // House looks: bld/<name>_t<k>_v<n>.  In a province, a variant counts only when it has that
+    // province's art too (or the province has no art of its own for the tier), so an eastern city
+    // never shows an Italian variant.
+    for (int t = 0; t < 5; ++t) {
+      const std::string tn = b.sprite + "_t" + std::to_string(t);
+      const bool regional = !region.empty() && atlas.find(tn + "@" + region).valid;
+      for (int v = 1; v < kVariants; ++v) {
+        const std::string vn = tn + "_v" + std::to_string(v);
+        const bool ok = regional ? atlas.find(vn + "@" + region).valid : atlas.find(vn).valid;
+        if (!ok || !ds.tier[0][0][t].valid) break;
+        for (int k = 0; k < 4; ++k) {
+          rotated(vn, k, ds.tier[v][k][t], ds.tier_lit[v][k][t], ds.tier[v][0][t], ds.tier_lit[v][0][t]);
+          const bool own =
+              k == 0 || (regional ? atlas.find(vn + kRot[k] + "@" + region).valid : atlas.find(vn + kRot[k]).valid);
+          if (!own || !ds.tier[v][k][t].valid) {  // no rotated art for this look: the plain look's
+            ds.tier[v][k][t] = ds.tier[0][k][t];
+            ds.tier_lit[v][k][t] = ds.tier_lit[0][k][t];
+          }
+        }
+        ds.variants[t] = static_cast<u8>(v + 1);
+      }
     }
     for (int v = 0; v < 4; ++v) ds.tile[v] = find(b.sprite + "_tile_" + std::to_string(v));
     ds.hut = find(b.sprite + "_hut");
@@ -111,11 +133,23 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
   white = atlas.get("fx/white");
 }
 
-const Sprite& WorldView::building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier, u8 rot) const {
+u8 WorldView::variant_at(i32 x, i32 y, u8 count) {
+  if (count <= 1) return 0;
+  u32 h = static_cast<u32>(x) * 0x9E3779B1u + static_cast<u32>(y) * 0x85EBCA77u;
+  h ^= h >> 15;
+  h *= 0x2C1B3C6Du;
+  h ^= h >> 12;
+  return static_cast<u8>(h % count);
+}
+
+const Sprite& WorldView::building_sprite(BuildingDefId def, i32 w, i32 h, u8 tier, u8 rot, u8 variant) const {
   if (def.valid() && def.v < defs_.size()) {
     const DefSprites& d = defs_[def.v];
     const int k = rot & 3;
-    if (tier < 5 && d.tier[k][tier].valid) return d.tier[k][tier];
+    if (tier < 5) {
+      const int v = variant % d.variants[tier];
+      if (d.tier[v][k][tier].valid) return d.tier[v][k][tier];
+    }
     if (d.base[k].valid) return d.base[k];
   }
   return placeholder_[std::clamp(w, 1, 4) - 1][std::clamp(h, 1, 4) - 1];
@@ -149,7 +183,9 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
       }
     return;
   }
-  const Sprite& s = building_sprite(b.def, b.w, b.h, b.tier, b.rot);
+  const DefSprites* ds = b.def.v < defs_.size() ? &defs_[b.def.v] : nullptr;
+  const u8 look = ds && b.tier < 5 ? variant_at(b.x, b.y, ds->variants[b.tier]) : u8{0};
+  const Sprite& s = building_sprite(b.def, b.w, b.h, b.tier, b.rot, look);
   const f32 top_y = anchor.y - s.iso_h();  // top of the building's art
   if (b.plague > 0 && plague_.valid) {
     // Status mark: an overlay (no cast shadow), pulsing softly so a sick district reads without
@@ -179,7 +215,6 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
                               0.05f, render::rgba(255, 255, 255, 200)));
       }
   }
-  const DefSprites* ds = b.def.v < defs_.size() ? &defs_[b.def.v] : nullptr;
   const u32 tint = render::kWhite;
   const bool building = b.state == sim::BState::Construction;
 
@@ -259,7 +294,8 @@ void WorldView::draw_building(const sim::World& w, render::Renderer& r, const si
   const f32 night = r.grade.params[2];
   if (night > 0.05f && ds) {
     const int k = b.rot & 3;
-    const Sprite& lit = (b.tier < 5 && ds->tier[k][b.tier].valid) ? ds->tier_lit[k][b.tier] : ds->base_lit[k];
+    const Sprite& lit =
+        (b.tier < 5 && ds->tier[look][k][b.tier].valid) ? ds->tier_lit[look][k][b.tier] : ds->base_lit[k];
     const bool occupied = b.residents > 0 || b.employed > 0 || (b.capacity == 0 && b.jobs == 0);
     const u32 hsh = static_cast<u32>(b.x) * 73856093u ^ static_cast<u32>(b.y) * 19349663u;
     if (lit.valid && occupied && hsh % 5 != 0) {

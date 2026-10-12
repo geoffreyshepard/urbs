@@ -41,7 +41,7 @@
  },
  "bld/cart_depot": {
   "ax": 192,
-  "ay": 240
+  "ay": 242
  },
  "bld/cart_depot_r1": {
   "ax": 192,
@@ -53,11 +53,11 @@
  },
  "bld/cart_depot_r3": {
   "ax": 192,
-  "ay": 226
+  "ay": 228
  },
  "bld/engineers_post": {
   "ax": 64,
-  "ay": 105
+  "ay": 107
  },
  "bld/engineers_post@east": {
   "ax": 64,
@@ -69,11 +69,11 @@
  },
  "bld/engineers_post@north": {
   "ax": 64,
-  "ay": 114
+  "ay": 116
  },
  "bld/engineers_post_r1": {
   "ax": 64,
-  "ay": 92
+  "ay": 94
  },
  "bld/engineers_post_r1@east": {
   "ax": 64,
@@ -85,7 +85,7 @@
  },
  "bld/engineers_post_r1@north": {
   "ax": 64,
-  "ay": 101
+  "ay": 104
  },
  "bld/engineers_post_r2": {
   "ax": 64,
@@ -105,7 +105,7 @@
  },
  "bld/engineers_post_r3": {
   "ax": 64,
-  "ay": 100
+  "ay": 101
  },
  "bld/engineers_post_r3@east": {
   "ax": 64,
@@ -117,7 +117,7 @@
  },
  "bld/engineers_post_r3@north": {
   "ax": 64,
-  "ay": 109
+  "ay": 111
  },
  "bld/fountain": {
   "ax": 64,
@@ -137,7 +137,7 @@
  },
  "bld/granary": {
   "ax": 192,
-  "ay": 265
+  "ay": 267
  },
  "bld/granary@east": {
   "ax": 192,
@@ -149,11 +149,11 @@
  },
  "bld/granary@north": {
   "ax": 192,
-  "ay": 281
+  "ay": 283
  },
  "bld/granary_r1": {
   "ax": 192,
-  "ay": 231
+  "ay": 233
  },
  "bld/granary_r1@east": {
   "ax": 192,
@@ -165,11 +165,11 @@
  },
  "bld/granary_r1@north": {
   "ax": 192,
-  "ay": 247
+  "ay": 249
  },
  "bld/granary_r2": {
   "ax": 192,
-  "ay": 231
+  "ay": 233
  },
  "bld/granary_r2@east": {
   "ax": 192,
@@ -181,11 +181,11 @@
  },
  "bld/granary_r2@north": {
   "ax": 192,
-  "ay": 247
+  "ay": 249
  },
  "bld/granary_r3": {
   "ax": 192,
-  "ay": 265
+  "ay": 267
  },
  "bld/granary_r3@east": {
   "ax": 192,
@@ -197,15 +197,15 @@
  },
  "bld/granary_r3@north": {
   "ax": 192,
-  "ay": 281
+  "ay": 283
  },
  "bld/harbor": {
   "ax": 256,
-  "ay": 283
+  "ay": 285
  },
  "bld/harbor_lit": {
   "ax": 256,
-  "ay": 283
+  "ay": 285
  },
  "bld/harbor_r1": {
   "ax": 192,
@@ -265,7 +265,7 @@
  },
  "bld/market_r2": {
   "ax": 192,
-  "ay": 218
+  "ay": 220
  },
  "bld/market_r2@east": {
   "ax": 192,
@@ -277,7 +277,7 @@
  },
  "bld/market_r2@north": {
   "ax": 192,
-  "ay": 226
+  "ay": 228
  },
  "bld/market_r3": {
   "ax": 192,
@@ -297,7 +297,7 @@
  },
  "bld/olive_grove_hut": {
   "ax": 64,
-  "ay": 88
+  "ay": 89
  },
  "bld/olive_grove_tile_0": {
   "ax": 64,
@@ -393,7 +393,7 @@
  },
  "bld/sheep_farm_hut": {
   "ax": 64,
-  "ay": 93
+  "ay": 94
  },
  "bld/sheep_farm_tile_0": {
   "ax": 64,
@@ -429,7 +429,7 @@
  },
  "bld/trade_post": {
   "ax": 192,
-  "ay": 262
+  "ay": 264
  },
  "bld/trade_post@east": {
   "ax": 192,
@@ -441,15 +441,15 @@
  },
  "bld/trade_post@north": {
   "ax": 192,
-  "ay": 271
+  "ay": 273
  },
  "bld/trade_post_lit": {
   "ax": 192,
-  "ay": 262
+  "ay": 264
  },
  "bld/trade_post_r1": {
   "ax": 192,
-  "ay": 225
+  "ay": 227
  },
  "bld/trade_post_r1@east": {
   "ax": 192,
@@ -461,11 +461,11 @@
  },
  "bld/trade_post_r1@north": {
   "ax": 192,
-  "ay": 234
+  "ay": 236
  },
  "bld/trade_post_r1_lit": {
   "ax": 192,
-  "ay": 225
+  "ay": 227
  },
  "bld/trade_post_r2": {
   "ax": 192,
@@ -489,7 +489,7 @@
  },
  "bld/trade_post_r3": {
   "ax": 192,
-  "ay": 244
+  "ay": 247
  },
  "bld/trade_post_r3@east": {
   "ax": 192,
@@ -501,11 +501,11 @@
  },
  "bld/trade_post_r3@north": {
   "ax": 192,
-  "ay": 253
+  "ay": 255
  },
  "bld/trade_post_r3_lit": {
   "ax": 192,
-  "ay": 244
+  "ay": 247
  },
  "bld/vegetable_garden_hut": {
   "ax": 64,
@@ -529,7 +529,7 @@
  },
  "bld/vineyard_hut": {
   "ax": 64,
-  "ay": 97
+  "ay": 98
  },
  "bld/vineyard_tile_0": {
   "ax": 64,
@@ -549,7 +549,7 @@
  },
  "bld/warehouse": {
   "ax": 192,
-  "ay": 267
+  "ay": 270
  },
  "bld/warehouse@east": {
   "ax": 192,
@@ -561,11 +561,11 @@
  },
  "bld/warehouse@north": {
   "ax": 192,
-  "ay": 282
+  "ay": 284
  },
  "bld/warehouse_r1": {
   "ax": 192,
-  "ay": 220
+  "ay": 222
  },
  "bld/warehouse_r1@east": {
   "ax": 192,
@@ -577,7 +577,7 @@
  },
  "bld/warehouse_r1@north": {
   "ax": 192,
-  "ay": 235
+  "ay": 237
  },
  "bld/warehouse_r2": {
   "ax": 192,
@@ -597,7 +597,7 @@
  },
  "bld/warehouse_r3": {
   "ax": 192,
-  "ay": 242
+  "ay": 244
  },
  "bld/warehouse_r3@east": {
   "ax": 192,
@@ -609,27 +609,27 @@
  },
  "bld/warehouse_r3@north": {
   "ax": 192,
-  "ay": 256
+  "ay": 258
  },
  "bld/well": {
   "ax": 64,
-  "ay": 100
+  "ay": 101
  },
  "bld/well_r1": {
   "ax": 64,
-  "ay": 100
+  "ay": 101
  },
  "bld/well_r2": {
   "ax": 64,
-  "ay": 100
+  "ay": 101
  },
  "bld/well_r3": {
   "ax": 64,
-  "ay": 100
+  "ay": 101
  },
  "bld/wheat_farm_hut": {
   "ax": 64,
-  "ay": 100
+  "ay": 102
  },
  "bld/wheat_farm_tile_0": {
   "ax": 64,

@@ -89,6 +89,9 @@ def style(M, region):
                 trim=M["band_red"], door=M["timber"], tree="cypress", hut_roof="thatch")
 
 
+_STYLE0 = style  # domus_var swaps the module's style() for a variant one while it builds
+
+
 # ---------------------------------------------------------------- parts
 
 def palm(x, y, h, M):
@@ -232,7 +235,7 @@ def plot_empty(M):
     box(-0.12, -0.12, 0, 0.12, 0.12, 0.05, M["travertine"], bevel=0.01)  # boundary stone
 
 
-def plot_tent(M, region="rome"):
+def _plot_tent_v0(M, region="rome"):
     st = style(extra(M), region)
     lot(2, st["yard"])
     mesh("grass_patch", [(0.1, 0.1, 0.003), (1, 0.1, 0.003), (1, 1, 0.003), (0.1, 1, 0.003)],
@@ -272,7 +275,7 @@ def amphora(x, y, M, s=1.0):
     kit.amphora(x, y, M, s)
 
 
-def plot_hut(M, region="rome"):
+def _plot_hut_v0(M, region="rome"):
     st = style(extra(M), region)
     lot(2, st["ground"])
     mesh("yard", [(-1, -1, 0.003), (0.2, -1, 0.003), (0.2, -0.1, 0.003), (-1, -0.1, 0.003)],
@@ -303,7 +306,7 @@ def plot_hut(M, region="rome"):
     amphora(-0.85, -0.2, M, 0.8)
 
 
-def plot_small_house(M, region="rome"):
+def _plot_small_house_v0(M, region="rome"):
     """t2: one storey, tiled roof, small vegetable patch (the art-test house_small)."""
     st = style(extra(M), region)
     lot(2, st["ground"])
@@ -328,7 +331,7 @@ def plot_small_house(M, region="rome"):
     tree(st["tree"], 0.75, 0.6, M, 0.85)
 
 
-def plot_two_storey(M, region="rome"):
+def _plot_two_storey_v0(M, region="rome"):
     """t3: two storeys, wooden balcony, red base band."""
     st = style(extra(M), region)
     lot(2, st["ground"])
@@ -357,7 +360,7 @@ def plot_two_storey(M, region="rome"):
     tree(st["tree"], 0.82, 0.4, M, 0.8)
 
 
-def plot_town_house(M, region="rome"):
+def _plot_town_house_v0(M, region="rome"):
     """t4: three storeys with a roof garden and a small walled court."""
     st = style(extra(M), region)
     lot(2, st["ground"])
@@ -414,6 +417,620 @@ def plot_town_house(M, region="rome"):
     box(0.92, -0.98, 0, 0.98, -0.1, 0.2, cw, bevel=0.005)
     tree(st["tree"], 0.62, -0.5, M, 0.9)
     pot_plant(0.3, -0.75, M)
+
+
+# ---------------------------------------------------------------- house variants
+
+# Every housing tier has VARIANTS looks: v0 is the original design, v1..v3 change the roof form,
+# plaster, shutters, annexes and yard (docs/13-isometric.md, "House variants").  Same footprint
+# and the same tier cues (storeys, base bands, gardens), so a tier still reads as that tier.
+VARIANTS = 4
+
+# wall plaster per variant and region: (base, alt, weathering)
+_WALLS = {
+    "rome": [None, ("#e3bd84", "#d3aa70", "#cca474"), ("#ebcdbb", "#dcbba8", "#d2ad9a"),
+             ("#f2eee6", "#e4ddd0", "#dad2c2")],
+    "east": [None, ("#eedcb4", "#e0cba0", "#dccaa6"), ("#f3efe6", "#e4ded0", "#dcd4c4"),
+             ("#e6ece8", "#d6dcd8", "#d2d8d2")],
+    "egypt": [None, ("#e8dcc0", "#d9cbab", "#d4c4a2"), None, ("#dcb48c", "#cba27a", "#c49c78")],
+    "north": [None, ("#e8dfc8", "#d9cfb6", "#d0c4a8"), ("#bba07c", "#a88e6a", "#a08664"), None],
+}
+_TRIM = {  # shutters / doors
+    "rome": ["#5a3f2b", "#4e6a3c", "#8a3b2a", "#3e5f82"],
+    "east": ["#3f6f9c", "#3f8a86", "#c98b3a", "#3f6f9c"],
+    "egypt": ["#5a3f2b", "#3f6f9c", "#a8432c", "#4e6a3c"],
+    "north": ["#5a3f2b", "#4b3a2c", "#6e3a28", "#46503a"],
+}
+_BANDS = ["#a13b26", "#7a5638", "#a13b26", "#b47a30"]  # Roman base bands per variant
+
+
+def vstyle(M, region, v, humble=False):
+    """style() for variant v: plaster, roof tone, shutters and band change per variant."""
+    st = dict(_STYLE0(extra(M), region))
+    wall = _WALLS[region][v]
+    if humble and region == "rome" and v == 0:
+        st["wall"] = M["plaster_humble"]
+    if wall:
+        a, b, d = wall
+        if humble:
+            a, b, d = kit.tint(a, -0.05, 0.03), kit.tint(b, -0.05, 0.03), kit.tint(d, -0.05, 0.03)
+        key = "wall_%s_%d%s" % (region, v, "_h" if humble else "")
+        st["wall"] = material(key, a, b, scale=9, bump=0.08, detail=(1.5, d))
+    st["shutter"] = material("trim_%s_%d" % (region, v), _TRIM[region][v], kit.tint(_TRIM[region][v], -0.05),
+                             scale=12, bump=0.03)
+    if region in ("rome", "east"):
+        st["roof"] = M["roof_v%d" % v]
+    if region == "rome":
+        st["band"] = material("band_v%d" % v, _BANDS[v], kit.tint(_BANDS[v], -0.06), scale=10, bump=0.05)
+        st["door"] = st["shutter"] if v else M["timber"]
+    elif region == "east":
+        st["band"] = st["trim"] = st["door"] = st["shutter"]
+    if region == "north":
+        if v == 2:
+            st["roof"], st["roof_kind"] = M["thatch"], "thatch"
+        elif v == 3:
+            st["roof"] = material("shingle_dark", "#4a3c32", "#3b2f27", kind="tiles", brick=(0.07, 0.06),
+                                  bump=0.5)
+    return st
+
+
+def shed(x0, y0, x1, y1, z, h, mat, down="-y", over=0.06, wall=None):
+    """Lean-to (monopitch) roof falling toward `down` (-y front, +y, -x, +x); side triangles in `wall`."""
+    X0, Y0, X1, Y1 = x0 - over, y0 - over, x1 + over, y1 + over
+    if down in ("-y", "+y"):
+        lo, hi = (Y0, Y1) if down == "-y" else (Y1, Y0)
+        v = [(X0, lo, z), (X1, lo, z), (X1, hi, z + h), (X0, hi, z + h)]
+        top = (v[2], v[3])
+    else:
+        lo, hi = (X0, X1) if down == "-x" else (X1, X0)
+        v = [(lo, Y0, z), (lo, Y1, z), (hi, Y1, z + h), (hi, Y0, z + h)]
+        top = (v[2], v[3])
+    f = [(0, 1, 2, 3)]
+    ob = mesh("shed", v, f, mat, solidify=0.035)
+    if any(p.normal.z < 0 for p in ob.data.polygons):
+        ob.data.flip_normals()
+    kit.roof_caps([top], mat, max(X1 - X0, Y1 - Y0))
+    if wall is not None:
+        if down in ("-y", "+y"):
+            lo, hi = (y0, y1) if down == "-y" else (y1, y0)
+            mesh("shed_end", [(x0, lo, z), (x0, hi, z), (x0, hi, z + h * 0.92),
+                              (x1, lo, z), (x1, hi, z + h * 0.92), (x1, hi, z)], [(0, 1, 2), (3, 4, 5)], wall)
+        else:
+            lo, hi = (x0, x1) if down == "-x" else (x1, x0)
+            mesh("shed_end", [(lo, y0, z), (hi, y0, z), (hi, y0, z + h * 0.92),
+                              (lo, y1, z), (hi, y1, z + h * 0.92), (hi, y1, z)], [(0, 1, 2), (3, 4, 5)], wall)
+    return ob
+
+
+def vroof(st, M, form, x0, y0, x1, y1, z, h, axis="x", down="-y", hole=0.16):
+    """A roof of `form` (hip | gable | shed | ring | flat) adapted to the region's roof style."""
+    k = st["roof_kind"]
+    if k == "flat" or form == "flat":
+        box(x0 - 0.02, y0 - 0.02, z, x1 + 0.02, y1 + 0.02, z + 0.03, st["wall"], bevel=0.004)
+        parapet(x0 - 0.02, y0 - 0.02, x1 + 0.02, y1 + 0.02, z + 0.03, st["wall"])
+        return
+    if k == "thatch":
+        if form == "gable":
+            gable(x0, y0, x1, y1, z, h * 1.4, st["roof"], axis=axis, over=0.09, wall=st["wall"])
+        else:
+            hip(x0, y0, x1, y1, z, h * 1.3, st["roof"], over=0.1)
+        return
+    if k == "low":
+        h *= 0.5
+    if k == "gable" and form in ("hip", "ring"):
+        form = "gable"
+    if form == "gable":
+        gable(x0, y0, x1, y1, z, h * (1.25 if k != "low" else 1.0), st["roof"], axis=axis, wall=st["wall"])
+    elif form == "shed":
+        shed(x0, y0, x1, y1, z, h * 0.9, st["roof"], down=down, wall=st["wall"])
+    elif form == "ring":
+        ring_roof(x0, y0, x1, y1, z, h, hole, st["roof"])
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        box(cx - hole, cy - hole, z - 0.02, cx + hole, cy + hole, z + h * 0.45 + 0.01, M["dark"], bevel=0)
+    else:
+        hip(x0, y0, x1, y1, z, h, st["roof"])
+
+
+def win_y(face_y, xs, z0, z1, M, st=None, out=-1, w=0.07):
+    """Windows on a face of constant y (out = -1 front, +1 back), with shutters when st has them."""
+    for x in xs:
+        yy = face_y + out * 0.012
+        box(x - w / 2, yy - 0.01, z0, x + w / 2, yy + 0.01, z1, M["window"], bevel=0)
+        if st is not None and st.get("shutter") is not None:
+            for sx in (-1, 1):
+                cx = x + sx * (w / 2 + 0.02)
+                box(cx - 0.018, yy - 0.012, z0 - 0.005, cx + 0.018, yy + 0.012, z1 + 0.005, st["shutter"],
+                    bevel=0)
+
+
+def win_x(face_x, ys, z0, z1, M, st=None, out=1, w=0.07):
+    for y in ys:
+        xx = face_x + out * 0.012
+        box(xx - 0.01, y - w / 2, z0, xx + 0.01, y + w / 2, z1, M["window"], bevel=0)
+        if st is not None and st.get("shutter") is not None:
+            for sy in (-1, 1):
+                cy = y + sy * (w / 2 + 0.02)
+                box(xx - 0.012, cy - 0.018, z0 - 0.005, xx + 0.012, cy + 0.018, z1 + 0.005, st["shutter"],
+                    bevel=0)
+
+
+def all_windows(x0, y0, x1, y1, rows, M, st=None, step=0.3):
+    """Windows on all four walls (the backs show in rotations 1 and 2); rows = [(z0, z1), ...]."""
+    def spread(a, b):
+        n = max(1, int((b - a) / step))
+        return [a + (i + 0.5) * (b - a) / n for i in range(n)]
+    for z0, z1 in rows:
+        win_y(y1, spread(x0 + 0.08, x1 - 0.08), z0, z1, M, st, out=1)
+        win_x(x0, spread(y0 + 0.08, y1 - 0.08), z0, z1, M, st, out=-1)
+
+
+def chimney(x, y, z0, z1, M, mat):
+    box(x - 0.045, y - 0.045, z0, x + 0.045, y + 0.045, z1, mat, bevel=0.004)
+    box(x - 0.055, y - 0.055, z1, x + 0.055, y + 0.055, z1 + 0.025, M["brick"], bevel=0.003)
+    cylinder(x, y, z1 + 0.025, z1 + 0.07, 0.025, M["amphora"], n=8)
+
+
+def pergola(x0, y0, x1, y1, h, M, vine=True):
+    for x, y in [(x0, y0), (x1, y0), (x0, y1), (x1, y1)]:
+        box(x - 0.014, y - 0.014, 0, x + 0.014, y + 0.014, h, M["timber_light"], bevel=0)
+    for y in (y0, y1):
+        box(x0 - 0.03, y - 0.012, h - 0.02, x1 + 0.03, y + 0.012, h + 0.005, M["timber"], bevel=0)
+    n = max(2, int((x1 - x0) / 0.12))
+    for i in range(n + 1):
+        x = x0 + i * (x1 - x0) / n
+        box(x - 0.008, y0 - 0.04, h + 0.005, x + 0.008, y1 + 0.04, h + 0.02, M["timber_light"], bevel=0)
+    if vine:
+        k = 0
+        for i in range(n):
+            for j in range(2):
+                x = x0 + (i + 0.5) * (x1 - x0) / n
+                y = y0 + (j + 0.5) * (y1 - y0) / 2
+                if (i + j + k) % 3 != 2:
+                    blob(x, y, h + 0.03, 0.07, 0.07, 0.03, M["leaf"], segs=7, rings=4)
+        blob(x0, y0, h * 0.5, 0.03, 0.03, h * 0.45, M["leaf"], segs=6, rings=4)
+
+
+def shopfront(x0, x1, face_y, M, st, z_top=0.3, awning=True):
+    """A taberna on the street: dark opening, a counter with jars, a plain canvas awning."""
+    box(x0, face_y - 0.015, 0.02, x1, face_y + 0.005, z_top, M["dark"], bevel=0)
+    box(x0 + 0.02, face_y - 0.08, 0, x1 - 0.02, face_y - 0.015, 0.12, M["travertine"], bevel=0.004)
+    for i in range(2):
+        amphora(x0 + 0.06 + i * 0.07, face_y - 0.05, M, 0.55)
+    if awning:
+        mesh("awning", [(x0 - 0.03, face_y, z_top + 0.07), (x1 + 0.03, face_y, z_top + 0.07),
+                        (x1 + 0.03, face_y - 0.2, z_top - 0.02), (x0 - 0.03, face_y - 0.2, z_top - 0.02)],
+             [(0, 1, 2, 3)], M["canvas"], solidify=0.012)
+
+
+def low_wall(pts, mat, h=0.16, t=0.05):
+    for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+        xs, ys = sorted((ax, bx)), sorted((ay, by))
+        box(xs[0] - t / 2, ys[0] - t / 2, 0, xs[1] + t / 2, ys[1] + t / 2, h, mat, bevel=0.005)
+
+
+def washing_line(x0, x1, y, M, h=0.28):
+    for x in (x0, x1):
+        box(x - 0.012, y - 0.012, 0, x + 0.012, y + 0.012, h, M["timber"], bevel=0)
+    box(x0, y - 0.003, h - 0.02, x1, y + 0.003, h - 0.014, M["canvas"], bevel=0)
+    cl = [M["canvas"], M["painted_red"], M["blue"]]
+    n = 3
+    for i in range(n):
+        x = x0 + (i + 0.6) * (x1 - x0) / (n + 0.4)
+        mesh("cloth", [(x - 0.05, y, h - 0.02), (x + 0.05, y, h - 0.02), (x + 0.05, y, h - 0.13),
+                       (x - 0.05, y, h - 0.13)], [(0, 1, 2, 3)], cl[i % 3])
+
+
+def goats(pts, M):
+    for x, y in pts:
+        blob(x, y, 0.07, 0.07, 0.035, 0.035, M["canvas"], segs=7, rings=4)
+        blob(x + 0.06, y, 0.1, 0.025, 0.02, 0.025, M["hide"], segs=6, rings=4)
+
+
+def block(st, M, x0, y0, x1, y1, zw, band=True, z0=0.1):
+    """A plastered wall block with the region's base band and (north) timber frame."""
+    box(x0, y0, z0 if band else 0, x1, y1, zw, st["wall"])
+    if band:
+        box(x0 - 0.015, y0 - 0.015, 0, x1 + 0.015, y1 + 0.015, z0 + 0.02, st["band"])
+    if st.get("frame"):
+        frame_beams(x0, y0, x1, y1, z0 + 0.02 if band else 0, zw, M)
+
+
+# tent (t0) ---------------------------------------------------------------
+
+def tent_var(M, region, v):
+    st = vstyle(M, region, v)
+    lot(2, st["yard"])
+    canvas = [None, material("canvas_ochre", "#d6aa62", "#c49650", scale=8, bump=0.1),
+              material("canvas_grey", "#c9c2b0", "#b5ad9a", scale=8, bump=0.1), M["hide"]][v]
+    if region == "east":
+        canvas = [None, M["canvas_stripe"], material("canvas_blue", "#5b84a8", "#e8e0cc", kind="stripes",
+                                                     stripe=0.08, bump=0.0), M["canvas"]][v]
+
+    def a_tent(x0, x1, y0, y1, h, mat, axis="y"):
+        if axis == "y":  # ridge along x, as v0
+            mesh("tent", [(x0, y0, 0), (x1, y0, 0), (x1, (y0 + y1) / 2, h), (x0, (y0 + y1) / 2, h),
+                          (x0, y1, 0), (x1, y1, 0)], [(0, 1, 2, 3), (3, 2, 5, 4)], mat, solidify=0.02)
+            mesh("tent_end", [(x1, y0, 0), (x1, y1, 0), (x1, (y0 + y1) / 2, h)], [(0, 1, 2)], mat)
+            mesh("tent_door", [(x0, y0, 0), (x0, (y0 + y1) / 2, h), (x0, y1, 0)], [(0, 1, 2)], M["dark"])
+        else:  # ridge along y, door to the street
+            xm = (x0 + x1) / 2
+            mesh("tent", [(x0, y0, 0), (xm, y0, h), (xm, y1, h), (x0, y1, 0), (x1, y0, 0), (x1, y1, 0)],
+                 [(0, 1, 2, 3), (1, 4, 5, 2)], mat, solidify=0.02)
+            mesh("tent_end", [(x0, y1, 0), (x1, y1, 0), (xm, y1, h)], [(0, 1, 2)], mat)
+            mesh("tent_door", [(x0, y0, 0), (xm, y0, h), (x1, y0, 0)], [(0, 1, 2)], M["dark"])
+
+    if region == "north":
+        cones = {1: [(-0.4, 0.3, 0.55, 0.4), (0.45, 0.45, 0.45, 0.32)], 2: [(0.2, 0.2, 0.62, 0.48)],
+                 3: [(-0.35, -0.1, 0.5, 0.38)]}[v]
+        for x, y, h, r in cones:
+            cone(x, y, 0, h, r, M["hide"] if v != 2 else M["thatch"], n=14)
+            box(x - 0.08, y - r + 0.02, 0, x + 0.08, y - r + 0.08, h * 0.32, M["dark"], bevel=0)
+    elif region == "egypt":
+        xs = {1: (-0.7, 0.5), 2: (-0.3, 0.8), 3: (-0.8, 0.0)}[v]
+        for x in xs:
+            for y in (-0.3, 0.6):
+                box(x - 0.02, y - 0.02, 0, x + 0.02, y + 0.02, 0.36, M["timber_light"], bevel=0)
+        box(xs[0] - 0.06, -0.35, 0.34, xs[1] + 0.06, 0.65, 0.38, M["reed"], bevel=0.005)
+        box(xs[0] - 0.02, 0.55, 0, xs[1] + 0.02, 0.63, 0.34, M["reed"], bevel=0)
+        palm(0.75 if v != 2 else -0.75, -0.7 if v != 3 else 0.7, 0.62, M)
+    elif v == 1:  # door to the street, cart beside
+        a_tent(-0.75, 0.15, -0.45, 0.55, 0.5, canvas, axis="x")
+        kit.cart(0.55, 0.45, M, load=True)
+    elif v == 2:  # two small tents and a washing line
+        a_tent(-0.85, -0.15, 0.0, 0.7, 0.4, canvas)
+        a_tent(0.15, 0.85, 0.15, 0.8, 0.36, M["canvas"], axis="x")
+        washing_line(-0.7, 0.2, -0.35, M)
+    else:  # lean-to of hides against a low stone wall
+        low_wall([(-0.85, 0.6), (0.6, 0.6)], M["stone_dark"], h=0.3, t=0.08)
+        mesh("leanto", [(-0.8, 0.56, 0.36), (0.55, 0.56, 0.36), (0.55, -0.05, 0.06), (-0.8, -0.05, 0.06)],
+             [(0, 1, 2, 3)], canvas, solidify=0.02)
+        for x in (-0.75, 0.5):
+            box(x - 0.015, -0.07, 0, x + 0.015, -0.04, 0.08, M["timber"], bevel=0)
+        goats([(0.6, -0.55), (0.75, -0.3)], M)
+    stone_ring(0.45 if v != 2 else -0.3, -0.55 if v != 2 else -0.75, M)
+    amphora(-0.8 if v != 3 else 0.8, -0.75, M, 0.8)
+    kit.sack(-0.6 if v != 3 else 0.6, -0.8, 0, M, 0.9)
+
+
+# hut (t1): thatch stays the hut cue, tiles start at t2 ------------------------------------------------------------------
+
+def hut_var(M, region, v):
+    st = vstyle(M, region, v, humble=True)
+    lot(2, st["ground"])
+    wall = {"rome": [M["daub"], material("daub_ochre", "#d4b582", "#c09f6c", scale=10, bump=0.2,
+                                          detail=(1.5, "#ae8e60")),
+                     material("daub_pale", "#ddd0b4", "#cbbd9e", scale=10, bump=0.2, detail=(1.5, "#b9a888")),
+                     M["daub"]][v],
+            "east": st["wall"], "egypt": [None, M["mudbrick"], st["wall"], M["mudbrick"]][v],
+            "north": M["daub"]}[region]
+    mesh("yard", [(-1, -1, 0.003), (1, -1, 0.003), (1, -0.35, 0.003), (-1, -0.35, 0.003)], [(0, 1, 2, 3)],
+         st["yard"])
+    flat = st["hut_roof"] == "flat"
+    if region == "north":
+        huts = {1: [(-0.4, 0.35, 0.36), (0.45, 0.5, 0.28)], 2: [(0.2, 0.3, 0.45)], 3: [(-0.3, 0.2, 0.4)]}[v]
+        for x, y, r in huts:
+            cylinder(x, y, 0, 0.28, r, M["daub"], n=16)
+            cone(x, y, 0.26, 0.26 + r * 1.2, r * 1.32, M["thatch"], n=16)
+            box(x - 0.07, y - r - 0.02, 0, x + 0.07, y - r + 0.05, 0.22, M["dark"], bevel=0)
+        if v == 3:
+            box(0.3, 0.2, 0, 0.8, 0.7, 0.3, M["timber"], bevel=0.005)  # byre
+            gable(0.3, 0.2, 0.8, 0.7, 0.3, 0.2, M["thatch"], axis="y", wall=M["timber"])
+    else:
+        if v == 1:  # gable end to the street; goat pen
+            x0, y0, x1, y1, zw = -0.8, -0.3, 0.1, 0.8, 0.34
+            box(x0, y0, 0, x1, y1, zw, wall)
+            if flat:
+                vroof(st, M, "flat", x0, y0, x1, y1, zw, 0.3)
+            else:
+                gable(x0, y0, x1, y1, zw, 0.36, M["thatch"], axis="y", over=0.09, wall=wall)
+            door(-0.35, y0, M, w=0.14, h=0.24, mat=st["shutter"])
+            fence([(0.25, -0.2), (0.9, -0.2), (0.9, 0.85), (0.25, 0.85), (0.25, -0.2)], M["timber_light"], h=0.1)
+            goats([(0.5, 0.2), (0.65, 0.55)], M)
+        elif v == 2:  # tiled lean-to hut along the back, woodshed, vegetable rows in front
+            x0, y0, x1, y1, zw = -0.85, 0.2, 0.6, 0.85, 0.36
+            box(x0, y0, 0, x1, y1, zw, wall)
+            if flat:
+                vroof(st, M, "flat", x0, y0, x1, y1, zw, 0.3)
+            else:
+                shed(x0, y0, x1, y1, zw, 0.26, M["thatch"], down="-y", over=0.09, wall=wall)
+            door(-0.2, y0, M, w=0.14, h=0.25, mat=st["shutter"])
+            win_y(y0, [-0.6, 0.3], 0.17, 0.25, M)
+            box(0.65, 0.3, 0, 0.95, 0.85, 0.2, M["timber_light"], bevel=0.005)  # woodpile
+            veg_patch(-0.85, -0.85, 0.3, -0.2, M)
+        else:  # two rooms in an L, washing line
+            box(-0.85, 0.0, 0, 0.2, 0.75, 0.32, wall)
+            box(-0.85, -0.6, 0, -0.3, 0.0, 0.3, wall)
+            if flat:
+                vroof(st, M, "flat", -0.85, 0.0, 0.2, 0.75, 0.32, 0.3)
+                vroof(st, M, "flat", -0.85, -0.6, -0.3, 0.0, 0.3, 0.3)
+            else:
+                hip(-0.85, 0.0, 0.2, 0.75, 0.32, 0.3, M["thatch"], over=0.09)
+                hip(-0.85, -0.6, -0.3, 0.0, 0.3, 0.26, M["thatch"], over=0.08)
+            door(-0.15, 0.0, M, w=0.14, h=0.23, mat=st["shutter"])
+            win_x(-0.3, [-0.3], 0.16, 0.24, M)
+            washing_line(0.0, 0.85, -0.55, M)
+    stone_ring(0.55 if v != 2 else 0.75, -0.7 if v != 2 else -0.05, M, 0.07)
+    tree(st["tree"], -0.75 if v == 2 else 0.75, -0.75 if v == 2 else 0.6 if v != 1 else -0.65, M, 0.8)
+    amphora(-0.9, -0.9 if v != 2 else 0.05, M, 0.8)
+
+
+# casa (t2) -----------------------------------------------------------------
+
+def small_house_var(M, region, v):
+    st = vstyle(M, region, v, humble=True)
+    lot(2, st["ground"])
+    wall = st["wall"]
+    if v == 1:  # gable end to the street, lean-to annex, vine pergola
+        mesh("path", [(-0.45, -1, 0.004), (-0.15, -1, 0.004), (-0.15, -0.35, 0.004), (-0.45, -0.35, 0.004)],
+             [(0, 1, 2, 3)], st["yard"])
+        x0, y0, x1, y1, zw = -0.85, -0.35, 0.25, 0.8, 0.44
+        block(st, M, x0, y0, x1, y1, zw, band=False)
+        vroof(st, M, "gable", x0, y0, x1, y1, zw, 0.26, axis="y")
+        box(x1, 0.1, 0, 0.75, y1, 0.3, wall)
+        vroof(st, M, "shed", x1, 0.1, 0.75, y1, 0.3, 0.12, down="+x")
+        door(-0.3, y0, M, w=0.15, h=0.28, mat=st["door"])
+        win_y(y0, [-0.65, 0.05], 0.2, 0.3, M, st)
+        win_x(0.75, [0.45], 0.12, 0.22, M, st)
+        win_x(x1, [-0.15], 0.2, 0.3, M, st)
+        all_windows(x0, y0, x1, y1, [(0.2, 0.3)], M, st)
+        pergola(0.15, -0.85, 0.85, -0.25, 0.34, M)
+        box(0.3, -0.75, 0, 0.7, -0.68, 0.08, M["timber_light"], bevel=0.004)  # bench
+        pot_plant(-0.7, -0.6, M)
+        tree(st["tree"], 0.8, 0.0, M, 0.75)
+    elif v == 2:  # L-plan with a walled garden and a fig tree
+        x0, y0, x1, y1, zw = -0.85, 0.15, 0.6, 0.85, 0.42
+        block(st, M, x0, y0, x1, y1, zw, band=False)
+        vroof(st, M, "gable", x0, y0, x1, y1, zw, 0.22, axis="x")
+        box(-0.85, -0.6, 0, -0.2, 0.15, 0.4, wall)
+        vroof(st, M, "gable", -0.85, -0.6, -0.2, 0.2, 0.4, 0.2, axis="y")
+        door(-0.52, -0.6, M, w=0.15, h=0.27, mat=st["door"])
+        win_y(y0, [0.0, 0.35], 0.2, 0.3, M, st)
+        win_x(x1, [0.5], 0.2, 0.3, M, st)
+        win_x(-0.2, [-0.3], 0.2, 0.3, M, st)
+        all_windows(x0, -0.6, x1, y1, [(0.2, 0.3)], M, st)
+        chimney(0.35, 0.65, 0.42, 0.72, M, wall)
+        low_wall([(-0.2, -0.95), (0.95, -0.95), (0.95, 0.12)], wall, h=0.18)
+        mesh("garden", [(-0.15, -0.9, 0.004), (0.9, -0.9, 0.004), (0.9, 0.1, 0.004), (-0.15, 0.1, 0.004)],
+             [(0, 1, 2, 3)], M["garden"])
+        olive(0.45, -0.4, M, 0.7)
+        for x, y in [(0.0, -0.75), (0.75, -0.75), (0.75, -0.05)]:
+            bush(x, y, 0.07, M["hedge"])
+        blob(0.05, -0.05, 0.05, 0.05, 0.05, 0.03, M["flower_r"], segs=6, rings=4)
+    else:  # lean-to range along the back, a little wing, a yard with jars and a washing line
+        x0, y0, x1, y1, zw = -0.9, 0.3, 0.9, 0.85, 0.42
+        block(st, M, x0, y0, x1, y1, zw, band=False)
+        vroof(st, M, "shed", x0, y0, x1, y1, zw, 0.2, down="-y")
+        box(0.35, -0.55, 0, 0.9, 0.3, 0.38, wall)
+        vroof(st, M, "hip", 0.35, -0.55, 0.9, 0.3, 0.38, 0.2)
+        door(-0.4, y0, M, w=0.15, h=0.28, mat=st["door"])
+        door(0.62, -0.55, M, w=0.13, h=0.26, mat=st["door"])
+        win_y(y0, [-0.75, 0.0], 0.2, 0.3, M, st)
+        win_x(0.9, [-0.25, 0.1, 0.55], 0.2, 0.3, M, st)
+        all_windows(x0, y0, x1, y1, [(0.2, 0.3)], M, st)
+        mesh("yard2", [(-1, -1, 0.004), (0.35, -1, 0.004), (0.35, 0.3, 0.004), (-1, 0.3, 0.004)],
+             [(0, 1, 2, 3)], st["yard"])
+        washing_line(-0.85, 0.15, -0.1, M)
+        for x in (-0.85, -0.72):
+            amphora(x, -0.85, M, 0.8)
+        box(-0.1, -0.85, 0, 0.2, -0.65, 0.12, M["timber_light"], bevel=0.005)  # coop
+        mesh("coop_roof", [(-0.13, -0.88, 0.12), (0.23, -0.88, 0.12), (0.23, -0.62, 0.17), (-0.13, -0.62, 0.17)],
+             [(0, 1, 2, 3)], M["timber"], solidify=0.015)
+        tree(st["tree"], 0.6, -0.8, M, 0.8)
+
+
+# small insula (t3) -----------------------------------------------------------
+
+def two_storey_var(M, region, v):
+    st = vstyle(M, region, v)
+    lot(2, st["ground"])
+    pave = M["paving"] if region != "egypt" else M["sandstone"]
+    if v == 1:  # gable end to the street, a shop below
+        mesh("pave", [(-1, -1, 0.004), (0.75, -1, 0.004), (0.75, -0.5, 0.004), (-1, -0.5, 0.004)],
+             [(0, 1, 2, 3)], pave)
+        x0, y0, x1, y1, zw = -0.9, -0.5, 0.55, 0.85, 0.78
+        block(st, M, x0, y0, x1, y1, zw)
+        vroof(st, M, "gable", x0, y0, x1, y1, zw, 0.3, axis="y")
+        shopfront(-0.8, -0.3, y0, M, st)
+        door(0.15, y0, M, w=0.15, h=0.3, mat=st["door"], frame=st["band"])
+        win_y(y0, [-0.7, -0.4, 0.0, 0.3], 0.5, 0.62, M, st)
+        win_x(x1, [-0.3, 0.0, 0.3, 0.6], 0.5, 0.62, M, st)
+        win_x(x1, [-0.1, 0.45], 0.2, 0.3, M, st)
+        all_windows(x0, y0, x1, y1, [(0.5, 0.62), (0.2, 0.3)], M, st)
+        chimney(0.3, 0.6, 0.78, 1.15, M, st["wall"])
+        tree(st["tree"], 0.8, 0.3, M, 0.8)
+        pot_plant(0.75, -0.8, M)
+        bush(0.85, -0.3, 0.08, M["hedge"])
+    elif v == 2:  # two storeys and a one-storey wing; pergola garden in front
+        x0, y0, x1, y1, zw = -0.9, -0.3, 0.3, 0.9, 0.76
+        block(st, M, x0, y0, x1, y1, zw)
+        vroof(st, M, "hip", x0, y0, x1, y1, zw, 0.26)
+        box(x1, 0.1, 0.1, 0.9, 0.9, 0.42, st["wall"])
+        box(x1, 0.085, 0, 0.915, 0.915, 0.12, st["band"])
+        vroof(st, M, "shed", x1, 0.1, 0.9, 0.9, 0.42, 0.14, down="+x")
+        door(-0.6, y0, M, w=0.16, h=0.32, mat=st["door"], frame=st["band"])
+        win_y(y0, [-0.25, 0.1], 0.2, 0.3, M, st)
+        win_y(y0, [-0.75, -0.45, -0.1, 0.15], 0.5, 0.62, M, st)
+        win_x(x1, [-0.1], 0.5, 0.62, M, st)
+        win_x(0.9, [0.3, 0.65], 0.2, 0.3, M, st)
+        win_y(0.1, [0.6], 0.2, 0.3, M, st)
+        all_windows(x0, y0, x1, y1, [(0.5, 0.62), (0.2, 0.3)], M, st)
+        chimney(-0.2, 0.55, 0.76, 1.12, M, st["wall"])
+        mesh("path", [(-0.7, -1, 0.004), (-0.5, -1, 0.004), (-0.5, -0.3, 0.004), (-0.7, -0.3, 0.004)],
+             [(0, 1, 2, 3)], pave)
+        pergola(-0.25, -0.9, 0.85, -0.2, 0.4, M)
+        box(0.0, -0.6, 0, 0.6, -0.5, 0.08, M["timber_light"], bevel=0.004)  # table
+        pot_plant(0.75, 0.0, M)
+        pot_plant(-0.9, -0.8, M)
+    else:  # light well in the roof, shuttered windows, an upper loggia on the side
+        x0, y0, x1, y1, zw = -0.85, -0.45, 0.6, 0.85, 0.72
+        block(st, M, x0, y0, x1, y1, zw)
+        vroof(st, M, "ring", x0, y0, x1, y1, zw, 0.24, hole=0.17)
+        door(-0.1, y0, M, w=0.17, h=0.32, mat=st["door"], frame=st["band"])
+        win_y(y0, [-0.6, -0.35, 0.15, 0.4], 0.5, 0.62, M, st)
+        win_y(y0, [-0.55, 0.3], 0.2, 0.3, M, st)
+        win_x(x1, [-0.25, 0.65], 0.5, 0.62, M, st)
+        win_x(x1, [-0.2, 0.35], 0.2, 0.3, M, st)
+        all_windows(x0, y0, x1, y1, [(0.5, 0.62), (0.2, 0.3)], M, st)
+        # loggia: a balcony with posts and a little roof on the right wall
+        box(x1, 0.0, 0.42, x1 + 0.16, 0.5, 0.45, M["timber_light"], bevel=0.004)
+        for y in (0.02, 0.25, 0.48):
+            box(x1 + 0.13, y - 0.012, 0.45, x1 + 0.155, y + 0.012, 0.66, M["timber"], bevel=0)
+        box(x1 + 0.13, 0.0, 0.53, x1 + 0.16, 0.5, 0.55, M["timber"], bevel=0)
+        mesh("loggia_roof", [(x1, -0.03, 0.72), (x1, 0.53, 0.72), (x1 + 0.2, 0.53, 0.66), (x1 + 0.2, -0.03, 0.66)],
+             [(0, 1, 2, 3)], st["roof"] or M["timber"], solidify=0.02)
+        box(x1, 0.08, 0.45, x1 + 0.012, 0.42, 0.62, M["window"], bevel=0)
+        mesh("path", [(-0.25, -1, 0.004), (0.05, -1, 0.004), (0.05, -0.45, 0.004), (-0.25, -0.45, 0.004)],
+             [(0, 1, 2, 3)], pave)
+        tree(st["tree"], -0.75, -0.75, M, 0.85)
+        tree(st["tree"], 0.85, -0.65, M, 0.7)
+        bush(0.4, -0.8, 0.08, M["hedge"])
+
+
+# large insula (t4) -----------------------------------------------------------
+
+def town_house_var(M, region, v):
+    st = vstyle(M, region, v)
+    lot(2, st["ground"])
+    pave = M["paving"] if region != "egypt" else M["sandstone"]
+    if v == 1:  # insula with a row of shops, a gallery along the first floor
+        mesh("pave", [(-1, -1, 0.004), (1, -1, 0.004), (1, -0.6, 0.004), (-1, -0.6, 0.004)], [(0, 1, 2, 3)], pave)
+        x0, y0, x1, y1, zw = -0.92, -0.6, 0.88, 0.9, 1.12
+        block(st, M, x0, y0, x1, y1, zw)
+        box(x0 - 0.012, y0 - 0.012, 0.44, x1 + 0.012, y1 + 0.012, 0.47, st["band"], bevel=0)
+        vroof(st, M, "gable", x0, y0, x1, y1, zw, 0.3, axis="x")
+        for xa in (-0.85, -0.38, 0.32):
+            shopfront(xa, xa + 0.4, y0, M, st, z_top=0.32)
+        door(0.17, y0, M, w=0.13, h=0.34, mat=st["door"], frame=st["band"])
+        # gallery at the first floor
+        box(x0 + 0.05, y0 - 0.15, 0.47, x1 - 0.05, y0, 0.5, M["timber_light"], bevel=0.004)
+        for i in range(10):
+            x = x0 + 0.08 + i * (x1 - x0 - 0.16) / 9
+            box(x - 0.008, y0 - 0.14, 0.5, x + 0.008, y0 - 0.125, 0.6, M["timber"], bevel=0)
+        box(x0 + 0.05, y0 - 0.15, 0.59, x1 - 0.05, y0 - 0.12, 0.61, M["timber"], bevel=0)
+        win_y(y0, [-0.75, -0.45, -0.15, 0.15, 0.45, 0.75], 0.58, 0.7, M, st)
+        win_y(y0, [-0.75, -0.45, -0.15, 0.15, 0.45, 0.75], 0.88, 1.0, M, st)
+        win_x(x1, [-0.35, -0.05, 0.25, 0.55], 0.58, 0.7, M, st)
+        win_x(x1, [-0.35, -0.05, 0.25, 0.55], 0.88, 1.0, M, st)
+        win_x(x1, [-0.2, 0.4], 0.2, 0.3, M, st)
+        all_windows(x0, y0, x1, y1, [(0.58, 0.7), (0.88, 1.0), (0.2, 0.3)], M, st)
+        chimney(-0.5, 0.5, 1.12, 1.48, M, st["wall"])
+        chimney(0.5, 0.5, 1.12, 1.45, M, st["wall"])
+    elif v == 2:  # light-well block, a shop wing and a walled court with a tree
+        x0, y0, x1, y1, zw = -0.9, -0.3, 0.9, 0.9, 1.04
+        block(st, M, x0, y0, x1, y1, zw)
+        box(x0 - 0.012, y0 - 0.012, 0.42, x1 + 0.012, y1 + 0.012, 0.45, st["band"], bevel=0)
+        box(x0 - 0.012, y0 - 0.012, 0.72, x1 + 0.012, y1 + 0.012, 0.745, st["band"], bevel=0)
+        vroof(st, M, "ring", x0, y0, x1, y1, zw, 0.28, hole=0.2)
+        box(0.05, -0.95, 0.1, 0.9, y0, 0.44, st["wall"])
+        box(0.035, -0.965, 0, 0.915, y0, 0.12, st["band"])
+        vroof(st, M, "shed", 0.05, -0.95, 0.9, y0, 0.44, 0.14, down="-y")
+        shopfront(0.15, 0.55, -0.95, M, st, z_top=0.3)
+        door(0.75, -0.95, M, w=0.13, h=0.3, mat=st["door"])
+        win_x(0.9, [-0.75, -0.5], 0.2, 0.3, M, st)
+        door(-0.4, y0, M, w=0.17, h=0.34, mat=st["door"], frame=st["band"])
+        win_y(y0, [-0.75, -0.55, -0.2], 0.55, 0.66, M, st)
+        win_y(y0, [-0.75, -0.55, -0.2, 0.2, 0.5, 0.75], 0.85, 0.96, M, st)
+        win_y(y0, [0.2, 0.5, 0.75], 0.55, 0.66, M, st)
+        win_x(x1, [-0.1, 0.2, 0.5, 0.75], 0.55, 0.66, M, st)
+        win_x(x1, [-0.1, 0.2, 0.5, 0.75], 0.85, 0.96, M, st)
+        all_windows(x0, y0, x1, y1, [(0.55, 0.66), (0.85, 0.96), (0.2, 0.3)], M, st)
+        low_wall([(-0.95, -0.3), (-0.95, -0.95), (0.05, -0.95)], st["wall"], h=0.22)
+        mesh("court", [(-0.92, -0.92, 0.004), (0.05, -0.92, 0.004), (0.05, -0.3, 0.004), (-0.92, -0.3, 0.004)],
+             [(0, 1, 2, 3)], M["mosaic"] if region != "north" else pave)
+        tree(st["tree"], -0.6, -0.65, M, 0.9)
+        pot_plant(-0.2, -0.8, M)
+        chimney(0.55, 0.55, 1.04, 1.4, M, st["wall"])
+    else:  # stepped: a tall back range and a lower front range with a roof terrace
+        x0, y0, x1, y1, zw = -0.9, 0.15, 0.9, 0.9, 1.14
+        block(st, M, x0, y0, x1, y1, zw)
+        box(x0 - 0.012, y0 - 0.012, 0.44, x1 + 0.012, y1 + 0.012, 0.47, st["band"], bevel=0)
+        vroof(st, M, "hip", x0, y0, x1, y1, zw, 0.28)
+        fx0, fy0, fx1, fz = -0.9, -0.8, 0.35, 0.74
+        block(st, M, fx0, fy0, fx1, y0 + 0.01, fz)
+        box(fx0 - 0.02, fy0 - 0.02, fz, fx1 + 0.02, y0, fz + 0.03, M["paving"], bevel=0.004)
+        parapet(fx0 - 0.02, fy0 - 0.02, fx1 + 0.02, y0, fz + 0.03, st["wall"])
+        pergola(-0.7, -0.6, 0.15, -0.1, 0.24, M, vine=False)
+        for x, y in [(-0.65, -0.55), (0.1, -0.55), (-0.3, -0.15)]:
+            box(x - 0.05, y - 0.05, fz + 0.03, x + 0.05, y + 0.05, fz + 0.08, M["amphora"], bevel=0.005)
+            blob(x, y, fz + 0.12, 0.07, 0.07, 0.06, M["leaf"], segs=8, rings=5)
+        door(-0.3, fy0, M, w=0.18, h=0.34, mat=st["door"], frame=st["band"])
+        win_y(fy0, [-0.75, -0.55, -0.05, 0.15], 0.22, 0.34, M, st)
+        win_y(fy0, [-0.75, -0.5, 0.0, 0.2], 0.52, 0.64, M, st)
+        win_x(fx1, [-0.55, -0.15], 0.52, 0.64, M, st)
+        win_y(y0, [0.5, 0.75], 0.22, 0.34, M, st)
+        win_y(y0, [-0.75, -0.45, -0.15, 0.15, 0.5, 0.75], 0.88, 1.0, M, st)
+        win_y(y0, [0.5, 0.75], 0.58, 0.7, M, st)
+        win_x(x1, [0.3, 0.55, 0.8], 0.58, 0.7, M, st)
+        win_x(x1, [0.3, 0.55, 0.8], 0.88, 1.0, M, st)
+        win_x(x1, [0.35, 0.7], 0.22, 0.34, M, st)
+        all_windows(x0, fy0, x1, y1, [(0.58, 0.7), (0.88, 1.0), (0.22, 0.34)], M, st)
+        mesh("court", [(0.35, -1, 0.004), (1, -1, 0.004), (1, 0.15, 0.004), (0.35, 0.15, 0.004)],
+             [(0, 1, 2, 3)], pave)
+        tree(st["tree"], 0.7, -0.4, M, 0.9)
+        bush(0.5, -0.85, 0.08, M["hedge"])
+        pot_plant(0.85, -0.85, M)
+
+
+# domus variants: plaster, roof tone, garden, and one structural change each -----------------
+
+def _domus_extras(st, M, region, v, front_y, x_half, tier):
+    """Per-variant additions to a domus: shops flanking the door (v2), a garden of fruit trees or
+    an upper room over a corner (v3), a mirrored garden (v1)."""
+    if v == 2:  # tabernae on the street front, either side of the door
+        for xa in (-x_half + 0.15, x_half - 0.6):
+            shopfront(xa, xa + 0.45, front_y, M, st, z_top=0.3)
+    elif v == 3 and st["roof_kind"] != "flat":  # cenaculum: an upper room over the front-left corner
+        x0, y0 = -x_half + 0.05, front_y + 0.05
+        zb = {0: 0.62, 1: 0.66, 2: 0.92}[tier]
+        box(x0, y0, zb - 0.05, x0 + 0.6, y0 + 0.55, zb + 0.32, st["wall"])
+        win_y(y0, [x0 + 0.15, x0 + 0.42], zb + 0.08, zb + 0.2, M, st)
+        win_x(x0 + 0.6, [y0 + 0.27], zb + 0.08, zb + 0.2, M, st)
+        win_x(x0, [y0 + 0.27], zb + 0.08, zb + 0.2, M, st, out=-1)
+        win_y(y0 + 0.55, [x0 + 0.3], zb + 0.08, zb + 0.2, M, st, out=1)
+        vroof(st, M, "hip", x0, y0, x0 + 0.6, y0 + 0.55, zb + 0.32, 0.18)
+
+
+def domus_var(fn, M, region, v):
+    """Domus tier fn with variant v: swaps style colours via a patched style() and adds extras."""
+    global style
+    base_style = style
+
+    def vs(M2, region2):
+        return vstyle(M2, region2, v)
+    style = vs
+    try:
+        fn(M, region)
+    finally:
+        style = base_style
+    st = vstyle(M, region, v)
+    tier = {domus_atrium: 0, domus_peristyle: 1, domus_villa: 2}[fn]
+    front = {0: -1.1, 1: -1.2, 2: -1.25}[tier]
+    _domus_extras(st, M, region, v, front, 1.3, tier)
+    if v == 1:
+        for x, y in [(-1.3, -1.3), (1.3, -1.3)]:
+            tree(st["tree"], x, y, M, 0.75)
+    if v == 3:
+        olive(1.2, -1.3, M, 0.6)
+
+
+def plot_tent(M, region="rome", v=0):
+    return _plot_tent_v0(M, region) if v == 0 else tent_var(M, region, v)
+
+
+def plot_hut(M, region="rome", v=0):
+    return _plot_hut_v0(M, region) if v == 0 else hut_var(M, region, v)
+
+
+def plot_small_house(M, region="rome", v=0):
+    return _plot_small_house_v0(M, region) if v == 0 else small_house_var(M, region, v)
+
+
+def plot_two_storey(M, region="rome", v=0):
+    return _plot_two_storey_v0(M, region) if v == 0 else two_storey_var(M, region, v)
+
+
+def plot_town_house(M, region="rome", v=0):
+    return _plot_town_house_v0(M, region) if v == 0 else town_house_var(M, region, v)
 
 
 # ---------------------------------------------------------------- domus (3x3)
@@ -904,14 +1521,19 @@ def _sprites():
     S["bld/house_plot"] = dict(fp=(2, 2), build=plot_empty)
     S["bld/domus_plot"] = dict(fp=(3, 3), build=domus_empty)
     tiers = [plot_tent, plot_hut, plot_small_house, plot_two_storey, plot_town_house]
+    vs = lambda v: "_v%d" % v if v else ""  # noqa: E731  variant 0 keeps the plain name
     for t, fn in enumerate(tiers):
-        for r in REGIONS:
-            S["bld/house_plot_t%d%s" % (t, suffix[r])] = dict(fp=(2, 2), build=_reg(fn, r),
-                                                             lit=(r == "rome" and t >= 2))
+        for v in range(VARIANTS):
+            for r in REGIONS:
+                S["bld/house_plot_t%d%s%s" % (t, vs(v), suffix[r])] = dict(
+                    fp=(2, 2), build=(lambda fn, r, v: lambda M: fn(M, r, v))(fn, r, v),
+                    lit=(r == "rome" and t >= 2))
     for t, fn in enumerate([domus_atrium, domus_peristyle, domus_villa]):
-        for r in REGIONS:
-            S["bld/domus_plot_t%d%s" % (t, suffix[r])] = dict(fp=(3, 3), build=_reg(fn, r),
-                                                              lit=(r == "rome" and t == 1))
+        for v in range(VARIANTS):
+            for r in REGIONS:
+                build = _reg(fn, r) if v == 0 else (lambda fn, r, v: lambda M: domus_var(fn, M, r, v))(fn, r, v)
+                S["bld/domus_plot_t%d%s%s" % (t, vs(v), suffix[r])] = dict(fp=(3, 3), build=build,
+                                                                          lit=(r == "rome" and t == 1))
     S["bld/slave_quarters"] = dict(fp=(3, 2), build=slave_quarters)
     for r in REGIONS:
         S["bld/temple" + suffix[r]] = dict(fp=(3, 3), build=_reg(temple, r))

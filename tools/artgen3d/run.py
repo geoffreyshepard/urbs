@@ -1,7 +1,8 @@
 """Render one family of iso sprites.
 
     /Applications/Blender.app/Contents/MacOS/Blender -b --python tools/artgen3d/run.py -- \
-        <family> [name-or-prefix...] [--samples N] [--list] [--lit-only] [--rot K[,K..]|all]
+        <family> [name-or-prefix[=]...] [--samples N] [--list] [--lit-only] [--rot K[,K..]|all]
+        [--resume EPOCH]
 
 <family> is a module in this folder exposing SPRITES = {name: spec}.  name is the atlas name
 ("bld/bakery", "people/pleb_s_0"); the PNG goes to assets/sprites_iso/<name>.png and the anchor
@@ -116,6 +117,11 @@ def main():
         v = argv[k + 1]
         rots = [1, 2, 3] if v == "all" else [int(r) for r in v.split(",")]
         del argv[k:k + 2]
+    resume = 0.0  # --resume EPOCH: skip sprites whose PNGs were written at or after EPOCH
+    if "--resume" in argv:
+        k = argv.index("--resume")
+        resume = float(argv[k + 1])
+        del argv[k:k + 2]
     list_only = "--list" in argv
     lit_only = "--lit-only" in argv  # re-render only the _lit overlays (same framing)
     argv = [a for a in argv if a not in ("--list", "--lit-only")]
@@ -124,12 +130,20 @@ def main():
         return
     family, wanted = argv[0], argv[1:]
     mod = importlib.import_module(family)
-    names = [n for n in mod.SPRITES if not wanted or any(n == w or n.startswith(w) for w in wanted)]
+    # a name ending in "=" matches exactly (bld/house_plot_t2= skips the @region variants)
+    names = [n for n in mod.SPRITES
+             if not wanted or any(n == w.rstrip("=") or (not w.endswith("=") and n.startswith(w)) for w in wanted)]
     if lit_only:
         names = [n for n in names if mod.SPRITES[n].get("lit")]
     if rots != [0]:
         names = [n for n in names if rotatable(n, mod.SPRITES[n])]
     jobs = [(n, r) for n in names for r in rots]
+    if resume:
+        def done(n, r):
+            outs = ([] if lit_only else [rot_name(n, r)]) + ([rot_name(n, r, True)] if mod.SPRITES[n].get("lit") else [])
+            paths = [os.path.join(kit.OUT, o + ".png") for o in outs]
+            return all(os.path.exists(p) and os.path.getmtime(p) >= resume for p in paths)
+        jobs = [j for j in jobs if not done(*j)]
     if list_only:
         out = []
         for n, r in jobs:

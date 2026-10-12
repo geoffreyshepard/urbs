@@ -24,7 +24,7 @@ from mathutils import Vector
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
-OUT = os.path.join(ROOT, "assets", "sprites_iso")
+OUT = os.environ.get("URBS_ART_OUT") or os.path.join(ROOT, "assets", "sprites_iso")  # override for test renders
 TILE_PX = 128
 PPU = TILE_PX / math.sqrt(2.0)  # pixels per world unit on screen
 RIGHT = Vector((math.sqrt(0.5), math.sqrt(0.5), 0.0))
@@ -44,6 +44,86 @@ def srgb(h):
 # ---------------------------------------------------------------- materials
 
 _MATS = {}
+_BASE = {}  # material name -> (base, alt) hex colours (ridge caps derive theirs from it)
+
+
+def _op(N, L, kind, a, b=None, clamp=False):
+    """Math node: a, b are sockets or floats; returns the output socket."""
+    m = N.new("ShaderNodeMath")
+    m.operation = kind
+    m.use_clamp = clamp
+    for i, x in enumerate((a, b)):
+        if x is None:
+            continue
+        if isinstance(x, (int, float)):
+            m.inputs[i].default_value = float(x)
+        else:
+            L.new(x, m.inputs[i])
+    return m.outputs["Value"]
+
+
+def _mix(N, L, fac, a, b, blend="MIX"):
+    m = N.new("ShaderNodeMix")
+    m.data_type = "RGBA"
+    m.blend_type = blend
+    for sock, x in ((m.inputs["Factor"], fac), (m.inputs["A"], a), (m.inputs["B"], b)):
+        if isinstance(x, (int, float)):
+            sock.default_value = float(x)
+        elif isinstance(x, tuple):
+            sock.default_value = x
+        else:
+            L.new(x, sock)
+    return m.outputs["Result"]
+
+
+def _tiles(N, L, uv, a, b, brick, tile_var=None):
+    """Roman roof tiles, readable at a quarter of native size.
+
+    UV u runs along the eave, v down the slope (kit._uv: g = n x (n x z) points downhill on every
+    upward face).  Columns of round imbrex caps over flat tegulae (period brick[0]), courses of
+    length brick[1] with a shadow under each course's lip.  Every tile gets its own shade between
+    a and b (white noise on the tile cell), so the roof reads as crisp tiles, not mottled mud.
+    Returns (colour socket, height socket)."""
+    pu = max(brick[0] * 1.45, 0.1)
+    pv = max(brick[1] * 1.9, 0.12)
+    sep = N.new("ShaderNodeSeparateXYZ")
+    L.new(uv.outputs["UV"], sep.inputs["Vector"])
+    su = _op(N, L, "MULTIPLY", sep.outputs["X"], 1.0 / pu)
+    sv = _op(N, L, "MULTIPLY", sep.outputs["Y"], 1.0 / pv)
+    fu = _op(N, L, "FRACT", su)
+    fv = _op(N, L, "FRACT", sv)
+    # imbrex: a round cap 40 % of the period wide, centred in the column
+    d = _op(N, L, "ABSOLUTE", _op(N, L, "SUBTRACT", fu, 0.5))
+    t = _op(N, L, "DIVIDE", d, 0.2)
+    cap = _op(N, L, "SQRT", _op(N, L, "SUBTRACT", 1.0, _op(N, L, "MULTIPLY", t, t), clamp=True))
+    # course: rises from the shadow under the lip above (fv = 0) to this course's lip (fv = 1)
+    rise = N.new("ShaderNodeMapRange")
+    rise.interpolation_type = "SMOOTHSTEP"
+    rise.inputs["From Min"].default_value = 0.0
+    rise.inputs["From Max"].default_value = 0.45
+    L.new(fv, rise.inputs["Value"])
+    lip = _op(N, L, "GREATER_THAN", fv, 0.9)
+    height = _op(N, L, "ADD", _op(N, L, "MULTIPLY", cap, 0.6), _op(N, L, "MULTIPLY", fv, 0.4))
+    # per-tile colour: one random value per (column, course) cell
+    cell = N.new("ShaderNodeCombineXYZ")
+    L.new(_op(N, L, "FLOOR", su), cell.inputs["X"])
+    L.new(_op(N, L, "FLOOR", sv), cell.inputs["Y"])
+    wn = N.new("ShaderNodeTexWhiteNoise")
+    wn.noise_dimensions = "3D"
+    L.new(cell.outputs["Vector"], wn.inputs["Vector"])
+    colour = _mix(N, L, wn.outputs["Value"], a, b)
+    if tile_var:
+        odd = _op(N, L, "LESS_THAN", wn.outputs["Value"], tile_var[1])
+        colour = _mix(N, L, odd, colour, srgb(tile_var[0]))
+    # light crests on the caps, dark gutters between them, shadow under each lip, bright lip
+    prof = _op(N, L, "ADD", 0.66, _op(N, L, "MULTIPLY", cap, 0.42))
+    shade = _op(N, L, "MULTIPLY", prof, _op(N, L, "ADD", 0.62, _op(N, L, "MULTIPLY", rise.outputs["Result"], 0.38)))
+    shade = _op(N, L, "ADD", shade, _op(N, L, "MULTIPLY", lip, 0.1))
+    sh = N.new("ShaderNodeCombineXYZ")
+    for k in ("X", "Y", "Z"):
+        L.new(shade, sh.inputs[k])
+    colour = _mix(N, L, 1.0, colour, sh.outputs["Vector"], blend="MULTIPLY")
+    return colour, height
 
 
 def _nodes(mat):
@@ -59,13 +139,16 @@ def _nodes(mat):
 
 def material(name, base, alt=None, kind="noise", scale=6.0, rough=0.85, bump=0.15,
              metal=0.0, emit=None, emit_strength=0.0, alpha=1.0, mortar=None,
-             brick=(0.25, 0.12), stripe=0.0, detail=None):
+             brick=(0.25, 0.12), stripe=0.0, detail=None, tile_var=None):
     """Procedural material in UV space (UVs are world units, face aligned).
 
     kind: noise | brick | tiles (roof imbrex ridges) | stripes | flat
+    tiles: brick = (imbrex spacing, course length) in world units; tile_var = (patch colour,
+    share) recolours that share of single tiles (old replaced tiles), see _tiles.
     """
     if name in _MATS:
         return _MATS[name]
+    _BASE[name] = (base, alt or base)
     mat = bpy.data.materials.new(name)
     nt = _nodes(mat)
     N, L = nt.nodes, nt.links
@@ -113,42 +196,7 @@ def material(name, base, alt=None, kind="noise", scale=6.0, rough=0.85, bump=0.1
         L.new(br.outputs["Fac"], inv.inputs[1])
         height = inv.outputs["Value"]
     elif kind == "tiles":
-        # imbrex ridges run down the slope (along v); courses every brick[1]
-        sep = N.new("ShaderNodeSeparateXYZ")
-        L.new(uv.outputs["UV"], sep.inputs["Vector"])
-        f = N.new("ShaderNodeMath")
-        f.operation = "MULTIPLY"
-        f.inputs[1].default_value = 2 * math.pi / brick[0]
-        L.new(sep.outputs["X"], f.inputs[0])
-        s = N.new("ShaderNodeMath")
-        s.operation = "SINE"
-        L.new(f.outputs["Value"], s.inputs[0])
-        ab = N.new("ShaderNodeMath")
-        ab.operation = "ABSOLUTE"
-        L.new(s.outputs["Value"], ab.inputs[0])
-        g = N.new("ShaderNodeMath")
-        g.operation = "MULTIPLY"
-        g.inputs[1].default_value = 1.0 / brick[1]
-        L.new(sep.outputs["Y"], g.inputs[0])
-        fr = N.new("ShaderNodeMath")
-        fr.operation = "FRACT"
-        L.new(g.outputs["Value"], fr.inputs[0])
-        m = N.new("ShaderNodeMath")
-        m.operation = "MULTIPLY"
-        L.new(ab.outputs["Value"], m.inputs[0])
-        L.new(fr.outputs["Value"], m.inputs[1])
-        height = m.outputs["Value"]
-        shade = N.new("ShaderNodeValToRGB")
-        shade.color_ramp.elements[0].color = (0.55, 0.55, 0.55, 1)
-        shade.color_ramp.elements[1].color = (1, 1, 1, 1)
-        L.new(ab.outputs["Value"], shade.inputs["Fac"])
-        mix = N.new("ShaderNodeMix")
-        mix.data_type = "RGBA"
-        mix.blend_type = "MULTIPLY"
-        mix.inputs["Factor"].default_value = 1.0
-        L.new(colour, mix.inputs["A"])
-        L.new(shade.outputs["Color"], mix.inputs["B"])
-        colour = mix.outputs["Result"]
+        colour, height = _tiles(N, L, uv, a, b, brick, tile_var)
     elif kind == "stripes":
         sep = N.new("ShaderNodeSeparateXYZ")
         L.new(uv.outputs["UV"], sep.inputs["Vector"])
@@ -210,6 +258,15 @@ def material(name, base, alt=None, kind="noise", scale=6.0, rough=0.85, bump=0.1
     return mat
 
 
+# House roof tones (base, alt, odd replaced tiles): house variants pick one (M["roof_v<k>"]).
+TERRACOTTA = [
+    ("#b9603a", "#a75432", "#93503a"),  # 0: warm, slightly weathered (= roof_faded)
+    ("#b24a2a", "#9f4026", "#bd5f3c"),  # 1: deep brick red
+    ("#c66f3a", "#b56234", "#a85a38"),  # 2: bright orange, new tiles
+    ("#a85a42", "#984f3a", "#b87850"),  # 3: old, patched with paler tiles
+]
+
+
 def palette():
     M = {}
     M["plaster"] = material("plaster", "#ece0c6", "#dccaa6", scale=9, bump=0.08,
@@ -225,19 +282,23 @@ def palette():
     M["plaster_humble2"] = material("plaster_humble2", "#d2bfa6", "#bda98c", scale=9, bump=0.1,
                                     detail=(1.5, "#b59c80"))
     M["band_brown"] = material("band_brown", "#7a5638", "#68472d", scale=10, bump=0.05)
-    M["roof_house"] = material("roof_house", "#b4613f", "#9b4f33", kind="tiles", scale=7,
-                               brick=(0.085, 0.07), bump=0.5, detail=(2.0, "#a88a76"))
+    # Terracotta roofs: crisp tile courses (kind="tiles", see _tiles), no grey weathering wash.
+    M["roof_house"] = material("roof_house", "#b85c36", "#a64f2e", kind="tiles", brick=(0.085, 0.07),
+                               bump=0.6, tile_var=("#a9502f", 0.06))
     M["band_red"] = material("band_red", "#a13b26", "#8c3220", scale=10, bump=0.05)
-    M["roof"] = material("roof", "#c25a32", "#a8462a", kind="tiles", scale=7,
-                         brick=(0.085, 0.07), bump=0.5, detail=(2.0, "#b88a70"))
-    M["roof_faded"] = material("roof_faded", "#b9805e", "#a46a4c", kind="tiles", scale=7,
-                               brick=(0.085, 0.07), bump=0.5, detail=(2.0, "#9f8a78"))
-    M["roof_slate"] = material("roof_slate", "#454850", "#33353b", kind="tiles", scale=7,
-                               brick=(0.09, 0.075), bump=0.5)
-    M["roof_timber"] = material("roof_timber", "#6b4a33", "#55392a", kind="tiles", scale=7,
-                                brick=(0.1, 0.08), bump=0.5)
-    M["roof_marble"] = material("roof_marble", "#e8e6e0", "#cfcbc2", kind="tiles", scale=7,
-                                brick=(0.08, 0.07), bump=0.4)
+    M["roof"] = material("roof", "#c2502a", "#ad4424", kind="tiles", brick=(0.085, 0.07), bump=0.6,
+                         tile_var=("#a8432a", 0.06))
+    M["roof_faded"] = material("roof_faded", "#b9603a", "#a75432", kind="tiles", brick=(0.085, 0.07),
+                               bump=0.6, tile_var=("#9e5a3e", 0.07))
+    for k, (a, b, p) in enumerate(TERRACOTTA):
+        M["roof_v%d" % k] = material("roof_v%d" % k, a, b, kind="tiles", brick=(0.085, 0.07), bump=0.6,
+                                     tile_var=(p, 0.05))
+    M["roof_slate"] = material("roof_slate", "#4e5159", "#3e4148", kind="tiles", brick=(0.09, 0.075),
+                               bump=0.6, tile_var=("#5d5f66", 0.08))
+    M["roof_timber"] = material("roof_timber", "#74513a", "#5f412e", kind="tiles", brick=(0.1, 0.08),
+                                bump=0.6, tile_var=("#4f3626", 0.08))
+    M["roof_marble"] = material("roof_marble", "#ece9e2", "#d8d3c9", kind="tiles", brick=(0.08, 0.07),
+                                bump=0.4)
     M["travertine"] = material("travertine", "#d3c196", "#bca877", kind="brick", scale=12,
                                brick=(0.28, 0.1), mortar="#9a8a66", bump=0.25)
     M["stone_dark"] = material("stone_dark", "#7d756b", "#5f5850", kind="brick", scale=12,
@@ -344,7 +405,63 @@ def box(x0, y0, z0, x1, y1, z1, mat, bevel=0.012, name="box"):
     return mesh(name, v, f, mat, bevel=bevel)
 
 
-def gable(x0, y0, x1, y1, z, h, mat, axis="x", over=0.06, wall=None):
+def tint(hexc, dv=0.0, ds=0.0, dh=0.0):
+    """Shift a hex colour in HSV (dv, ds: -1..1 added to value / saturation; dh: hue turns)."""
+    import colorsys
+    h = hexc.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    hh, ss, vv = colorsys.rgb_to_hsv(r, g, b)
+    r, g, b = colorsys.hsv_to_rgb((hh + dh) % 1.0, min(1, max(0, ss + ds)), min(1, max(0, vv + dv)))
+    return "#%02x%02x%02x" % (round(r * 255), round(g * 255), round(b * 255))
+
+
+def ridge_material(mat):
+    """Ridge-cap material for a roof material: its base colour, a little lighter and smoother."""
+    nm = mat.name.split(".")[0]
+    key = nm + "_ridge"
+    if key in _MATS:
+        return _MATS[key]
+    base, alt = _BASE.get(nm, ("#b0603e", "#a0502e"))
+    return material(key, tint(base, 0.08, -0.04), tint(alt, 0.06, -0.04), scale=14, bump=0.05,
+                    rough=0.75)
+
+
+def rod(p0, p1, r, mat, n=6, name="rod"):
+    """A thin prism of radius r from p0 to p1 (ridge caps, rails)."""
+    a, b = Vector(p0), Vector(p1)
+    ax = b - a
+    if ax.length < 1e-6:
+        return None
+    ax.normalize()
+    side = ax.cross(Vector((0, 0, 1)))
+    if side.length < 1e-4:
+        side = ax.cross(Vector((1, 0, 0)))
+    side.normalize()
+    up = side.cross(ax).normalized()
+    v = []
+    for p in (a, b):
+        for i in range(n):
+            t = 2 * math.pi * (i + 0.5) / n
+            v.append(tuple(p + (side * math.cos(t) + up * math.sin(t)) * r))
+    f = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
+    f += [tuple(reversed(range(n))), tuple(n + i for i in range(n))]
+    ob = mesh(name, v, f, mat)
+    for poly in ob.data.polygons:
+        poly.use_smooth = len(poly.vertices) == 4
+    return ob
+
+
+def roof_caps(lines, mat, span):
+    """Ridge and hip caps along roof lines [(p0, p1), ...], in a lighter tone of the roof."""
+    if span < 0.35:
+        return
+    r = 0.026 if span > 0.9 else 0.018
+    cm = ridge_material(mat)
+    for p0, p1 in lines:
+        rod(p0, p1, r, cm, name="ridge")
+
+
+def gable(x0, y0, x1, y1, z, h, mat, axis="x", over=0.06, wall=None, caps=True):
     """Gable roof; ridge along `axis`.  Gable ends get `wall` material."""
     x0 -= over
     y0 -= over
@@ -363,6 +480,9 @@ def gable(x0, y0, x1, y1, z, h, mat, axis="x", over=0.06, wall=None):
         slopes = [(0, 1, 2, 3), (1, 4, 5, 2)]
         ends = [(0, 4, 1), (3, 2, 5)]
     r = mesh("roof", v, slopes, mat, solidify=0.035)
+    if caps:
+        ridge = (v[2], v[3]) if axis == "x" else (v[1], v[2])
+        roof_caps([ridge], mat, max(x1 - x0, y1 - y0))
     if wall is not None:
         # gable triangles on the wall plane; they stay under the overhanging roof
         X0, Y0, X1, Y1 = x0 + over, y0 + over, x1 - over, y1 - over
@@ -378,7 +498,7 @@ def gable(x0, y0, x1, y1, z, h, mat, axis="x", over=0.06, wall=None):
     return r
 
 
-def hip(x0, y0, x1, y1, z, h, mat, over=0.06):
+def hip(x0, y0, x1, y1, z, h, mat, over=0.06, caps=True):
     x0 -= over
     y0 -= over
     x1 += over
@@ -394,10 +514,17 @@ def hip(x0, y0, x1, y1, z, h, mat, over=0.06):
         v = [(x0, y0, z), (x1, y0, z), (x1, y1, z), (x0, y1, z),
              (x0 + i, y0 + i, z + h), (x0 + i, y1 - i, z + h)]
         f = [(0, 1, 4), (1, 2, 5, 4), (2, 3, 5), (3, 0, 4, 5)]
-    return mesh("hip", v, f, mat, solidify=0.035)
+    ob = mesh("hip", v, f, mat, solidify=0.035)
+    if caps:
+        if w >= d:
+            lines = [(v[4], v[5]), (v[0], v[4]), (v[3], v[4]), (v[1], v[5]), (v[2], v[5])]
+        else:
+            lines = [(v[4], v[5]), (v[0], v[4]), (v[1], v[4]), (v[2], v[5]), (v[3], v[5])]
+        roof_caps(lines, mat, max(w, d))
+    return ob
 
 
-def ring_roof(x0, y0, x1, y1, z, h, hole, mat, over=0.06):
+def ring_roof(x0, y0, x1, y1, z, h, hole, mat, over=0.06, caps=True):
     """Atrium house roof: hips outward, a square compluvium in the middle."""
     x0 -= over
     y0 -= over
@@ -419,7 +546,11 @@ def ring_roof(x0, y0, x1, y1, z, h, hole, mat, over=0.06):
         j = (i + 1) % 4
         f.append((i, j, 4 + j, 4 + i))
         f.append((4 + i, 4 + j, 8 + j, 8 + i))
-    return mesh("ring", v, f, mat, solidify=0.035)
+    ob = mesh("ring", v, f, mat, solidify=0.035)
+    if caps:
+        lines = [(v[4 + i], v[4 + (i + 1) % 4]) for i in range(4)] + [(v[i], v[4 + i]) for i in range(4)]
+        roof_caps(lines, mat, max(2 * rx, 2 * ry))
+    return ob
 
 
 def cylinder(x, y, z0, z1, r, mat, n=12, name="cyl", smooth=True, rx=None, axis="z"):
