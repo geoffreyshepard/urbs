@@ -51,6 +51,7 @@ Plays the scripts in `tests/play/` through the game's real interface: the game r
 | `panels` | Every report panel, the overlay menu, the pause menu and settings, opened from their buttons over a town the bot built |
 | `save_load` | Save to a slot from the pause menu, build more, load: the town, the treasury and read letters come back |
 | `campaign` | From the title screen: begin mission I, win it, back to the province map, begin mission II |
+| `mods` | The Mods screen: enable the example mod, off and on again (its sprites go in and out of the atlas), play its scenario and hold its vintner's cellar, drawn with the mod's sprite, over the map |
 
 A script's first line may give game arguments (`# args: --scenario ...`). Commands, one per line (`#` starts a comment); coordinates are window points, tiles are map tiles:
 
