@@ -132,7 +132,7 @@ A scenario is a folder with `scenario.json` and an optional `script.lua`.
 - `world`: `{"max_citizens", "max_buildings", "max_households", "max_soldiers"}`.
 
 **Starting conditions**
-- `start`: `{"treasury", "roads", "buildings"}`. Each pre-placed building is `{"def", "x", "y"}` (top-left tile), with optional `"rot"` (0–3 quarter turns clockwise; 0 faces south), `"size"` (painted buildings) and `"stock"`.
+- `start`: `{"treasury", "roads", "buildings", "households"}`. Each pre-placed building is `{"def", "x", "y"}` (top-left tile), with optional `"rot"` (0–3 quarter turns clockwise; 0 faces south), `"size"` (painted buildings), `"stock"` and, for houses, `"tier"` (starts evolved; it devolves as usual if its needs go unmet). Each household entry is `{"building": index into "buildings", "count", "members", "food", "savings"}`, with optional `"class"` (`"pleb"` by default, `"patrician"`, `"eques"`, `"libertus"`).
 - `start_stock`: {good: n}, stored in a stockpile at the end of the entry road.
 - `start_slaves`.
 - `policy`: `{"wage", "rations", "slave_treatment", "manumission"}`.

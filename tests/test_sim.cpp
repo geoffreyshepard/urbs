@@ -314,6 +314,47 @@ TEST_CASE("map files round-trip and scenarios can load a painted map") {
   std::filesystem::remove_all(dir);
 }
 
+TEST_CASE("the main menu's backdrop city loads with evolved houses and families") {
+  // data/menu/backdrop is a scripted scenario frozen from a bot-built city (tools/menu_backdrop.sh).
+  // If a defs change breaks it, regenerate it; the game would otherwise show a plain landscape.
+  sim::ScenarioSpec spec = sim::load_scenario(std::string(URBS_SOURCE_DIR) + "/data/menu/backdrop/scenario.json");
+  sim::World w;
+  sim::setup_scenario(w, defs(), spec);
+  CHECK(w.buildings.ids.count() > 200);
+  CHECK(w.citizens.ids.count() > 1000);
+  u32 evolved = 0;
+  w.buildings.for_each([&](BuildingId, const sim::Building& b) {
+    if (defs().b(b.def).kind == data::BuildingKind::House && b.tier > 0) ++evolved;
+  });
+  CHECK(evolved > 20);
+  for (int t = 0; t < 600; ++t) w.tick();
+  CHECK(w.citizens.ids.count() > 1000);
+}
+
+TEST_CASE("scripted scenarios place evolved houses and families of a given class") {
+  const char* text = R"({"name": "t", "map": {"size": 64, "seed": 3, "coast": -1, "river": false, "hills": 0},
+    "generator": "scripted",
+    "start": {"buildings": [{"def": "house_plot", "x": 30, "y": 30, "tier": 2}, {"def": "domus_plot", "x": 20, "y": 20}],
+              "households": [{"building": 0, "count": 2, "members": 3},
+                             {"building": 1, "count": 1, "members": 2, "class": "patrician"}]}})";
+  sim::ScenarioSpec spec = sim::parse_scenario(text, "t.json");
+  sim::World w;
+  sim::setup_scenario(w, defs(), spec);
+  BuildingId house, domus;
+  w.buildings.for_each(
+      [&](BuildingId id, const sim::Building& b) { (defs().b(b.def).id == "house_plot" ? house : domus) = id; });
+  REQUIRE(house.valid());
+  REQUIRE(domus.valid());
+  CHECK(w.buildings[house].tier == 2);
+  CHECK(w.buildings[house].capacity == defs().tier(defs().b(w.buildings[house].def).house_line, 2)->capacity);
+  CHECK(w.citizens.ids.count() == 8);
+  u32 patricians = 0;
+  for (u32 i = 0; i < w.households.ids.high_water(); ++i)
+    if (w.households.ids.alive_index(i) && w.households[w.households.ids.id_at(i)].cls == sim::CitizenClass::Patrician)
+      ++patricians;
+  CHECK(patricians == 1);
+}
+
 TEST_CASE("every good has a source and a use") {
   // A good nothing makes or sells is dead content; one nothing uses, eats or buys is a dead end.
   const auto& D = defs();

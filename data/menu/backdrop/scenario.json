@@ -1,0 +1,8604 @@
+{
+ "era": "republic",
+ "generator": "scripted",
+ "gods": [
+  "jupiter",
+  "juno",
+  "neptune",
+  "ceres",
+  "vesta",
+  "mercury"
+ ],
+ "id": "menu_backdrop",
+ "map_file": "map.urbsmap",
+ "mission": 16,
+ "name": "Menu backdrop",
+ "source": "m05_syracuse built by the autoplay bot for 110000 ticks (tools/menu_backdrop.sh)",
+ "start": {
+  "buildings": [
+   {
+    "def": "stockpile",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 25,
+     "planks": 135
+    },
+    "x": 113,
+    "y": 111
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 113,
+    "y": 114
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 113,
+    "y": 116
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 113,
+    "y": 118
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 115,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 116,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 116
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 120
+   },
+   {
+    "def": "lumber_camp",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wood": 30
+    },
+    "x": 117,
+    "y": 119
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 118,
+    "y": 113
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 14
+    },
+    "x": 117,
+    "y": 106
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 114
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 118
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 119,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 120,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 115,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 113,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 117,
+    "y": 122
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 17,
+     "meat": 30,
+     "olive_oil": 15,
+     "pottery": 17,
+     "vegetables": 10,
+     "wheat": 13
+    },
+    "x": 113,
+    "y": 124
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 114,
+    "y": 120
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 124
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 31,
+     "wheat": 518
+    },
+    "x": 116,
+    "y": 127
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 119,
+    "y": 120
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 126
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 113,
+    "y": 127
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 117
+   },
+   {
+    "def": "trade_post",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 80,
+     "cut_stone": 48,
+     "olive_oil": 59
+    },
+    "x": 124,
+    "y": 118
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 116
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 39,
+     "bricks": 1,
+     "garum": 4,
+     "olives": 2,
+     "planks": 351,
+     "salt": 1,
+     "stone": 1,
+     "wood": 1
+    },
+    "x": 122,
+    "y": 113
+   },
+   {
+    "def": "theater",
+    "size": [
+     5,
+     4
+    ],
+    "x": 125,
+    "y": 151
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 127,
+    "y": 119
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 137,
+    "y": 111
+   },
+   {
+    "def": "sawmill",
+    "size": [
+     3,
+     2
+    ],
+    "stock": {
+     "planks": 25,
+     "wood": 5
+    },
+    "x": 125,
+    "y": 113
+   },
+   {
+    "def": "vegetable_garden",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "vegetables": 6
+    },
+    "x": 106,
+    "y": 106
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 2,
+     "clay": 2,
+     "pottery": 4
+    },
+    "x": 128,
+    "y": 115
+   },
+   {
+    "def": "clay_pit",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clay": 16
+    },
+    "x": 174,
+    "y": 106
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 128,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 124
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 124,
+    "y": 122
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 125
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 126,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 126
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 128,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 128,
+    "y": 124
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 120
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 119
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 18
+    },
+    "x": 123,
+    "y": 101
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 124,
+    "y": 128
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 120,
+    "y": 120
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 128,
+    "y": 126
+   },
+   {
+    "def": "militia_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 126,
+    "y": 128
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 141
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 128,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 110,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 110,
+    "y": 117
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 108,
+    "y": 119
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 126
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 110,
+    "y": 113
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 108,
+    "y": 113
+   },
+   {
+    "def": "brick_kiln",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bricks": 13,
+     "clay": 2,
+     "wood": 2
+    },
+    "x": 110,
+    "y": 115
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 17,
+     "bricks": 2,
+     "flour": 2,
+     "garum": 4,
+     "planks": 88,
+     "wood": 283
+    },
+    "x": 104,
+    "y": 116
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 38,
+     "clothing": 19,
+     "meat": 34,
+     "olive_oil": 19,
+     "pottery": 18,
+     "vegetables": 13,
+     "wheat": 34
+    },
+    "x": 158,
+    "y": 104
+   },
+   {
+    "def": "garum_workshop",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 2,
+     "garum": 5,
+     "salt": 2
+    },
+    "x": 104,
+    "y": 119
+   },
+   {
+    "def": "vegetable_garden",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "vegetables": 12
+    },
+    "x": 111,
+    "y": 100
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 167,
+    "y": 131
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 141,
+     "planks": 259
+    },
+    "x": 109,
+    "y": 122
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 107,
+    "y": 122
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 103,
+     "planks": 50,
+     "wood": 247
+    },
+    "x": 109,
+    "y": 125
+   },
+   {
+    "def": "quarry",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "stone": 12
+    },
+    "x": 96,
+    "y": 193
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "planks": 27,
+     "wood": 373
+    },
+    "x": 104,
+    "y": 122
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "flour": 4,
+     "wheat": 8
+    },
+    "x": 106,
+    "y": 113
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "planks": 15,
+     "wood": 385
+    },
+    "x": 104,
+    "y": 125
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 110,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 108,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 106,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 104,
+    "y": 128
+   },
+   {
+    "def": "lumber_camp",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wood": 29
+    },
+    "x": 104,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 128
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 127
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 129
+   },
+   {
+    "def": "stonemason",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "stone": 6
+    },
+    "x": 131,
+    "y": 122
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 15,
+     "flour": 4
+    },
+    "x": 133,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 131,
+    "y": 124
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 135,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 137,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 106,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 132,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 137,
+    "y": 124
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 33,
+     "clothing": 15,
+     "olive_oil": 16,
+     "pottery": 16
+    },
+    "x": 134,
+    "y": 127
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 119,
+    "y": 131
+   },
+   {
+    "def": "olive_grove",
+    "size": [
+     6,
+     6
+    ],
+    "x": 158,
+    "y": 140
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 117,
+    "y": 131
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 116,
+    "y": 131
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 36,
+     "clothing": 18,
+     "meat": 22,
+     "olive_oil": 20,
+     "pottery": 17
+    },
+    "x": 118,
+    "y": 133
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 114,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 136
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 113,
+    "y": 133
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 117,
+    "y": 137
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 132
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 135
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 136
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 115,
+    "y": 137
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 14,
+     "flour": 6
+    },
+    "x": 128,
+    "y": 131
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 138
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 122,
+    "y": 131
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 30,
+     "bread": 5,
+     "bricks": 6,
+     "olives": 1,
+     "planks": 172,
+     "salt": 47,
+     "stone": 1,
+     "wheat": 11,
+     "wood": 116,
+     "wool": 3
+    },
+    "x": 140,
+    "y": 118
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 133
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 122,
+    "y": 134
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 16,
+     "flour": 4
+    },
+    "x": 126,
+    "y": 131
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 127,
+    "y": 133
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 124,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 126,
+    "y": 137
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 119,
+    "y": 138
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 120,
+    "y": 138
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 39
+    },
+    "x": 123,
+    "y": 89
+   },
+   {
+    "def": "vegetable_garden",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "vegetables": 6
+    },
+    "x": 100,
+    "y": 106
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 10,
+     "olives": 12
+    },
+    "x": 146,
+    "y": 95
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olives": 12
+    },
+    "x": 128,
+    "y": 136
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 102,
+    "y": 145
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 16,
+     "flour": 4
+    },
+    "x": 137,
+    "y": 128
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 131,
+    "y": 118
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 2,
+     "olive_oil": 14,
+     "olives": 8
+    },
+    "x": 140,
+    "y": 146
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 134,
+    "y": 119
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 137,
+    "y": 120
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wheat": 12
+    },
+    "x": 131,
+    "y": 114
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 136,
+    "y": 120
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 137,
+    "y": 118
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 133,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 137,
+    "y": 116
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 57
+    },
+    "x": 129,
+    "y": 95
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 135,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 137,
+    "y": 114
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 137,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 132,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 135,
+    "y": 111
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 131,
+    "y": 110
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 134,
+    "y": 111
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 136,
+    "y": 111
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 131,
+    "y": 108
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 133,
+    "y": 111
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 131,
+    "y": 105
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 128,
+    "y": 117
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 137,
+    "y": 109
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 134,
+    "y": 104
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "flour": 20
+    },
+    "x": 137,
+    "y": 107
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 136,
+    "y": 104
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 140,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 142,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 140,
+    "y": 124
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 133,
+    "y": 104
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 144,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 140,
+    "y": 126
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 132,
+    "y": 104
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 104
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 104
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 105
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 146,
+    "y": 122
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 106
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 133
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 146,
+    "y": 124
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 20,
+     "flour": 2
+    },
+    "x": 142,
+    "y": 128
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 13
+    },
+    "x": 92,
+    "y": 78
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "planks": 164,
+     "salt": 22,
+     "wood": 214
+    },
+    "x": 131,
+    "y": 143
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 146,
+    "y": 126
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 18,
+     "flour": 4
+    },
+    "x": 146,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 131,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 133,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 131,
+    "y": 133
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 135,
+    "y": 131
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 131,
+    "y": 135
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wheat": 12
+    },
+    "x": 137,
+    "y": 131
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 42
+    },
+    "x": 82,
+    "y": 104
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 120
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 131,
+    "y": 137
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 4,
+     "wheat": 593
+    },
+    "x": 136,
+    "y": 133
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 113,
+    "y": 154
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 135,
+    "y": 137
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 17,
+     "flour": 4
+    },
+    "x": 124,
+    "y": 131
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 1,
+     "flour": 25,
+     "olives": 12,
+     "wheat": 535
+    },
+    "x": 140,
+    "y": 115
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 143,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 145,
+    "y": 119
+   },
+   {
+    "def": "sheep_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wool": 1
+    },
+    "x": 140,
+    "y": 106
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 140,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 142,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 146,
+    "y": 117
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 137,
+    "y": 136
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 144,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 146,
+    "y": 115
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 146,
+    "y": 113
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 1,
+     "garum": 5,
+     "planks": 312,
+     "salt": 16,
+     "stone": 1,
+     "wheat": 3,
+     "wood": 62
+    },
+    "x": 126,
+    "y": 140
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 18,
+     "flour": 4
+    },
+    "x": 122,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 124,
+    "y": 140
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 54,
+     "wheat": 519
+    },
+    "x": 127,
+    "y": 143
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 142
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 128,
+    "y": 146
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 37,
+     "clothing": 19,
+     "meat": 31,
+     "olive_oil": 19,
+     "pottery": 19,
+     "vegetables": 25,
+     "wheat": 32
+    },
+    "x": 124,
+    "y": 145
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "wood": 400
+    },
+    "x": 100,
+    "y": 122
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 36,
+     "clothing": 19,
+     "meat": 9,
+     "olive_oil": 19,
+     "pottery": 18,
+     "vegetables": 12,
+     "wheat": 5
+    },
+    "x": 100,
+    "y": 127
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 144
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 4,
+     "flour": 8,
+     "wheat": 554
+    },
+    "x": 97,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 101,
+    "y": 125
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 122,
+    "y": 146
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 95,
+    "y": 123
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "planks": 5,
+     "wood": 395
+    },
+    "x": 95,
+    "y": 125
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clothing": 2,
+     "wool": 4
+    },
+    "x": 98,
+    "y": 128
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 95,
+    "y": 122
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 96,
+    "y": 122
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 137,
+     "flour": 4,
+     "olives": 9,
+     "wheat": 430
+    },
+    "x": 140,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 143,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 140,
+    "y": 134
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 145,
+    "y": 131
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 128,
+    "y": 138
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "planks": 58,
+     "salt": 279,
+     "wood": 63
+    },
+    "x": 140,
+    "y": 136
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 146,
+    "y": 133
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 1,
+    "x": 143,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 146,
+    "y": 135
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 147,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 145,
+    "y": 137
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 147,
+    "y": 120
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "wood": 400
+    },
+    "x": 109,
+    "y": 131
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 107,
+    "y": 131
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 18,
+     "meat": 30,
+     "olive_oil": 19,
+     "pottery": 19,
+     "vegetables": 30,
+     "wheat": 39
+    },
+    "x": 109,
+    "y": 134
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "wood": 400
+    },
+    "x": 104,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 110,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 108,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 104,
+    "y": 134
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 106,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 96,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 104,
+    "y": 136
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 104,
+    "y": 138
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 140
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 105,
+    "y": 138
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 138
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 1,
+     "wood": 398
+    },
+    "x": 116,
+    "y": 140
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 119,
+    "y": 142
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 95,
+    "y": 128
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 23,
+     "planks": 55,
+     "salt": 16,
+     "wood": 305
+    },
+    "x": 118,
+    "y": 144
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 114,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 113,
+    "y": 142
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 116,
+    "y": 146
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 16,
+     "wood": 384
+    },
+    "x": 113,
+    "y": 144
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 38,
+     "clothing": 20,
+     "meat": 14,
+     "olive_oil": 18,
+     "pottery": 19,
+     "vegetables": 21,
+     "wheat": 18
+    },
+    "x": 132,
+    "y": 140
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 19,
+     "meat": 25,
+     "olive_oil": 20,
+     "pottery": 19,
+     "vegetables": 35,
+     "wheat": 38
+    },
+    "x": 136,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 144,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 131,
+    "y": 146
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 133,
+    "y": 146
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 115,
+    "y": 147
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 140
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 136,
+    "y": 143
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 135,
+    "y": 146
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 137,
+    "y": 146
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 125,
+    "y": 149
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 114,
+    "y": 147
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 118,
+    "y": 147
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clothing": 2,
+     "wool": 4
+    },
+    "x": 128,
+    "y": 149
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 39,
+     "clothing": 20,
+     "meat": 20,
+     "olive_oil": 20,
+     "pottery": 19,
+     "vegetables": 30,
+     "wheat": 34
+    },
+    "x": 122,
+    "y": 149
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 147
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 119,
+    "y": 147
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "meat": 20,
+     "olive_oil": 19,
+     "pottery": 20,
+     "vegetables": 35,
+     "wheat": 34
+    },
+    "x": 122,
+    "y": 152
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 125,
+    "y": 155
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 123,
+    "y": 155
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 127,
+    "y": 155
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 147,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 101,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 99,
+    "y": 131
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 98,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 101,
+    "y": 133
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 97,
+    "y": 131
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 96,
+    "y": 131
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 95,
+    "y": 131
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 101,
+    "y": 137
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 95,
+    "y": 132
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 141
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 101,
+    "y": 135
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 99,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 95,
+    "y": 135
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 97,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 95,
+    "y": 137
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 110,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 108,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 110,
+    "y": 142
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 106,
+    "y": 140
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 27,
+     "wheat": 29
+    },
+    "x": 109,
+    "y": 144
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 104,
+    "y": 140
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 1,
+    "x": 104,
+    "y": 142
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 104,
+    "y": 144
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "meat": 22,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 30,
+     "wheat": 32
+    },
+    "x": 106,
+    "y": 145
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 114,
+    "y": 138
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 104,
+    "y": 146
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 149
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 117,
+    "y": 149
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 151
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 115,
+    "y": 149
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 153
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 113,
+    "y": 149
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 119,
+    "y": 155
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "meat": 18,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 39,
+     "wheat": 35
+    },
+    "x": 113,
+    "y": 151
+   },
+   {
+    "def": "sheep_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wool": 4
+    },
+    "x": 105,
+    "y": 149
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 19,
+     "meat": 18,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 37,
+     "wheat": 36
+    },
+    "x": 116,
+    "y": 154
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 137,
+    "y": 138
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 138
+   },
+   {
+    "def": "fishing_wharf",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "fish": 3
+    },
+    "x": 178,
+    "y": 110
+   },
+   {
+    "def": "sheep_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wool": 3
+    },
+    "x": 99,
+    "y": 153
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 34,
+     "clothing": 20,
+     "olive_oil": 19,
+     "pottery": 19,
+     "vegetables": 35,
+     "wheat": 31
+    },
+    "x": 149,
+    "y": 127
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 140
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 120,
+    "y": 147
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 133,
+    "y": 137
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 36,
+     "clothing": 18,
+     "olive_oil": 18,
+     "pottery": 18,
+     "vegetables": 6,
+     "wheat": 6
+    },
+    "x": 149,
+    "y": 124
+   },
+   {
+    "def": "sheep_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wool": 3
+    },
+    "x": 92,
+    "y": 140
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 39,
+     "clothing": 20,
+     "olive_oil": 18,
+     "pottery": 20,
+     "vegetables": 33,
+     "wheat": 23
+    },
+    "x": 152,
+    "y": 127
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 151,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 126
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 153,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 124
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 101,
+    "y": 119
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 142
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 101,
+    "y": 117
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 2,
+    "x": 99,
+    "y": 119
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 102,
+    "y": 116
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 142
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 101,
+    "y": 113
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 102,
+    "y": 114
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 95,
+    "y": 119
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 19,
+     "olive_oil": 19,
+     "pottery": 19,
+     "vegetables": 10,
+     "wheat": 27
+    },
+    "x": 95,
+    "y": 116
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 97,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 99,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 97,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 95,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 131
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 151,
+    "y": 131
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 38,
+     "clothing": 18,
+     "olive_oil": 19,
+     "pottery": 20,
+     "vegetables": 1,
+     "wheat": 34
+    },
+    "x": 149,
+    "y": 136
+   },
+   {
+    "def": "sheep_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wool": 2
+    },
+    "x": 88,
+    "y": 128
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 155
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 156
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 140,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 153,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 155,
+    "y": 131
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 155,
+    "y": 133
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 60
+    },
+    "x": 104,
+    "y": 80
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 152,
+    "y": 137
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 154,
+    "y": 135
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 155,
+    "y": 120
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 154,
+    "y": 120
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 156,
+    "y": 120
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 156,
+    "y": 119
+   },
+   {
+    "def": "salt_works",
+    "size": [
+     3,
+     2
+    ],
+    "stock": {
+     "salt": 14
+    },
+    "x": 177,
+    "y": 108
+   },
+   {
+    "def": "garum_workshop",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "salt": 3
+    },
+    "x": 149,
+    "y": 119
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 153,
+    "y": 120
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 33,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20
+    },
+    "x": 149,
+    "y": 116
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 151,
+    "y": 119
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 114
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 151,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 117
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 153,
+    "y": 113
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 115
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 113
+   },
+   {
+    "def": "olive_grove",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "olives": 6
+    },
+    "x": 158,
+    "y": 115
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wheat": 12
+    },
+    "x": 158,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 158,
+    "y": 126
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 160,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 158,
+    "y": 124
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 162,
+    "y": 128
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 158,
+    "y": 122
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 150,
+    "y": 113
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 127,
+    "y": 147
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 149,
+    "y": 113
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 164,
+    "y": 128
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 29,
+     "clothing": 17,
+     "olive_oil": 15,
+     "pottery": 17,
+     "wheat": 11
+    },
+    "x": 160,
+    "y": 122
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 1,
+    "x": 164,
+    "y": 126
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 1,
+    "x": 164,
+    "y": 124
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 163,
+    "y": 122
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 16
+    },
+    "x": 94,
+    "y": 104
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 5,
+     "olives": 12
+    },
+    "x": 149,
+    "y": 110
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 108
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 151,
+    "y": 110
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 106
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 153,
+    "y": 110
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 149,
+    "y": 104
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 151,
+    "y": 104
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 135,
+    "y": 140
+   },
+   {
+    "def": "militia_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 155,
+    "y": 110
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 1,
+    "x": 155,
+    "y": 108
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 155,
+    "y": 106
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 127,
+    "y": 149
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 154,
+    "y": 104
+   },
+   {
+    "def": "sheep_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wool": 21
+    },
+    "x": 88,
+    "y": 106
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 131,
+    "y": 101
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 137,
+    "y": 101
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 133,
+    "y": 101
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 36,
+     "clothing": 19,
+     "olive_oil": 19,
+     "pottery": 19,
+     "wheat": 21
+    },
+    "x": 136,
+    "y": 98
+   },
+   {
+    "def": "weaver",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "wool": 6
+    },
+    "x": 135,
+    "y": 101
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 37
+    },
+    "x": 80,
+    "y": 98
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 111,
+    "y": 114
+   },
+   {
+    "def": "harbor",
+    "size": [
+     4,
+     3
+    ],
+    "stock": {
+     "cut_stone": 14,
+     "olive_oil": 18,
+     "wheat": 80
+    },
+    "x": 176,
+    "y": 103
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 41
+    },
+    "x": 78,
+    "y": 89
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 147,
+    "y": 132
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 102,
+    "y": 113
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 20,
+     "olives": 7
+    },
+    "x": 135,
+    "y": 95
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 111
+   },
+   {
+    "def": "brick_kiln",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bricks": 25,
+     "clay": 2,
+     "wood": 3
+    },
+    "x": 137,
+    "y": 96
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 100,
+    "y": 149
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 95,
+    "y": 129
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 2,
+     "olive_oil": 2,
+     "olives": 12
+    },
+    "x": 86,
+    "y": 132
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 97,
+     "wheat": 503
+    },
+    "x": 167,
+    "y": 124
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 10,
+     "olives": 12
+    },
+    "x": 144,
+    "y": 140
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 141
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 40,
+     "wheat": 40
+    },
+    "x": 145,
+    "y": 142
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 145,
+    "y": 145
+   },
+   {
+    "def": "olive_grove",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "olives": 6
+    },
+    "x": 172,
+    "y": 110
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 109,
+    "y": 147
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 142,
+    "y": 145
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 73
+    },
+    "x": 129,
+    "y": 88
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 110,
+    "y": 147
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 47
+    },
+    "x": 109,
+    "y": 88
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 18,
+     "flour": 4
+    },
+    "x": 158,
+    "y": 110
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 127
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 80
+    },
+    "x": 141,
+    "y": 82
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 79
+    },
+    "x": 135,
+    "y": 88
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 75
+    },
+    "x": 135,
+    "y": 82
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 80
+    },
+    "x": 140,
+    "y": 99
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 111,
+    "y": 147
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 8
+    },
+    "x": 103,
+    "y": 86
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 12,
+     "olives": 12
+    },
+    "x": 146,
+    "y": 140
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 126
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 174,
+     "planks": 92,
+     "salt": 109,
+     "wood": 21,
+     "wool": 3
+    },
+    "x": 158,
+    "y": 107
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 147,
+    "y": 137
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 161,
+    "y": 109
+   },
+   {
+    "def": "theater",
+    "size": [
+     5,
+     4
+    ],
+    "x": 161,
+    "y": 105
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "planks": 19,
+     "salt": 8,
+     "wood": 373
+    },
+    "x": 131,
+    "y": 149
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 5,
+     "flour": 1,
+     "garum": 3,
+     "planks": 137,
+     "salt": 35,
+     "stone": 1,
+     "wheat": 2,
+     "wood": 214,
+     "wool": 1
+    },
+    "x": 134,
+    "y": 149
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 113,
+    "y": 156
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 6,
+     "flour": 6
+    },
+    "x": 164,
+    "y": 110
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 10,
+     "olives": 12
+    },
+    "x": 140,
+    "y": 144
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 114,
+    "y": 156
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 28,
+     "wheat": 40
+    },
+    "x": 136,
+    "y": 152
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 131,
+    "y": 152
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 1,
+    "x": 131,
+    "y": 116
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 137,
+    "y": 149
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "tier": 3,
+    "x": 131,
+    "y": 155
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 133,
+    "y": 155
+   },
+   {
+    "def": "house_plot",
+    "size": [
+     2,
+     2
+    ],
+    "x": 135,
+    "y": 155
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 115,
+    "y": 156
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "flour": 7,
+     "wheat": 12
+    },
+    "x": 137,
+    "y": 155
+   },
+   {
+    "def": "olive_grove",
+    "size": [
+     6,
+     6
+    ],
+    "x": 152,
+    "y": 140
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 158,
+    "y": 131
+   },
+   {
+    "def": "clay_pit",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clay": 16
+    },
+    "x": 176,
+    "y": 106
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 137,
+    "y": 95
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 39,
+     "clothing": 19,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 1,
+     "wheat": 37
+    },
+    "x": 158,
+    "y": 134
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 2,
+     "olive_oil": 11,
+     "olives": 8
+    },
+    "x": 163,
+    "y": 131
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 95
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 18,
+     "flour": 4
+    },
+    "x": 158,
+    "y": 137
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 163,
+    "y": 133
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 2,
+     "olive_oil": 22,
+     "olives": 5
+    },
+    "x": 160,
+    "y": 137
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 155
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 162,
+    "y": 136
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 149,
+    "y": 135
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 147,
+    "y": 138
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 92,
+    "y": 126
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 92,
+    "y": 124
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 92,
+    "y": 122
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 91,
+    "y": 122
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 40,
+     "wheat": 40
+    },
+    "x": 88,
+    "y": 122
+   },
+   {
+    "def": "balneum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 86,
+    "y": 125
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 27,
+     "bricks": 249,
+     "planks": 58,
+     "salt": 6,
+     "wood": 60
+    },
+    "x": 127,
+    "y": 158
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 54,
+     "planks": 53,
+     "salt": 2,
+     "stone": 2,
+     "wood": 286
+    },
+    "x": 124,
+    "y": 158
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 188,
+     "planks": 56,
+     "salt": 61,
+     "wood": 95
+    },
+    "x": 143,
+    "y": 149
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 87,
+    "y": 122
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 122
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 131,
+    "y": 161
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 4,
+     "flour": 4
+    },
+    "x": 86,
+    "y": 123
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 71,
+     "bricks": 78,
+     "planks": 41,
+     "salt": 3,
+     "stone": 79,
+     "wood": 128
+    },
+    "x": 127,
+    "y": 163
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 165
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 158
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 122,
+    "y": 159
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 40,
+     "wheat": 40
+    },
+    "x": 122,
+    "y": 161
+   },
+   {
+    "def": "bakery",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "bread": 15,
+     "flour": 4
+    },
+    "x": 86,
+    "y": 128
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 45,
+     "flour": 11,
+     "planks": 181,
+     "salt": 99,
+     "wheat": 55,
+     "wood": 8
+    },
+    "x": 140,
+    "y": 96
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 156
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clay": 6
+    },
+    "x": 146,
+    "y": 101
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 123,
+    "y": 158
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 10,
+     "olives": 12
+    },
+    "x": 146,
+    "y": 99
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 40,
+     "wheat": 40
+    },
+    "x": 143,
+    "y": 95
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 122,
+    "y": 164
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 259,
+     "planks": 31,
+     "wood": 110
+    },
+    "x": 140,
+    "y": 149
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 16,
+     "olives": 11
+    },
+    "x": 146,
+    "y": 97
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 151
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 161,
+    "y": 131
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 140,
+    "y": 152
+   },
+   {
+    "def": "quarry",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "stone": 39
+    },
+    "x": 99,
+    "y": 193
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 40,
+     "wheat": 40
+    },
+    "x": 145,
+    "y": 152
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 154,
+    "y": 138
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 39,
+     "clothing": 20,
+     "olive_oil": 19,
+     "pottery": 20,
+     "wheat": 39
+    },
+    "x": 132,
+    "y": 158
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 158
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 159
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 123,
+    "y": 165
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "vegetables": 6,
+     "wheat": 40
+    },
+    "x": 135,
+    "y": 158
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 140,
+    "y": 95
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 136,
+    "y": 161
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 161
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 125,
+    "y": 164
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 146,
+    "y": 149
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 140,
+    "y": 155
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 85,
+     "planks": 6,
+     "stone": 6,
+     "wood": 303
+    },
+    "x": 91,
+    "y": 134
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 129,
+    "y": 162
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 1,
+     "bread": 3,
+     "bricks": 112,
+     "garum": 5,
+     "olives": 2,
+     "planks": 16,
+     "stone": 24,
+     "wheat": 48,
+     "wood": 189
+    },
+    "x": 86,
+    "y": 134
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 87,
+    "y": 131
+   },
+   {
+    "def": "olive_grove",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "olives": 47
+    },
+    "x": 183,
+    "y": 119
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 93,
+    "y": 137
+   },
+   {
+    "def": "olive_grove",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "olives": 20
+    },
+    "x": 178,
+    "y": 113
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 102,
+    "y": 146
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 102,
+    "y": 147
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 72
+    },
+    "x": 84,
+    "y": 92
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 75
+    },
+    "x": 84,
+    "y": 86
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 142,
+    "y": 140
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 78
+    },
+    "x": 141,
+    "y": 88
+   },
+   {
+    "def": "olive_press",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 3,
+     "olive_oil": 16,
+     "olives": 11
+    },
+    "x": 146,
+    "y": 155
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 52
+    },
+    "x": 129,
+    "y": 76
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 28,
+     "clothing": 10,
+     "olive_oil": 18,
+     "pottery": 18,
+     "wheat": 16
+    },
+    "x": 100,
+    "y": 140
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 16
+    },
+    "x": 111,
+    "y": 82
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 60
+    },
+    "x": 80,
+    "y": 80
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 8
+    },
+    "x": 98,
+    "y": 80
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 99,
+    "y": 145
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 58
+    },
+    "x": 84,
+    "y": 140
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 137,
+    "y": 164
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 33
+    },
+    "x": 123,
+    "y": 77
+   },
+   {
+    "def": "theater",
+    "size": [
+     5,
+     4
+    ],
+    "x": 89,
+    "y": 117
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 143,
+    "y": 140
+   },
+   {
+    "def": "temple",
+    "size": [
+     3,
+     3
+    ],
+    "x": 86,
+    "y": 118
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 46
+    },
+    "x": 86,
+    "y": 78
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 50
+    },
+    "x": 147,
+    "y": 88
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 24
+    },
+    "x": 111,
+    "y": 76
+   },
+   {
+    "def": "wheat_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 24
+    },
+    "x": 117,
+    "y": 76
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 117,
+     "flour": 133,
+     "wheat": 294
+    },
+    "x": 118,
+    "y": 158
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 115,
+    "y": 158
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 131,
+    "y": 160
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 131,
+    "y": 164
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 114,
+    "y": 158
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 61,
+     "wheat": 539
+    },
+    "x": 118,
+    "y": 161
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 64,
+     "flour": 33,
+     "wheat": 477
+    },
+    "x": 113,
+    "y": 161
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 155,
+    "y": 138
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 93,
+    "y": 116
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 30,
+     "bread": 15,
+     "bricks": 105,
+     "olives": 1,
+     "planks": 64,
+     "salt": 76,
+     "stone": 63,
+     "wheat": 4,
+     "wood": 37,
+     "wool": 1
+    },
+    "x": 167,
+    "y": 127
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 93,
+    "y": 114
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 140,
+    "y": 142
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 315,
+     "olives": 2,
+     "wheat": 252
+    },
+    "x": 170,
+    "y": 127
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 93,
+    "y": 113
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 170,
+    "y": 122
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "wheat": 600
+    },
+    "x": 82,
+    "y": 127
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 4,
+     "wheat": 4
+    },
+    "x": 149,
+    "y": 146
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 4,
+     "wheat": 4
+    },
+    "x": 183,
+    "y": 71
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 4,
+     "wheat": 4
+    },
+    "x": 149,
+    "y": 97
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 92,
+    "y": 113
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 4,
+     "wheat": 4
+    },
+    "x": 157,
+    "y": 97
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 6
+    },
+    "x": 153,
+    "y": 152
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "flour": 16,
+     "wheat": 4
+    },
+    "x": 142,
+    "y": 155
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 4,
+     "wheat": 4
+    },
+    "x": 155,
+    "y": 146
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 82,
+    "y": 124
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 140,
+    "y": 143
+   },
+   {
+    "def": "militia_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 133,
+    "y": 164
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "wheat": 600
+    },
+    "x": 79,
+    "y": 127
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 156,
+    "y": 138
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 98,
+    "y": 140
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 101,
+    "y": 143
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "meat": 4,
+     "wheat": 4
+    },
+    "x": 185,
+    "y": 65
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 167,
+    "y": 122
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "flour": 12,
+     "wheat": 8
+    },
+    "x": 144,
+    "y": 155
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "olives": 10,
+     "wheat": 573
+    },
+    "x": 79,
+    "y": 122
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 165,
+    "y": 123
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 69,
+     "bricks": 107,
+     "planks": 53,
+     "salt": 9,
+     "wood": 162
+    },
+    "x": 127,
+    "y": 167
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 91,
+    "y": 113
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 122,
+    "y": 167
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 62,
+     "bricks": 58,
+     "planks": 35,
+     "salt": 13,
+     "stone": 97,
+     "wheat": 2,
+     "wood": 133
+    },
+    "x": 127,
+    "y": 170
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 122,
+    "y": 170
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 156,
+    "y": 105
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 156,
+    "y": 104
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 90,
+    "y": 113
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 97,
+    "y": 149
+   },
+   {
+    "def": "engineers_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 140,
+    "y": 140
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 117
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 141,
+    "y": 140
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 140,
+    "y": 141
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 125,
+    "y": 167
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 20,
+     "wheat": 40
+    },
+    "x": 95,
+    "y": 152
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 165,
+    "y": 131
+   },
+   {
+    "def": "well",
+    "size": [
+     1,
+     1
+    ],
+    "x": 165,
+    "y": 122
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 89,
+    "y": 113
+   },
+   {
+    "def": "physician",
+    "size": [
+     1,
+     1
+    ],
+    "x": 161,
+    "y": 104
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 116
+   },
+   {
+    "def": "vigiles_post",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 131
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "pottery": 9,
+     "wheat": 40
+    },
+    "x": 167,
+    "y": 136
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 135,
+    "y": 164
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 173,
+    "y": 127
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 88,
+    "y": 113
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 169,
+    "y": 131
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "amphorae": 1,
+     "clay": 4,
+     "pottery": 2
+    },
+    "x": 167,
+    "y": 133
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clay": 4
+    },
+    "x": 119,
+    "y": 164
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 128,
+    "y": 173
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 173,
+    "y": 125
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 91,
+    "y": 137
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 20,
+     "olive_oil": 20,
+     "wheat": 40
+    },
+    "x": 171,
+    "y": 131
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 113,
+    "y": 159
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "clay": 1
+    },
+    "x": 117,
+    "y": 164
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 126,
+    "y": 173
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 89,
+    "y": 137
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 173,
+    "y": 123
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 83,
+    "y": 122
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 97,
+    "y": 146
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 115,
+    "y": 164
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 124,
+    "y": 173
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 42,
+     "bricks": 50,
+     "flour": 27,
+     "planks": 38,
+     "stone": 56,
+     "wood": 187
+    },
+    "x": 140,
+    "y": 161
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 77,
+    "y": 127
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 87,
+    "y": 137
+   },
+   {
+    "def": "potter",
+    "size": [
+     2,
+     2
+    ],
+    "x": 95,
+    "y": 146
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 87,
+    "y": 113
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 12,
+     "olive_oil": 20,
+     "wheat": 40
+    },
+    "x": 170,
+    "y": 136
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 71,
+     "bricks": 80,
+     "flour": 26,
+     "planks": 52,
+     "salt": 7,
+     "stone": 4,
+     "wheat": 2,
+     "wood": 154
+    },
+    "x": 140,
+    "y": 158
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bricks": 41,
+     "flour": 140,
+     "garum": 1,
+     "planks": 21,
+     "salt": 43,
+     "stone": 46,
+     "wood": 107
+    },
+    "x": 143,
+    "y": 158
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 114
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 113
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 138,
+    "y": 158
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 82,
+    "y": 122
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 4,
+     "olive_oil": 20,
+     "wheat": 40
+    },
+    "x": 145,
+    "y": 161
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 86,
+     "flour": 104,
+     "wheat": 400
+    },
+    "x": 131,
+    "y": 167
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 78,
+    "y": 122
+   },
+   {
+    "def": "forum",
+    "size": [
+     3,
+     3
+    ],
+    "x": 134,
+    "y": 167
+   },
+   {
+    "def": "latrina",
+    "size": [
+     2,
+     2
+    ],
+    "x": 131,
+    "y": 170
+   },
+   {
+    "def": "school",
+    "size": [
+     2,
+     2
+    ],
+    "x": 131,
+    "y": 172
+   },
+   {
+    "def": "guard_post",
+    "size": [
+     2,
+     2
+    ],
+    "x": 146,
+    "y": 158
+   },
+   {
+    "def": "pig_farm",
+    "size": [
+     6,
+     6
+    ],
+    "stock": {
+     "wheat": 6
+    },
+    "x": 105,
+    "y": 155
+   },
+   {
+    "def": "mill",
+    "size": [
+     2,
+     2
+    ],
+    "stock": {
+     "flour": 10,
+     "wheat": 8
+    },
+    "x": 140,
+    "y": 164
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 77,
+    "y": 122
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "clothing": 2,
+     "olive_oil": 20,
+     "wheat": 40
+    },
+    "x": 136,
+    "y": 170
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 93,
+    "y": 138
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 77,
+    "y": 123
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 14,
+     "bread": 50,
+     "bricks": 60,
+     "flour": 30,
+     "garum": 1,
+     "planks": 30,
+     "salt": 9,
+     "stone": 51,
+     "wheat": 63,
+     "wood": 92
+    },
+    "x": 133,
+    "y": 172
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 55,
+     "bread": 9,
+     "bricks": 30,
+     "flour": 13,
+     "garum": 4,
+     "olives": 3,
+     "planks": 23,
+     "salt": 36,
+     "stone": 14,
+     "wheat": 131,
+     "wood": 55,
+     "wool": 17
+    },
+    "x": 167,
+    "y": 118
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 77,
+    "y": 124
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 100,
+     "flour": 4,
+     "wheat": 492
+    },
+    "x": 167,
+    "y": 115
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 77,
+    "y": 125
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 161,
+     "wheat": 439
+    },
+    "x": 170,
+    "y": 118
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 77,
+    "y": 126
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 129,
+     "wheat": 463
+    },
+    "x": 82,
+    "y": 131
+   },
+   {
+    "def": "warehouse",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "amphorae": 4,
+     "bread": 81,
+     "bricks": 19,
+     "flour": 17,
+     "garum": 2,
+     "planks": 28,
+     "salt": 2,
+     "stone": 35,
+     "wheat": 160,
+     "wood": 3,
+     "wool": 44
+    },
+    "x": 79,
+    "y": 131
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 84,
+    "y": 134
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 118,
+     "flour": 20,
+     "olives": 2,
+     "wheat": 456
+    },
+    "x": 82,
+    "y": 135
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 170,
+     "flour": 70,
+     "olives": 4,
+     "wheat": 347
+    },
+    "x": 77,
+    "y": 134
+   },
+   {
+    "def": "shrine",
+    "size": [
+     1,
+     1
+    ],
+    "x": 124,
+    "y": 165
+   },
+   {
+    "def": "tavern",
+    "size": [
+     2,
+     2
+    ],
+    "x": 137,
+    "y": 167
+   },
+   {
+    "def": "theater",
+    "size": [
+     5,
+     4
+    ],
+    "x": 107,
+    "y": 161
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 78,
+    "y": 129
+   },
+   {
+    "def": "statue",
+    "size": [
+     1,
+     1
+    ],
+    "x": 86,
+    "y": 137
+   },
+   {
+    "def": "market",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 40,
+     "olive_oil": 20,
+     "wheat": 40
+    },
+    "x": 82,
+    "y": 118
+   },
+   {
+    "def": "granary",
+    "size": [
+     3,
+     3
+    ],
+    "stock": {
+     "bread": 120,
+     "flour": 61
+    },
+    "x": 79,
+    "y": 118
+   }
+  ],
+  "households": [
+   {
+    "building": 1,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 2,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 3,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 4,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 5,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 6,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 11,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 12,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 15,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 16,
+    "count": 4,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 17,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 20,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 21,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 24,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 26,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 27,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 28,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 39,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 41,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 42,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 44,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 45,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 46,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 47,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 48,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 54,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 57,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 58,
+    "count": 6,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 59,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 60,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 77,
+    "count": 3,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 78,
+    "count": 4,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 79,
+    "count": 4,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 80,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 87,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 88,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 89,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 90,
+    "count": 6,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 91,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 92,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 99,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 100,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 102,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 103,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 108,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 117,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 118,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 119,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 130,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 134,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 135,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 136,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 138,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 139,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 152,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 153,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 155,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 157,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 158,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 160,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 161,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 166,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 168,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 175,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 176,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 177,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 178,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 183,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 189,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 190,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 193,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 194,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 195,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 196,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 197,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 198,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 201,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 203,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 208,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 210,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 211,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 212,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 218,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 219,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 220,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 223,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 224,
+    "count": 2,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 225,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 227,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 233,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 234,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 235,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 236,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 237,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 238,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 240,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 247,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 248,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 249,
+    "count": 3,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 253,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 254,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 255,
+    "count": 1,
+    "food": 16,
+    "members": 5,
+    "savings": 150
+   },
+   {
+    "building": 259,
+    "count": 2,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 260,
+    "count": 1,
+    "food": 16,
+    "members": 5,
+    "savings": 150
+   },
+   {
+    "building": 262,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 270,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 271,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 272,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 274,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 275,
+    "count": 11,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 277,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 286,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 287,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 288,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 289,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 290,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 291,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 292,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 295,
+    "count": 3,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 299,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 300,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 301,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 302,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 303,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 304,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 305,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 306,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 321,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 322,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 323,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 324,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 325,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 326,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 327,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 328,
+    "count": 4,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 330,
+    "count": 4,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 331,
+    "count": 5,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 339,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 340,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 341,
+    "count": 10,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 342,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 348,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 349,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 350,
+    "count": 1,
+    "food": 16,
+    "members": 6,
+    "savings": 150
+   },
+   {
+    "building": 351,
+    "count": 1,
+    "food": 16,
+    "members": 5,
+    "savings": 150
+   },
+   {
+    "building": 363,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 364,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 365,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 366,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 367,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 368,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 369,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 372,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 373,
+    "count": 2,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 374,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 375,
+    "count": 1,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 376,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 382,
+    "count": 3,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 383,
+    "count": 3,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   },
+   {
+    "building": 384,
+    "count": 8,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 387,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 388,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 389,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 390,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 391,
+    "count": 9,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 395,
+    "count": 2,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 396,
+    "count": 7,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 450,
+    "count": 3,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 451,
+    "count": 1,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 452,
+    "count": 6,
+    "food": 16,
+    "members": 4,
+    "savings": 150
+   },
+   {
+    "building": 453,
+    "count": 2,
+    "food": 16,
+    "members": 3,
+    "savings": 150
+   },
+   {
+    "building": 454,
+    "count": 2,
+    "food": 16,
+    "members": 2,
+    "savings": 150
+   }
+  ],
+  "treasury": 20000
+ },
+ "start_hour": 10,
+ "world": {
+  "max_buildings": 925,
+  "max_citizens": 5436,
+  "max_households": 1780
+ }
+}
