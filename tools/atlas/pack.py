@@ -47,7 +47,7 @@ PAGE_W, PAGE_H = 4096, 2048
 MAX_PAGES = 65536 // PAGE_H  # page index lives in the high bits of a u16 v
 SCALES = (1.0, 0.75, 0.625, 0.5, 0.375, 0.25)
 MIN_AUTO_SCALE = 0.5
-PAGE_BUDGET = 6  # 6 x 32 MB (+ mips): ~256 MB of GPU memory at most (4-direction buildings, 2026-10-11)
+PAGE_BUDGET = 7  # 7 x 32 MB (+ mips): ~300 MB of GPU memory at most (house variants, 2026-10-11)
 UI_GROUPS = ("ui", "goods")
 UI_TEXELS_PER_ISO = 0.25  # a 16 px icon covers half a tile (64 iso px) when drawn in the world
 ISO_ICON_TEXELS_PER_ISO = 1.0  # rendered icons: 1 texel = 1 iso px (the game sizes them explicitly)
