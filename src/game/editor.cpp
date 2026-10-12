@@ -210,6 +210,7 @@ void App::draw_custom() {
       if (ImGui::Button("Edit", ImVec2(bw, 0))) editor_open(list[k].second);
     }
     ImGui::SetCursorPosY(row_y + fs * 2.6f);
+    ImGui::Dummy(ImVec2(0, 0));  // an item after the cursor move, or ImGui asserts on the last row
     if (k + 1 < list.size()) ImGui::Separator();
     ImGui::PopID();
   }
