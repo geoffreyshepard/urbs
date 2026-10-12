@@ -947,7 +947,6 @@ void Autoplay::act(World& w) {
   u32 food_stock = 0;
   for (GoodId g : w.food_slots) food_stock += w.econ.city_stock[g.v];
   auto make_jobs = [&]() -> bool {
-
     // First, workshops that turn the largest pile of raw goods into something worth more.
     {
       GoodId pile{};
@@ -976,21 +975,41 @@ void Autoplay::act(World& w) {
             return true;
         }
     }
-    // Prefer goods a trading partner buys (exports bring money into the city), fewest producers first.
-    GoodId best{};
-    u32 best_n = ~0u;
+    // Prefer goods a trading partner buys (exports bring money into the city), fewest producers first;
+    // when one cannot be made (no deposit in reach, no site), try the next.
+    std::vector<std::pair<u32, u16>> bought;  // (producers, good)
     for (u32 p = 0; p < w.routes.size(); ++p) {
       if (!w.routes[p].available) continue;
       for (const auto& ga : w.defs->partners[p].buys) {
-        const u32 n = producers_of(w, ga.good);
-        if (n < best_n) {
-          best_n = n;
-          best = ga.good;
-        }
+        bool seen = false;
+        for (const auto& [n, g] : bought) seen |= g == ga.good.v;
+        if (!seen) bought.emplace_back(producers_of(w, ga.good), ga.good.v);
       }
     }
-    if (best.valid() && build_producer_of(w, best, bx, by, 0)) return true;
+    std::sort(bought.begin(), bought.end());
+    // Past the first choice, only workshops whose inputs the city makes itself: one fed by imports
+    // would compete for them with the goal buildings (stonemasons eating Alexandria's imported stone).
+    auto local = [&](GoodId g) {
+      for (const auto& d : w.defs->buildings) {
+        if (!d.recipe.valid()) continue;
+        const auto& r = w.defs->recipes[d.recipe.v];
+        bool makes = false, fed = true;
+        for (const auto& o : r.outputs) makes |= o.good == g;
+        for (const auto& in : r.inputs) fed &= producers_of(w, in.good) > 0;
+        if (makes && fed) return true;
+      }
+      return false;
+    };
+    for (size_t k = 0; k < bought.size() && k < 4; ++k)
+      if ((k == 0 || local(GoodId{bought[k].second})) && build_producer_of(w, GoodId{bought[k].second}, bx, by, 0))
+        return true;
     if (build_producer_of(w, w.defs->good("pottery"), bx, by, 0)) return true;
+    // A rich city with idle hands and nothing left worth making: services employ people and make the
+    // city more attractive, and both bring immigrants (a big city otherwise stalls short of its goal).
+    if (w.econ.treasury > 20000)
+      for (const auto& [id, per] : {std::pair{"market", 250u}, {"amphitheater", 3000u}, {"hospital", 2000u},
+                                    {"theater", 500u}, {"balneum", 400u}, {"library", 1500u}, {"temple", 300u}})
+        if (ensure(id, 1 + pop / per)) return true;
     return food_stock < pop && place(w, w.defs->building("wheat_farm"), ox_, oy_);
   };
   if (jobless && idle * 100 / adults > 35 && make_jobs()) return;

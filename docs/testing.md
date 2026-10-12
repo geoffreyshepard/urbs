@@ -4,7 +4,7 @@ Urbs is tested in layers, from seconds to hours. The autoplay bot (`src/sim/auto
 
 ## 1. `ctest --preset dev` (about a minute, every commit)
 
-- **Unit tests** (`tests/test_*.cpp`): determinism and save round-trips, pathfinding, the water network, military, Lua scripts, monuments, map files, entrances, defences, expiring deliveries, exports at the trade post, every good having a source and a use, and music rules.
+- **Unit tests** (`tests/test_*.cpp`): determinism and save round-trips, pathfinding, the water network, military, Lua scripts, monuments, map files, entrances, defences, expiring deliveries, exports and a crowded trade post, every good having a source and a use, and music rules.
 - **Chaos on a small town:** a town played by the chaos player for ten days stays consistent and reloads exactly.
 - **Scenario tests** (`tests/scenarios/*.json` with a `"test"` block): small towns run headless with expectations. These include:
   - minimum citizens, stock, production and births;
@@ -74,4 +74,6 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **Estates:** an heirless household's estate was booked in the ledger as an expense.
 - **Blocked entrances:** buildings whose entrance was built over could never be staffed or supplied.
 - **Exports stranded at the trade post:** goods staged for export were never handed back out, even when the city's stock fell to the export level, so the goods the player chose to keep could sit at the post while construction sites waited for them. The bot abandoned 428 sites in one Antioch run and lost to debt; with the fix it won in 141 days.
+- **A trade post full of unsold goods:** exports a partner had stopped buying for the year stayed at the post until it was full, after which no import fit. In one Colonia run the siege workshop waited 150 days for 10 iron that two open routes sold.
+- **The bot's jobs:** with every good above its stock limit the bot found nothing to build for the unemployed, so big cities stalled short of their goal while the treasury grew past 100,000. It now tries further export goods made from local materials, then services.
 - **The bot's reservoirs:** the bot rebuilt a reservoir on the same cut-off shore spot again and again (45 times in one Antioch run), draining the treasury. Its stalled-site notes now say why a site was cleared (`cut off`, `no builders`, `no materials`, `waited too long`) and where.
