@@ -370,7 +370,7 @@ bool App::init(const AppOptions& opt) {
   overlay_ = static_cast<Overlay>(std::clamp(opt.overlay, 0, static_cast<int>(Overlay::Count) - 1));
   overlay_age_ = 1 << 20;
   build_group_ = opt.build_group;
-  // Screenshots: open panels and dialogs by name (--show finance,nomsg,bld:temple).
+  // Screenshots: open panels and dialogs by name (--show finance,nomsg,noend,bld:temple).
   const char* kPanelNames[] = {"rome",     "advisors", "finance",  "goods",  "trade", "labor",
                                "religion", "military", "research", "alerts", "help"};
   const std::pair<const char*, bool*> kShow[] = {
@@ -386,6 +386,7 @@ bool App::init(const AppOptions& opt) {
       if (p == kPanelNames[k]) panel_ = static_cast<Panel>(k);
     if (p == "save") show_saveload_ = saveload_saving_ = true;
     if (p == "nobuild") show_build_ = false;
+    if (p == "noend") end_dismissed_ = true;  // hide the won/lost dialog
     if (p == "nomsg") last_message_ = 0xffff;  // the mission briefing and other messages stay unread and hidden
     if (p.rfind("advisor", 0) == 0 && p.size() == 8 && p[7] >= '1' && p[7] <= '5') {  // advisor1..advisor5
       panel_ = Panel::Advisors;

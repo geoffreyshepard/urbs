@@ -840,9 +840,9 @@ void draw_religion_panel(sim::World& w, const UiIcons& icons, const Dock& dock, 
     const u8 m = w.god_mood[g];
     const char* mood = m >= 85 ? "exalted" : m >= 65 ? "pleased" : m >= 35 ? "indifferent" : m >= 15 ? "displeased" : "wrathful";
     const ImU32 col = m >= 65 ? kColGood : m >= 35 ? kColWarn : kColBad;
-    // Portrait in a frame.
+    // Portrait: the rendered medallion carries its own bronze frame.
     const ImVec2 p = ImGui::GetCursorScreenPos();
-    framed_picture(icons, "ui/god_" + god.id, Pic::Portrait, p, pic);
+    icons.draw_icon("ui/god_" + god.id, p, pic);
     ImGui::Dummy(ImVec2(pic, pic));
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip("%s\nFeast day: day %u of the year", god.name.c_str(), god.festival_day + 1u);

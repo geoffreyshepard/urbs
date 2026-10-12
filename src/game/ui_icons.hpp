@@ -16,16 +16,16 @@ namespace urbs::game {
 SDL_GPUTexture* create_mipmapped(SDL_GPUDevice* dev, u32 w, u32 h, u32 levels, std::vector<u8> px);
 
 // Crisp pixel-art images for ImGui: selected atlas sprites upscaled (nearest) into one texture,
-// because the ImGui backend samples linearly.  Rendered icons (goods and build categories from
-// tools/artgen3d/icons.py, larger than 32 texels) go 1:1 into a second, mipmapped texture instead,
-// so they shrink smoothly to whatever size the layout asks for.
+// because the ImGui backend samples linearly.  Rendered icons (larger than 32 texels: goods and build
+// categories from tools/artgen3d/icons.py, HUD icons, god and advisor portraits from ui_art.py) go 1:1
+// into a second, mipmapped texture instead, so they shrink smoothly to whatever size the layout asks for.
 class UiIcons {
  public:
   bool init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs);
   void shutdown(SDL_GPUDevice* dev);
   // Draws the named sprite at `size` points; returns false if missing.
   bool image(const std::string& name, float size) const;
-  // Big images (province map, logo): drawn at an explicit size. Returns false if missing.
+  // Big images (province map, logo; mipmapped, rendered ones 1:1): drawn at an explicit size. False if missing.
   bool picture(const std::string& name, ImVec2 size) const;
   [[nodiscard]] ImTextureRef big_texture() const;
   // Build-menu pictures, one per building def (keyed by def id) plus the tools "tool:dirt", "tool:paved" and
