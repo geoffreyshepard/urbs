@@ -37,5 +37,5 @@ done
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $VERSION" "$APP/Contents/Info.plist" 2>/dev/null ||
   /usr/libexec/PlistBuddy -c "Add :CFBundleVersion string $VERSION" "$APP/Contents/Info.plist"
 codesign --force --deep --sign - "$APP"
-(cd "$DIST" && ditto -c -k --keepParent Urbs.app "urbs-$VERSION-macos.zip")
+(cd "$DIST" && ditto -c -k --norsrc --noextattr --noacl --keepParent Urbs.app "urbs-$VERSION-macos.zip")
 echo "Packaged $DIST/urbs-$VERSION-macos.zip"

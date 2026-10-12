@@ -279,7 +279,7 @@ ModSpritePack pack_mod_sprites(const std::vector<std::string>& mod_dirs, const M
     std::vector<fs::path> metas;
     if (fs::is_directory(root / "meta", ec))
       for (const auto& e : fs::directory_iterator(root / "meta", ec))
-        if (e.path().extension() == ".json") metas.push_back(e.path());
+        if (e.path().extension() == ".json" && e.path().filename().string()[0] != '.') metas.push_back(e.path());
     std::sort(metas.begin(), metas.end());
     if (fs::exists(root / "sprites.json", ec)) metas.push_back(root / "sprites.json");
     for (const auto& m : metas)
@@ -294,6 +294,8 @@ ModSpritePack pack_mod_sprites(const std::vector<std::string>& mod_dirs, const M
         continue;
       }
       if (!it->is_regular_file(ec) || it->path().extension() != ".png") continue;
+      // Hidden files: macOS copies onto some drives and zip tools leave "._name.png" metadata.
+      if (it->path().filename().string()[0] == '.') continue;
       std::string name = fs::relative(it->path(), root, ec).generic_string();
       name.resize(name.size() - 4);
       files.emplace_back(std::move(name), it->path());

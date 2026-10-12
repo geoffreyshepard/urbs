@@ -109,6 +109,7 @@ TEST_CASE("Mod sprites are packed with their anchors, and bad files are refused"
   write_text(a / "sprites/sprites.json", R"({"obj/stone": {"ax": 10, "ay": 24}})");
   write_png(a / "sprites/bld/bad.png", 250, 200, 1, 2, 3);            // a 2x2 footprint needs 256 px
   write_text(a / "sprites/bld/junk.png", "not a png");                // unreadable
+  write_text(a / "sprites/bld/._hall.png", "AppleDouble");            // macOS metadata: skipped, no warning
   write_png(a / "sprites/loose.png", 16, 16, 1, 2, 3);                // no group folder
   write_png(a / "sprites/obj/huge.png", 3000, 20, 1, 2, 3);           // too big
   write_png(b / "sprites/goods/paste_16.png", 64, 64, 250, 250, 10);  // a later mod overrides mod_a's icon
