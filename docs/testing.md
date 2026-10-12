@@ -14,7 +14,8 @@ Urbs is tested in layers, from seconds to hours. The autoplay bot (`src/sim/auto
   - `lose_favor`: Rome's demands go unmet and favor runs out.
   - `lose_debt`: debt on Imperium past `max_debt_days`.
   - `otium_no_loss`: the same as `lose_favor` on Otium, where a mission cannot be lost.
-- **Saves and mods:** old saves (`tests/saves/`) load and run, and the example mod loads.
+- **Saves and mods:** old saves (`tests/saves/`: a v1 save and a v3 save written by v1.0, before building rotation) load and run, and the example mod loads.
+- **Menu backdrop:** the main menu's city (`data/menu/backdrop/`) loads and runs a day with checks.
 - **`audit_town`:** the audit flags (below) on a small town.
 
 ## 2. `ctest --preset long` (about ten minutes on 6 cores, release build)
@@ -35,6 +36,10 @@ Needs a release build: the script does not build, and a stale binary would be te
 | `chaos` | 7 missions × 2 seeds: the bot builds while the chaos player sends 8 random commands per game hour, for 60 days, with checks and round-trips |
 | `soak` | Rome for 1,000 days (about 60 game years) past victory, with checks and round-trips every 100 days |
 | `sandbox` | 24 random sandbox maps (`tools/sandbox_maps.py`) played by the bot to a modest goal: are generated maps playable? |
+
+## 4. `tools/screens.sh` (about five minutes, after rendering or UI changes)
+
+The game itself in screenshot mode, one window per shot: the main menu, the campaign, mods, custom-game and editor screens, a city the bot has built for 20 days with every panel and dialog opened over it, two zoom levels, night, an inspected building, a frontier mission and the tutorial's first message. A shot fails if the game exits with an error, logs an `[error]`, or writes a missing or near-empty image. The images are kept (`tools/screens.sh out_dir`) for a look by eye: the script proves the screens render, not that they look right.
 
 Balance is measured separately with `tools/bot_missions.sh [days] [difficulty] [seeds]`, which reports win days per mission.
 
@@ -68,3 +73,4 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **Stale flow fields:** raiders kept marching on flow fields computed before the map changed (walls breached, roads built).
 - **Estates:** an heirless household's estate was booked in the ledger as an expense.
 - **Blocked entrances:** buildings whose entrance was built over could never be staffed or supplied.
+- **The bot's reservoirs:** the bot rebuilt a reservoir on the same cut-off shore spot again and again (45 times in one Antioch run), draining the treasury. Its stalled-site notes now say why a site was cleared (`cut off`, `no builders`, `no materials`, `waited too long`) and where.

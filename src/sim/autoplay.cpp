@@ -153,7 +153,17 @@ bool Autoplay::plumb(World& w) {
           if (std::max(std::abs(dx), std::abs(dy)) != r) continue;
           const i32 x = ox_ + dx, y = oy_ + dy;
           if (!w.can_place(res, x, y, 3, 3)) continue;
-          bool shore = false;
+          // Not a spot whose site was already cut off, and builders must be able to walk up to it.
+          if (bad_spots_.count((static_cast<u64>(res.v) << 32) | (static_cast<u64>(static_cast<u16>(x)) << 16) |
+                               static_cast<u16>(y)))
+            continue;
+          bool shore = false, reach = false;
+          for (i32 ty = y - 1; ty <= y + 3 && !reach; ++ty)
+            for (i32 tx = x - 1; tx <= x + 3 && !reach; ++tx)
+              if (w.map.in_bounds(tx, ty) && (tx < x || tx > x + 2 || ty < y || ty > y + 2) && w.nav.walkable(tx, ty) &&
+                  w.nav.connected(w.map.idx(tx, ty), w.map.idx(ox_, oy_)))
+                reach = true;
+          if (!reach) continue;
           for (i32 ty = y - 1; ty <= y + 3 && !shore; ++ty)
             for (i32 tx = x - 1; tx <= x + 3 && !shore; ++tx)
               if (w.map.in_bounds(tx, ty) && terrain_water(w.map.terrain[static_cast<size_t>(w.map.idx(tx, ty))])) shore = true;
@@ -854,6 +864,7 @@ void Autoplay::act(World& w) {
   // A site nobody has worked on for four days (unreachable, or its materials never come) is cleared.
   u32 sites = 0;
   BuildingId clear;
+  const char* why = "";
   w.buildings.for_each([&](BuildingId id, const Building& b) {
     const auto& sd = w.defs->b(b.def);
     if (sd.kind == BuildingKind::House) return;
@@ -862,6 +873,7 @@ void Autoplay::act(World& w) {
       bad_spots_.insert((static_cast<u64>(b.def.v) << 32) | (static_cast<u64>(static_cast<u16>(b.x)) << 16) |
                         static_cast<u16>(b.y));
       clear = id;
+      why = "cut off";
       return;
     }
     if (b.state != BState::Construction) return;
@@ -872,6 +884,7 @@ void Autoplay::act(World& w) {
       bad_spots_.insert((static_cast<u64>(b.def.v) << 32) | (static_cast<u64>(static_cast<u16>(b.x)) << 16) |
                         static_cast<u16>(b.y));
       clear = id;
+      why = "cut off";
       return;
     }
     if (b.build_progress == 0 && b.present == 0) {
@@ -885,7 +898,10 @@ void Autoplay::act(World& w) {
             (!goal || !obtainable(w, c.good)))
           hopeless = true;
       // A goal site waits as long as its materials can still come (imports may take weeks).
-      if (!fresh && w.now - it->second > (hopeless ? 4 : goal ? 60 : 12) * kTicksPerDay) clear = id;
+      if (!fresh && w.now - it->second > (hopeless ? 4 : goal ? 60 : 12) * kTicksPerDay) {
+        clear = id;
+        why = hopeless ? (w.site_ready(b) ? "no builders" : "no materials") : "waited too long";
+      }
     } else {
       stuck_since_.erase(id.raw);
     }
@@ -901,7 +917,8 @@ void Autoplay::act(World& w) {
     c.x1 = b.x + b.w - 1;
     c.y1 = b.y + b.h - 1;
     w.push(c);
-    note("cleared a stalled " + w.defs->b(b.def).name);
+    note("cleared a stalled " + w.defs->b(b.def).name + " (" + why + " at " + std::to_string(b.x) + "," +
+         std::to_string(b.y) + ")");
     return;
   }
   if (sites >= 2 + pop / 400) {

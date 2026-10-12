@@ -49,6 +49,7 @@ URBS_ALLOC_TRAP=1 ./build/dev/urbs_headless ...  # abort with a stack trace at t
 tools/bot_missions.sh 300 1 3   # balance: every mission x 3 seeds, win days (release build; does not build)
 tools/audit.sh                  # deep audit: consistency checks, chaos player, save round-trips, soak, random maps
                                 # (release build; ~1 h; see docs/testing.md)
+tools/screens.sh [out_dir]      # game smoke test: every screen and panel in screenshot mode (release build)
 ```
 
 ## Performance targets (Apple Silicon M1 baseline)
