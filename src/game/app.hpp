@@ -36,6 +36,7 @@ struct AppOptions {
   int inspect = -1;      // select (and follow) this citizen index at start
   bool no_ui = false;
   std::string weather;         // screenshots: show this weather (presentation only, the sim is untouched)
+  float hour = -1.0f;          // screenshots: light the world at this hour (0..24; presentation only)
   int overlay = 0;
   int build_group = -1;   // screenshots: open this build-menu group's list (0 = roads)
   std::string show;       // screenshots: comma-separated panels to open (finance,labor,...)

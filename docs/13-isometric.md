@@ -185,8 +185,11 @@ Streets must read as the city's grid at every zoom (owner's critique, 2026-10-11
   (no per-frame cost), up to two pieces per tile, fewer and no flowers beside roads. All are knee-high at most; tall
   trees grow only on forest terrain (grass and fertile tiles get low bushes instead), so nothing tall stands on
   buildable ground. Built-on and road tiles skip decor, and the chunk rebuild on any map change removes it.
+- **Grade:** the day keyframes in `game/lighting.cpp` give a gently warm light, vibrance (saturation 1.10-1.16),
+  S-curve contrast 1.12-1.16 and a soft vignette; rain and storms flatten contrast and saturation back down.
 - **Contact shadows:** not added. Buildings bake their own shadows and draw their own lot ground, so a dark footprint
   quad under them would be hidden by the lot.
+- Screenshots: `--hour H` lights the world at a fixed hour (presentation only), alongside `--weather NAME`.
 
 ## Readability rules (from the art test brief)
 
