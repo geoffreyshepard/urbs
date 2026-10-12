@@ -165,11 +165,17 @@ void App::draw_ui() {
   if (show_settings_) draw_settings();
   if (show_saveload_) draw_saveload();
   if (status_time_ > 0 && !status_.empty()) {
+    // A short notice over the bottom of the screen: wrapped, five lines at most.
+    const float max_w = std::round(ImGui::GetFontSize() * 30.0f);
+    const ImVec2 pad2 = skinned() ? window_padding(Skin::Card) : ImGui::GetStyle().WindowPadding;
+    const ImVec2 ts = toast_size(status_, max_w, 5);
     ImGui::SetNextWindowPos(ImVec2(display().x * 0.5f, display().y - 60), ImGuiCond_Always, ImVec2(0.5f, 1.0f));
+    ImGui::SetNextWindowSize(ImVec2(ts.x + 2 * pad2.x, ts.y + 2 * pad2.y), ImGuiCond_Always);
     begin_window("##status", nullptr,
-                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoInputs,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
+                     ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoSavedSettings,
                  Skin::Card);
-    ImGui::TextUnformatted(status_.c_str());
+    toast_text(status_, max_w, 5, false);
     ImGui::End();
   }
 }
@@ -1126,18 +1132,24 @@ void App::draw_hud() {
   hud_h_ = ImGui::GetWindowHeight();
   ImGui::End();
 
-  // The latest news, for a day, under the right end of the bar; a click opens the alerts.
+  // The latest news, for a day, under the right end of the bar; a click opens the alerts. It wraps to three lines at
+  // most and is sized before it is drawn, so a new message never shows clipped for a frame.
   if (!w.alerts.empty() && w.now - w.alerts.back().t < kTicksPerDay) {
     // Left of an open panel, so it does not cover it.
     const float right = panel_ == Panel::None ? ds.x - 10 : ds.x - 22 - panel_dock(panel_).width;
+    const std::string news = alert_text(w, w.alerts.back());
+    const float max_w = std::round(fs * 22.0f);
+    const ImVec2 pad2 = sk ? window_padding(Skin::Card) : ImGui::GetStyle().WindowPadding;
+    const ImVec2 ts = toast_size(news, max_w, 3);
     ImGui::SetNextWindowPos(ImVec2(right, hud_h_ + 4), ImGuiCond_Always, ImVec2(1, 0));
+    ImGui::SetNextWindowSize(ImVec2(ts.x + 2 * pad2.x, ts.y + 2 * pad2.y), ImGuiCond_Always);
     begin_window("##news", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings |
                      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav,
                  Skin::Card);
     ImGui::PushStyleColor(ImGuiCol_Text, kColLink);
-    if (ImGui::Selectable(alert_text(w, w.alerts.back()).c_str(), false)) panel_ = Panel::Alerts;
+    if (toast_text(news, max_w, 3, true)) panel_ = Panel::Alerts;
     ImGui::PopStyleColor();
     ImGui::End();
   }

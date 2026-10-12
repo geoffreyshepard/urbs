@@ -91,6 +91,13 @@ void good_chip(const UiIcons& icons, const std::string& good_id, const std::stri
 // Terracotta text that acts as a button.
 bool link(const char* label);
 
+// A toast's text: wrapped at `max_w` (points) and cut to `max_lines` lines, the last ending in an ellipsis when the
+// text is longer (a tooltip then shows all of it). Returns true when the text was clicked (`clickable`). The text
+// is drawn with the current text colour.
+bool toast_text(const std::string& text, float max_w, int max_lines, bool clickable);
+// The size toast_text() will take, in the current font (to size a toast's window before it is drawn).
+ImVec2 toast_size(const std::string& text, float max_w, int max_lines);
+
 std::string with_commas(i64 v);
 // "+1,024" / "-72"
 std::string signed_commas(i64 v);

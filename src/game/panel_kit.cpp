@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
+#include <cstring>
 
 #include "game/style.hpp"
 #include "game/ui_icons.hpp"
@@ -496,6 +497,130 @@ bool link(const char* label) {
   const bool r = ImGui::TextLink(label);
   ImGui::PopStyleColor();
   return r;
+}
+
+namespace {
+struct ToastLine {
+  const char* b;
+  const char* e;
+};
+// Lays `text` out as a toast: up to `max_lines` lines no wider than `max_w`, the last ellipsized into `last` when
+// the text is longer. Returns the number of lines; `w` gets the widest.
+// Breaks `text` at `width` into at most `max_lines` lines; returns the count and sets `rest` to what is left.
+int toast_break(const std::string& text, float width, int max_lines, ToastLine* lines, const char*& rest) {
+  ImFont* font = ImGui::GetFont();
+  const float fs = ImGui::GetFontSize();
+  const char* const end = text.c_str() + text.size();
+  // Break into lines the way ImGui wraps text: at word boundaries, leading spaces of a new line skipped.
+  int n = 0;
+  const char* s = text.c_str();
+  while (s < end && n < max_lines) {
+    const char* e = font->CalcWordWrapPosition(fs, s, end, width);
+    if (e == s) e = s + 1;  // a word wider than the line: never stall
+    const char* nl = static_cast<const char*>(std::memchr(s, '\n', static_cast<size_t>(e - s)));
+    if (nl) e = nl;
+    lines[n++] = {s, e};
+    s = e;
+    while (s < end && (*s == ' ' || *s == '\n')) ++s;
+  }
+  rest = s;
+  return n;
+}
+
+int toast_layout(const std::string& text, float max_w, int max_lines, ToastLine* lines, std::string& last, bool& cut,
+                 float& w) {
+  ImFont* font = ImGui::GetFont();
+  const float fs = ImGui::GetFontSize();
+  const char* const end = text.c_str() + text.size();
+  const char* s = nullptr;
+  int n = toast_break(text, max_w, max_lines, lines, s);
+  cut = s < end;
+  if (!cut && n > 1) {
+    // Balance the lines: the narrowest width that still takes no more lines, so a last word is not left alone.
+    float lo = max_w * 0.5f, hi = max_w;
+    for (int k = 0; k < 7; ++k) {
+      const float mid = (lo + hi) * 0.5f;
+      const char* r = nullptr;
+      ToastLine tmp[8];
+      if (toast_break(text, mid, n, tmp, r) <= n && r >= end)
+        hi = mid;
+      else
+        lo = mid;
+    }
+    n = toast_break(text, hi, max_lines, lines, s);
+  }
+  // The last line, ellipsized: as much of it as fits before the ellipsis.
+  if (cut) {
+    const char* ell = font->IsGlyphInFont(0x2026) ? "\xE2\x80\xA6" : "...";
+    const float ell_w = font->CalcTextSizeA(fs, FLT_MAX, 0, ell).x;
+    const char* b = lines[n - 1].b;
+    const char* e = end;
+    while (e > b && font->CalcTextSizeA(fs, FLT_MAX, 0, b, e).x + ell_w > max_w) {
+      --e;
+      while (e > b && (static_cast<unsigned char>(*e) & 0xC0) == 0x80) --e;  // whole UTF-8 characters
+    }
+    // End on a whole word when one fits, not in the middle of one.
+    if (e < end && *e != ' ') {
+      const char* sp = e;
+      while (sp > b && sp[-1] != ' ') --sp;
+      if (sp > b + (e - b) / 2) e = sp;
+    }
+    while (e > b && (e[-1] == ' ' || e[-1] == ',' || e[-1] == ':' || e[-1] == ';')) --e;
+    last.assign(b, e);
+    last += ell;
+  }
+  w = 0;
+  for (int k = 0; k < n; ++k)
+    w = std::max(w, k == n - 1 && cut ? font->CalcTextSizeA(fs, FLT_MAX, 0, last.c_str()).x
+                                      : font->CalcTextSizeA(fs, FLT_MAX, 0, lines[k].b, lines[k].e).x);
+  return n;
+}
+constexpr int kToastMaxLines = 8;
+}  // namespace
+
+ImVec2 toast_size(const std::string& text, float max_w, int max_lines) {
+  ToastLine lines[kToastMaxLines];
+  std::string last;
+  bool cut = false;
+  float w = 0;
+  const int n = toast_layout(text, max_w, std::clamp(max_lines, 1, kToastMaxLines), lines, last, cut, w);
+  return ImVec2(std::ceil(w), ImGui::GetFontSize() * static_cast<float>(std::max(n, 1)));
+}
+
+bool toast_text(const std::string& text, float max_w, int max_lines, bool clickable) {
+  ImFont* font = ImGui::GetFont();
+  const float fs = ImGui::GetFontSize();
+  ToastLine lines[kToastMaxLines];
+  std::string last;
+  bool cut = false;
+  float w = 0;
+  const int n = toast_layout(text, max_w, std::clamp(max_lines, 1, kToastMaxLines), lines, last, cut, w);
+  const ImVec2 p = ImGui::GetCursorScreenPos();
+  const ImVec2 size(std::ceil(w), fs * static_cast<float>(n));
+  bool clicked = false;
+  if (clickable)
+    clicked = ImGui::Selectable("##toast", false, 0, size);
+  else
+    ImGui::Dummy(size);
+  if (cut && ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::PushStyleColor(ImGuiCol_Text, kColInk);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + std::round(fs * 24.0f));
+    ImGui::TextUnformatted(text.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::PopStyleColor();
+    ImGui::EndTooltip();
+  }
+  ImDrawList* dl = ImGui::GetWindowDrawList();
+  const ImU32 col = ImGui::GetColorU32(ImGuiCol_Text);
+  for (int k = 0; k < n; ++k) {
+    const ImVec2 q(p.x, p.y + fs * static_cast<float>(k));
+    if (k == n - 1 && cut)
+      dl->AddText(font, fs, q, col, last.c_str());
+    else
+      dl->AddText(font, fs, q, col, lines[k].b, lines[k].e);
+  }
+  return clicked;
 }
 
 std::string with_commas(i64 v) {

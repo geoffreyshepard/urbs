@@ -1313,15 +1313,16 @@ BuildingId draw_alerts_panel(const sim::World& w, const UiIcons& icons, const Do
     ImGui::PushID(k);
     const ImVec2 p = ImGui::GetCursorScreenPos();
     const bool there = it->b.valid() && w.buildings.alive(it->b);
-    const float wrap = ImGui::GetContentRegionAvail().x - fs;
+    const float sw = std::max(3.0f, std::round(fs * 0.22f));
+    // Measured at the width it is drawn at, so a long alert never spills out of its row.
+    const float wrap = ImGui::GetContentRegionAvail().x - sw - std::round(fs * 0.5f) - std::round(fs * 0.25f);
     const float h = ImGui::CalcTextSize(t.c_str(), nullptr, false, wrap).y + 4;
     if (ImGui::Selectable("##a", false, there ? 0 : ImGuiSelectableFlags_Disabled, ImVec2(0, h)) && there) jump = it->b;
     if (there && ImGui::IsItemHovered()) ImGui::SetTooltip("Go there");
     ImDrawList* dl = ImGui::GetWindowDrawList();
-    const float sw = std::max(3.0f, std::round(fs * 0.22f));
     dl->AddRectFilled(ImVec2(p.x, p.y + 2), ImVec2(p.x + sw, p.y + h - 2), col, 1);
     dl->AddText(ui_fonts().body, fs, ImVec2(p.x + sw + fs * 0.5f, p.y + 2), ImGui::GetColorU32(ImGuiCol_Text),
-                t.c_str(), nullptr, wrap - sw);
+                t.c_str(), nullptr, wrap);
     ImGui::PopID();
   }
   end_panel();

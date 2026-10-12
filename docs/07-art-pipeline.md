@@ -94,7 +94,7 @@ One look everywhere, matching the lit 3D world:
 | Icon buttons | Top bar: round bronze-rimmed medallions with an ivory enamel face (red when on). Build rail and portraits: square bronze-rimmed tiles |
 | Top bar | A marble cornice across the screen (fillet, frieze, bead, dentils, cyma, shadow) holding recessed slots: money and people, the ratings, date and speed, the panels, then alerts, help and menu |
 | Build rail | A travertine pilaster with capital, fluted shaft and base, holding the group tiles |
-| Tooltips, popups, toasts | Small parchment cards with a bronze edge |
+| Tooltips, popups, toasts | Small parchment cards with a bronze edge. Toasts (the latest news under the top bar, notices at the bottom) wrap to a few lines with the lines balanced, and a longer message ends in an ellipsis on a word, with the whole text in a tooltip; they are sized before they are drawn, so a new message never shows clipped |
 | Inputs, checkboxes, sliders, scrollbars | Sunken parchment wells with a bronze hairline; bronze knobs and rods; red tick |
 | Dividers | A bronze rule fading at both ends with a lozenge between laurel sprigs |
 | Text | Ink #2b1c12 on parchment, captions #68543e, section labels Pompeian red; spacing follows the font size, so the UI scale setting applies to the chrome too |
