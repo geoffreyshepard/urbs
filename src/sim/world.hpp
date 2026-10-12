@@ -275,6 +275,10 @@ struct World {
   // non-rotatable defs.
   BuildingId place_building(BuildingDefId def, i32 x, i32 y, i32 w, i32 h, bool instant, u8 rot = 0);
   bool can_place(BuildingDefId def, i32 x, i32 y, i32 w, i32 h) const;
+  // The rotation (Building::rot) whose front side touches the most road tiles for a footprint at
+  // (x, y, w, h); ties go to the fronts the camera sees (0 south, 3 east, then 1 west, 2 north); no
+  // road -> 0.  Houses face their street with it (player tool and autoplay; docs/13-isometric.md).
+  [[nodiscard]] u8 road_facing_rot(i32 x, i32 y, i32 w, i32 h) const;
   void place_road(i32 x, i32 y, Road type);
   void place_road_line(i32 x0, i32 y0, i32 x1, i32 y1, Road type);
   void demolish(i32 x0, i32 y0, i32 x1, i32 y1);

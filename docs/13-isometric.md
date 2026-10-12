@@ -131,7 +131,19 @@ road tool). The contract between the sim, the game and the art:
   (`bld/placeholder_WxH`, rotated size) for non-square ones.
 - Commands carry the rotation in `Command::flags` bits 1-2 (x1, y1 = the rotated w, h), so replays
   and the chaos player reproduce it; scenario `start.buildings` and `orders` accept `"rot"`.
-  The autoplay bot places everything at rot 0. Saves store it from version 4.
+  The autoplay bot places everything at rot 0 except houses, which face their street (see House
+  facing). Saves store it from version 4.
+
+### House facing
+
+Houses (2x2 `house_plot`, 3x3 `domus_plot`: square footprints, so a turn never moves the footprint)
+turn their front to a road by themselves. `World::road_facing_rot(x, y, w, h)` counts the road
+tiles along the outside line of each side and returns the rotation whose front touches the most;
+ties go to the fronts the camera sees (0 south, 3 east, then 1 west, 2 north); no road gives rot 0.
+The result goes into the ordinary place command's rotation bits, so it is replayed like any other
+rotation. Who uses it: the player's build tool (the ghost and the door mark follow the street under
+the cursor; pressing E / Q switches that house type to the player's own turn, picking it from the
+build menu again returns to auto-facing), the autoplay bot, and the town generator's house ring.
 
 ## Art kit (`tools/artgen3d/`)
 
