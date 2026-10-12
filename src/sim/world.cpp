@@ -779,6 +779,7 @@ void World::tick() {
     revolt_check(false);
     military_daily();
     governance_daily();
+    alerts_daily();
     crimes_yday = crimes_today;
     crimes_today = births_today = deaths_today = marriages_today = freed_today = 0;
     avg_happiness = happy_count_today ? static_cast<u8>(happy_sum_today / static_cast<i32>(happy_count_today)) : avg_happiness;

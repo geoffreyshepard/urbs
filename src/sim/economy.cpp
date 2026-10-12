@@ -678,4 +678,61 @@ void World::daily_update() {
   if (econ.treasury < 0) add_alert(AlertKind::TreasuryLow, BuildingId{});
 }
 
+// The day's warnings for the alerts feed: buildings that cannot work and why (no workers, an input
+// that is not coming, nowhere to put the output, a market with nothing to sell), and the city's people
+// problems.  A condition that lasts stays one alert with a day count; each kind names at most a few
+// buildings a day, so a big city's list keeps room for fires and raids.
+void World::alerts_daily() {
+  constexpr int kPerKind = 6;
+  int named[static_cast<int>(AlertKind::Count)] = {};
+  const auto alert = [&](AlertKind k, BuildingId id, u16 arg) {
+    if (named[static_cast<int>(k)]++ < kPerKind) add_alert(k, id, arg);
+  };
+  buildings.for_each([&](BuildingId id, const Building& b) {
+    if (b.state != BState::Active || (b.flags & kBuildingCutOff)) return;  // cut off: the road alert says why
+    const auto& d = defs->b(b.def);
+    if (d.kind == BuildingKind::House) return;
+    if (b.jobs > 0 && b.employed == 0) {
+      alert(AlertKind::NoWorkers, id, 0);
+      return;
+    }
+    if (b.inv == econ::kNoInv) return;
+    if (d.recipe.valid()) {
+      const data::RecipeDef& r = defs->recipes[d.recipe.v];
+      if (b.work_progress < r.work) return;  // working, or not yet due
+      for (const auto& in : r.inputs)
+        if (econ.amt(b.inv, in.good) < in.amount && econ.rin(b.inv, in.good) == 0) {
+          alert(AlertKind::InputsMissing, id, in.good.v);
+          return;
+        }
+      bool collecting = false;
+      for (const auto& o : r.outputs) collecting |= econ.rout(b.inv, o.good) > 0;
+      if (!collecting && !r.outputs.empty())  // inputs are here, so the output has no room
+        alert(AlertKind::StorageFull, id, static_cast<u16>(r.outputs[0].good.v + 1));  // arg: output good + 1
+      return;
+    }
+    if (d.kind == BuildingKind::Market && econ.total[b.inv] == 0) {
+      bool coming = false;
+      for (u32 g = 0; g < econ.goods && !coming; ++g) coming = econ.rin(b.inv, GoodId{static_cast<u16>(g)}) > 0;
+      if (!coming) alert(AlertKind::MarketEmpty, id, 0);
+    }
+    if (d.kind == BuildingKind::Storage && econ.capacity[b.inv] > 0 && econ.total[b.inv] >= econ.capacity[b.inv])
+      alert(AlertKind::StorageFull, id, 0);
+  });
+  u32 adults = 0, unemployed = 0, homeless = 0;
+  for (u32 i = 0; i < citizens.ids.high_water(); ++i) {
+    if (!citizens.ids.alive_index(i) || (citizens.flags[i] & kFlagVisitor)) continue;
+    if (!citizens.home[i].valid()) ++homeless;
+    const u32 age = citizens.age_years(i, now);
+    if (age < 14 || age >= 60) continue;
+    ++adults;
+    if (!citizens.work[i].valid()) ++unemployed;
+  }
+  if (adults >= 20 && unemployed * 100 >= adults * 15)
+    add_alert(AlertKind::Unemployment, BuildingId{}, static_cast<u16>(unemployed * 100 / adults));
+  if (homeless >= 5) add_alert(AlertKind::Homeless, BuildingId{}, static_cast<u16>(std::min<u32>(homeless, 0xFFFF)));
+  if (emigrants_today > 0)
+    add_alert(AlertKind::Emigrants, BuildingId{}, static_cast<u16>(std::min<u32>(emigrants_today, 0xFFFF)));
+}
+
 }  // namespace urbs::sim

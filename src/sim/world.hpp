@@ -267,6 +267,9 @@ struct World {
   void init(const WorldConfig& cfg, const data::Defs& defs);
   void tick();
   void push(const Command& c) { commands.push_back(c); }
+  // While the game is paused the player still builds, demolishes and sets policies: the game applies
+  // their commands at once (as the next tick would) so the city shows them (docs/02-game-design.md).
+  void apply_commands_paused() { apply_commands(); }
 
   rng::Stream& stream(rng::StreamId id) { return rng[static_cast<size_t>(id)]; }
 
@@ -469,6 +472,7 @@ struct World {
   bool claim_task(u32 i);
   void haul_step(u32 i);
   void daily_update();
+  void alerts_daily();
   void release_worker(u32 i);
   void house_daily(BuildingId id);
   void lifecycle_daily(u32 i);

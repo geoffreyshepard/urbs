@@ -34,6 +34,7 @@ void World::add_alert(AlertKind k, BuildingId b, u16 arg) {
       it->t = now;
       it->arg = arg;
       ++it->count;
+      std::rotate(it.base() - 1, it.base(), alerts.end());  // now the newest: the feed stays in time order
       return;
     }
   }
@@ -382,6 +383,7 @@ void World::immigration_hourly() {
   appeal = std::clamp(a, -100, 100);
   if (appeal <= 0 || free < 3 || !first_house.valid()) return;
   if (!ensure_entry_tile()) return;
+  const u32 arrived_before = immigrants_today;
   rng::Stream& r = stream(rng::StreamId::Immigration);
   // Expected households per hour: 0.2..1.5 by appeal, growing with the city; fractional via chance.
   const f32 rate = std::clamp(static_cast<f32>(appeal) / 60.0f, 0.2f, 1.5f) * (1.0f + static_cast<f32>(pop) / 2000.0f);
@@ -426,7 +428,8 @@ void World::immigration_hourly() {
       }
     }
   }
-  if (n > 0) add_alert(AlertKind::Immigrants, BuildingId{}, static_cast<u16>(immigrants_today));
+  if (immigrants_today > arrived_before)  // a household that found no house is no arrival
+    add_alert(AlertKind::Immigrants, BuildingId{}, static_cast<u16>(immigrants_today));
 }
 
 bool World::ensure_entry_tile() {

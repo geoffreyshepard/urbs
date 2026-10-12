@@ -27,7 +27,7 @@ The player never directly orders an individual citizen. The only exceptions are 
 
 ## 2. Time and calendar
 
-- The sim runs at a fixed 20 ticks/sec at 1× speed. Speeds available: pause, 1×, 2×, 4×.
+- The sim runs at a fixed 20 ticks/sec at 1× speed. Speeds available: pause, 1×, 2×, 4×. While paused, the player can still build, demolish, lay roads and change policies and trade settings; these take effect at once.
 - **1 in-game day ≈ 60 real seconds at 1×.** A day has phases: night, dawn, morning, midday, afternoon, evening.
 - **1 year = 16 days** (4 seasons × 4 days). A 6-hour mission covers about 22 in-game years, so generations visibly turn over.
 - The Roman calendar drives festivals (Saturnalia, Lupercalia, Ludi Romani and others). Festivals are scheduled events the player can fund for happiness and favor with the gods.
@@ -41,7 +41,7 @@ The player never directly orders an individual citizen. The only exceptions are 
 - **Elevation matters:** aqueducts need a downhill gradient; walls and forts on high ground get a defense bonus; hills block line of sight for towers.
 - **Placement:** everything snaps to the grid. Roads support 8 directions, including diagonals.
 - **Two building types:**
-  - *Fixed-footprint buildings* (temples, monuments, baths, houses): placed whole from a template.
+  - *Fixed-footprint buildings* (temples, monuments, baths, houses): placed whole from a template. Houses can also be dragged: the drag lays one house per footprint across the area, each facing its street.
   - *Painted workplaces* (Songs of Syx style: farms, workshops, warehouses, quarries): the player paints an area, and capacity and jobs scale with size. Some require furniture or tools placed inside (workbenches, kilns, presses).
 - **Construction is physical.** Builders haul materials to the site and work it; nothing appears instantly. Paid rush construction is available as a money sink.
 
@@ -290,7 +290,7 @@ Difficulty scales how often and how hard these hit (see campaign).
 - **Overlays:** desirability, water and pipes, fire risk, collapse risk, crime, disease, service coverage (by travel time), land value, employment, class map, traffic heatmap, elevation.
 - **Labor screen:** sector priorities, plus worker counts needed versus filled.
 - **Ledgers:** goods (stock, production, consumption, trend), finance, population by class and age, happiness breakdown by class with cause attribution.
-- **Alerts feed:** grouped, deduplicated, clickable, with the root cause and a suggested fix ("Insula block in the east district devolving: no oil for 3 days. Nearest market has no oil because no olive press is staffed.").
+- **Alerts feed:** grouped, deduplicated, clickable, with the root cause and a suggested fix ("Insula block in the east district devolving: no oil for 3 days. Nearest market has no oil because no olive press is staffed."). Checked daily: a building with no workers, an idle workshop and the input that is not coming, a producer with nowhere to store its output, a full store, a market with nothing to sell, homeless citizens, unemployment of 15% or more, and the day's emigrants; plus the events (fires, disease, raids, requests, gods) as they happen. A condition that lasts stays one entry with a day count, and each kind names at most six buildings a day.
 - **Inspector:** click any citizen to see their name, household, job, current errand, schedule, needs, traits and memory log. **Follow camera** mode.
 - **Building inspector:** workers, inputs and outputs, efficiency breakdown, who lives or works here.
 - **Advisors panel:** the named advisors summarize their domains in plain language.
