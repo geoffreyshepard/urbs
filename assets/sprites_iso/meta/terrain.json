@@ -2698,5 +2698,485 @@
  "terrain/shallow_3": {
   "ax": 66,
   "ay": 66
+ },
+ "terrain/shore_10_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_10_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_10_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_10_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_11_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_11_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_11_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_11_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_12_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_12_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_12_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_12_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_13_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_13_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_13_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_13_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_14_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_14_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_14_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_14_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_1_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_1_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_1_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_1_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_2_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_2_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_2_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_2_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_3_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_3_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_3_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_3_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_4_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_4_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_4_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_4_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_5_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_5_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_5_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_5_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_6_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_6_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_6_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_6_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_7_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_7_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_7_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_7_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_8_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_8_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_8_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_8_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_9_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_9_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_9_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_9_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x0_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x0_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x0_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x0_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x10_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x10_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x10_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x10_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x11_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x11_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x11_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x11_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x12_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x12_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x12_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x12_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x13_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x13_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x13_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x13_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x14_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x14_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x14_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x14_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x15_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x15_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x15_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x15_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x1_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x1_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x1_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x1_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x2_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x2_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x2_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x2_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x3_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x3_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x3_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x3_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x4_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x4_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x4_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x4_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x5_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x5_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x5_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x5_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x6_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x6_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x6_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x6_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x7_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x7_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x7_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x7_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x8_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x8_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x8_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x8_3": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x9_0": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x9_1": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x9_2": {
+  "ax": 66,
+  "ay": 82
+ },
+ "terrain/shore_x9_3": {
+  "ax": 66,
+  "ay": 82
  }
 }

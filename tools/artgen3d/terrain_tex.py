@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Flat ground art for the isometric view: terrain, transitions, cliff faces and roads.
 
-    python3 tools/artgen3d/terrain_tex.py [terrain] [cliffs] [roads]   (default: all)
+    python3 tools/artgen3d/terrain_tex.py [terrain] [cliffs] [shores] [roads]   (default: all)
 
 Ground is flat, so it is painted in top-down tile space with periodic noise and projected onto
 the 2:1 iso diamond (128 x 64 px per tile).  3D objects that stand on the ground (trees, bushes,
@@ -18,6 +18,8 @@ Outputs (assets/sprites_iso, anchors in meta/terrain.json; ground anchor = botto
   terrain/q_<t>_<k>_<p>      quarter k (0 NW, 1 NE, 2 SW, 3 SE) of a dual cell, for cells whose
                              tiles sit on different height levels
   terrain/cliff_s_<v>, cliff_e_<v>  one height level of cliff under a tile's south / east edge
+  terrain/shore_<mask>_<p>, shore_x<open>_<p>  shore pieces for water tiles next to land (data
+                             for shaders/ground.frag, not colour; see shores())
   road/<dirt|paved>_<c|n|ne|...|fill_ne|...|q_ne|...>  road surfaces
   road/<dirt|paved>_k_<c|n|...|fill_ne|...>         their edge bands (dirt: worn edge, paved: kerb)
 """
@@ -335,6 +337,143 @@ def cliffs():
             save("terrain/cliff_%s_%d" % (side, v), finish(col, cov, w, h), ax, ay)
 
 
+# ---------------------------------------------------------------- shores (beaches)
+#
+# A water tile next to land gets a shore piece that slopes from the land's edge down under the water:
+# a beach below low land, scree at the foot of rock cliffs (the game picks the paint, see
+# docs/13-isometric.md "Coasts").  Which of the tile's four corners touch land (bit NW=1,
+# NE=2, SW=4, SE=8, as the dual grid) picks the piece: a marching-squares field v over the tile is 1
+# at those corners and 0 at the others (bilinear; the saddles 6 and 9 keep their water connected),
+# the waterline is v = 0.5, and the sand rises to one level at v = 1.  Every piece agrees with its
+# neighbours along shared edges, so a diagonal coast becomes a straight line instead of a staircase.
+# A tile whose four corners all touch land (a channel or an inlet one tile wide) uses a lagoon piece
+# instead, shore_x<o>: water around the tile's centre that reaches the middle of each edge whose
+# neighbour is another such tile (bit N=1, E=2, S=4, W=8).
+#
+# The pieces are data, not colour; ground.frag paints sand, wet sand, foam and shallows from them
+# (render/terrain.hpp, kKindShore):
+#   R  slope shading (Lambert, 1.0 = flat ground) / 1.5
+#   G  surface height in levels above the water, (h + 0.6) / 1.6; below 0 the sand is under water
+#   B  the field v (0.5 on the waterline)
+#   A  coverage
+SHORE_TOP = 1.0      # levels: the beach rises one level, to the land's edge (or a cliff's foot)
+SHORE_FLOOR = -0.6   # deepest sand depth encoded
+SHORE_POW = 1.3      # beach profile above the water: 1 - (1 - u) ** POW, flat where it meets the land
+SHORE_WOBBLE = 0.18  # noise on the field: the waterline meanders instead of running ruler-straight
+LAGOON_R = 0.2       # lagoon pieces: half width of the water channel, tiles
+LEVEL_TILES = 0.204  # one height level in tile lengths (16 iso px under a 30 degree camera)
+
+
+def shore_field(mask, s, t, noise):
+    """Marching-squares field over a tile (s, t in [0, 1]) for corner mask bits NW=1 NE=2 SW=4 SE=8."""
+    c = [(mask >> b) & 1 for b in range(4)]
+    basis = [(1 - s) * (1 - t), s * (1 - t), (1 - s) * t, s * t]
+    if mask in (6, 9):  # saddle: two land corners across the tile, the water between them stays open
+        # A 4-norm instead of max(): the same on the edges, with no crease where the two meet.
+        a = c[0] * basis[0] + c[3] * basis[3]
+        b = c[1] * basis[1] + c[2] * basis[2]
+        v = (a ** 4 + b ** 4) ** 0.25
+    else:
+        v = sum(ci * b for ci, b in zip(c, basis))
+    return v + noise * 4 * v * (1 - v)
+
+
+def lagoon_field(open_bits, s, t, noise):
+    """Field of a tile with land at all four corners: water along a skeleton from the centre to the
+    middle of each open edge (N=1 E=2 S=4 W=8), sand everywhere else."""
+    d = np.hypot(s - 0.5, t - 0.5)
+    for b, (ex, ey) in enumerate(((0.5, 0.0), (1.0, 0.5), (0.5, 1.0), (0.0, 0.5))):
+        if open_bits >> b & 1:
+            vx, vy = ex - 0.5, ey - 0.5
+            k = np.clip(((s - 0.5) * vx + (t - 0.5) * vy) / (vx * vx + vy * vy), 0, 1)
+            d = np.minimum(d, np.hypot(s - 0.5 - k * vx, t - 0.5 - k * vy))
+    v = np.where(d < LAGOON_R, 0.5 * d / LAGOON_R, 0.5 + 0.5 * np.clip((d - LAGOON_R) / (0.5 - LAGOON_R), 0, 1))
+    return v + noise * 4 * v * (1 - v)
+
+
+def shore_height(v):
+    """Beach profile: SHORE_TOP at v = 1, the waterline at v = 0.5, a shallow shelf below it."""
+    u = np.clip((v - 0.5) / 0.5, 0, 1)
+    above = SHORE_TOP * (1 - (1 - u) ** SHORE_POW)
+    below = np.maximum(SHORE_FLOOR, -(0.5 - v) * 1.2)
+    return np.where(v >= 0.5, above, below)
+
+
+def shores():
+    n = PERIOD * RES
+    wobble = fbm(n, 3 * PERIOD, 3, 760, gain=0.55) - 0.5
+    pad = int(np.ceil(EXPAND))
+    w, h = 128 + 2 * pad, 64 + LEVEL_PX + 2 * pad
+    ax, ay = 64 + pad, h - pad  # the tile's bottom vertex on the water's level
+    ys, xs = np.mgrid[0:h * SS, 0:w * SS].astype(np.float64)
+    X = (xs + 0.5) / SS - ax
+    Y = (ys + 0.5) / SS - ay
+    e = EXPAND / 64.0
+    steps = 96
+
+    g = 320  # height field grid over the tile, cells per tile
+    gt, gs = np.mgrid[0:g + 1, 0:g + 1].astype(np.float64) / g
+
+    def lut(grid, s, t):
+        """Bilinear lookup of a (g+1)^2 grid over the tile at (s, t), clamped to the tile."""
+        u = np.clip(s, 0, 1) * g
+        w_ = np.clip(t, 0, 1) * g
+        i = np.minimum(np.floor(u).astype(int), g - 1)
+        j = np.minimum(np.floor(w_).astype(int), g - 1)
+        fu, fw = u - i, w_ - j
+        return ((grid[j, i] * (1 - fu) + grid[j, i + 1] * fu) * (1 - fw)
+                + (grid[j + 1, i] * (1 - fu) + grid[j + 1, i + 1] * fu) * fw)
+
+    def render(name, field, p):
+        px, py = p & 1, p >> 1
+        nz = sample(wobble, gs + px, gt + py, PERIOD) * SHORE_WOBBLE
+        vg = np.clip(field(gs, gt, nz), 0, 1)
+        hg = shore_height(vg)
+        dgy, dgx = np.gradient(hg, 1.0 / g)
+
+        def hfield(s, t):
+            return lut(hg, s, t), lut(vg, s, t)
+
+        # March each pixel's view ray down from the top of the canvas to the water surface: on level z
+        # the pixel sees tile point s = (X/64 + (Y + 16 z)/32)/2 + 1, t = ((Y + 16 z)/32 - X/64)/2 + 1.
+        hit = np.zeros(X.shape, bool)
+        hz = np.full(X.shape, np.nan)
+        for k in range(steps + 1):
+            z = SHORE_TOP * (1 - k / steps)
+            b = (Y + LEVEL_PX * z) / 32
+            s = (X / 64 + b) / 2 + 1
+            t = (b - X / 64) / 2 + 1
+            ins = (s >= -e) & (s <= 1 + e) & (t >= -e) & (t <= 1 + e)
+            hh, _ = hfield(s, t)
+            new = ins & ~hit & (z <= hh + 1e-6)
+            hz[new] = z
+            hit |= new
+        # Where the ray reaches the water first, take the sand under the surface point.
+        b = Y / 32
+        s0 = (X / 64 + b) / 2 + 1
+        t0 = (b - X / 64) / 2 + 1
+        water = ~hit & (s0 >= -e) & (s0 <= 1 + e) & (t0 >= -e) & (t0 <= 1 + e)
+        z = np.where(hit, hz, 0.0)
+        bz = (Y + LEVEL_PX * z) / 32
+        s = (X / 64 + bz) / 2 + 1
+        t = (bz - X / 64) / 2 + 1
+        hh, v = hfield(s, t)
+        gx = np.where(hit, lut(dgx, s, t) * LEVEL_TILES, 0.0)
+        gy = np.where(hit, lut(dgy, s, t) * LEVEL_TILES, 0.0)
+        nzz = 1.0 / np.sqrt(gx * gx + gy * gy + 1.0)
+        ndotl = (-gx * LIGHT[0] - gy * LIGHT[1] + LIGHT[2]) * nzz
+        shade_v = 0.62 + 0.38 * ndotl / LIGHT[2]
+        cov = (hit | water).astype(np.float64)
+        data = np.stack([shade_v / 1.5, (hh - SHORE_FLOOR) / (SHORE_TOP - SHORE_FLOOR), v], -1)
+        save(name, finish(data, cov, w, h), ax, ay)
+
+    for p in range(4):
+        for mask in range(1, 15):
+            render("terrain/shore_%d_%d" % (mask, p), lambda s, t, nz, m=mask: shore_field(m, s, t, nz), p)
+        for o in range(16):
+            render("terrain/shore_x%d_%d" % (o, p), lambda s, t, nz, o=o: lagoon_field(o, s, t, nz), p)
+
+
 ROAD_DIRS = {"n": (0.5, 0.0), "ne": (1.0, 0.0), "e": (1.0, 0.5), "se": (1.0, 1.0),
              "s": (0.5, 1.0), "sw": (0.0, 1.0), "w": (0.0, 0.5), "nw": (0.0, 0.0)}
 FILL_CORNERS = {"ne": (1.0, 0.0), "se": (1.0, 1.0), "sw": (0.0, 1.0), "nw": (0.0, 0.0)}
@@ -451,11 +590,13 @@ def main():
             _meta.update(json.load(f))
     except (OSError, ValueError):
         pass
-    parts = sys.argv[1:] or ["terrain", "cliffs", "roads"]  # e.g. terrain_tex.py roads
+    parts = sys.argv[1:] or ["terrain", "cliffs", "shores", "roads"]  # e.g. terrain_tex.py roads
     if "terrain" in parts:
         dual_cells()
     if "cliffs" in parts:
         cliffs()
+    if "shores" in parts:
+        shores()
     if "roads" in parts:
         roads()
     with open(META, "w") as f:
