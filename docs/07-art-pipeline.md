@@ -66,7 +66,7 @@ right edge, with a little stone gable pointing at it, one at a time; the latest-
 ## UI chrome (generated)
 
 The frames, buttons and ornaments round the UI are drawn by `tools/uiart/gen_chrome.py` (Python, numpy and Pillow;
-no Blender). Each piece is a small height field (a moulding profile, a bead, a dish, a dentil row) shaded with the
+no Blender). Each piece is a small height field (a moulding profile, a bead, a dish, a fillet) shaded with the
 world's sun from the upper left, coloured with procedural materials (travertine with faint layers and pores, bronze
 and gilt from colour ramps with a specular glint, parchment with fibres and warm age stains, fresco-red with
 mottling), and packed into one atlas at 2 texels per UI point (retina):
@@ -91,9 +91,9 @@ One look everywhere, matching the lit 3D world:
 | Panels, dialogs | Carved travertine frame (torus, cove, fillet), a bronze bead inside it, bronze rosettes at the corners, warm parchment with an inner shadow, a soft drop shadow on the world |
 | Titles | Report panels and the build list: Cinzel in cream on a Pompeian-red band (#8e3324) with gilt hairlines across the top of the frame. Menus and dialogs: the same red on a tabula ansata plaque, centred |
 | Buttons | Raised polished stone with a bronze rim; hover warms the stone and gilds the rim; pressed sinks; selected is Pompeian red with a gilt rim and cream text; disabled is greyed and flat |
-| Icon buttons | Top bar: round bronze-rimmed medallions with an ivory enamel face (red when on). Build rail and portraits: square bronze-rimmed tiles |
-| Top bar | A marble cornice across the screen (fillet, frieze, bead, dentils, cyma, shadow) holding recessed slots: money and people, the ratings, date and speed, the panels, then alerts, help and menu |
-| Build rail | A travertine pilaster with capital, fluted shaft and base, holding the group tiles |
+| Icon buttons | Top bar: round medallions with a slim bronze rim and a Pompeian-black enamel face, a little lighter behind the icon, which fills about three quarters of it (hover: a lighter face and a gilt rim; pressed: darker and sunk; on: Pompeian red with a gilt rim). Icons that must read on the black are light or gilt (the alerts bell is gilt, the research tablets honey-coloured wax). Build rail and portraits: square tiles with a slim bronze rim and an ivory face; hover warms the face to honey |
+| Top bar | A marble cornice across the screen (fillet, frieze, a small cyma, a slim bronze fillet with a gilt edge, a soft shadow) holding recessed slots: money and people; the ratings (Mood, Culture, Prosperity, Security, Favor), each an icon, its name in the caption colour with the value right-aligned after it, and a bar under both; date and the (slightly smaller) speed buttons; then the overlay, the panels, alerts, help and menu in one slot. When the screen is too narrow for the ratings' names (decided with the widest date of the year, so they do not flicker), they drop out and the tooltips still give them. Every button's tooltip names it in bold with its hotkey, then a line of explanation |
+| Build rail | A slim travertine pilaster (low capital and base, shallow flutes) holding the group tiles, with little padding: the pictures fill most of each tile |
 | Tooltips, popups, toasts | Small parchment cards with a bronze edge. Toasts (the latest news under the top bar, notices at the bottom) wrap to a few lines with the lines balanced, and a longer message ends in an ellipsis on a word, with the whole text in a tooltip; they are sized before they are drawn, so a new message never shows clipped |
 | Inputs, checkboxes, sliders, scrollbars | Sunken parchment wells with a bronze hairline; bronze knobs and rods; red tick |
 | Dividers | A bronze rule fading at both ends with a lozenge between laurel sprigs |

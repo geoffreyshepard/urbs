@@ -78,6 +78,9 @@ def mats(M):
     M["hull"] = m("hull", "#7a4e2c", "#5e3c20", kind="brick", scale=10, brick=(0.6, 0.05),
                   mortar="#4a2e18", bump=0.2)
     M["wax"] = m("wax", "#3a2e24", "#2e241c", scale=20, rough=0.35, bump=0.05)
+    # honey-coloured wax with dark scratched lines: reads on the top bar's black medallions
+    M["wax_honey"] = m("wax_honey", "#d6a04a", "#c48e3c", scale=20, rough=0.35, bump=0.05)
+    M["scratch"] = m("scratch", "#4a2a12", "#3e220e", scale=10, rough=0.6, bump=0)
     M["parch"] = m("parch", "#f0e2b8", "#e2d0a0", scale=12, rough=0.8, bump=0.1)
     M["ink_red"] = m("ink_red", "#8e1616", "#7a1212", scale=10, rough=0.4, bump=0)
     M["shield_blue"] = m("shield_blue", "#2c5aa0", "#244c88", scale=6, rough=0.4, bump=0.05)
@@ -822,11 +825,11 @@ def i_research(M):
     for s in (-1, 1):
         x0, x1 = (0.02, 0.5) if s > 0 else (-0.5, -0.02)
         box(x0, -0.34, 0.0, x1, 0.34, 0.05, M["wood"], bevel=0.01)
-        box(x0 + 0.05, -0.29, 0.03, x1 - 0.05, 0.29, 0.055, M["wax"], bevel=0)
+        box(x0 + 0.05, -0.29, 0.03, x1 - 0.05, 0.29, 0.055, M["wax_honey"], bevel=0)
         for k in range(5):
             y = -0.2 + 0.1 * k
             w = 0.3 if (k + (s > 0)) % 3 else 0.2
-            box(x0 + 0.08, y - 0.008, 0.055, x0 + 0.08 + w, y + 0.008, 0.058, M["parch"], bevel=0)
+            box(x0 + 0.08, y - 0.01, 0.055, x0 + 0.08 + w, y + 0.01, 0.058, M["scratch"], bevel=0)
     for y in (-0.2, 0.2):
         cylinder(0.03, y, -0.02, 0.02, 0.025, M["leather"], n=8, axis="x")
     rod((-0.3, -0.42, 0.08), (0.45, 0.25, 0.14), 0.02, M["bronze_ui"], n=8)
@@ -837,10 +840,11 @@ def i_research(M):
 
 
 def i_alerts(M):
-    """A bronze bell with a clapper and a hanging loop."""
+    """A bright gilt bell with a clapper and a hanging loop (gilt rather than bronze, so it reads on the top bar's
+    black medallions)."""
     lathe([(0.0, 0.62), (0.1, 0.61), (0.16, 0.56), (0.18, 0.44), (0.2, 0.3), (0.26, 0.16), (0.34, 0.06),
-           (0.36, 0.0), (0.33, 0.0), (0.0, 0.0)], M["bronze_ui"], n=36, name="bell")
-    lathe([(0.355, 0.0), (0.37, 0.03), (0.35, 0.07)], M["gilt"], n=36, top=False, bottom=False)
+           (0.36, 0.0), (0.33, 0.0), (0.0, 0.0)], M["gilt"], n=36, name="bell")
+    lathe([(0.355, 0.0), (0.37, 0.03), (0.35, 0.07)], M["bronze_ui"], n=36, top=False, bottom=False)
     torus(0, 0.7, 0.09, 0.03, M["bronze_dk"], n=20)
     blob(0, 0, -0.06, 0.07, 0.07, 0.07, M["bronze_dk"], segs=12, rings=8)
     xform(since(0), Matrix.Rotation(math.radians(-12), 4, "Y"))

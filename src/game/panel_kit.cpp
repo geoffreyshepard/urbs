@@ -118,7 +118,7 @@ void framed_picture(const UiIcons& icons, const std::string& picture, Pic kind, 
       ui_skin()->draw(dl, Skin::Medal, p, q);
     else
       piece(dl, Skin::Medal, p, q, IM_COL32(204, 158, 77, 255));
-    const float is = std::round(size * 0.6f);
+    const float is = std::round(size * 0.74f);
     icons.draw_icon(picture, ImVec2(std::round(p.x + (size - is) * 0.5f), std::round(p.y + (size - is) * 0.5f)), is);
   }
 }
@@ -497,6 +497,28 @@ bool link(const char* label) {
   const bool r = ImGui::TextLink(label);
   ImGui::PopStyleColor();
   return r;
+}
+
+void button_tip(const char* name, const char* key, const char* blurb) {
+  if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) return;
+  ImGui::BeginTooltip();
+  ImGui::PushFont(ui_fonts().bold, 0.0f);
+  ImGui::TextUnformatted(name);
+  ImGui::PopFont();
+  if (key) {
+    ImGui::SameLine(0, std::round(ImGui::GetFontSize() * 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_Text, kColInk2);
+    ImGui::Text("(%s)", key);
+    ImGui::PopStyleColor();
+  }
+  if (blurb) {
+    ImGui::PushStyleColor(ImGuiCol_Text, kColInk2);
+    ImGui::PushTextWrapPos(ImGui::GetCursorPosX() + std::round(ImGui::GetFontSize() * 18.0f));
+    ImGui::TextUnformatted(blurb);
+    ImGui::PopTextWrapPos();
+    ImGui::PopStyleColor();
+  }
+  ImGui::EndTooltip();
 }
 
 namespace {

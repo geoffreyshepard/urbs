@@ -421,9 +421,17 @@ def button():
     return button_img(stone_face(), BRONZE_STOPS), _btn_meta()
 
 
+# Hover warms a face towards honey, so a hovered control reads at a glance and not only by its gilt rim.
+WARM = np.array([1.03, 0.96, 0.82])
+
+
+def warmed(face):
+    return lambda X, Y: np.clip(face(X, Y) * WARM[None, None, :], 0, 1)
+
+
 @sprite("button_hov")
 def button_hov():
-    return button_img(stone_face(0.12), GOLD_STOPS), _btn_meta()
+    return button_img(warmed(stone_face(0.12)), GOLD_STOPS), _btn_meta()
 
 
 @sprite("button_act")
@@ -444,22 +452,23 @@ def button_off():
     return img, _btn_meta()
 
 
-def medallion_img(face_col, rim_stops, D=96, S=6, pressed=False, glow=0.0, dish=1.0):
-    """A round bronze-rimmed medallion with an enamel face (icon buttons)."""
+def medallion_img(face_col, rim_stops, D=96, S=6, pressed=False, glow=0.0, dish=1.0, lift=(1.0, 1.0), RW=5.5):
+    """A round medallion with a slim bronze rim and an enamel face (icon buttons). `lift` scales the face's
+    colour at its centre and at its edge: a soft lighter disc behind the icon."""
     N = D + 2 * S
     X, Y = grid(N, N)
     c = N / 2.0
     r = np.hypot(X + 0.5 - c, Y + 0.5 - c)
     R = D / 2.0
-    RW = 8.5
-    rim_h = bead(r, R - RW, R, 3.4) + 1.5
+    rim_h = bead(r, R - RW, R, 2.6) + 1.5
     # A fine fillet just inside the rim.
-    rim_h += 0.8 * np.clip(1 - np.abs(r - (R - RW - 1.0)), 0, 1)
+    rim_h += 0.6 * np.clip(1 - np.abs(r - (R - RW - 0.8)), 0, 1)
     face_r = R - RW
     k = -1.0 if pressed else 1.0
     face_h = 1.0 - dish * k * 3.0 * (1 - np.clip(r / face_r, 0, 1) ** 2)  # concave dish
-    hgt = np.where(r > face_r, rim_h, face_h)
     face = face_col(X, Y)
+    t2 = np.clip(r / face_r, 0, 1) ** 2
+    face = face * (lift[0] * (1 - t2) + lift[1] * t2)[..., None]
     rgb_face = stone_shade(face, face_h * 1.5, amb=0.6, k=0.4)
     # The rim shades the dish's upper-left part.
     inner = (r < face_r).astype(float)
@@ -480,47 +489,55 @@ def ivory(light=0.0):
     return lambda X, Y: parchment(X, Y, seed=91, period=128, base=np.clip(IVORY * (1 + light), 0, 1))
 
 
+# The medallions' face: Pompeian black enamel, warm and a little lighter in the middle, so the icons (most of them
+# light or gilt) stand out from it and the buttons stand out from the pale marble of the top bar.
+ATRAMENTUM = hexc("#3a302a")
+
+
+def black_enamel(light=0.0):
+    return lambda X, Y: parchment(X, Y, seed=91, period=128, base=np.clip(ATRAMENTUM * (1 + light), 0, 1))
+
+
 @sprite("medal")
 def medal():
-    return medallion_img(ivory(), BRONZE_STOPS)
+    return medallion_img(black_enamel(), BRONZE_STOPS, lift=(1.3, 0.8))
 
 
 @sprite("medal_hov")
 def medal_hov():
-    return medallion_img(ivory(0.03), GOLD_STOPS, glow=0.05)
+    return medallion_img(black_enamel(0.35), GOLD_STOPS, glow=0.05, lift=(1.35, 0.85))
 
 
 @sprite("medal_act")
 def medal_act():
-    return medallion_img(ivory(-0.08), BRONZE_STOPS, pressed=True)
+    return medallion_img(black_enamel(-0.2), BRONZE_STOPS, pressed=True, lift=(1.1, 0.8))
 
 
 @sprite("medal_sel")
 def medal_sel():
-    return medallion_img(lambda X, Y: fresco_red(X, Y, base=hexc("#9a3a28")), GOLD_STOPS, dish=0.6)
+    return medallion_img(lambda X, Y: fresco_red(X, Y, base=hexc("#a63d29")), GOLD_STOPS, dish=0.6, lift=(1.12, 0.85))
 
 
 def tile_img(face_col, rim_stops, W=112, S=6, pressed=False, dish=1.0):
-    """A square bronze-rimmed tile (the build rail, building pictures)."""
+    """A square tile with a slim bronze rim (the build rail, building pictures)."""
     N = W + 2 * S
     X, Y = grid(N, N)
-    sd = sd_rrect(X, Y, S, S, N - S, N - S, 10.0)
+    sd = sd_rrect(X, Y, S, S, N - S, N - S, 7.0)
     d = -sd
-    RW = 7.0
-    rim_h = bead(d, 0, RW, 3.0) + 1.5
+    RW = 4.0
+    rim_h = bead(d, 0, RW, 2.2) + 1.5
     k = -1.0 if pressed else 1.0
-    face_h = 1.0 - dish * k * 1.5 * smoothstep(RW, RW + 10, d)
-    hgt = np.where(d < RW, rim_h, face_h)
+    face_h = 1.0 - dish * k * 1.2 * smoothstep(RW, RW + 7, d)
     face = face_col(X, Y)
     rgb_face = stone_shade(face, face_h * 1.5, amb=0.6, k=0.4)
     inner = (d >= RW).astype(float)
-    sh = blur(np.roll(np.roll(1 - inner, 3, 0), 3, 1), 2.5) * inner
-    rgb_face *= (1 - (0.40 if pressed else 0.26) * np.clip(sh, 0, 1))[..., None]
+    sh = blur(np.roll(np.roll(1 - inner, 2, 0), 2, 1), 2.0) * inner
+    rgb_face *= (1 - (0.36 if pressed else 0.22) * np.clip(sh, 0, 1))[..., None]
     rgb = np.where((d < RW)[..., None], metal(rim_h, rim_stops), rgb_face)
     img = rgba(rgb, cover(sd))
     if not pressed:
-        img = over(img, drop_shadow((sd < 0).astype(float), 1, 3, 2.2, 0.5))
-    return img, {"m": [22] * 4, "o": [S] * 4, "t": [0, 0]}
+        img = over(img, drop_shadow((sd < 0).astype(float), 1, 2, 2.0, 0.45))
+    return img, {"m": [14] * 4, "o": [S] * 4, "t": [0, 0]}
 
 
 @sprite("tile")
@@ -530,7 +547,7 @@ def tile():
 
 @sprite("tile_hov")
 def tile_hov():
-    return tile_img(ivory(0.03), GOLD_STOPS)
+    return tile_img(warmed(ivory(0.03)), GOLD_STOPS)
 
 
 @sprite("tile_act")
@@ -576,67 +593,63 @@ def hilite_sel():
 @sprite("cornice")
 def cornice():
     """The top bar: a marble entablature, tiled across the screen. From the top: a fillet, the frieze (stretched),
-    a bead, a row of dentils, a cyma, then the shadow on the world."""
+    a small cyma stepping back, a slim bronze fillet with a gilt edge, then a soft shadow on the world."""
     P = 256
-    FIL, FR, BEAD, DENT, CYMA, SH = 6, 72, 5, 12, 7, 20
-    H = FIL + FR + BEAD + DENT + CYMA + SH
+    FIL, FR, CYMA, BRZ, SH = 6, 72, 4, 5, 18
+    H = FIL + FR + CYMA + BRZ + SH
     X, Y = grid(P, H)
     y = Y + 0.5
-    hgt = np.zeros((H, P))
-    y0 = FIL + FR
     hgt = np.where(y < FIL, 4.0 + 1.2 * np.sin(np.clip(y / FIL, 0, 1) * math.pi), 4.0)
-    # bead
-    hgt = np.where((y >= y0) & (y < y0 + BEAD), 4.0 + bead(y, y0, y0 + BEAD, 2.4), hgt)
-    y1 = y0 + BEAD
-    # dentils: period 16, blocks 10 wide, protruding
-    xm = (X % 16) + 0.5
-    block = smoothstep(0.5, 2.0, xm) * (1 - smoothstep(9.0, 10.5, xm))
-    dent = 3.0 + 3.2 * block * smoothstep(y1, y1 + 1.5, y) * (1 - smoothstep(y1 + DENT - 2.5, y1 + DENT, y))
-    hgt = np.where((y >= y1) & (y < y1 + DENT), dent, hgt)
-    y2 = y1 + DENT
-    # cyma: a reverse curve sweeping back to the wall
-    t = np.clip((y - y2) / CYMA, 0, 1)
-    hgt = np.where((y >= y2) & (y < y2 + CYMA), 5.0 * (1 - smoothstep(0, 1, t)) + 0.8, hgt)
+    # cyma: the frieze's lower edge rolls back towards the wall
+    y0 = FIL + FR
+    t = np.clip((y - y0) / CYMA, 0, 1)
+    hgt = np.where((y >= y0) & (y < y0 + CYMA), 4.0 - 2.2 * smoothstep(0, 1, t), hgt)
     stone = stone_shade(travertine(X, Y, seed=103, period=P, light=0.02), (hgt + pores_height(X, Y, 103, P)) * 1.5)
-    # The gaps between dentils are deep: darken them.
-    gap = (y >= y1 + 1) & (y < y1 + DENT - 1)
-    stone *= (1 - 0.35 * gap * (1 - block))[..., None]
-    a = (y < y2 + CYMA).astype(float)
-    img = rgba(stone, a)
+    # the bronze fillet: a flat band with a rounded lower edge
+    y1 = y0 + CYMA
+    fb = (y >= y1) & (y < y1 + BRZ)
+    bh = 2.0 + bead(y, y1 - 1.0, y1 + BRZ, 1.6)
+    brz = metal(bh, BRONZE_STOPS, spec=0.35)
+    # a hairline of light where the stone meets the bronze
+    brz = np.where((np.abs(y - y1 - 0.5) < 0.6)[..., None], np.clip(brz * 1.25, 0, 1), brz)
+    rgb = np.where(fb[..., None], brz, stone)
+    a = (y < y1 + BRZ).astype(float)
+    img = rgba(rgb, a)
     shadow = np.zeros((H, P, 4))
     shadow[..., :3] = SHADOW
-    ts = np.clip((y - (y2 + CYMA)) / SH, 0, 1)
-    shadow[..., 3] = np.where(y >= y2 + CYMA, 0.5 * (1 - ts) ** 2, 0)
+    ts = np.clip((y - (y1 + BRZ)) / SH, 0, 1)
+    shadow[..., 3] = np.where(y >= y1 + BRZ, 0.42 * (1 - ts) ** 2.2, 0)
     img = over(img, shadow)
-    return img, {"m": [0, FIL, 0, BEAD + DENT + CYMA + SH], "o": [0, 0, 0, SH], "t": [P, 0]}
+    return img, {"m": [0, FIL, 0, CYMA + BRZ + SH], "o": [0, 0, 0, SH], "t": [P, 0]}
 
 
 @sprite("column")
 def column():
-    """The build rail: a travertine pilaster with a capital, a fluted shaft and a base. Tiles vertically."""
-    W, P = 168, 256
-    CAP, BASE, SH = 44, 40, 14
-    SIDE = 30
+    """The build rail: a slim travertine pilaster with a low capital, a fluted shaft and a low base. Tiles
+    vertically."""
+    W, P = 120, 256
+    CAP, BASE, SH = 22, 20, 12
+    SIDE = 12
     H = CAP + P + BASE + SH
     Wt = W + SH
     X, Y = grid(Wt, H)
     x, y = X + 0.5, Y + 0.5
     inside = (x < W) & (y < H - SH)
-    # Shaft: side bevels, a sunk line near each side, gentle flutes across the middle.
+    # Shaft: side bevels, a sunk line near each side, shallow flutes across the middle.
     dx = np.minimum(x, W - x)
-    shaft = 4.0 + 1.0 * smoothstep(0, 5, dx)
-    shaft -= 1.4 * np.clip(1 - np.abs(dx - 12) / 1.6, 0, 1)
-    fl = np.clip((x - 22) / (W - 44), 0, 1)
-    shaft += np.where((x > 22) & (x < W - 22), 0.45 * np.cos(fl * math.pi * 2 * 6) - 0.3, 0)
-    # Capital: abacus, echinus; base: torus, plinth.
+    shaft = 4.0 + 1.0 * smoothstep(0, 4, dx)
+    shaft -= 1.1 * np.clip(1 - np.abs(dx - 7) / 1.3, 0, 1)
+    fl = np.clip((x - 12) / (W - 24), 0, 1)
+    shaft += np.where((x > 12) & (x < W - 12), 0.35 * np.cos(fl * math.pi * 2 * 5) - 0.25, 0)
+    # Capital: abacus, echinus, astragal; base: plinth, torus, fillet.
     yc = y
-    cap = np.where(yc < 12, 6.0 + 1.0 * np.sin(np.clip(yc / 12, 0, 1) * math.pi),
-                   np.where(yc < 30, 5.0 + 2.6 * (1 - smoothstep(12, 30, yc)) ** 0.7,
-                            np.where(yc < 36, 5.5 + bead(yc, 30, 36, 1.6), 4.5)))
-    cap = cap + 0.8 * smoothstep(0, 4, dx) - 0.8
+    cap = np.where(yc < 7, 6.0 + 0.8 * np.sin(np.clip(yc / 7, 0, 1) * math.pi),
+                   np.where(yc < 16, 5.0 + 1.8 * (1 - smoothstep(7, 16, yc)) ** 0.7,
+                            np.where(yc < 20, 5.2 + bead(yc, 16, 20, 1.2), 4.5)))
+    cap = cap + 0.8 * smoothstep(0, 3, dx) - 0.8
     yb = (H - SH) - y
-    base = np.where(yb < 12, 6.5, np.where(yb < 26, 5.0 + bead(yb, 12, 26, 2.6), np.where(yb < 32, 5.6, 4.6)))
-    base = base + 0.8 * smoothstep(0, 4, dx) - 0.8
+    base = np.where(yb < 7, 6.2, np.where(yb < 15, 5.0 + bead(yb, 7, 15, 1.8), np.where(yb < 18, 5.4, 4.6)))
+    base = base + 0.8 * smoothstep(0, 3, dx) - 0.8
     hgt = np.where(y < CAP, cap, np.where(y >= H - SH - BASE, base, shaft))
     # Vertical grain on the shaft, horizontal on capital and base.
     vert = (y >= CAP) & (y < H - SH - BASE)
@@ -647,7 +660,7 @@ def column():
     seam = (np.abs(y - CAP) < 0.8) | (np.abs(y - (H - SH - BASE)) < 0.8)
     stone *= (1 - 0.3 * seam)[..., None]
     img = rgba(stone, inside.astype(float))
-    img = over(img, drop_shadow(inside.astype(float), 5, 5, 5, 0.5))
+    img = over(img, drop_shadow(inside.astype(float), 4, 4, 4, 0.45))
     return img, {"m": [SIDE, CAP, SIDE + SH, BASE + SH], "o": [0, 0, SH, SH], "t": [0, P]}
 
 

@@ -91,6 +91,9 @@ void good_chip(const UiIcons& icons, const std::string& good_id, const std::stri
 // Terracotta text that acts as a button.
 bool link(const char* label);
 
+// A button's tooltip, shown while the last item is hovered: the name in bold with its hotkey (may be null) in the
+// caption colour after it, then a short line of explanation (may be null).
+void button_tip(const char* name, const char* key, const char* blurb);
 // A toast's text: wrapped at `max_w` (points) and cut to `max_lines` lines, the last ending in an ellipsis when the
 // text is longer (a tooltip then shows all of it). Returns true when the text was clicked (`clickable`). The text
 // is drawn with the current text colour.

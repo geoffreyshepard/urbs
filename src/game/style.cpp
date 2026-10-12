@@ -43,7 +43,7 @@ ImVec2 window_padding(Skin skin) {
     case Skin::Card:
       return ImVec2(std::round(12 * k), std::round(8 * k));
     case Skin::Column:
-      return ImVec2(std::round(12 * k), std::round(26 * k));
+      return ImVec2(std::round(6 * k), std::round(14 * k));
     default:
       return ImGui::GetStyle().WindowPadding;
   }

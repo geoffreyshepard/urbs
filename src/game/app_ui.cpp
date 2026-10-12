@@ -865,10 +865,13 @@ void App::draw_hud() {
   const float fs = ImGui::GetFontSize();
   const UiFonts& fonts = ui_fonts();
   const bool sk = skinned();
-  const float icon = std::round(fs * 1.2f), pad = std::round(fs * 0.38f), btn = icon + 2 * pad,
+  // Medallion buttons: the icon fills most of the enamel face inside the slim rim.
+  const float icon = std::round(fs * 1.42f), pad = std::round(fs * 0.22f), btn = icon + 2 * pad,
               gap = std::round(fs * 1.0f);
+  // The icons beside the numbers (money, people, ratings).
+  const float sicon = std::round(fs * 1.35f), sicon_gap = std::round(fs * 0.25f);
   // Slots: recesses in the frieze, `spx` / `spy` of air round their contents.
-  const float spx = std::round(fs * 0.55f), spy = std::round(fs * 0.2f), slot_gap = std::round(fs * 0.55f);
+  const float spx = std::round(fs * 0.42f), spy = std::round(fs * 0.2f), slot_gap = std::round(fs * 0.35f);
   const float edge_top = sk ? ui_skin()->edge(Skin::Cornice, 1) : 0.0f,
               edge_bot = sk ? ui_skin()->edge(Skin::Cornice, 3) : 0.0f;
   const float frieze = std::round(fs * 0.3f);
@@ -876,7 +879,7 @@ void App::draw_hud() {
   const float top = edge_top + frieze + spy;  // window y of the row of contents
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
   ImGui::SetNextWindowSize(ImVec2(ds.x, bar_h), ImGuiCond_Always);
-  const float padx = std::round(fs * 0.6f) + spx;
+  const float padx = std::round(fs * 0.35f) + spx;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(padx, 0));
   begin_window("##hud", nullptr,
                ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
@@ -884,7 +887,7 @@ void App::draw_hud() {
                Skin::Cornice);
   ImGui::PopStyleVar();
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(pad, pad));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(std::round(fs * 0.25f), 0));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(std::round(fs * 0.18f), 0));
   ImDrawList* dl = ImGui::GetWindowDrawList();
   // Slots go on a channel under the contents, once their groups are measured.
   dl->ChannelsSplit(2);
@@ -914,32 +917,56 @@ void App::draw_hud() {
     if (!first_in_slot) ImGui::SameLine(0, space);
     first_in_slot = false;
   };
-  // A number with its icon and, below it, either a small caption or a bar (0..1) with an optional goal tick.
+  const float cap_fs = std::round(fs * 0.78f);  // captions under and labels beside the numbers
+  auto bold_w = [&](const char* t) { return fonts.bold->CalcTextSizeA(fs, FLT_MAX, 0, t).x; };
+  auto cap_w = [&](const char* t) { return fonts.body->CalcTextSizeA(cap_fs, FLT_MAX, 0, t).x; };
+  const float bar_min = std::round(fs * 2.5f), label_gap = std::round(fs * 0.3f);
+  // A rating's width beside its icon: the bar, or the label and the widest value ("100") above it.
+  auto rating_w = [&](const char* label, bool labels) {
+    return labels ? std::max(bar_min, std::round(cap_w(label) + label_gap + bold_w("100"))) : bar_min;
+  };
+  // A number with its icon and, below it, either a small caption or a bar (0..1) with an optional goal tick. With
+  // a `label`, the label stands before the number, which is right-aligned over a bar `width` wide.
   auto stat = [&](const char* icon_name, const std::string& value, const std::string& sub, ImU32 sub_col, float bar,
-                  float goal, ImU32 bar_col, const std::string& tip, float space) {
+                  float goal, ImU32 bar_col, const std::string& tip, float space, const char* label = nullptr,
+                  float width = 0) {
     next(space);
     ImGui::BeginGroup();
-    ImGui::SetCursorPosY(top + (btn - icon) * 0.5f);
-    icons_.image(icon_name, icon);
-    ImGui::SameLine(0, std::round(fs * 0.3f));
+    ImGui::SetCursorPosY(top + (btn - sicon) * 0.5f);
+    icons_.image(icon_name, sicon);
+    ImGui::SameLine(0, sicon_gap);
     const float tx = ImGui::GetCursorPosX();
     const bool two = !sub.empty() || bar >= 0;
-    ImGui::SetCursorPosY(top + (two ? btn * 0.5f - fs * 0.98f : (btn - fs) * 0.5f));
+    const float ty = top + (two ? btn * 0.5f - fs * 1.02f : (btn - fs) * 0.5f);
+    const float bw = std::max(width, bar_min);
+    if (label) {
+      // The label in the caption colour, sitting on the number's baseline.
+      ImGui::SetCursorPos(ImVec2(tx, ty + std::round((fs - cap_fs) * 0.78f)));
+      ImGui::PushFont(fonts.body, cap_fs);
+      ImGui::PushStyleColor(ImGuiCol_Text, kColInk2);
+      ImGui::TextUnformatted(label);
+      ImGui::PopStyleColor();
+      ImGui::PopFont();
+      ImGui::SetCursorPos(ImVec2(tx + bw - bold_w(value.c_str()), ty));
+    } else {
+      ImGui::SetCursorPosY(ty);
+    }
     ImGui::PushFont(fonts.bold, 0.0f);
     ImGui::TextUnformatted(value.c_str());
     ImGui::PopFont();
     if (!sub.empty()) {
-      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.0f));
-      ImGui::PushFont(fonts.body, fs * 0.8f);
+      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f));
+      ImGui::PushFont(fonts.body, cap_fs);
       ImGui::PushStyleColor(ImGuiCol_Text, sub_col);
       ImGui::TextUnformatted(sub.c_str());
       ImGui::PopStyleColor();
       ImGui::PopFont();
     } else if (bar >= 0) {
-      const float bw = std::round(fs * 2.8f), bh = std::max(4.0f, std::round(fs * 0.36f));
-      const ImVec2 p0(ImGui::GetWindowPos().x + tx, std::round(ImGui::GetWindowPos().y + top + btn * 0.5f + fs * 0.3f));
+      const float bh = std::max(4.0f, std::round(fs * 0.36f));
+      const float by = top + btn * 0.5f + std::round(fs * 0.32f);
+      const ImVec2 p0(ImGui::GetWindowPos().x + tx, std::round(ImGui::GetWindowPos().y + by));
       draw_bar(dl, p0, bw, bh, bar, bar_col, goal > 0 ? goal : -1.0f);
-      ImGui::SetCursorPos(ImVec2(tx, top + btn * 0.5f + fs * 0.3f));
+      ImGui::SetCursorPos(ImVec2(tx, by));
       ImGui::Dummy(ImVec2(bw, bh));
     }
     ImGui::EndGroup();
@@ -947,103 +974,145 @@ void App::draw_hud() {
   };
   const ImU32 kGreen = kColGood, kAmber = kColWarn, kOchre = kColPlain, kRed = kColBad, kInk2 = kColInk2;
 
-  // Left: money and people, then the ratings.
-  {
-    const auto& L = w.econ.money;
-    i64 net = 0;
-    for (int k = 0; k < econ::kMoneyCount; ++k)
-      net += (econ::money_is_income(static_cast<econ::Money>(k)) ? 1 : -1) * L.yesterday[k];
-    slot_begin();
-    stat("goods/denarii_16", with_commas(w.econ.treasury), (net >= 0 ? "+" : "") + with_commas(net) + " yesterday",
-         net >= 0 ? kGreen : kRed, -1, 0, 0, "Treasury, and yesterday's income minus spending", gap);
-    const u32 pop = w.population();
-    stat("ui/icon_population", with_commas(pop),
-         w.goals.population ? "goal " + with_commas(w.goals.population) : std::string(), kInk2, -1, 0, 0,
-         w.goals.population ? "Population (mission goal " + with_commas(w.goals.population) + ")"
-                            : std::string("Population"),
-         gap);
-    slot_end();
-    auto rating = [&](const char* icon_name, int v, int goal, const char* name) {
-      const ImU32 col = goal ? (v >= goal ? kGreen : kAmber) : kOchre;
-      std::string tip = std::string(name) + ": " + std::to_string(v) + " of 100";
-      if (goal)
-        tip +=
-            v >= goal ? "  (goal " + std::to_string(goal) + " met)" : "  (mission goal " + std::to_string(goal) + ")";
-      stat(icon_name, std::to_string(v), std::string(), 0, static_cast<float>(v) / 100.0f,
-           static_cast<float>(goal) / 100.0f, col, tip, gap * 0.75f);
-    };
-    slot_begin();
-    const int mood = w.avg_happiness;
-    stat("ui/icon_happiness", std::to_string(mood), std::string(), 0, static_cast<float>(mood) / 255.0f,
-         128.0f / 255.0f, mood >= 128 ? kGreen : kAmber, "Mood of the people (128 = content)", gap);
-    rating("ui/icon_culture", w.ratings.culture, w.goals.culture, "Culture");
-    rating("ui/icon_prosperity", w.ratings.prosperity, w.goals.prosperity, "Prosperity");
-    rating("ui/icon_security", w.ratings.security, w.goals.security, "Security");
-    rating("ui/icon_favor", w.favor, w.goals.favor, "Favor with Rome");
-    slot_end();
-  }
+  // The ratings' names. They go when the screen is too narrow for them (the tooltips still say).
+  struct Rating {
+    const char* icon;
+    const char* label;
+    const char* name;
+    int v, goal;
+  };
+  const int mood = w.avg_happiness;
+  const Rating ratings[] = {
+      {"ui/icon_culture", "Culture", "Culture", w.ratings.culture, w.goals.culture},
+      {"ui/icon_prosperity", "Prosperity", "Prosperity", w.ratings.prosperity, w.goals.prosperity},
+      {"ui/icon_security", "Security", "Security", w.ratings.security, w.goals.security},
+      {"ui/icon_favor", "Favor", "Favor with Rome", w.favor, w.goals.favor}};
+  const auto& L = w.econ.money;
+  i64 net = 0;
+  for (int k = 0; k < econ::kMoneyCount; ++k)
+    net += (econ::money_is_income(static_cast<econ::Money>(k)) ? 1 : -1) * L.yesterday[k];
+  const std::string money = with_commas(w.econ.treasury),
+                    money_sub = (net >= 0 ? "+" : "") + with_commas(net) + " yesterday";
+  const u32 pop = w.population();
+  const std::string people = with_commas(pop),
+                    people_sub = w.goals.population ? "goal " + with_commas(w.goals.population) : std::string();
+  const float rating_space = std::round(gap * 0.6f);
+  auto left_width = [&](bool labels) {
+    float x = sicon + sicon_gap + std::max(bold_w(money.c_str()), cap_w(money_sub.c_str())) + gap + sicon + sicon_gap +
+              std::max(bold_w(people.c_str()), cap_w(people_sub.c_str()));
+    x += slot_gap + 2 * spx + sicon + sicon_gap + rating_w("Mood", labels);
+    for (const Rating& r : ratings) x += rating_space + sicon + sicon_gap + rating_w(r.label, labels);
+    return x;
+  };
 
-  // Centre: date and speed, centred on the screen when there is room.
+  // The date and speed group and the buttons on the right, measured first so the left side knows its room.
   const std::string date1 =
       std::string(sim::season_name(sim::season(w.now))) + ", day " + std::to_string(sim::day_of_year(w.now) + 1);
   char date2[48];
   std::snprintf(date2, sizeof date2, "Year %llu  \xC2\xB7  %02u:00",
                 static_cast<unsigned long long>(sim::year_index(w.now) + 1), sim::hour_of_day(w.now));
-  const float date_w = std::max(fonts.bold->CalcTextSizeA(fs, FLT_MAX, 0, date1.c_str()).x,
-                                fonts.body->CalcTextSizeA(fs * 0.8f, FLT_MAX, 0, date2).x);
+  const float date_w = std::max(bold_w(date1.c_str()), cap_w(date2));
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float centre_w = date_w + gap + 4 * btn + 3 * spacing;
+  // The speed buttons are a little smaller than the panel buttons.
+  const float sicon_btn = std::round(fs * 1.22f), spad = std::round(fs * 0.2f), sbtn = sicon_btn + 2 * spad;
+  const float centre_w = date_w + gap + 4 * sbtn + 3 * spacing;
+  // Whether the ratings' names fit is decided with the widest date of the year, so they do not come and go with
+  // the seasons.
+  float date_max = date_w;
+  for (int k = 0; k < 4; ++k) {
+    const std::string d =
+        std::string(sim::season_name(static_cast<sim::Season>(k))) + ", day " + std::to_string(kDaysPerYear);
+    date_max = std::max(date_max, bold_w(d.c_str()));
+  }
+  constexpr int kPanels = 9;
+  const float right_w = static_cast<float>(1 + kPanels + 3) * btn + static_cast<float>(kPanels + 1) * spacing +
+                        2 * std::round(gap * 0.5f);
+  const float fixed = 2 * padx + centre_w + (date_max - date_w) + right_w + 2 * (slot_gap + 2 * spx);
+  const bool labels = fixed + left_width(true) <= ds.x;
+
+  // Left: money and people, then the ratings.
+  {
+    slot_begin();
+    stat("goods/denarii_16", money, money_sub, net >= 0 ? kGreen : kRed, -1, 0, 0,
+         "Treasury, and yesterday's income minus spending", gap);
+    stat("ui/icon_population", people, people_sub, kInk2, -1, 0, 0,
+         w.goals.population ? "Population (mission goal " + with_commas(w.goals.population) + ")"
+                            : std::string("Population"),
+         gap);
+    slot_end();
+    slot_begin();
+    stat("ui/icon_happiness", std::to_string(mood), std::string(), 0, static_cast<float>(mood) / 255.0f,
+         128.0f / 255.0f, mood >= 128 ? kGreen : kAmber,
+         "Mood: " + std::to_string(mood) + " (128 is content)\nHow happy the people are on average", gap,
+         labels ? "Mood" : nullptr, rating_w("Mood", labels));
+    for (const Rating& r : ratings) {
+      const ImU32 col = r.goal ? (r.v >= r.goal ? kGreen : kAmber) : kOchre;
+      std::string tip = std::string(r.name) + ": " + std::to_string(r.v) + " of 100";
+      if (r.goal)
+        tip += r.v >= r.goal ? "\nMission goal " + std::to_string(r.goal) + ": met"
+                             : "\nMission goal " + std::to_string(r.goal);
+      stat(r.icon, std::to_string(r.v), std::string(), 0, static_cast<float>(r.v) / 100.0f,
+           static_cast<float>(r.goal) / 100.0f, col, tip, rating_space, labels ? r.label : nullptr,
+           rating_w(r.label, labels));
+    }
+    slot_end();
+  }
+
+  // Centre: date and speed, centred on the screen when there is room.
   {
     ImGui::SameLine(0, 0);
     const float want = std::round((ds.x - centre_w) * 0.5f);
     const float x = std::max(ImGui::GetCursorPosX() + slot_gap + 2 * spx, want);
     slot_begin(x);
     ImGui::BeginGroup();
-    ImGui::SetCursorPosY(top + btn * 0.5f - fs * 0.98f);
+    ImGui::SetCursorPosY(top + btn * 0.5f - fs * 1.02f);
     ImGui::PushFont(fonts.bold, 0.0f);
     ImGui::TextUnformatted(date1.c_str());
     ImGui::PopFont();
-    ImGui::SetCursorPosY(top + btn * 0.5f + fs * 0.0f);
-    ImGui::PushFont(fonts.body, fs * 0.8f);
+    ImGui::SetCursorPosY(top + btn * 0.5f);
+    ImGui::PushFont(fonts.body, cap_fs);
     ImGui::TextDisabled("%s", date2);
     ImGui::PopFont();
     ImGui::EndGroup();
     ImGui::SameLine(0, gap);
-    ImGui::SetCursorPosY(top);
+    ImGui::SetCursorPosY(top + std::round((btn - sbtn) * 0.5f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(spad, spad));
     static const char* kSpeedIcons[] = {"ui/icon_pause", "ui/icon_play", "ui/icon_fast", "ui/icon_faster"};
-    static const char* kSpeedTips[] = {"Pause (Space)", "Normal speed (1)", "Fast (2)", "Fastest (3)"};
+    static const char* kSpeedTips[] = {"Pause", "Normal speed", "Fast", "Fastest"};
+    static const char* kSpeedKeys[] = {"Space", "1", "2", "3"};
     for (int i = 0; i < 4; ++i) {
       if (i) ImGui::SameLine();
       ImGui::PushID(i);
-      if (icons_.icon_button("##speed", kSpeedIcons[i], icon, speed_ == i)) speed_ = i;
+      if (icons_.icon_button("##speed", kSpeedIcons[i], sicon_btn, speed_ == i)) speed_ = i;
       ImGui::PopID();
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", kSpeedTips[i]);
+      button_tip(kSpeedTips[i], kSpeedKeys[i], nullptr);
     }
+    ImGui::PopStyleVar();
     slot_end();
   }
 
-  // Right: overlay, panels, alerts, help, menu.
+  // Right: overlay, panels, then alerts, help, menu.
   struct Btn {
     const char* icon;
     Panel panel;
-    const char* tip;
+    const char* name;
+    const char* key;
+    const char* blurb;
   };
-  const Btn panels[] = {{"ui/icon_rome", Panel::Rome, "Rome\nFavor, the Senate and the Emperor's requests"},
-                        {"ui/icon_advisors", Panel::Advisors, "Advisors\nReports from your five advisors"},
-                        {"ui/icon_finance", Panel::Finance, "Finance\nTaxes, wages and the budget"},
-                        {"ui/icon_goods", Panel::Goods, "Goods (L)\nWhat the city holds, makes and uses"},
-                        {"ui/icon_trade", Panel::Trade, "Trade\nRoutes, imports and exports"},
-                        {"ui/icon_labor", Panel::Labor, "Labor (J)\nWorkers, jobs and priorities"},
-                        {"ui/icon_religion", Panel::Religion, "Religion\nThe gods' moods and festivals"},
-                        {"ui/icon_military", Panel::Military, "Military\nLegions, walls and threats"},
-                        {"ui/icon_research", Panel::Research, "Research\nCivic research"}};
+  const Btn panels[kPanels] = {
+      {"ui/icon_rome", Panel::Rome, "Rome", nullptr, "Favor, the Senate and the Emperor's requests"},
+      {"ui/icon_advisors", Panel::Advisors, "Advisors", nullptr, "Reports from your five advisors"},
+      {"ui/icon_finance", Panel::Finance, "Finance", nullptr, "Taxes, wages and the budget"},
+      {"ui/icon_goods", Panel::Goods, "Goods", "L", "What the city holds, makes and uses"},
+      {"ui/icon_trade", Panel::Trade, "Trade", nullptr, "Routes, imports and exports"},
+      {"ui/icon_labor", Panel::Labor, "Labor", "J", "Workers, jobs and priorities"},
+      {"ui/icon_religion", Panel::Religion, "Religion", nullptr, "The gods' moods and festivals"},
+      {"ui/icon_military", Panel::Military, "Military", nullptr, "Legions, walls and threats"},
+      {"ui/icon_research", Panel::Research, "Research", nullptr, "Civic research"}};
   // Where each panel hangs from: the centre of its button.
   auto mark = [&](Panel p) {
     panel_x_[static_cast<int>(p)] = std::round((ImGui::GetItemRectMin().x + ImGui::GetItemRectMax().x) * 0.5f);
   };
-  constexpr int kPanels = static_cast<int>(sizeof(panels) / sizeof(panels[0]));
-  const float right_w = static_cast<float>(1 + kPanels + 3) * btn + static_cast<float>(kPanels + 2) * spacing +
-                        2 * gap * 0.5f + slot_gap + 2 * spx;
   {
     ImGui::SameLine(0, 0);
     const float x = std::max(ImGui::GetCursorPosX() + slot_gap + 2 * spx, ds.x - right_w - padx);
@@ -1051,8 +1120,8 @@ void App::draw_hud() {
     // Map overlays: a picture button that opens the list.
     if (icons_.icon_button("##overlay", "ui/icon_overlay", icon, overlay_ != Overlay::None))
       ImGui::OpenPopup("##overlays");
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Map overlay (O)\nNow: %s", overlay_ == Overlay::None ? "none" : overlay_name(overlay_));
+    if (!ImGui::IsPopupOpen("##overlays"))
+      button_tip("Map overlay", "O", overlay_ == Overlay::None ? "Now: none" : overlay_name(overlay_));
     if (ImGui::BeginPopup("##overlays")) {
       ImGui::PopStyleVar(2);
       for (int k = 0; k < static_cast<int>(Overlay::Count); ++k)
@@ -1075,28 +1144,31 @@ void App::draw_hud() {
         if (!overlay_service_.valid()) overlay_service_ = ServiceId{0};
       }
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(pad, pad));
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(std::round(fs * 0.25f), 0));
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(std::round(fs * 0.18f), 0));
       ImGui::EndPopup();
     }
-    ImGui::SameLine(0, gap * 0.5f);
+    ImGui::SameLine(0, std::round(gap * 0.5f));
     for (int k = 0; k < kPanels; ++k) {
       if (k) ImGui::SameLine();
       ImGui::PushID(k);
       if (icons_.icon_button("##panel", panels[k].icon, icon, panel_ == panels[k].panel)) toggle_panel(panels[k].panel);
       ImGui::PopID();
       mark(panels[k].panel);
-      if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", panels[k].tip);
+      button_tip(panels[k].name, panels[k].key, panels[k].blurb);
     }
-    slot_end();
-    slot_begin();
     // Alerts, with a count of the ones that came in since the panel was last open.
+    ImGui::SameLine(0, std::round(gap * 0.5f));
     if (panel_ == Panel::Alerts) alerts_seen_ = w.now;
     int unread = 0;
     for (const auto& a : w.alerts)
       if (a.t > alerts_seen_) ++unread;
     if (icons_.icon_button("##alerts", "ui/icon_alerts", icon, panel_ == Panel::Alerts)) toggle_panel(Panel::Alerts);
     mark(Panel::Alerts);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip(unread ? "Alerts\n%d new" : "Alerts\nNothing new", unread);
+    {
+      char news[32];
+      std::snprintf(news, sizeof news, unread ? "%d new" : "Nothing new", unread);
+      button_tip("Alerts", nullptr, news);
+    }
     if (unread) {
       const ImVec2 mx = ImGui::GetItemRectMax(), mn = ImGui::GetItemRectMin();
       const std::string n = unread > 99 ? std::string("99") : std::to_string(unread);
@@ -1111,10 +1183,10 @@ void App::draw_hud() {
     ImGui::SameLine();
     if (icons_.icon_button("##help", "ui/icon_help", icon, panel_ == Panel::Help)) toggle_panel(Panel::Help);
     mark(Panel::Help);
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("How to play (H)");
+    button_tip("How to play", "H", "Keys, and how the city works");
     ImGui::SameLine();
     if (icons_.icon_button("##menu", "ui/icon_menu", icon, paused_menu_)) paused_menu_ = true;
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("Menu (Esc)\nSave, load, settings");
+    button_tip("Menu", "Esc", "Save, load, settings");
     slot_end();
   }
   ImGui::PopStyleVar(2);
@@ -1506,10 +1578,11 @@ void App::draw_build_menu() {
     const int buttons = kGroupCount + (members[kOtherGroup].empty() ? 0 : 1);
     const float fs = ImGui::GetFontSize();
     const ImVec2 wpad = skinned() ? window_padding(Skin::Column) : ImGui::GetStyle().WindowPadding;
-    const float fpad = std::round(fs * 0.3f), vgap = std::round(fs * 0.3f);
+    // Slim tiles: little padding round the picture, a small gap between them.
+    const float fpad = std::round(fs * 0.18f), vgap = std::round(fs * 0.26f);
     const float per = fpad * 2 + vgap;
     const float avail = ds.y - hud_h_ - 16 - wpad.y * 2;
-    const float icon = std::clamp(std::floor(avail / static_cast<float>(buttons) - per), 24.0f, 46.0f);
+    const float icon = std::clamp(std::floor(avail / static_cast<float>(buttons) - per), 24.0f, 38.0f);
     ImGui::SetNextWindowPos(ImVec2(8, hud_h_ + 4), ImGuiCond_Always);
     begin_window("##buildrail", nullptr,
                  ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
