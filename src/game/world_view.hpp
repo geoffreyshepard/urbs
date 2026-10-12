@@ -36,8 +36,13 @@ class WorldView {
   std::vector<DefSprites> defs_;
   std::vector<render::Sprite> goods_, goods16_;
   render::Sprite placeholder_[4][4];
-  render::Sprite people_[static_cast<int>(sim::CitizenClass::Count)][4][4];
-  render::Sprite child_[4][4];
+  // Citizens: clothing variants per class (people/<class>[_v<k>]_<dir>_<frame>, tools/artgen3d/
+  // people.py), picked per citizen by a hash of its index.  [class][variant][dir][frame].
+  static constexpr int kPeopleVariants = 10;
+  render::Sprite people_[static_cast<int>(sim::CitizenClass::Count)][kPeopleVariants][4][4];
+  u8 people_variants_[static_cast<int>(sim::CitizenClass::Count)] = {};
+  render::Sprite child_[kPeopleVariants][4][4];
+  u8 child_variants_ = 1;
   render::Sprite scaffold_[4], foundation_;
   render::Sprite ship_[4];
   render::Sprite fire_[4], smoke_[4], rubble_[4], plague_;

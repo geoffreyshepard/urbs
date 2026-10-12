@@ -367,6 +367,198 @@
   "ax": 16,
   "ay": 30
  },
+ "people/child_v1_e_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_e_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_e_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_e_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_n_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_n_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_n_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_n_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_s_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_s_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_s_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_s_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_w_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_w_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_w_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v1_w_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_e_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_e_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_e_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_e_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_n_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_n_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_n_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_n_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_s_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_s_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_s_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_s_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_w_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_w_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_w_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v2_w_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_e_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_e_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_e_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_e_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_n_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_n_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_n_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_n_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_s_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_s_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_s_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_s_3": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_w_0": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_w_1": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_w_2": {
+  "ax": 16,
+  "ay": 30
+ },
+ "people/child_v3_w_3": {
+  "ax": 16,
+  "ay": 30
+ },
  "people/child_w_0": {
   "ax": 16,
   "ay": 30
@@ -444,6 +636,70 @@
   "ay": 38
  },
  "people/eques_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/eques_v1_w_3": {
   "ax": 20,
   "ay": 38
  },
@@ -623,6 +879,198 @@
   "ax": 20,
   "ay": 38
  },
+ "people/liberti_v1_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v1_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v2_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/liberti_v3_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
  "people/liberti_w_0": {
   "ax": 20,
   "ay": 38
@@ -700,6 +1148,134 @@
   "ay": 38
  },
  "people/patrician_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v1_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/patrician_v2_w_3": {
   "ax": 20,
   "ay": 38
  },
@@ -783,6 +1359,582 @@
   "ax": 20,
   "ay": 38
  },
+ "people/pleb_v1_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v1_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v2_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v3_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v4_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v5_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v6_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v7_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v8_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/pleb_v9_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
  "people/pleb_w_0": {
   "ax": 20,
   "ay": 38
@@ -860,6 +2012,134 @@
   "ay": 38
  },
  "people/slave_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v1_w_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_e_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_e_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_e_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_e_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_n_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_n_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_n_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_n_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_s_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_s_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_s_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_s_3": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_w_0": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_w_1": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_w_2": {
+  "ax": 20,
+  "ay": 38
+ },
+ "people/slave_v2_w_3": {
   "ax": 20,
   "ay": 38
  },
