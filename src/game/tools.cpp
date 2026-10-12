@@ -106,13 +106,43 @@ i64 Tools::cost(const sim::World& w) const {
   return std::max<i64>(1, static_cast<i64>(d.cost_denarii) * f.w * f.h / std::max(1, d.w * d.h));
 }
 
+namespace {
+// Some tile on the straight (or diagonal) line from a to b can take a road.
+bool road_line_ok(const sim::World& w, Vec2i a, Vec2i b) {
+  i32 x = a.x, y = a.y;
+  for (int n = 0; n < 2048; ++n) {
+    if (w.map.in_bounds(x, y)) {
+      const size_t i = static_cast<size_t>(w.map.idx(x, y));
+      if (!w.map.building[i].valid() && !sim::terrain_water(w.map.terrain[i])) return true;
+    }
+    if (x == b.x && y == b.y) break;
+    x += (b.x > x) - (b.x < x);
+    y += (b.y > y) - (b.y < y);
+  }
+  return false;
+}
+
+// Something in the rectangle a demolition would clear: a building or a road.
+bool anything_in(const sim::World& w, const Recti& f) {
+  for (i32 y = f.y; y < f.y + f.h; ++y)
+    for (i32 x = f.x; x < f.x + f.w; ++x) {
+      if (!w.map.in_bounds(x, y)) continue;
+      const size_t i = static_cast<size_t>(w.map.idx(x, y));
+      if (w.map.building[i].valid() || w.map.road[i] != sim::Road::None) return true;
+    }
+  return false;
+}
+}  // namespace
+
 bool Tools::mouse_up(Vec2i tile, sim::World& w) {
+  did_ = ToolDid::None;
   if (!dragging_) return false;
   hover_ = tile;
   sim::Command c;
   switch (kind) {
     case ToolKind::Build: {
       const auto& d = w.defs->b(def);
+      if (d.layer != 0 && w.econ.treasury > 0) did_ = ToolDid::Road;  // pipes, sewers and bridges: digging
       if (d.layer == 1 || d.layer == 2) {
         c.type = sim::CmdType::PlaceUnder;
         c.def = d.layer;
@@ -138,8 +168,9 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
         Recti cell[kMaxRow * kMaxRow];
         const int n = cells(w, cell, kMaxRow * kMaxRow);
         for (int k = 0; k < n; ++k) {
-          if (n > 1 && !w.can_place(def, cell[k].x, cell[k].y, cell[k].w, cell[k].h))
-            continue;  // a row skips taken ground
+          const bool ok = w.can_place(def, cell[k].x, cell[k].y, cell[k].w, cell[k].h);
+          if (ok && w.econ.treasury >= d.cost_denarii) did_ = ToolDid::Built;
+          if (n > 1 && !ok) continue;  // a row skips taken ground
           c.type = sim::CmdType::PlaceBuilding;
           c.def = def.v;
           c.x0 = cell[k].x;
@@ -152,6 +183,7 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
         break;
       }
       Recti f = footprint(w);
+      if (w.can_place(def, f.x, f.y, f.w, f.h) && w.econ.treasury >= cost(w)) did_ = ToolDid::Built;
       c.type = sim::CmdType::PlaceBuilding;
       c.def = def.v;
       c.value = god;
@@ -164,6 +196,7 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
       break;
     }
     case ToolKind::Road:
+      if (road_line_ok(w, start_, tile) && w.econ.treasury >= cost(w)) did_ = ToolDid::Road;
       c.type = sim::CmdType::PlaceRoad;
       c.def = static_cast<u16>(road);
       c.x0 = start_.x;
@@ -174,6 +207,7 @@ bool Tools::mouse_up(Vec2i tile, sim::World& w) {
       break;
     case ToolKind::Demolish: {
       Recti f = footprint(w);
+      if (anything_in(w, f)) did_ = ToolDid::Demolished;
       c.type = sim::CmdType::Demolish;
       c.x0 = f.x;
       c.y0 = f.y;

@@ -1,4 +1,4 @@
-# 11 — Music
+# 11 — Music and sound effects
 
 ## Approach: music is code
 
@@ -62,7 +62,7 @@ Music runs entirely in the presentation layers. The sim never knows about it (CL
 
   Battle music holds 8 s and disaster music 10 s after their cause ends, so the music doesn't flicker. Crossfades are 2.5 s (1 s into battle). When the city returns, the playlist resumes with a new track after a short pause.
 - **Stingers**, from the world's alerts (at most one per 0.5 s poll, each event at most every 20 s, never stacked except the mission outcome): raid sighted, god's blessing or wrath, request from Rome, monument dedicated, festival begins, a won campaign (`s_promotion`), mission won or failed, and a career promotion (on the province map).
-- **Settings:** "Music volume" (`music_volume` in settings.json, default 0.7). `--mute` starts without audio; `--screenshot` runs are always silent.
+- **Settings:** "Music volume" (`music_volume` in settings.json, default 0.7) and "Sound effects volume" (`sfx_volume`, default 0.7; settings files from before v1.1 get the default). `--mute` starts without audio; `--screenshot` runs are always silent.
 - **Testing without speakers:** `SDL_AUDIO_DRIVER=disk SDL_AUDIO_DISK_OUTPUT_FILE=out.raw` writes the mix (f32 stereo 44.1 kHz) to a file. The log prints every mood change and track.
 
 ## Workflow
@@ -74,3 +74,44 @@ tools/musicgen/.venv/bin/python tools/musicgen/build_all.py --only urbs,pax --re
 ```
 
 `--review` writes a spectrogram and a loudness curve per track to `build/music_review/<id>.png`. Check structure, gaps and spikes there, then listen.
+
+## Sound effects
+
+Sound effects are generated the same way: `tools/sfxgen/` synthesizes them with musicgen's DSP helpers, instruments (the bell, the clap, the cornu) and rooms. No samples. The direction is wood, stone, bronze, cloth and voices, in a room or out of doors: soft attacks, little above 6 kHz, no synth tones, nothing chiptune.
+
+`data/defs/sfx.json` is the source of truth: for each event, its variant files, gain, cooldown, how many copies may sound at once, random pitch and gain spread, and whether it is positional; the positional fall-off; the ambient bed; and the coin threshold.
+
+| Event | Files | Sound | Plays when |
+|---|---|---|---|
+| ui_click | click_1–3 | a fingertip on a wax tablet's wooden frame | Any button, row, checkbox, slider or field is pressed (one helper reads ImGui's activation each frame; pressing a window's empty space or a scrollbar is quiet) |
+| place_building | place_1–3 | a stone block set down, then a mallet tap | A building (or a row of houses) is placed where the ghost was green and the treasury can pay |
+| place_road | road_1–2 | a spade of gravel scraped and dropped | A road, bridge, pipe or sewer is laid |
+| demolish | crumble_1–2 | a wall pulled down, rubble settling | The demolish tool clears something (a building or a road) |
+| coin | coins_1–2 | coins dropped on a table | At least `coin_min_denarii` moved since the last look in exports, imports, grants from Rome, festivals or other payments (taxes and wages trickle and stay quiet) |
+| message | scroll_1–2 | a papyrus scroll unrolled | A new letter |
+| alert | chime_1–2 | a small bronze bell, struck twice | A riot, slave revolt, disease, angry god, request from Rome or low treasury alert (a letter in the same moment wins: one notification sound at a time) |
+| fire | fire_1–2 | a whoosh, then crackling timber | A building catches fire (positional) |
+| collapse | collapse_1–2 | a long rumble and falling masonry | A building collapses (positional), or an earthquake (everywhere) |
+| battle | clash_1–3 | swords and shields | Soldiers are striking while the city's time runs; heard from the striker nearest the centre of the view (positional) |
+| raid | horn_1 | a low cornu call | Raiders sighted |
+| legion | horn_2 | a lower cornu call | A cohort leaves on campaign or comes home |
+| festival | cheer_1–2 | a crowd cheering and clapping | A festival begins, a monument is dedicated, a campaign is won |
+| mission_won | cheer_1–2 | the same | The mission is won |
+
+- **Engine:** `platform::Audio` decodes each effect into memory once at start-up (`load_clip`, 16-bit, about 8 MB in all) and plays it on a fixed pool of 16 voices (`play_sfx`: gain, equal-power pan, playback rate); when every voice is busy, the one nearest its end is cut. Playing allocates nothing. Clips ramp in and out over 32 frames, whatever the encoder left at their edges. Music and effects share one master that bends smoothly toward full scale above 0.9 instead of clipping. With no device nothing is loaded and nothing plays.
+- **Director:** `game::SoundDirector` (`src/game/sfx.*`) plays interface sounds when asked, and every 0.25 s compares the world with its last look (`SfxWatch` in `src/game/sfx_rules.*`, which has no SDL dependency and is unit-tested in `tests/test_sfx.cpp`). The sim knows nothing about sound: every cue is derived from state the game already sees (alerts, letters, soldiers, the festival, the ledger, the mission state). A new or loaded city starts a fresh watch, so what is already there makes no sound.
+- **Rate limits:** cooldowns and `max_playing` are in real seconds and voices, not game time, so fast-forward never machine-guns a sound; a variant never repeats twice in a row; pitch and gain vary a little per play from a presentation-only RNG (never the sim's streams).
+- **Positional events** (fire, collapse, battle) are heard only on or near the screen. Distance is measured in half-screens from the centre of the view: full gain inside `full` (0.8), falling to `far_gain` (0.3) at `max` (2.0, a screen beyond the edge), silent further off; panned up to `pan` (0.6) toward the side they are on.
+- **Ambient bed:** `city_1`, a 24 s seamless stereo loop (distant murmur and babble, a far workshop, sparrows, swifts) plays under the city while a mission is on screen. Every 0.5 s the director counts the people living and working in the buildings on screen; the bed is silent below `people_min`, full at `people_full` (square-root curve), and fades over `fade_s`. It fades out on the menus.
+- **Volume:** "Sound effects volume" scales the effects and the ambient bed (`sfx_volume`); "Music volume" is separate.
+
+### Workflow
+
+```bash
+python3 -m venv tools/sfxgen/.venv && tools/sfxgen/.venv/bin/pip install -r tools/musicgen/requirements.txt
+tools/sfxgen/.venv/bin/python tools/sfxgen/build_all.py --review          # everything (~3 min)
+tools/sfxgen/.venv/bin/python tools/sfxgen/build_all.py --only click_1,click_2
+tools/sfxgen/.venv/bin/python tools/sfxgen/build_all.py --check           # check the files in assets/sfx only
+```
+
+Files are `<sound>_<variant>.ogg` in `assets/sfx/` (mono Vorbis q3; the ambient loop stereo q2; all under 1 MB together), each seeded from its name. After encoding, every file is decoded again and checked: 44.1 kHz, peak at most 0.95, no DC, silent first and last samples (no click), a seamless loop seam, and at most 15% of the energy above 6 kHz (harshness). `--review` writes a spectrogram and level curve per file to `build/sfx_review/`. To add a sound: write a function in `tools/sfxgen/sounds.py`, list it in `SOUNDS`, name its files in `data/defs/sfx.json`, render, and trigger the event from `src/game/`.

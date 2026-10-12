@@ -125,6 +125,7 @@ void App::start_scenario(sim::ScenarioSpec spec) {
   screen_ = Screen::Playing;
   speed_ = 1;
   music_.mission_started(*world_);
+  sfx_.city_changed();
 }
 
 void App::new_world(const std::string& scenario) {
@@ -295,6 +296,7 @@ bool App::load_slot(const std::string& name) {
   screen_ = Screen::Playing;
   speed_ = 0;
   music_.mission_started(*world_);
+  sfx_.city_changed();
   status_ = "Loaded (" + name + ").";
   status_time_ = 4;
   return true;
@@ -337,8 +339,12 @@ bool App::init(const AppOptions& opt) {
     apply_roman_style(settings_.ui_scale);
   }
   if (!renderer_.init(win_, root_)) return false;
-  if (opt.screenshot.empty() && !opt.mute && audio_.init()) audio_.set_volume(settings_.music_volume);
+  if (opt.screenshot.empty() && !opt.mute && audio_.init()) {
+    audio_.set_volume(settings_.music_volume);
+    audio_.set_sfx_volume(settings_.sfx_volume);
+  }
   music_.init(root_, &audio_);
+  sfx_.init(root_, &audio_);
   set_overlay_colorblind(settings_.colorblind);
   mods_ = find_mods(root_, user_dir_);
   {
@@ -502,7 +508,21 @@ void App::handle_event(const SDL_Event& e) {
         }
         dragging_ = false;
       }
-      if (e.button.button == SDL_BUTTON_LEFT) tools_.mouse_up(mouse_tile(), *world_);
+      if (e.button.button == SDL_BUTTON_LEFT && tools_.mouse_up(mouse_tile(), *world_)) {
+        switch (tools_.did()) {
+          case ToolDid::Built:
+            sfx_.play("place_building");
+            break;
+          case ToolDid::Road:
+            sfx_.play("place_road");
+            break;
+          case ToolDid::Demolished:
+            sfx_.play("demolish");
+            break;
+          case ToolDid::None:
+            break;
+        }
+      }
       break;
     case SDL_EVENT_MOUSE_MOTION:
       tools_.mouse_move(mouse_tile());
@@ -716,6 +736,7 @@ void App::run() {
                                                              : MusicContext::Setup;
       const bool end_screen = world_->mission != sim::MissionState::Running && !end_dismissed_;
       music_.update(static_cast<f32>(dt), ctx, screen_ == Screen::Playing ? world_.get() : nullptr, end_screen);
+      sfx_.update(static_cast<f32>(dt), screen_ == Screen::Playing ? world_.get() : nullptr, renderer_.camera());
       audio_.pump();
     }
     renderer_.time += static_cast<f32>(dt);
@@ -730,6 +751,7 @@ void App::run() {
     ImGui::NewFrame();
     draw_ui();
     ImGui::Render();
+    sfx_.ui_frame();
     skin_.process(ImGui::GetDrawData());
     const auto pt2 = PerfClock::now();
 

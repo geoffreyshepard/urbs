@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
 
 #include "core/log.hpp"
 
@@ -22,6 +23,14 @@ constexpr int kRate = 44100;
 constexpr int kChunk = 1024;             // frames mixed per step
 constexpr int kQueueFrames = kRate / 4;  // keep ~250 ms queued: survives a slow frame
 constexpr f32 kDuckRamp = 1.0f / (0.15f * kRate);
+constexpr f32 kEdgeFrames = 32;  // decoded one-shots ramp in and out over this many frames: never a click
+// Music and effects together can pass full scale: above kKnee the master bends smoothly toward 1.
+constexpr f32 kKnee = 0.9f;
+inline f32 soft_clip(f32 x) {
+  const f32 a = std::fabs(x);
+  if (a <= kKnee) return x;
+  return std::copysign(kKnee + (1.0f - kKnee) * std::tanh((a - kKnee) / (1.0f - kKnee)), x);
+}
 }  // namespace
 
 bool Audio::init() {
@@ -45,6 +54,9 @@ void Audio::shutdown() {
   close(music_[0]);
   close(music_[1]);
   close(stinger_);
+  clips_.clear();
+  for (SfxVoice& v : sfx_) v = SfxVoice{};
+  ambient_ = AmbientVoice{};
   if (stream_) SDL_DestroyAudioStream(stream_);
   stream_ = nullptr;
 }
@@ -104,6 +116,128 @@ void Audio::play_stinger(const std::string& path, f32 duck_db) {
   duck_target_ = std::pow(10.0f, duck_db / 20.0f);
 }
 
+int Audio::load_clip(const std::string& path) {
+  if (!stream_) return -1;
+  for (size_t k = 0; k < clips_.size(); ++k)
+    if (clips_[k].path == path) return static_cast<int>(k);
+  int channels = 0, rate = 0;
+  short* pcm = nullptr;
+  const int frames = stb_vorbis_decode_filename(path.c_str(), &channels, &rate, &pcm);
+  if (frames <= 0 || !pcm || channels < 1 || channels > 2) {
+    URBS_LOG_WARN("cannot load sound {}", path);
+    free(pcm);  // NOLINT(cppcoreguidelines-no-malloc): stb_vorbis allocates with malloc
+    return -1;
+  }
+  if (rate != kRate) URBS_LOG_WARN("sound {}: {} Hz, expected {} Hz", path, rate, kRate);
+  Clip c;
+  c.path = path;
+  c.channels = channels;
+  c.frames = static_cast<u32>(frames);
+  c.data.assign(pcm, pcm + static_cast<size_t>(frames) * static_cast<size_t>(channels));
+  free(pcm);  // NOLINT(cppcoreguidelines-no-malloc)
+  clips_.push_back(std::move(c));
+  return static_cast<int>(clips_.size()) - 1;
+}
+
+void Audio::play_sfx(int clip, f32 gain, f32 pan, f32 pitch) {
+  if (!stream_ || clip < 0 || clip >= static_cast<int>(clips_.size()) || gain <= 0) return;
+  // A free voice, else the one closest to its end (the least of it is lost).
+  SfxVoice* v = nullptr;
+  f32 best = -1;
+  for (SfxVoice& s : sfx_) {
+    if (s.clip < 0) {
+      v = &s;
+      break;
+    }
+    const f32 done = static_cast<f32>(s.pos) / static_cast<f32>(clips_[static_cast<size_t>(s.clip)].frames);
+    if (done > best) {
+      best = done;
+      v = &s;
+    }
+  }
+  // Equal-power pan, with the centre at unity on both sides.
+  const f32 th = (std::clamp(pan, -1.0f, 1.0f) + 1.0f) * 0.785398f;
+  v->clip = clip;
+  v->pos = 0;
+  v->rate = std::clamp(pitch, 0.5f, 2.0f);
+  v->left = gain * std::cos(th) * 1.41421f;
+  v->right = gain * std::sin(th) * 1.41421f;
+}
+
+int Audio::sfx_playing(int clip) const {
+  int n = 0;
+  for (const SfxVoice& v : sfx_) n += v.clip == clip && clip >= 0;
+  return n;
+}
+
+void Audio::set_ambient(int clip, f32 gain, f32 fade_s) {
+  if (!stream_) return;
+  const f32 step = 1.0f / (std::max(fade_s, 0.01f) * kRate);
+  if (clip < 0 || clip >= static_cast<int>(clips_.size()) || gain <= 0) {
+    ambient_.target = 0;  // fade out whatever plays; render_sfx frees the voice once silent
+    ambient_.step = step;
+    return;
+  }
+  if (clip != ambient_.clip) {
+    ambient_ = AmbientVoice{};
+    ambient_.clip = clip;
+  }
+  ambient_.target = gain;
+  ambient_.step = step;
+}
+
+void Audio::render_sfx(int n) {
+  const f32 vol = sfx_volume_ / 32768.0f;  // clips hold 16-bit samples
+  for (SfxVoice& v : sfx_) {
+    if (v.clip < 0) continue;
+    const Clip& c = clips_[static_cast<size_t>(v.clip)];
+    const i16* src = c.data.data();
+    const auto d = [src](u32 i) { return static_cast<f32>(src[i]); };
+    const u32 last = c.frames - 1;
+    for (int i = 0; i < n; ++i) {
+      const u32 k = static_cast<u32>(v.pos);
+      if (k >= last) {
+        v.clip = -1;
+        break;
+      }
+      const f32 frac = static_cast<f32>(v.pos - static_cast<f64>(k));
+      // Ramps at both ends of the clip, whatever the encoder left there.
+      const f32 edge = std::min({1.0f, static_cast<f32>(k) / kEdgeFrames, static_cast<f32>(last - k) / kEdgeFrames});
+      f32 l, r;
+      if (c.channels == 2) {
+        l = d(2 * k) + (d(2 * k + 2) - d(2 * k)) * frac;
+        r = d(2 * k + 1) + (d(2 * k + 3) - d(2 * k + 1)) * frac;
+      } else {
+        l = r = d(k) + (d(k + 1) - d(k)) * frac;
+      }
+      const size_t o = static_cast<size_t>(2 * i);
+      mix_[o] += l * v.left * edge * vol;
+      mix_[o + 1] += r * v.right * edge * vol;
+      v.pos += v.rate;
+    }
+  }
+  AmbientVoice& a = ambient_;
+  if (a.clip < 0) return;
+  const Clip& c = clips_[static_cast<size_t>(a.clip)];
+  for (int i = 0; i < n; ++i) {
+    if (a.gain < a.target)
+      a.gain = std::min(a.target, a.gain + a.step);
+    else if (a.gain > a.target)
+      a.gain = std::max(a.target, a.gain - a.step);
+    const size_t o = static_cast<size_t>(2 * i);
+    const f32 g = a.gain * vol;
+    if (c.channels == 2) {
+      mix_[o] += static_cast<f32>(c.data[2 * static_cast<size_t>(a.pos)]) * g;
+      mix_[o + 1] += static_cast<f32>(c.data[2 * static_cast<size_t>(a.pos) + 1]) * g;
+    } else {
+      mix_[o] += static_cast<f32>(c.data[a.pos]) * g;
+      mix_[o + 1] += static_cast<f32>(c.data[a.pos]) * g;
+    }
+    if (++a.pos >= c.frames) a.pos = 0;  // the file is a seamless loop
+  }
+  if (a.target == 0 && a.gain == 0) a.clip = -1;
+}
+
 bool Audio::music_playing() const {
   const Voice& v = music_[active_];
   return v.dec != nullptr && v.target > 0 && !current_.empty();
@@ -159,6 +293,8 @@ void Audio::pump() {
                                  : std::max(duck_target_, duck_ - kDuckRamp * static_cast<f32>(n));
     for (Voice& v : music_) render(v, n, volume_ * duck_);
     render(stinger_, n, volume_);
+    render_sfx(n);
+    for (int i = 0; i < 2 * n; ++i) mix_[static_cast<size_t>(i)] = soft_clip(mix_[static_cast<size_t>(i)]);
     SDL_PutAudioStreamData(stream_, mix_.data(), n * 8);
     need -= n;
   }

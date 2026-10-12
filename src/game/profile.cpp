@@ -34,13 +34,19 @@ void Settings::load(const std::string& dir) {
   difficulty = j.value("difficulty", difficulty);
   colorblind = j.value("colorblind", colorblind);
   music_volume = std::clamp(j.value("music_volume", music_volume), 0.0f, 1.0f);
+  sfx_volume = std::clamp(j.value("sfx_volume", sfx_volume), 0.0f, 1.0f);  // absent before v1.1: the default
   mods = j.value("mods", mods);
 }
 
 void Settings::save(const std::string& dir) const {
-  write_json(dir + "settings.json", json{{"ui_scale", ui_scale}, {"edge_scroll", edge_scroll}, {"autosave", autosave},
-                                         {"fullscreen", fullscreen}, {"difficulty", difficulty},
-                                         {"colorblind", colorblind}, {"music_volume", music_volume},
+  write_json(dir + "settings.json", json{{"ui_scale", ui_scale},
+                                         {"edge_scroll", edge_scroll},
+                                         {"autosave", autosave},
+                                         {"fullscreen", fullscreen},
+                                         {"difficulty", difficulty},
+                                         {"colorblind", colorblind},
+                                         {"music_volume", music_volume},
+                                         {"sfx_volume", sfx_volume},
                                          {"mods", mods}});
 }
 

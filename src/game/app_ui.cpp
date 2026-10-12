@@ -1313,6 +1313,10 @@ void App::draw_settings() {
   row("Music volume");
   if (ImGui::SliderFloat("##music", &settings_.music_volume, 0.0f, 1.0f, "%.2f"))
     audio_.set_volume(settings_.music_volume);
+  row("Sound effects volume");
+  if (ImGui::SliderFloat("##sfx", &settings_.sfx_volume, 0.0f, 1.0f, "%.2f"))
+    audio_.set_sfx_volume(settings_.sfx_volume);
+  if (ImGui::IsItemDeactivatedAfterEdit()) sfx_.play("place_building");  // hear the new level
   divider();
   if (dialog_button("Done", std::round(fs * 9))) {
     settings_.save(user_dir_);

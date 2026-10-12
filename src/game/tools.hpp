@@ -9,6 +9,9 @@ namespace urbs::game {
 class WorldView;
 
 enum class ToolKind : u8 { Inspect, Build, Road, Demolish };
+// What the last mouse release did, for the sound it makes (sfx.cpp). None when nothing will happen:
+// the ghost was red everywhere, or there was nothing to clear.
+enum class ToolDid : u8 { None, Built, Road, Demolished };
 
 // Player construction tools: turns mouse input into sim Commands, draws placement ghosts.
 class Tools {
@@ -43,6 +46,7 @@ class Tools {
   bool mouse_down(Vec2i tile);
   void mouse_move(Vec2i tile) { hover_ = tile; }
   bool mouse_up(Vec2i tile, sim::World& w);
+  [[nodiscard]] ToolDid did() const { return did_; }
   void draw(const sim::World& w, const WorldView& view, render::Renderer& r) const;
   [[nodiscard]] bool dragging() const { return dragging_; }
 
@@ -67,6 +71,7 @@ class Tools {
  private:
   Vec2i hover_{0, 0}, start_{0, 0};
   bool dragging_ = false;
+  ToolDid did_ = ToolDid::None;
   static constexpr u8 kAutoRot = 0xFF;  // not turned by the player: houses auto-face, others rot 0
   std::vector<u8> rot_;                 // by building def
 };

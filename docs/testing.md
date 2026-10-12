@@ -4,7 +4,7 @@ Urbs is tested in layers, from seconds to hours. The autoplay bot (`src/sim/auto
 
 ## 1. `ctest --preset dev` (about a minute, every commit)
 
-- **Unit tests** (`tests/test_*.cpp`): determinism and save round-trips, pathfinding, the water network, military, Lua scripts, monuments, map files, entrances, defences, expiring deliveries, exports and a crowded trade post, every good having a source and a use, and music rules.
+- **Unit tests** (`tests/test_*.cpp`): determinism and save round-trips, pathfinding, the water network, military, Lua scripts, monuments, map files, entrances, defences, expiring deliveries, exports and a crowded trade post, every good having a source and a use, music rules, and sound-effect rules (every event has its files, positional fall-off, the ambient level, and the watcher hearing each change in the city once).
 - **Chaos on a small town:** a town played by the chaos player for ten days stays consistent and reloads exactly.
 - **Scenario tests** (`tests/scenarios/*.json` with a `"test"` block): small towns run headless with expectations. These include:
   - minimum citizens, stock, production and births;
