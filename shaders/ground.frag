@@ -21,6 +21,19 @@ layout(location = 0) out vec4 o_color;
 
 const vec3 kLuma = vec3(0.299, 0.587, 0.114);
 
+// Value noise over the sim grid (tiles), for the meadow variation below.
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+float vnoise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float a = hash12(i), b = hash12(i + vec2(1, 0)), c = hash12(i + vec2(0, 1)), d = hash12(i + vec2(1, 1));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
 void main() {
   vec4 c = texture(tex, vec3(v_uv, v_layer)) * v_color;
   int kind = int(v_kind + 0.5);
@@ -41,6 +54,21 @@ void main() {
   float lush = clamp((g.b - 0.5) * 2.0, 0.0, 1.0);
   float l = dot(c.rgb, kLuma);
   bool water = c.b > c.r + 0.06 && c.b > c.g;
+  if (terrain && !water && veg > 0.0) {
+    // Meadow variation in world space (the grass art repeats every two tiles): broad lush and pale
+    // swathes a few tiles across, sun-dried patches, and darker clover clumps.
+    vec2 t = v_world * (1.0 / 16.0);
+    float n1 = vnoise(t * 0.17 + vec2(3.1, 7.7));
+    float n2 = vnoise(t * 0.55 + vec2(17.0, 5.0));
+    float n3 = vnoise(t * 2.1 + vec2(41.0, 13.0));
+    float lv = dot(c.rgb, kLuma);
+    c.rgb *= mix(0.84, 1.13, n1 * 0.75 + n2 * 0.25) * veg + (1.0 - veg);
+    c.rgb = mix(c.rgb, c.rgb * vec3(1.10, 1.05, 0.80), smoothstep(0.55, 0.9, n1) * 0.55 * veg);
+    c.rgb = mix(c.rgb, c.rgb * vec3(0.90, 1.00, 1.02), smoothstep(0.45, 0.1, n1) * 0.5 * veg);
+    float dryp = smoothstep(0.64, 0.80, n2 * 0.65 + n3 * 0.35);
+    c.rgb = mix(c.rgb, vec3(lv) * vec3(1.32, 1.14, 0.72), dryp * 0.45 * veg);
+    c.rgb *= 1.0 - smoothstep(0.72, 0.92, n3) * (1.0 - dryp) * 0.10 * veg;
+  }
   if (terrain && !water) {
     // Dry, straw-coloured patches (stronger in summer) and winter browning, on vegetation only.
     float dry = veg * clamp(u.season.x + (1.0 - lush) * u.season.y, 0.0, 1.0) * 0.45;

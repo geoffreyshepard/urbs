@@ -66,15 +66,29 @@ void WorldView::init(const render::Atlas& atlas, const data::Defs& defs, const s
     goods16_.push_back(atlas.find("goods/" + g.id + "_16"));
   }
   static const char* kDirs[4] = {"n", "e", "s", "w"};
+  // Clothing variants: variant 0 is people/<class>_<d>_<f>, k > 0 people/<class>_v<k>_<d>_<f>; a
+  // variant counts only when all 16 frames exist.
+  auto load_people = [&](const std::string& cn, render::Sprite(&out)[kPeopleVariants][4][4]) {
+    int n = 0;
+    for (int v = 0; v < kPeopleVariants; ++v) {
+      const std::string base = "people/" + cn + (v ? "_v" + std::to_string(v) : std::string()) + "_";
+      bool all = true;
+      for (int d = 0; d < 4; ++d)
+        for (int f = 0; f < 4; ++f) {
+          const std::string name = base + kDirs[d] + "_" + std::to_string(f);
+          out[n][d][f] = v ? atlas.find(name) : atlas.get(name);
+          all = all && out[n][d][f].valid;
+        }
+      if (all || v == 0) ++n;
+    }
+    return static_cast<u8>(n);
+  };
   for (int c = 0; c < static_cast<int>(sim::CitizenClass::Count); ++c) {
     std::string cn = sim::class_name(static_cast<sim::CitizenClass>(c));
     if (cn == "libertus") cn = "liberti";
-    for (int d = 0; d < 4; ++d)
-      for (int f = 0; f < 4; ++f)
-        people_[c][d][f] = atlas.get("people/" + cn + "_" + kDirs[d] + "_" + std::to_string(f));
+    people_variants_[c] = load_people(cn, people_[c]);
   }
-  for (int d = 0; d < 4; ++d)
-    for (int f = 0; f < 4; ++f) child_[d][f] = atlas.get("people/child_" + std::string(kDirs[d]) + "_" + std::to_string(f));
+  child_variants_ = load_people("child", child_);
   for (int v = 0; v < 4; ++v) scaffold_[v] = atlas.find("fx/scaffold_" + std::to_string(v));
   foundation_ = atlas.find("fx/foundation");
   for (int d = 0; d < 4; ++d) ship_[d] = atlas.find(std::string("fx/ship_") + kDirs[d]);
@@ -343,7 +357,11 @@ void WorldView::draw(const sim::World& w, render::Renderer& r, f32 alpha) {
     const f32 el = static_cast<f32>(w.now - C.walk_start[i]) + alpha;
     const int frame = static_cast<int>(el / 2.5f) & 3;
     const bool child = C.age_years(i, w.now) < 14;
-    const Sprite& s = child ? child_[facing][frame] : people_[static_cast<int>(C.cls[i])][facing][frame];
+    // Clothing variant: stable per citizen slot (a hash of the index, so neighbours differ).
+    const u32 vh = (i * 2246822519u) ^ (i >> 7) * 3266489917u;
+    const int cls = static_cast<int>(C.cls[i]);
+    const Sprite& s = child ? child_[(vh >> 20) % child_variants_][facing][frame]
+                            : people_[cls][(vh >> 20) % people_variants_[cls]][facing][frame];
     r.push(iso_instance(s, foot, z));
     if (C.carrying[i]) {
       const Sprite& g = good_icon(GoodId{static_cast<u16>(C.carrying[i] - 1)}, false);

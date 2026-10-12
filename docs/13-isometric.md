@@ -164,6 +164,33 @@ buildings become visible in rot 1 and 2. Anchors are merged into the meta json u
 so several Blender processes may render subsets of one family at once. Sample counts match the
 originals: 48 for `civic` and `logistics`, the default 64 for the others.
 
+## Streets and open ground
+
+Streets must read as the city's grid at every zoom (owner's critique, 2026-10-11):
+
+- **Roads** (`terrain_tex.py: roads()`) fill most of the tile diamond: dirt is light packed earth (half width 0.39
+  tile) with a soft worn edge of trodden earth and grass tufts (0.08); paved is light grey polygonal stone (0.35) with
+  a kerb of cream travertine blocks (0.105), clearly unlike the cream square slabs of plazas. Each piece (centre `_c`,
+  spokes `_n`..`_nw`, diagonal fills `_fill_<corner>`) has a surface sprite and an edge-band sprite
+  (`road/<kind>_k_<piece>`, the band only). `build_chunk` draws a tile's bands one ground sub-layer under its
+  surfaces (`kLayerKerb` < `kLayerRoad`), so the union of the surfaces hides every inner overlap and the kerb shows
+  only along the street's outline, in every autotile shape. Where both side neighbours and the diagonal between them
+  are road, a solid quarter (`road/<kind>_q_<corner>`) fills the corner, so wide streets and squares have no kerb
+  islands. Surfaces carry no edge shading of their own (they overlap each other).
+- **Meadow variation** (`shaders/ground.frag`): on vegetation only, world-space value noise adds broad lush and pale
+  swathes a few tiles across, sun-dried patches about two tiles across and darker clover clumps, so open lots stop
+  looking flat; the grass art itself repeats every two tiles.
+- **Meadow decor** (`terrain.py`: `obj/tuft_<0..2>`, `obj/flowers_<0..3>` poppies / yellow / daisies / violets,
+  `obj/pebbles_<0..1>`): scattered by a hash of the tile over empty grass and fertile land in the static chunk layer
+  (no per-frame cost), up to two pieces per tile, fewer and no flowers beside roads. All are knee-high at most; tall
+  trees grow only on forest terrain (grass and fertile tiles get low bushes instead), so nothing tall stands on
+  buildable ground. Built-on and road tiles skip decor, and the chunk rebuild on any map change removes it.
+- **Grade:** the day keyframes in `game/lighting.cpp` give a gently warm light, vibrance (saturation 1.10-1.16),
+  S-curve contrast 1.12-1.16 and a soft vignette; rain and storms flatten contrast and saturation back down.
+- **Contact shadows:** not added. Buildings bake their own shadows and draw their own lot ground, so a dark footprint
+  quad under them would be hidden by the lot.
+- Screenshots: `--hour H` lights the world at a fixed hour (presentation only), alongside `--weather NAME`.
+
 ## Readability rules (from the art test brief)
 
 Each category owns an accent no other category uses: housing is quiet (muted plaster, faded

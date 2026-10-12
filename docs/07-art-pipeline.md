@@ -39,10 +39,15 @@ Expect iteration. Programmatic pixel art reaches "clean and stylized" reliably, 
 |---|---|
 | Patricians | White toga with a purple stripe |
 | Equites | Off-white with a narrow stripe |
-| Plebeians | Undyed browns and ochres |
-| Freedmen | Muted greens and blues |
-| Slaves | Plain gray tunic |
-| Soldiers | Roman red with metal gray |
+| Plebeians | The whole range of cheap dyes: brown, undyed wool, madder red, faded blue, saffron, white, green, ochre, fawn, mulberry; some women in ankle-length dresses with a shawl |
+| Freedmen | Muted greens, blues, ochre and russet, always with the freedman's cap |
+| Slaves | Drab: plain gray, grey-brown, undyed grey-beige |
+| Soldiers | Roman red with metal gray (units keep their uniforms, no variants) |
+
+Each class has several clothing variants (`VARIANTS` in `tools/artgen3d/people.py`: variant 0 is
+`people/<class>_<d>_<f>`, variant k is `people/<class>_v<k>_<d>_<f>`; children have four too). The world view picks one
+per citizen from a hash of its index, so a crowd reads as many people instead of one brown streak. Baked variants cost
+no extra instances or draw calls; 320 small sprites add about 4% of one atlas page.
 
 **UI type:** Alegreya Sans for all UI text and Cinzel (Roman inscriptional capitals) for window titles and headings,
 both SIL OFL fonts in `assets/fonts` (the one exception to "art is code"). `game/style.cpp` loads them;

@@ -41,6 +41,15 @@ def _mats():
         "olive_crown": material("olive_crown", "#6f7f45", "#5c6a39", scale=22, bump=0.5,
                                 detail=(1.4, "#8d9a62")),
         "fish": material("fish", "#9fb3bf", "#7b8f9c", scale=20, rough=0.3, metal=0.4),
+        "tuft": material("tuft", "#58782a", "#476424", scale=30, bump=0.2),
+        "tuft2": material("tuft2", "#7a9038", "#66802f", scale=30, bump=0.2),
+        "tuft_lush": material("tuft_lush", "#4c7428", "#3f6322", scale=30, bump=0.2),
+        "tuft_dry": material("tuft_dry", "#b4a058", "#9c8a4a", scale=30, bump=0.2),
+        "tuft_dry2": material("tuft_dry2", "#8f9446", "#7c823c", scale=30, bump=0.2),
+        "poppy": material("poppy", "#d23a2a", "#b82e22", scale=20, bump=0.0),
+        "yellow": material("yellow", "#f0c832", "#dcb428", scale=20, bump=0.0),
+        "daisy": material("daisy", "#f6f3ea", "#e6e2d6", scale=20, bump=0.0),
+        "violet": material("violet", "#9a6cc8", "#7f56ae", scale=20, bump=0.0),
         "foam": material("foam", "#e6f0f2", "#d0dee2", scale=10, bump=0.0, alpha=0.75),
     }
 
@@ -195,6 +204,55 @@ def boulder(M, X, kind, seed):
     _catcher(-0.3, 0.4)
 
 
+# ---------------------------------------------------------------- meadow decor (render only)
+# Small, low things the game scatters over empty grass (render/terrain.cpp, build_chunk): nothing
+# here stands taller than a person's knee, so the decor never reads as an obstacle or a tree.
+
+def _blade(x, y, h, lean, ang, mat, w=0.011):
+    ca, sa = math.cos(ang), math.sin(ang)
+    tip = (x + lean * ca, y + lean * sa, h)
+    mesh("blade", [(x - w * sa, y + w * ca, 0), (x + w * sa, y - w * ca, 0), tip], [(0, 1, 2)], mat)
+
+
+def tuft(M, X, kind, seed):
+    """A clump of grass blades; kind 0 green, 1 lush, 2 dry."""
+    mats = [X[("tuft", "tuft_lush", "tuft_dry")[kind]], X[("tuft2", "tuft_lush", "tuft_dry2")[kind]]]
+    rnd = random.Random(seed)
+    for c in range(rnd.randint(2, 3)):
+        cx, cy = rnd.uniform(-0.09, 0.09), rnd.uniform(-0.09, 0.09)
+        for i in range(rnd.randint(9, 14)):
+            a = rnd.uniform(0, 2 * math.pi)
+            r = rnd.uniform(0, 0.035)
+            _blade(cx + r * math.cos(a), cy + r * math.sin(a), rnd.uniform(0.05, 0.1),
+                   rnd.uniform(0.01, 0.04), a, mats[i % 2])
+
+
+def flowers(M, X, kind, seed):
+    """A patch of wildflowers in low grass: 0 poppies, 1 yellow, 2 white daisies, 3 violet."""
+    petal = X[("poppy", "yellow", "daisy", "violet")[kind]]
+    rnd = random.Random(seed)
+    for i in range(rnd.randint(18, 24)):
+        a = rnd.uniform(0, 2 * math.pi)
+        r = 0.17 * math.sqrt(rnd.random())
+        x, y = r * math.cos(a), r * math.sin(a)
+        h = rnd.uniform(0.035, 0.07)
+        for j in range(4):
+            _blade(x, y, h * rnd.uniform(0.6, 0.9), 0.02, rnd.uniform(0, 2 * math.pi), X["tuft"], w=0.008)
+        rr = rnd.uniform(0.018, 0.026)
+        blob(x, y, h, rr, rr, rr * 0.6, petal, segs=8, rings=4, name="flower")
+        if kind == 2:
+            blob(x, y, h + rr * 0.4, rr * 0.4, rr * 0.4, rr * 0.3, X["yellow"], segs=6, rings=3, name="eye")
+
+
+def pebbles(M, X, seed):
+    rnd = random.Random(seed)
+    for i in range(rnd.randint(3, 5)):
+        a = rnd.uniform(0, 2 * math.pi)
+        r = rnd.uniform(0, 0.12)
+        rock(r * math.cos(a), r * math.sin(a), rnd.uniform(0.018, 0.04), X["boulder"], seed + i, squash=0.5)
+    _catcher(-0.25, 0.3)
+
+
 def outcrop(mat, seed, n=4, s=0.09, spread=0.16, extra=None):
     rnd = random.Random(seed)
     for i in range(n):
@@ -300,6 +358,12 @@ for _i in range(3):
     _add("obj/bush_%d" % _i, bush, _i, 40 + _i)
     _add("obj/reeds_%d" % _i, reeds, (26, 18, 12)[_i], 50 + _i)
     _add("obj/boulder_%d" % _i, boulder, _i, 60 + _i)
+for _i in range(3):
+    SPRITES["obj/tuft_%d" % _i] = dict(free=True, build=_wrap(tuft, _i, 70 + _i, scale=1.6))
+for _i in range(4):
+    SPRITES["obj/flowers_%d" % _i] = dict(free=True, build=_wrap(flowers, _i, 80 + _i))
+for _i in range(2):
+    _add("obj/pebbles_%d" % _i, pebbles, 90 + _i)
 for _r, _fn in [("clay", res_clay), ("stone", res_stone), ("iron", res_iron), ("silver", res_silver),
                 ("marble", res_marble), ("limestone", res_limestone), ("pozzolana", res_pozzolana),
                 ("fish", res_fish)]:

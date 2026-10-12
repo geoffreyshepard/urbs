@@ -51,42 +51,42 @@ constexpr Preset kDay[] = {
      0.80f},
     {7.5f,
      {0.92f, 0.94f, 1.06f},
-     0.96f,
-     {1.07f, 1.00f, 0.91f},
-     0.92f,
+     0.97f,
+     {1.08f, 1.00f, 0.89f},
+     1.10f,
      {0.020f, 0.020f, 0.035f},
-     0.28f,
-     1.03f,
+     0.34f,
+     1.14f,
      0.85f,
      0.45f},
     {10.0f,
-     {0.94f, 0.96f, 1.05f},
-     1.00f,
-     {1.04f, 1.01f, 0.94f},
-     0.93f,
-     {0.020f, 0.020f, 0.030f},
-     0.24f,
-     1.04f,
+     {0.95f, 0.96f, 1.04f},
+     1.02f,
+     {1.06f, 1.02f, 0.92f},
+     1.16f,
+     {0.016f, 0.014f, 0.022f},
+     0.30f,
+     1.16f,
      1.0f,
      0.24f},
     {15.5f,
-     {0.94f, 0.96f, 1.05f},
-     1.00f,
-     {1.04f, 1.01f, 0.94f},
-     0.93f,
-     {0.020f, 0.020f, 0.030f},
-     0.24f,
-     1.04f,
+     {0.95f, 0.96f, 1.04f},
+     1.02f,
+     {1.06f, 1.02f, 0.92f},
+     1.16f,
+     {0.016f, 0.014f, 0.022f},
+     0.30f,
+     1.16f,
      1.0f,
      0.26f},
     {18.2f,
      {0.86f, 0.86f, 1.06f},
-     0.95f,
+     0.96f,
      {1.14f, 0.98f, 0.80f},
-     0.95f,
+     1.10f,
      {0.030f, 0.020f, 0.030f},
-     0.32f,
-     1.04f,
+     0.36f,
+     1.12f,
      0.85f,
      0.60f},
     {20.0f,
@@ -177,16 +177,16 @@ void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 
   f32 overcast = 0.0f;
   switch (weather) {
     case sim::Weather::Rain:
-      p.exposure *= 0.88f;
-      p.sat *= 0.80f;
-      p.contrast *= 0.95f;
+      p.exposure *= 0.86f;
+      p.sat = std::min(p.sat, 1.0f) * 0.82f;
+      p.contrast = 1.0f + (p.contrast - 1.0f) * 0.35f;  // flat, overcast light
       mul3(p.st, 0.95f, 0.97f, 1.04f);
       overcast = 0.65f;
       break;
     case sim::Weather::Storm:
       p.exposure *= 0.74f;
-      p.sat *= 0.60f;
-      p.contrast *= 0.93f;
+      p.sat = std::min(p.sat, 1.0f) * 0.62f;
+      p.contrast = 1.0f + (p.contrast - 1.0f) * 0.2f;
       mul3(p.st, 0.92f, 0.95f, 1.06f);
       overcast = 0.85f;
       break;

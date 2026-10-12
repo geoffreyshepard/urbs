@@ -50,6 +50,8 @@ AppOptions parse_args(int argc, char** argv) {
     else if (arg("--build-group")) o.build_group = std::atoi(argv[++i]);
     else if (arg("--show")) o.show = argv[++i];
     else if (arg("--weather")) o.weather = argv[++i];
+    else if (arg("--hour"))
+      o.hour = static_cast<float>(std::atof(argv[++i]));
     else if (arg("--career"))
       o.career = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--no-ui") == 0) o.no_ui = true;
@@ -714,7 +716,7 @@ void App::run() {
       if (opt_.weather == sim::weather_name(static_cast<sim::Weather>(k))) weather = static_cast<sim::Weather>(k);
     const bool menu_city = menu_live_ && screen_ != Screen::Playing && screen_ != Screen::Editor;
     if (menu_city && opt_.weather.empty()) weather = sim::Weather::Clear;
-    lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt), menu_city ? kMenuHour : -1.0f);
+    lighting_.update(*world_, weather, alpha_, static_cast<f32>(dt), menu_city ? kMenuHour : opt_.hour);
     renderer_.grade = lighting_.grade;
     renderer_.shadows = lighting_.shadows;
     for (int k = 0; k < 4; ++k) renderer_.ground_season[k] = lighting_.ground[k];

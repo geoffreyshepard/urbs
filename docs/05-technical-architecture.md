@@ -123,8 +123,9 @@ No multiplayer, so bit-exact cross-platform determinism is **not** required. The
 - **Night lights:** lived-in houses and staffed workplaces push their `bld/<name>_lit` window mask (plus a faint
   1-px glow) to a light list. It is drawn additively on the graded frame, depth-tested against the world pass, with
   strength from the grade's night amount, so windows glow instead of being darkened with everything else.
-- **Colour grade** (`shaders/post.frag`): split toning (cool shadows, warm light), exposure, saturation, contrast,
-  lifted blacks and a light vignette. `game/lighting.cpp` keys these by hour (night, dawn, morning, day, golden hour,
+- **Colour grade** (`shaders/post.frag`): split toning (cool shadows, warm light), exposure, saturation (above 1 it
+  acts as vibrance, sparing colours that are already strong), an S-curve contrast that keeps black and white in range,
+  lifted blacks and a soft vignette that leaves the middle of the screen alone. `game/lighting.cpp` keys these by hour (night, dawn, morning, day, golden hour,
   dusk) and adjusts for season and weather, easing between states so weather changes fade in.
 
 ## Cross-platform notes

@@ -207,11 +207,70 @@ CLASSES = {
 }
 
 
-def citizen(kind, d, frame):
+# Clothing variants per class, so a crowd reads as many people rather than one brown streak
+# (docs/07-art-pipeline.md, "People").  Variant 0 is the class look above (people/<kind>_<d>_<f>);
+# variant k > 0 is people/<kind>_v<k>_<d>_<f>.  Each entry: tunic colour, then optional overrides:
+# "woman" (ankle-length dress and long hair), "hair", "belt", "palla" (a shawl over the shoulders).
+# Plebs wear the whole range of cheap dyes; patricians stay white with purple; liberti keep the cap
+# in muted colours; slaves stay drab; soldiers and units keep their uniforms (no variants).
+VARIANTS = {
+    "pleb": [None,
+             ("#d8cba8", {"woman": True, "palla": "#a8402e"}),      # undyed wool, madder shawl
+             ("#a8402e", {}),                                       # madder red
+             ("#5f7f9e", {"woman": True, "hair": "#5a3a22"}),       # faded blue
+             ("#d9a52e", {}),                                       # saffron
+             ("#efe9dc", {"hair": "#8c8478"}),                      # white, greying
+             ("#6b8a4a", {"woman": True}),                          # green
+             ("#c08a3a", {"hair": "#5a3a22"}),                      # ochre
+             ("#b9a27a", {"woman": True, "palla": "#5f7f9e"}),      # fawn, blue shawl
+             ("#8a5a7a", {})],                                      # mulberry
+    "patrician": [None,
+                  ("#f4f1ea", {"woman": True, "palla": "#6e2a7e"}),  # white stola, purple palla
+                  ("#ede4cf", {"hair": "#8c8478"})],                 # off-white toga, grey hair
+    "eques": [None,
+              ("#e6dcc2", {"cloak": "#5f7f9e"})],
+    "liberti": [None,
+                ("#5f7f9e", {}),
+                ("#b07a3e", {}),
+                ("#8e4a38", {"woman": True})],
+    "slave": [None,
+              ("#7a6e5e", {}),
+              ("#9a9282", {"woman": True})],
+    "child": [None,
+              ("#ece6d8", {}),
+              ("#a8402e", {"hair": "#3b2a1e"}),
+              ("#5f7f9e", {"hair": "#5a3a22"})],
+}
+
+
+def variant_look(kind, v, P):
+    look = CLASSES[kind](P)
+    if not v:
+        return look
+    tunic, opts = VARIANTS[kind][v]
+    m = kit.material
+    look["tunic"] = m("p_%s_v%d" % (kind, v), tunic, kind="flat", bump=0)
+    if opts.get("hair"):
+        look["hair"] = m("p_hair_%s" % opts["hair"][1:], opts["hair"], kind="flat", bump=0)
+    if opts.get("woman"):
+        look["hem"] = 0.03
+        look["long_hair"] = True
+        look.pop("belt", None)
+        look.pop("stripes", None)
+        if kind == "patrician":
+            look.pop("hem_band", None)
+    if opts.get("palla"):
+        look["sash"] = m("p_palla_%s" % opts["palla"][1:], opts["palla"], kind="flat", bump=0)
+    if opts.get("cloak"):
+        look["cloak"] = m("p_cloak_%s" % opts["cloak"][1:], opts["cloak"], kind="flat", bump=0)
+    return look
+
+
+def citizen(kind, d, frame, v=0):
     def build(M):
         P = mats()
         rig = Rig(DIRS[d])
-        look = CLASSES[kind](P)
+        look = variant_look(kind, v, P)
         scale = 0.72 if kind == "child" else 1.0
         swing, bob = WALK[frame] if frame is not None else (0.0, 0.0)
         shadow(P, 0.06 * scale)
@@ -394,6 +453,9 @@ for kind in ("pleb", "patrician", "eques", "liberti", "slave", "child", "soldier
     for d in DIRS:
         for f in range(4):
             SPRITES["people/%s_%s_%d" % (kind, d, f)] = dict(free=True, frame=fr, build=citizen(kind, d, f))
+            for v in range(1, len(VARIANTS.get(kind, [None]))):
+                SPRITES["people/%s_v%d_%s_%d" % (kind, v, d, f)] = dict(free=True, frame=fr,
+                                                                        build=citizen(kind, d, f, v))
         SPRITES["people/%s_idle_%s" % (kind, d)] = dict(free=True, frame=fr, build=citizen(kind, d, None))
 
 for kind, fn, fr in (("legionary", legionary, F_UNIT), ("archer", archer, F_UNIT),
