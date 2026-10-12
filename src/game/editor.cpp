@@ -2,6 +2,7 @@
 #include <imgui.h>
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -444,9 +445,17 @@ void App::editor_event(const SDL_Event& e) {
 }
 
 void App::draw_editor() {
-  ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize(ImVec2(400, display().y - 20), ImGuiCond_FirstUseEver);
-  begin_window("Scenario editor", nullptr, ImGuiWindowFlags_NoCollapse);
+  // A column at the left: the title, the settings (scrolling), and the actions always in sight below.
+  const float fs = ImGui::GetFontSize();
+  ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(std::round(fs * 27), display().y - 20), ImGuiCond_Always);
+  begin_window("##editor", nullptr,
+               ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                   ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar);
+  menu_title("Scenario editor");
+  const float footer = std::round(fs * 2.6f) + (ed_.status.empty() ? 0.0f : std::round(fs * 2.6f));
+  ImGui::BeginChild("##editor_settings", ImVec2(0, -footer));
+  ImGui::PushItemWidth(-std::round(fs * 9.5f));  // room for the labels on the right
   if (ImGui::CollapsingHeader("Paint", ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Combo("Brush", &ed_.brush, kBrushes, 7);
     if (ed_.brush == 0) ImGui::Combo("Terrain", &ed_.terrain, kTerrains, 8);
@@ -508,10 +517,12 @@ void App::draw_editor() {
     ImGui::SliderInt("Security", &ed_.security, 0, 100);
     ImGui::TextDisabled("Events and requests: edit script.lua in the scenario folder.");
   }
-  ImGui::Separator();
-  if (ImGui::Button("Save", ImVec2(110, 30))) editor_save();
+  ImGui::PopItemWidth();
+  ImGui::EndChild();
+  const ImVec2 bsz(std::round(fs * 7.5f), std::round(fs * 1.9f));
+  if (ImGui::Button("Save", bsz)) editor_save();
   ImGui::SameLine();
-  if (ImGui::Button("Save and play", ImVec2(130, 30)) && editor_save()) {
+  if (ImGui::Button("Save and play", bsz) && editor_save()) {
     try {
       mission_index_ = -1;
       start_scenario(sim::load_scenario(ed_.path + "/scenario.json"));
@@ -520,7 +531,7 @@ void App::draw_editor() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Menu", ImVec2(110, 30))) {
+  if (ImGui::Button("Menu", bsz)) {
     menu_background();
     screen_ = Screen::Menu;
   }

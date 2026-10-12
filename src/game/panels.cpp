@@ -43,7 +43,8 @@ std::string requirement_text(const data::Defs& defs, const HousingReq& r) {
 
 std::string alert_text(const sim::World& w, const sim::Alert& a) {
   const auto& D = *w.defs;
-  std::string bname = a.b.valid() && w.buildings.alive(a.b) ? D.b(w.buildings[a.b].def).name : "";
+  std::string bname =
+      a.b.valid() && w.buildings.alive(a.b) ? D.b(w.buildings[a.b].def).name : "A building";  // gone since
   switch (a.kind) {
     case sim::AlertKind::HouseDevolved: {
       std::string s = "A house devolved";
@@ -63,7 +64,10 @@ std::string alert_text(const sim::World& w, const sim::Alert& a) {
     case sim::AlertKind::Homeless: return std::to_string(a.arg) + " citizens are homeless";
     case sim::AlertKind::Unemployment: return "Unemployment is high (" + std::to_string(a.arg) + "%)";
     case sim::AlertKind::NoRoad: return bname + " has no road access";
-    case sim::AlertKind::StorageFull: return bname + " is full";
+    case sim::AlertKind::StorageFull:  // arg: a producer's output good + 1, or 0 for a store
+      if (a.arg > 0 && a.arg - 1u < D.goods.size())
+        return bname + " is full: no store has room for its " + D.goods[a.arg - 1u].name;
+      return bname + " is full";
     case sim::AlertKind::TreasuryLow: return "The treasury is nearly empty";
     case sim::AlertKind::Fire: return "Fire! " + bname + " is burning";
     case sim::AlertKind::Collapse: return bname + " collapsed";
@@ -1181,12 +1185,17 @@ void draw_messages(sim::World& w, const UiIcons& icons, u16* last_seen) {
   // Show the oldest unread message (or unanswered choice) as a letter: the advisor's portrait and name, the title,
   // the text, and the answers.
   for (auto& m : w.messages) {
-    if (m.id <= *last_seen && (m.options.empty() || m.answered)) continue;
+    if (m.answered || (m.options.empty() && m.id <= *last_seen)) continue;  // answered, or read
+    // A choice already made is on its way to the sim (applied at the next tick): don't offer it twice.
+    if (std::any_of(w.commands.begin(), w.commands.end(),
+                    [&](const sim::Command& c) { return c.type == sim::CmdType::Answer && c.def == m.id; }))
+      continue;
     const float fs = ImGui::GetFontSize();
     ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * 0.5f, ImGui::GetIO().DisplaySize.y * 0.4f),
                             ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
     ImGui::SetNextWindowSize({std::round(fs * 31), 0}, ImGuiCond_Appearing);
     begin_window(("##msg" + std::to_string(m.id)).c_str(), nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
+    keep_in_front();
     if (m.advisor > 0 && m.advisor <= 5) {
       content_bounds();
       const float pic = std::round(fs * 4.2f);
@@ -1212,7 +1221,15 @@ void draw_messages(sim::World& w, const UiIcons& icons, u16* last_seen) {
     ImGui::TextWrapped("%s", m.text.c_str());
     ImGui::Dummy(ImVec2(0, std::round(fs * 0.5f)));
     if (m.options.empty()) {
-      if (dialog_button("Very well", std::round(fs * 9))) *last_seen = m.id;
+      if (dialog_button("Very well", std::round(fs * 9))) {
+        // Read: hidden at once, and marked answered in the world so a saved game remembers it.
+        *last_seen = std::max(*last_seen, m.id);
+        sim::Command c;
+        c.type = sim::CmdType::Answer;
+        c.def = m.id;
+        c.value = 1;
+        w.push(c);
+      }
     } else {
       for (size_t k = 0; k < m.options.size(); ++k)
         if (dialog_button((m.options[k] + "##o" + std::to_string(k)).c_str())) {
@@ -1220,8 +1237,7 @@ void draw_messages(sim::World& w, const UiIcons& icons, u16* last_seen) {
           c.type = sim::CmdType::Answer;
           c.def = m.id;
           c.value = static_cast<i32>(k + 1);
-          w.push(c);
-          m.answered = static_cast<u8>(k + 1);  // hide immediately; the sim confirms next tick
+          w.push(c);  // the sim marks it answered and runs the script's callback
           *last_seen = std::max(*last_seen, m.id);
         }
     }
@@ -1309,7 +1325,9 @@ BuildingId draw_alerts_panel(const sim::World& w, const UiIcons& icons, const Do
                       (kind == K::GodAngry && (it->arg & 0x100));
     const ImU32 col = good ? kColGood : bad ? kColBad : kColWarn;
     std::string t = alert_text(w, *it);
-    if (it->count > 1) t += "  \xC3\x97" + std::to_string(it->count);
+    // How many times it came up; not for the daily tallies, whose number already says it.
+    if (it->count > 1 && it->kind != sim::AlertKind::Immigrants && it->kind != sim::AlertKind::Emigrants)
+      t += "  \xC3\x97" + std::to_string(it->count);
     ImGui::PushID(k);
     const ImVec2 p = ImGui::GetCursorScreenPos();
     const bool there = it->b.valid() && w.buildings.alive(it->b);

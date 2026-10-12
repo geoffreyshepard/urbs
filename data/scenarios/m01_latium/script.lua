@@ -68,8 +68,8 @@ function on_day(day)
     S.half = true
     urbs.message("Two hundred",
       "Two hundred people now, and they quarrel over the well like a real town. Keep them fed, watered and on good " ..
-      "terms with the gods, and there will be three hundred by the next market day. A Tavern and a Physician " ..
-      "would make them stay.", AEDILE)
+      "terms with the gods, and there will be three hundred by the next market day. Idle hands are the danger: " ..
+      "a Lumber camp or a Mill gives them work.", AEDILE)
   end
 end
 
@@ -95,7 +95,7 @@ function on_request(id, ok)
         "The grain reached Rome. The Senate sends 600 denarii, and Postumius writes that two senators asked him " ..
         "who you were.", QUAESTOR)
     else
-      urbs.message("The grain did not",
+      urbs.message("No grain for Rome",
         "The deadline passed and the grain stayed here. Postumius does not mention it in his letter, " ..
         "which is how I know he noticed.", QUAESTOR)
     end

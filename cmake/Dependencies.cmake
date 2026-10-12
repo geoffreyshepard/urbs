@@ -63,5 +63,7 @@ if(URBS_BUILD_GAME)
     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_sdlgpu3.cpp)
   target_include_directories(imgui_lib SYSTEM PUBLIC ${imgui_SOURCE_DIR} ${imgui_SOURCE_DIR}/backends)
+  # Item hooks for playtest scripts (src/game/play.cpp clicks buttons by label); off unless a script plays.
+  target_compile_definitions(imgui_lib PUBLIC IMGUI_ENABLE_TEST_ENGINE)
   target_link_libraries(imgui_lib PUBLIC SDL3::SDL3-static)
 endif()

@@ -1,0 +1,84 @@
+# args: --scenario data/scenarios/m01_latium/scenario.json
+# Latium's first days, played through the real UI (tools/playtest.sh; commands in docs/testing.md):
+# the founding letter, building while paused, a dragged row of houses, wells and the tutorial letters,
+# and the merchants' choice, which must reach the mission script (it once never did).
+wait 60
+expect screen == playing
+expect unread == 1
+button Very well
+wait 5
+expect unread == 0
+# Paused, the town still builds, and pays at once.
+key space
+expect speed == 0
+mark
+key r
+dragtile 62 90 90 90
+dragtile 76 86 76 89
+key escape
+expect spent == 33
+# One drag lays a row of houses along the street; a house on the road is skipped.
+button Build Housing
+wait 5
+button Housing plot
+wait 5
+expect tool == house_plot
+mark
+dragtile 77 88 88 89
+dragtile 64 91 89 92
+key escape
+expect buildings >= 19
+expect spent >= 180
+# Wells on the street, food, a forum and a shrine: what the tutorial letters ask for.
+button Build Water
+wait 5
+button Well
+wait 5
+clicktile 75 89
+clicktile 89 89
+clicktile 63 93
+key escape
+key r
+dragtile 90 90 90 99
+key escape
+button Build Storage & trade
+wait 5
+button Granary
+wait 5
+clicktile 92 94
+button Build Storage & trade
+wait 5
+button Market (macellum)
+wait 5
+clicktile 92 89
+button Build Farms
+wait 5
+button Wheat farm
+wait 5
+dragtile 94 96 98 98
+button Build Government & decor
+wait 5
+button Forum
+wait 5
+clicktile 87 85
+button Build Religion
+wait 5
+button Shrine
+wait 5
+clicktile 74 87
+key escape
+expect buildings == 28
+# Run the days; read each letter as it comes, until the merchants ask for their 200 denarii.
+advance 6000
+wait 5
+read
+advance 20000
+wait 5
+read
+expect day >= 20
+mark
+button Pay them and open the route
+wait 5
+expect spent == 200
+expect mission == running
+quit

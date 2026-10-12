@@ -1,0 +1,64 @@
+# args: --scenario data/scenarios/m04_capua/scenario.json --autoplay --ticks 24000
+# Every report panel and dialog opened from its own button over a town the bot has built for 20 days,
+# with a screenshot each (out_dir/panels/): they must open, show and close without an error.
+wait 30
+key space
+read
+expect screen == playing
+button Rome
+wait 10
+shot rome.png
+button Rome
+button Advisors
+wait 10
+shot advisors.png
+button Finance
+wait 10
+shot finance.png
+button Goods
+wait 10
+shot goods.png
+button Trade
+wait 10
+shot trade.png
+button Labor
+wait 10
+shot labor.png
+button Religion
+wait 10
+shot religion.png
+button Military
+wait 10
+shot military.png
+button Research
+wait 10
+shot research.png
+button Alerts
+wait 10
+shot alerts.png
+button Help
+wait 10
+shot help.png
+button Help
+button Map overlay
+wait 10
+shot overlay_menu.png
+key escape
+key o
+key o
+wait 40
+shot overlay_water.png
+expect screen == playing
+button Menu
+wait 10
+shot pause.png
+button Settings
+wait 10
+shot settings.png
+button Done
+wait 5
+button Resume
+wait 5
+expect screen == playing
+wait 5
+quit

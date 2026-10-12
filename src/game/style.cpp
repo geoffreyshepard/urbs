@@ -1,6 +1,7 @@
 #include "game/style.hpp"
 
 #include <imgui.h>
+#include <imgui_internal.h>
 
 #include <filesystem>
 
@@ -82,6 +83,8 @@ bool begin_window(const char* name, bool* open, ImGuiWindowFlags flags, Skin ski
   ImGui::PopStyleColor(colors);
   return r;
 }
+
+void keep_in_front() { ImGui::BringWindowToDisplayFront(ImGui::GetCurrentWindow()); }
 
 void heading(const char* text, float scale) {
   ImGui::PushFont(g_fonts.heading, ImGui::GetStyle().FontSizeBase * scale);

@@ -30,6 +30,9 @@ void load_ui_fonts(const std::string& data_root);
 // Card: a slim bronze-edged card for toasts; Cornice / Column: the top bar and the build rail; None: no background
 // of its own) and the padding that frame needs.
 bool begin_window(const char* name, bool* open = nullptr, ImGuiWindowFlags flags = 0, Skin skin = Skin::Panel);
+// Inside a dialog's window (a letter, the pause menu): keep it above the side panels, even one opened
+// after it.
+void keep_in_front();
 // The padding a window drawn as `skin` gets.
 ImVec2 window_padding(Skin skin);
 // A line of text in the heading face, `scale` times the body size.

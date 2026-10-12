@@ -60,6 +60,12 @@ AppOptions parse_args(int argc, char** argv) {
     else if (std::strcmp(argv[i], "--mute") == 0) o.mute = true;
     else if (std::strcmp(argv[i], "--no-vsync") == 0) o.no_vsync = true;
     else if (arg("--perf")) o.perf = std::atoi(argv[++i]);
+    else if (arg("--play"))
+      o.play = argv[++i];
+    else if (arg("--user-dir"))
+      o.user_dir = argv[++i];
+    else if (arg("--play-out"))
+      o.play_out = argv[++i];
     else if (arg("--cam")) {
       o.cam_x = static_cast<f32>(std::atof(argv[++i]));
       if (i + 1 < argc) o.cam_y = static_cast<f32>(std::atof(argv[++i]));
@@ -281,6 +287,11 @@ bool App::load_slot(const std::string& name) {
   mission_index_ = campaign_.index_of(world_->mission_id);
   spec_ = sim::ScenarioSpec{};
   after_world_change();
+  // Letters read before the save are marked answered (see draw_messages).  A save from before that
+  // was recorded marks none: treat all its letters as read rather than show them all again.
+  if (std::none_of(world_->messages.begin(), world_->messages.end(),
+                   [](const sim::Message& m) { return m.options.empty() && m.answered; }))
+    for (const sim::Message& m : world_->messages) last_message_ = std::max(last_message_, m.id);
   screen_ = Screen::Playing;
   speed_ = 0;
   music_.mission_started(*world_);
@@ -292,8 +303,21 @@ bool App::load_slot(const std::string& name) {
 bool App::init(const AppOptions& opt) {
   opt_ = opt;
   user_dir_ = platform::user_data_dir();
+  if (!opt.play.empty() && opt.user_dir.empty()) user_dir_ += "playtest/";  // a playtest never touches the career
+  if (!opt.user_dir.empty()) user_dir_ = opt.user_dir + (opt.user_dir.back() == '/' ? "" : "/");
+  std::filesystem::create_directories(user_dir_);
+  if (!opt.play.empty()) {
+    if (!std::filesystem::exists(opt.play)) {
+      URBS_LOG_ERROR("play: cannot read {}", opt.play);
+      return false;
+    }
+    SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "0");  // play in the background: leave the focus alone
+  }
   settings_.load(user_dir_);
-  if (!platform::create_window(win_, "Urbs", 1600, 900, !opt.no_vsync)) return false;
+  // A playtest gets the same window everywhere, so its coordinates mean the same screen.
+  if (!platform::create_window(win_, "Urbs", opt.play.empty() ? 1600 : 1280, opt.play.empty() ? 900 : 720,
+                               !opt.no_vsync))
+    return false;
   if (settings_.fullscreen) SDL_SetWindowFullscreen(win_.window, true);
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -426,14 +450,20 @@ void App::handle_event(const SDL_Event& e) {
     editor_event(e);
     return;
   }
+  // Esc on the campaign, sandbox, mods and custom-scenario screens goes back, like their Back buttons.
+  if (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE && !ImGui::GetIO().WantCaptureKeyboard &&
+      (screen_ == Screen::Campaign || screen_ == Screen::Sandbox || screen_ == Screen::Mods ||
+       screen_ == Screen::Custom)) {
+    screen_ = Screen::Menu;
+    return;
+  }
   if (screen_ != Screen::Playing) return;
   auto& cam = renderer_.camera();
   const bool ui_mouse = ImGui::GetIO().WantCaptureMouse;
   switch (e.type) {
     case SDL_EVENT_MOUSE_WHEEL:
       if (!ui_mouse) {
-        float mx, my;
-        SDL_GetMouseState(&mx, &my);
+        const auto [mx, my] = mouse_pos();
         Vec2 before = cam.screen_to_world({mx, my});
         if (e.wheel.y > 0 && cam.zoom < render::kZoomCount - 1) ++cam.zoom;
         if (e.wheel.y < 0 && cam.zoom > 0) --cam.zoom;
@@ -539,8 +569,7 @@ void App::update_camera(f32 dt) {
   if (keys[SDL_SCANCODE_A] || keys[SDL_SCANCODE_LEFT]) cam.center.x -= speed;
   if (keys[SDL_SCANCODE_D] || keys[SDL_SCANCODE_RIGHT]) cam.center.x += speed;
   if (settings_.edge_scroll && SDL_GetWindowFlags(win_.window) & SDL_WINDOW_INPUT_FOCUS) {
-    float mx, my;
-    SDL_GetMouseState(&mx, &my);
+    const auto [mx, my] = mouse_pos();
     int ww, wh;
     SDL_GetWindowSize(win_.window, &ww, &wh);
     if (mx < 6) cam.center.x -= speed;
@@ -600,8 +629,7 @@ void App::step_sim(f64 dt) {
 }
 
 Vec2i App::mouse_tile() const {
-  float mx, my;
-  SDL_GetMouseState(&mx, &my);
+  const auto [mx, my] = mouse_pos();
   const Vec2 ip = const_cast<render::Renderer&>(renderer_).camera().screen_to_world({mx, my});
   i32 tx = -1, ty = -1;
   if (render::iso::pick_tile(world_->map, ip, tx, ty)) return {tx, ty};
@@ -611,8 +639,7 @@ Vec2i App::mouse_tile() const {
 }
 
 void App::pick_at_mouse() {
-  float mx, my;
-  SDL_GetMouseState(&mx, &my);
+  const auto [mx, my] = mouse_pos();
   const Vec2 wp = renderer_.camera().screen_to_world({mx, my});  // iso px
   namespace iso = render::iso;
   // Soldiers first (to select units), then walking citizens, then buildings.  Distances are to the
@@ -668,7 +695,15 @@ void App::run() {
     last_counter_ = now;
     frame_ms_ = frame_ms_ * 0.95f + static_cast<f32>(dt) * 1000.0f * 0.05f;
     SDL_Event e;
-    while (SDL_PollEvent(&e)) handle_event(e);
+    while (SDL_PollEvent(&e)) {
+      // While a script plays, the real mouse and keyboard are ignored.
+      const bool input = (e.type >= SDL_EVENT_KEY_DOWN && e.type < SDL_EVENT_JOYSTICK_AXIS_MOTION) ||
+                         e.type == SDL_EVENT_WINDOW_MOUSE_ENTER || e.type == SDL_EVENT_WINDOW_MOUSE_LEAVE ||
+                         e.type == SDL_EVENT_WINDOW_FOCUS_GAINED || e.type == SDL_EVENT_WINDOW_FOCUS_LOST;
+      if (opt_.play.empty() || !input) handle_event(e);
+    }
+    if (!opt_.play.empty()) play_step();
+    if (screen_ == Screen::Playing && speed_ == 0 && !world_->commands.empty()) world_->apply_commands_paused();
     update_camera(static_cast<f32>(dt));
     using PerfClock = std::chrono::steady_clock;
     const auto pt0 = PerfClock::now();
@@ -688,6 +723,10 @@ void App::run() {
 
     ImGui_ImplSDLGPU3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
+    if (!opt_.play.empty()) {
+      ImGui::GetIO().AddMousePosEvent(play_mouse_.x, play_mouse_.y);
+      play_frame_items();
+    }
     ImGui::NewFrame();
     draw_ui();
     ImGui::Render();
@@ -767,7 +806,7 @@ void App::run() {
 
 void App::record_perf(f32 frame, f32 sim, f32 ui, f32 world, f32 render) {
   // --perf N: skip a warm-up (chunk builds, texture uploads), then keep N frames and report percentiles.
-  constexpr u64 kWarmup = 120;
+  constexpr int kWarmup = 120;
   if (frame_ <= kWarmup) return;
   if (perf_.empty()) perf_.reserve(static_cast<size_t>(opt_.perf));
   const render::FrameStats& st = renderer_.stats();

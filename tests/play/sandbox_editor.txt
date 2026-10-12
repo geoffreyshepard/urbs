@@ -1,0 +1,39 @@
+# The other ways in from the title screen: found a city on a random sandbox map, pick up a building and
+# leave through the menu; then open the scenario editor, paint, save the scenario and go back.
+wait 60
+expect screen == menu
+button Sandbox
+wait 20
+expect screen == sandbox
+button Random map
+wait 10
+shot sandbox_setup.png
+button Found the city
+wait 60
+expect screen == playing
+expect buildings >= 1
+read
+key space
+button Build Housing
+button Housing plot
+wait 5
+expect tool == house_plot
+key escape
+wait 5
+shot sandbox.png
+button Menu
+button Exit to main menu
+wait 30
+expect screen == menu
+button Scenario editor
+wait 30
+expect screen == editor
+drag 700 300 900 400
+wait 10
+shot editor.png
+button Save
+wait 10
+button Menu
+wait 20
+expect screen == menu
+quit

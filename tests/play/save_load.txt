@@ -1,0 +1,41 @@
+# args: --scenario data/scenarios/m01_latium/scenario.json
+# Save to a slot from the pause menu, build more, then load the slot: the town comes back as it was
+# saved, the letters already read stay read, and the game waits paused.
+wait 30
+read
+key space
+key r
+dragtile 62 90 90 90
+key escape
+button Build Housing
+button Housing plot
+dragtile 77 88 88 89
+key escape
+expect buildings == 7
+button Menu
+button Save game
+button Slot 1
+wait 10
+button? Back
+button? Resume
+wait 5
+expect screen == playing
+mark
+button Build Housing
+button Housing plot
+dragtile 64 91 89 92
+key escape
+expect buildings == 20
+button Menu
+button Load game
+button Slot 1
+wait 30
+button? Back
+button? Resume
+wait 5
+expect screen == playing
+expect buildings == 7
+expect spent == 0
+expect unread == 0
+expect speed == 0
+quit

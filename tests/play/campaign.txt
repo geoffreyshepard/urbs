@@ -1,0 +1,29 @@
+# The campaign from the title screen: begin mission I, win it (the bot plays), go back to the province
+# map, where mission II is next, and begin it.
+wait 60
+expect screen == menu
+button Campaign
+wait 20
+expect screen == campaign
+button Begin the mission
+wait 30
+expect screen == playing
+read
+autoplay
+advance 96000
+wait 10
+expect mission == won
+shot won.png
+expect screen == playing
+button To the province map
+wait 30
+expect screen == campaign
+shot campaign.png
+button Begin the mission
+wait 30
+expect screen == playing
+expect mission == running
+expect day == 0
+read
+shot mission2.png
+quit

@@ -41,6 +41,29 @@ Needs a release build: the script does not build, and a stale binary would be te
 
 The game itself in screenshot mode, one window per shot: the main menu, the campaign, mods, custom-game and editor screens, a city the bot has built for 20 days with every panel and dialog opened over it, two zoom levels, night, an inspected building, a frontier mission and the tutorial's first message. A shot fails if the game exits with an error, logs an `[error]`, or writes a missing or near-empty image. The images are kept (`tools/screens.sh out_dir`) for a look by eye: the script proves the screens render, not that they look right.
 
+## 5. `tools/playtest.sh` (about a minute, after UI or gameplay changes)
+
+Plays the scripts in `tests/play/` through the game's real interface: the game runs with `--play SCRIPT`, and the script's clicks, drags and keys go through the same event handling as a player's, so the build menu, placement and its ghost, letters, panels, dialogs, saving and the campaign are exercised for real. Real mouse and keyboard input is ignored meanwhile, the window opens in the background at 1280×720 so coordinates mean the same everywhere, and saves go to their own folder (`--user-dir`). A script fails on a failed `expect`, a missing button, or any `[error]` in the log; screenshots and logs land in `out_dir/<script>/`.
+
+| Script | What it plays |
+|---|---|
+| `m01_first_days` | Latium's tutorial: letters, building while paused, a dragged row of houses, wells, food, the forum, and the merchants' choice reaching the mission script |
+| `panels` | Every report panel, the overlay menu, the pause menu and settings, opened from their buttons over a town the bot built |
+| `save_load` | Save to a slot from the pause menu, build more, load: the town, the treasury and read letters come back |
+| `campaign` | From the title screen: begin mission I, win it, back to the province map, begin mission II |
+
+A script's first line may give game arguments (`# args: --scenario ...`). Commands, one per line (`#` starts a comment); coordinates are window points, tiles are map tiles:
+
+- `wait N` (frames), `mouse X Y`, `click X Y [right]`, `press`/`release X Y [button]`, `drag X0 Y0 X1 Y1 [right]`, `wheel N`
+- `tile TX TY` (point at a tile), `clicktile TX TY`, `dragtile TX0 TY0 TX1 TY1`, `cam TX TY`, `zoom Z`
+- `key NAME [shift]` (SDL key names: `space`, `escape`, `r`, `F5`), `type TEXT`
+- `button LABEL`: click the button showing that text, or an icon by its id (`Rome`, `Build Housing`, `Housing plot`, `Slot 1`); it waits up to a second for it. `button? LABEL` clicks it only if it is there. `read` answers "Very well" to every plain letter. `items` lists what can be clicked.
+- `advance TICKS` (run the clock without waiting), `autoplay` (the bot takes over), `shot FILE`, `state` (one line of the game's state)
+- `mark`, then `expect KEY OP VALUE`: numbers `treasury`, `spent` (since `mark`), `pop`, `buildings`, `day`, `favor`, `speed`, `messages`, `unread` with `< <= > >= == !=`; words `screen`, `mission`, `tool`, `selected` with `== !=`
+- `quit`
+
+The script is read as it grows, so a game started with `--play live.txt` can also be driven by hand (append commands, look at the screenshots). A script that stops growing for fifteen minutes ends the game.
+
 Balance is measured separately with `tools/bot_missions.sh [days] [difficulty] [seeds]`, which reports win days per mission.
 
 ### The audit flags (`urbs_headless`)
@@ -78,6 +101,10 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **A trade post full of unsold goods:** exports a partner had stopped buying for the year stayed at the post until it was full, after which no import fit. In one Colonia run the siege workshop waited 150 days for 10 iron that two open routes sold.
 - **The bot's jobs:** with every good above its stock limit the bot found nothing to build for the unemployed, so big cities stalled short of their goal while the treasury grew past 100,000. It now tries further export goods made from local materials, then services.
 - **The audit changed the game it audited:** during each round-trip day the original world played without the bot, so audit runs drifted from plain runs (Londinium lost under `--roundtrip` and won without it). Both worlds now get the same inputs.
+- **Letter choices did nothing (playtest):** the letter marked itself answered before its answer reached the simulation, which then ignored the answer as a repeat, so no mission script ever heard a player's choice (paying the merchants, festivals, the Senate's offers). The bot answers through the command queue and never noticed. `m01_first_days` now checks that paying the merchants costs 200 denarii.
+- **Building while paused (playtest):** orders waited for the clock, so a paused player's roads and houses did not appear and were not paid for until the game ran. They now take effect at once.
+- **Smaller windows (playtest):** at 1280 points wide the top bar ran off the screen, hiding the menu button. It now shrinks to fit. A first version re-measured itself every frame and wobbled by a few pixels, which made held clicks on its buttons miss; the `panels` script caught that.
+- **Other playtest finds:** the alerts that name a building that cannot work (no workers, a missing input, nowhere to store its output, an empty market), homelessness, unemployment and emigration existed in the UI but were never raised, and an "0 immigrants arrived" alert was; read letters came back after loading a save; panels covered open letters and the pause menu covered its own settings; the build list stayed open over the map after a pick; the alert feed was out of order; Esc did not leave the menu screens; the well's "water within 4 tiles" read as a radius (it is a walk from each house's door); and a Latium letter recommended a Tavern and a Physician, which unlock in mission II.
 - **The bot's reservoirs:** the bot rebuilt a reservoir on the same cut-off shore spot again and again (45 times in one Antioch run), draining the treasury. Its stalled-site notes now say why a site was cleared (`cut off`, `no builders`, `no materials`, `waited too long`) and where.
 
 ## Frame-time measurement (the game)

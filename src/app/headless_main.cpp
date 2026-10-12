@@ -309,8 +309,8 @@ int main(int argc, char** argv) {
         if (diverged_at) {
           const auto pa = save::world_hash_parts(*world), pb = save::world_hash_parts(*copy);
           std::string parts;
-          for (size_t k = 0; k < pa.size() && k < pb.size(); ++k)
-            if (pa[k].second != pb[k].second) parts += " " + pa[k].first;
+          for (size_t q = 0; q < pa.size() && q < pb.size(); ++q)
+            if (pa[q].second != pb[q].second) parts += " " + pa[q].first;
           std::printf("ROUNDTRIP differing parts:%s\n", parts.c_str());
           ++roundtrip_fail;
           std::printf("ROUNDTRIP day %u: the reloaded world diverges %s\n", world->mission_days,

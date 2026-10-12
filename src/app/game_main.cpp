@@ -11,5 +11,5 @@ int main(int argc, char** argv) {
   }
   app.run();
   app.shutdown();
-  return 0;
+  return app.play_failures() > 0 ? 3 : 0;  // a playtest script's failed expectations
 }

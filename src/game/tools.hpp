@@ -54,6 +54,12 @@ class Tools {
   // Houses face the street under the cursor by themselves (World::road_facing_rot) until the player
   // turns them.  rotate() turns it by +1 (clockwise) or -1; returns false when the tool holds nothing
   // rotatable.
+  // Houses go down in rows: a drag lays one house per footprint across the dragged area (at most
+  // kMaxRow x kMaxRow), each facing its own street.  cells() lists them; one cell for a click.
+  static constexpr int kMaxRow = 16;
+  [[nodiscard]] bool row_tool(const sim::World& w) const;
+  int cells(const sim::World& w, Recti* out, int max) const;
+  [[nodiscard]] u8 rot_at(const sim::World& w, i32 x, i32 y) const;  // rotation for a footprint at x, y
   [[nodiscard]] bool can_rotate(const sim::World& w) const;
   bool rotate(const sim::World& w, int dir);
   [[nodiscard]] u8 rot(const sim::World& w) const;

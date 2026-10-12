@@ -1,6 +1,7 @@
 #pragma once
-#include <memory>
 #include <array>
+#include <deque>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -13,8 +14,8 @@
 #include "game/profile.hpp"
 #include "game/tools.hpp"
 #include "game/ui_icons.hpp"
-#include "game/ui_skin.hpp"
 #include "game/ui_picture.hpp"
+#include "game/ui_skin.hpp"
 #include "game/world_view.hpp"
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
@@ -47,9 +48,14 @@ struct AppOptions {
   int career = -1;        // screenshots: pretend the first N campaign missions are won (never saved)
   int perf = 0;           // measure this many frames (after a warm-up), log frame-time percentiles, quit
   bool no_vsync = false;  // present without waiting for vsync (perf runs: shows the real frame cost)
+  std::string play;       // playtest: input commands read from this file as it grows (play.cpp, docs/testing.md)
+  std::string user_dir;   // saves, settings and career here instead of the player's own folder
+  std::string play_out;   // playtest screenshots with a relative path go here
 };
 
 AppOptions parse_args(int argc, char** argv);
+// Playtest scripts: start recording this frame's labelled UI items (play.cpp).
+void play_frame_items();
 
 // Darkens the living city behind the menu screens (campaign, sandbox, custom scenarios, mods, dialogs).
 void dim_backdrop(int alpha = 200);
@@ -93,6 +99,7 @@ class App {
   bool init(const AppOptions& opt);
   void run();
   void shutdown();
+  [[nodiscard]] int play_failures() const { return play_failures_; }
 
  private:
   void handle_event(const SDL_Event& e);
@@ -111,6 +118,14 @@ class App {
   [[nodiscard]] std::string save_path(const std::string& name) const;
   [[nodiscard]] Vec2i mouse_tile() const;
   void pick_at_mouse();
+  // The pointer in window points: the real mouse, or the playtest script's.
+  [[nodiscard]] Vec2 mouse_pos() const;
+
+  // Playtest (--play, play.cpp): scripted mouse and keys through the same paths as the player's.
+  void play_step();
+  void play_command(const std::string& line);
+  void play_mouse_event(u32 type, f32 x, f32 y, u8 button);
+  void play_log_state();
 
   // UI
   void draw_ui();
@@ -174,6 +189,7 @@ class App {
   // Build menu: the open group on the icon rail (-1 = none), where its list pops out, and the HUD's height.
   int build_group_ = -1;
   float build_fly_y_ = 0, build_fly_h_ = 0, hud_h_ = 64, rail_r_ = 64;
+  float hud_need_em_ = 0;  // the top bar's width without rating names, in font sizes (draw_hud)
   Tick alerts_seen_ = 0;  // alerts newer than this count as new on the HUD badge
   f64 accum_ = 0;
   f32 alpha_ = 0;
@@ -208,6 +224,17 @@ class App {
   int overlay_age_ = 0;
   std::string status_;  // transient status line (saved, loaded, errors)
   f32 status_time_ = 0;
+
+  // Playtest script state.
+  size_t play_pos_ = 0;                 // bytes of the script read so far
+  std::string play_partial_;            // a line still being written
+  std::deque<std::string> play_queue_;  // expanded steps (a click is move, press, release)
+  int play_wait_ = 0;                   // frames until the next command
+  Vec2 play_mouse_{0, 0};               // window points
+  int play_idle_ = 0;                   // frames spent waiting for the script to grow
+  int play_failures_ = 0;               // failed `expect` lines
+  i64 play_mark_ = 0;                   // treasury at the last `mark`
+  int play_retry_ = 0;                  // frames a `button` has waited for its item
 };
 
 }  // namespace urbs::game

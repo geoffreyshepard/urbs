@@ -1,5 +1,7 @@
 #include "game/ui_icons.hpp"
 
+#include <imgui_internal.h>
+
 #include <algorithm>
 #include <climits>
 #include <cmath>
@@ -443,6 +445,10 @@ bool UiIcons::icon_button(const char* id, const std::string& name, float size, b
       it == entries_.end() || !(it->second.hires ? hires_ : tex_)
           ? ImGui::Button(id, ImVec2(size, size))
           : ImGui::ImageButton(id, ref(it->second), ImVec2(size, size), it->second.uv0, it->second.uv1);
+  {
+    ImGuiContext& g = *ImGui::GetCurrentContext();  // ImageButton leaves no label for playtests: give its id
+    IMGUI_TEST_ENGINE_ITEM_INFO(g.LastItemData.ID, id, g.LastItemData.StatusFlags);
+  }
   ImGui::PopStyleColor(pushed);
   return pressed;
 }

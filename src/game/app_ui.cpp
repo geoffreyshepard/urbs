@@ -24,7 +24,6 @@ void center_next(float w, float h) {
   ImGui::SetNextWindowPos(ImVec2(display().x * 0.5f, display().y * 0.5f), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(w, h), ImGuiCond_Always);
 }
-bool big_button(const char* label, float w = 260) { return ImGui::Button(label, ImVec2(w, 34)); }
 const char* kDifficulty[] = {"Otium (relaxed)", "Civitas (normal)", "Imperium (hard)"};
 }  // namespace
 
@@ -110,6 +109,7 @@ void App::draw_ui() {
         center_next(end_w, 0);
         ImGui::SetNextWindowSize(ImVec2(end_w, 0), ImGuiCond_Always);
         begin_window("##end", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+        keep_in_front();  // over any letter still open
         if (world_->mission == sim::MissionState::Won) {
           menu_title("Victoria!");
           ImGui::TextWrapped("%s", mi && !mi->victory.empty()
@@ -234,7 +234,7 @@ bool menu_entry(const char* label, const std::string& caption, float width, bool
   const float h = std::round(caption.empty() ? fs * 2.0f : fs * 2.9f);
   const ImVec2 p = ImGui::GetCursorScreenPos();
   ImGui::PushID(label);
-  const bool clicked = ImGui::InvisibleButton("##entry", ImVec2(width, h)) && enabled;
+  const bool clicked = ImGui::InvisibleButton((std::string("##") + label).c_str(), ImVec2(width, h)) && enabled;
   ImGui::PopID();
   const bool hot = enabled && ImGui::IsItemHovered();
   ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -862,6 +862,10 @@ void App::draw_sandbox_setup() {
 void App::draw_hud() {
   const sim::World& w = *world_;
   const ImVec2 ds = display();
+  // On a narrow window the whole bar shrinks to fit (after its ratings lose their names): last frame's
+  // measure, in font sizes, sets the size.  Its buttons must never fall off the right edge.
+  const float hud_k = hud_need_em_ > 0 ? std::clamp(ds.x / (hud_need_em_ * ImGui::GetFontSize()), 0.6f, 1.0f) : 1.0f;
+  ImGui::PushFont(nullptr, std::floor(ImGui::GetFontSize() * hud_k));
   const float fs = ImGui::GetFontSize();
   const UiFonts& fonts = ui_fonts();
   const bool sk = skinned();
@@ -1029,6 +1033,13 @@ void App::draw_hud() {
                         2 * std::round(gap * 0.5f);
   const float fixed = 2 * padx + centre_w + (date_max - date_w) + right_w + 2 * (slot_gap + 2 * spx);
   const bool labels = fixed + left_width(true) <= ds.x;
+  {
+    // What the bar needs without names, with a margin.  Measured at the shrunk size it comes out a little
+    // different (rounding), so it changes only on a real change: a bar that wobbled a pixel each frame
+    // would move its buttons out from under a held click.
+    const float need = (fixed + left_width(false)) / fs * 1.02f;
+    if (std::fabs(need - hud_need_em_) > 0.03f * hud_need_em_) hud_need_em_ = need;
+  }
 
   // Left: money and people, then the ratings.
   {
@@ -1083,7 +1094,8 @@ void App::draw_hud() {
     for (int i = 0; i < 4; ++i) {
       if (i) ImGui::SameLine();
       ImGui::PushID(i);
-      if (icons_.icon_button("##speed", kSpeedIcons[i], sicon_btn, speed_ == i)) speed_ = i;
+      if (icons_.icon_button((std::string("##") + kSpeedTips[i]).c_str(), kSpeedIcons[i], sicon_btn, speed_ == i))
+        speed_ = i;
       ImGui::PopID();
       button_tip(kSpeedTips[i], kSpeedKeys[i], nullptr);
     }
@@ -1118,7 +1130,7 @@ void App::draw_hud() {
     const float x = std::max(ImGui::GetCursorPosX() + slot_gap + 2 * spx, ds.x - right_w - padx);
     slot_begin(x);
     // Map overlays: a picture button that opens the list.
-    if (icons_.icon_button("##overlay", "ui/icon_overlay", icon, overlay_ != Overlay::None))
+    if (icons_.icon_button("##Map overlay", "ui/icon_overlay", icon, overlay_ != Overlay::None))
       ImGui::OpenPopup("##overlays");
     if (!ImGui::IsPopupOpen("##overlays"))
       button_tip("Map overlay", "O", overlay_ == Overlay::None ? "Now: none" : overlay_name(overlay_));
@@ -1151,7 +1163,9 @@ void App::draw_hud() {
     for (int k = 0; k < kPanels; ++k) {
       if (k) ImGui::SameLine();
       ImGui::PushID(k);
-      if (icons_.icon_button("##panel", panels[k].icon, icon, panel_ == panels[k].panel)) toggle_panel(panels[k].panel);
+      if (icons_.icon_button((std::string("##") + panels[k].name).c_str(), panels[k].icon, icon,
+                             panel_ == panels[k].panel))
+        toggle_panel(panels[k].panel);
       ImGui::PopID();
       mark(panels[k].panel);
       button_tip(panels[k].name, panels[k].key, panels[k].blurb);
@@ -1162,7 +1176,7 @@ void App::draw_hud() {
     int unread = 0;
     for (const auto& a : w.alerts)
       if (a.t > alerts_seen_) ++unread;
-    if (icons_.icon_button("##alerts", "ui/icon_alerts", icon, panel_ == Panel::Alerts)) toggle_panel(Panel::Alerts);
+    if (icons_.icon_button("##Alerts", "ui/icon_alerts", icon, panel_ == Panel::Alerts)) toggle_panel(Panel::Alerts);
     mark(Panel::Alerts);
     {
       char news[32];
@@ -1181,11 +1195,11 @@ void App::draw_hud() {
       dl->AddText(fonts.bold, fs * 0.7f, ImVec2(c.x - ts.x * 0.5f, c.y - ts.y * 0.5f), kColCream, n.c_str());
     }
     ImGui::SameLine();
-    if (icons_.icon_button("##help", "ui/icon_help", icon, panel_ == Panel::Help)) toggle_panel(Panel::Help);
+    if (icons_.icon_button("##Help", "ui/icon_help", icon, panel_ == Panel::Help)) toggle_panel(Panel::Help);
     mark(Panel::Help);
     button_tip("How to play", "H", "Keys, and how the city works");
     ImGui::SameLine();
-    if (icons_.icon_button("##menu", "ui/icon_menu", icon, paused_menu_)) paused_menu_ = true;
+    if (icons_.icon_button("##Menu", "ui/icon_menu", icon, paused_menu_)) paused_menu_ = true;
     button_tip("Menu", "Esc", "Save, load, settings");
     slot_end();
   }
@@ -1225,6 +1239,7 @@ void App::draw_hud() {
     ImGui::PopStyleColor();
     ImGui::End();
   }
+  ImGui::PopFont();
 }
 
 Dock App::panel_dock(Panel p) const {
@@ -1247,6 +1262,7 @@ void App::draw_pause() {
   begin_window(
       "##paused", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  if (!show_settings_ && !show_saveload_) keep_in_front();  // its own dialogs go over it
   menu_title("Paused");
   if (dialog_button("Resume")) paused_menu_ = false;
   if (dialog_button("Save game")) {
@@ -1274,6 +1290,7 @@ void App::draw_settings() {
   begin_window(
       "##settings", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  if (ImGui::IsWindowAppearing()) keep_in_front();  // once: every frame would hide its drop-down lists
   menu_title("Settings");
   const float label_w = std::round(fs * 9);
   // A label on the left, the control filling the rest of the line.
@@ -1310,6 +1327,7 @@ void App::draw_saveload() {
   begin_window(
       "##saveload", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+  keep_in_front();
   menu_title(saveload_saving_ ? "Save game" : "Load game");
   const char* slots[] = {"autosave", "quicksave", "slot1", "slot2", "slot3", "slot4", "slot5", "slot6"};
   const char* names[] = {"Autosave", "Quicksave", "Slot 1", "Slot 2", "Slot 3", "Slot 4", "Slot 5", "Slot 6"};
@@ -1331,7 +1349,8 @@ void App::draw_saveload() {
     const bool can = saveload_saving_ || exists;
     if (!can) ImGui::BeginDisabled();
     const ImVec2 p = ImGui::GetCursorScreenPos();
-    if (ImGui::Button("##slot", ImVec2(-FLT_MIN, std::round(fs * 1.9f)))) {
+    if (ImGui::Button((std::string("##") + names[k]).c_str(),
+                      ImVec2(-FLT_MIN, std::round(fs * 1.9f)))) {  // id: the slot name
       if (saveload_saving_) {
         save_slot(s);
       } else {
@@ -1427,7 +1446,7 @@ void App::draw_help(const Dock& dock, bool* open) {
       "Camera: WASD or arrow keys to pan, right- or middle-drag to pan, mouse wheel to zoom.\n"
       "Time: Space pauses, 1/2/3 set speed.\n"
       "Building: open Build (B), pick a building, left-click to place; E and Q turn it (its door faces the "
-      "front). Farms and gardens: drag an area. "
+      "front). Houses: drag to lay a row or a block. Farms and gardens: drag an area. "
       "Roads (R): drag a line, diagonals allowed. Demolish (X): drag a rectangle. Right-click or Esc cancels.\n"
       "Inspect: left-click a building or a walking citizen. F follows the selected citizen.\n"
       "Soldiers: click a soldier to select the unit, right-click the map to march there.\n"
@@ -1505,7 +1524,12 @@ std::string build_hint(const data::Defs& defs, const data::BuildingDef& d) {
     if (!r.inputs.empty()) m += " from " + lower_first(defs.goods[r.inputs[0].good.v].name);
     parts.push_back(m);
   } else if (d.water_radius) {
-    parts.push_back("water within " + std::to_string(d.water_radius) + " tiles");
+    // Reach is a walk from each house's front door, not a radius (docs/02-game-design.md).
+    parts.push_back("water for doors within a " + std::to_string(d.water_radius) + "-tile walk");
+  } else if (d.kind == data::BuildingKind::Market) {
+    parts.emplace_back("sells food and goods to homes nearby");
+  } else if (d.service.valid() && defs.services[d.service.v].id == "forum") {  // the tax service (housing.cpp)
+    parts.emplace_back("collects taxes from homes nearby");
   } else if (d.service.valid()) {
     static const char* kNeed[] = {"food", "water", "rest", "hygiene", "faith", "entertainment", "health", "education"};
     const auto& sv = defs.services[d.service.v];
@@ -1599,7 +1623,8 @@ void App::draw_build_menu() {
       if (!any) ImGui::BeginDisabled();
       const std::string icon_name = other ? std::string("ui/icon_build") : std::string("ui/cat_") + kGroups[g].id;
       ImGui::PushID(g);
-      if (icons_.icon_button("##grp", icon_name, icon, build_group_ == g || active == g, true)) {
+      if (icons_.icon_button(other ? "##Build Other" : (std::string("##Build ") + kGroups[g].name).c_str(), icon_name,
+                             icon, build_group_ == g || active == g, true)) {
         build_group_ = build_group_ == g ? -1 : g;
         build_fly_y_ = y;
         opened = true;
@@ -1654,11 +1679,13 @@ void App::draw_build_menu() {
     const UiFonts& f = ui_fonts();
     const float fs = ImGui::GetFontSize();
     const float rh = std::round(fs * 2.7f), thumb = rh - 4, row_w = std::round(fs * 19);
+    bool picked = false;
     // One row: picture, name, hint, cost (red when the treasury is short). Returns true when clicked.
     auto row = [&](const std::string& key, const std::string& name, const std::string& hint, i64 cost, bool sel) {
       const ImVec2 p = ImGui::GetCursorScreenPos();
       ImGui::PushID(key.c_str());
-      const bool clicked = ImGui::Selectable("##row", sel, 0, ImVec2(row_w, rh));
+      const bool clicked =
+          ImGui::Selectable(("##" + name).c_str(), sel, 0, ImVec2(row_w, rh));  // id: playtests click by name
       ImGui::PopID();
       ImDrawList* dl = ImGui::GetWindowDrawList();
       dl->PushClipRect(p, ImVec2(p.x + row_w, p.y + rh), true);
@@ -1687,14 +1714,20 @@ void App::draw_build_menu() {
 
     if (g == 0) {  // tools before the buildings
       if (row("tool:dirt", "Dirt road  (R)", "drag to lay", 0,
-              tools_.kind == ToolKind::Road && tools_.road == sim::Road::Dirt))
+              tools_.kind == ToolKind::Road && tools_.road == sim::Road::Dirt)) {
         tools_.select_road(sim::Road::Dirt);
+        picked = true;
+      }
       if (w.is_unlocked(defs_.building("plaza")) &&
           row("tool:paved", "Paved road", "drag to lay \xC2\xB7 stone paving", 0,
-              tools_.kind == ToolKind::Road && tools_.road == sim::Road::Paved))
+              tools_.kind == ToolKind::Road && tools_.road == sim::Road::Paved)) {
         tools_.select_road(sim::Road::Paved);
-      if (row("tool:demolish", "Demolish  (X)", "click or drag to clear", 0, tools_.kind == ToolKind::Demolish))
+        picked = true;
+      }
+      if (row("tool:demolish", "Demolish  (X)", "click or drag to clear", 0, tools_.kind == ToolKind::Demolish)) {
         tools_.select_demolish();
+        picked = true;
+      }
     }
     // Big groups split into raw materials and workshops (inputs or none), then into columns as tall as the screen
     // allows.
@@ -1725,7 +1758,10 @@ void App::draw_build_menu() {
           const u16 i = ids[k];
           const auto& d = defs_.buildings[i];
           const bool sel = tools_.kind == ToolKind::Build && tools_.def.v == i;
-          if (row(d.id, d.name, build_hint(defs_, d), d.cost_denarii, sel)) tools_.select_building(BuildingDefId{i});
+          if (row(d.id, d.name, build_hint(defs_, d), d.cost_denarii, sel)) {
+            tools_.select_building(BuildingDefId{i});
+            picked = true;
+          }
           if (ImGui::IsItemHovered()) building_tooltip(defs_, d);
         }
         ImGui::EndGroup();
@@ -1735,6 +1771,7 @@ void App::draw_build_menu() {
     if (tools_.kind == ToolKind::Build && tools_.def.valid() && group_of(defs_.buildings[tools_.def.v].category) == g) {
       const auto& d = defs_.buildings[tools_.def.v];
       if (d.service.valid() && defs_.services[d.service.v].need == data::NeedKind::Religion && d.id != "shrine") {
+        picked = false;  // a temple waits for its god
         divider();
         ImGui::TextDisabled("Dedicate to:");
         for (u8 gd = 0; gd < defs_.gods.size(); ++gd) {
@@ -1746,6 +1783,9 @@ void App::draw_build_menu() {
     }
     build_fly_h_ = ImGui::GetWindowHeight();
     ImGui::End();
+    // A pick puts the list away, off the map the player is about to build on; the chip below says
+    // what is in hand, and the rail reopens the list.
+    if (picked) build_group_ = -1;
   }
 
   // The tool in hand, its cost, and how to put it down.
@@ -1777,6 +1817,22 @@ void App::draw_build_menu() {
     }
     ImGui::SameLine(0, 16);
     ImGui::TextDisabled("Right-click or Esc to stop");
+    ImGui::End();
+  }
+
+  // The map overlay showing, so a press of O never leaves the player guessing which map this is.
+  if (overlay_ != Overlay::None) {
+    ImGui::SetNextWindowPos(ImVec2(ds.x * 0.5f, ds.y - 10), ImGuiCond_Always, ImVec2(0.5f, 1));
+    begin_window("##overlaychip", nullptr,
+                 ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings |
+                     ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoInputs,
+                 Skin::Card);
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
+    ImGui::TextUnformatted(overlay_name(overlay_));
+    ImGui::PopFont();
+    ImGui::SameLine(0, 16);
+    ImGui::TextDisabled("O for the next map");
     ImGui::End();
   }
 }
@@ -1845,8 +1901,7 @@ void App::draw_debug_ui() {
   const auto& st = renderer_.stats();
   ImGui::Text("zoom %.2fx  chunks %u  inst %u  dyn %u", static_cast<double>(render::kZoomLevels[cam.zoom]),
               st.chunks_drawn, st.chunk_instances, st.dynamic_instances);
-  float mx, my;
-  SDL_GetMouseState(&mx, &my);
+  const auto [mx, my] = mouse_pos();
   i32 tx = -1, ty = -1;
   if (render::iso::pick_tile(w.map, cam.screen_to_world({mx, my}), tx, ty)) {
     size_t i = static_cast<size_t>(w.map.idx(tx, ty));
