@@ -48,7 +48,8 @@ jobs:
           mkdir -p "$OUT/assets"
           if [ -f build/release/urbs.exe ]; then cp build/release/urbs.exe build/release/urbs_headless.exe "$OUT/"; else cp build/release/urbs build/release/urbs_headless "$OUT/"; fi
           cp -R data mods "$OUT/"
-          cp -R assets/atlas assets/sprites assets/music "$OUT/assets/"
+          cp -R assets/atlas assets/fonts assets/ui assets/music "$OUT/assets/"
+          mkdir -p "$OUT/assets/sprites_iso/ui" && cp -R assets/sprites_iso/ui/chrome "$OUT/assets/sprites_iso/ui/"
           cp LICENSE.md LICENSE-ASSETS.txt NOTICE README.md RELEASE_NOTES.md "$OUT/"
           cd dist && (if [ "${{ matrix.name }}" = windows ]; then 7z a "urbs-$VERSION-windows.zip" "urbs-$VERSION-windows"; else tar czf "urbs-$VERSION-linux.tar.gz" "urbs-$VERSION-linux"; fi)
       - uses: actions/upload-artifact@v4

@@ -7,7 +7,7 @@ A Roman city-building and management game in the tradition of *Caesar III* and *
 - **Scale:** 10,000 citizens and tens of thousands of simulated entities at once
 - **Tech:** C++20, custom simulation, SDL3 (GPU API: Metal / Vulkan / D3D12)
 - **Platforms:** macOS (Apple Silicon), Windows, Linux. Developed on a Mac.
-- **Art:** Stylized pixel art, generated as code through Claude Code
+- **Art:** Isometric, pre-rendered 3D: Blender scripts generate every sprite (no hand-drawn art)
 - **License:** PolyForm Noncommercial 1.0.0 (code) and CC BY-NC-SA 4.0 (assets, data). Free to use, modify and contribute; not for commercial resale.
 - **Team:** Solo developer + Claude Code
 
@@ -15,7 +15,7 @@ A Roman city-building and management game in the tradition of *Caesar III* and *
 
 ## Status
 
-**v1.0.0**, which includes:
+**v1.1.0**, which includes:
 - the full 16-mission campaign;
 - a sandbox with generated maps;
 - a scenario editor;
@@ -59,13 +59,14 @@ Contributions are welcome. Read [CLAUDE.md](CLAUDE.md) for the engineering rules
 | [docs/04-content-catalog.md](docs/04-content-catalog.md) | Buildings, goods, production chains, class consumption tables |
 | [docs/05-technical-architecture.md](docs/05-technical-architecture.md) | Stack, libraries, module layout, build, cross-platform, saves, modding |
 | [docs/06-simulation-design.md](docs/06-simulation-design.md) | How tens of thousands of entities run fast: agent LOD, scheduling, pathfinding, logistics |
-| [docs/07-art-pipeline.md](docs/07-art-pipeline.md) | Generating consistent pixel art with Claude Code; style guide |
+| [docs/07-art-pipeline.md](docs/07-art-pipeline.md) | The original pixel-art pipeline and style rules (UI and goods icons still use it) |
+| [docs/13-isometric.md](docs/13-isometric.md) | The isometric renderer and its Blender art pipeline: projection, sprites, rotation, run-time files |
 | [docs/08-roadmap.md](docs/08-roadmap.md) | Milestones M0–M14 with exit criteria |
 | [docs/09-assumptions-and-open-questions.md](docs/09-assumptions-and-open-questions.md) | Decisions defaulted on your behalf, and what is still open |
 | [docs/10-modding.md](docs/10-modding.md) | Modding guide: definition files, scenarios, the Lua API |
 | [docs/11-music.md](docs/11-music.md) | The generated soundtrack |
 | [docs/12-story.md](docs/12-story.md) | The campaign's story, cast and writing rules |
-| [docs/testing.md](docs/testing.md) | Test layers: unit and scenario tests, the campaign, the audit |
+| [docs/testing.md](docs/testing.md) | Test layers: unit and scenario tests, the campaign, the audit, screenshots, scripted playtests |
 | [docs/milestones/](docs/milestones/) | What each milestone delivered, M0–M14 |
 
 ## How to use these docs with Claude Code

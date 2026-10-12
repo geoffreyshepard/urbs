@@ -104,6 +104,13 @@ surfaces turned toward the camera). Its rules:
 - `game::UiIcons` keeps the logo 1:1 (pixel-art big pictures are still upscaled x3) in a mipmapped
   texture; the religion panel draws god medallions without an extra square frame.
 
+## Run-time files
+
+What the game reads from disk, so what a release must ship (`tools/package/package_macos.sh`, `.github/workflows/release.yml`):
+`data/`, `mods/`, `assets/atlas/` (every world sprite and icon, packed), `assets/fonts/`, `assets/ui/` (the painted campaign map),
+`assets/sprites_iso/ui/chrome/` (the UI's frames and buttons, `UiSkin`) and `assets/music/`. The other sprite folders
+(`assets/sprites/`, the rest of `assets/sprites_iso/`) are sources for the atlas packer and stay out.
+
 ## Rotation
 
 Players turn a building before placing it (E clockwise, Q or Shift+E counter-clockwise; R stays the

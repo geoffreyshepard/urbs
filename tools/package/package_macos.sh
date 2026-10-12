@@ -17,13 +17,16 @@ mkdir -p "$DIST"
 cp -R build/release/urbs.app "$APP"
 RES="$APP/Contents/Resources"
 mkdir -p "$RES"
-# Game content: definitions, campaign, scenarios, sprite atlas, music. Generators and sources stay out.
+# Game content: what the game reads at run time (see "Run-time files" in docs/13-isometric.md): definitions,
+# campaign, scenarios, the sprite atlas, fonts, the UI chrome and painted map, music. The sprite sources the
+# atlas is packed from (assets/sprites, assets/sprites_iso) and the generators stay out.
 rsync -a --delete data/ "$RES/data/"
 [ -d mods ] && rsync -a --delete mods/ "$RES/mods/"
-mkdir -p "$RES/assets"
+mkdir -p "$RES/assets/sprites_iso/ui"
 rsync -a --delete assets/atlas/ "$RES/assets/atlas/"
-[ -d assets/sprites ] && rsync -a --delete assets/sprites/ "$RES/assets/sprites/"
+rsync -a --delete assets/fonts/ "$RES/assets/fonts/"
 rsync -a --delete assets/ui/ "$RES/assets/ui/"
+rsync -a --delete assets/sprites_iso/ui/chrome/ "$RES/assets/sprites_iso/ui/chrome/"
 rsync -a --delete assets/music/ "$RES/assets/music/"
 for f in LICENSE.md LICENSE-ASSETS.txt NOTICE README.md RELEASE_NOTES.md; do
   [ -f "$f" ] && cp "$f" "$RES/"
