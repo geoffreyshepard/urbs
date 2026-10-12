@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Flat ground art for the isometric view: terrain, transitions, cliff faces and roads.
 
-    python3 tools/artgen3d/terrain_tex.py
+    python3 tools/artgen3d/terrain_tex.py [terrain] [cliffs] [roads]   (default: all)
 
 Ground is flat, so it is painted in top-down tile space with periodic noise and projected onto
 the 2:1 iso diamond (128 x 64 px per tile).  3D objects that stand on the ground (trees, bushes,
@@ -18,10 +18,12 @@ Outputs (assets/sprites_iso, anchors in meta/terrain.json; ground anchor = botto
   terrain/q_<t>_<k>_<p>      quarter k (0 NW, 1 NE, 2 SW, 3 SE) of a dual cell, for cells whose
                              tiles sit on different height levels
   terrain/cliff_s_<v>, cliff_e_<v>  one height level of cliff under a tile's south / east edge
-  road/<dirt|paved>_<c|n|ne|...|fill_ne|...>
+  road/<dirt|paved>_<c|n|ne|...|fill_ne|...|q_ne|...>  road surfaces
+  road/<dirt|paved>_k_<c|n|...|fill_ne|...>         their edge bands (dirt: worn edge, paved: kerb)
 """
 import json
 import os
+import sys
 
 import numpy as np
 from PIL import Image
@@ -76,10 +78,17 @@ def fbm(n, cells, octaves, seed, gain=0.5):
     return out / tot
 
 
-def voronoi(n, count, seed, period_cells=1):
-    """Periodic Voronoi on an n x n texture: (F1 distance, F2 - F1, cell id), distances in texture px."""
+def voronoi(n, count, seed, period_cells=1, jitter_grid=0):
+    """Periodic Voronoi on an n x n texture: (F1 distance, F2 - F1, cell id), distances in texture px.
+    jitter_grid=g: one point per cell of a g x g grid (even, paving-like polygons) instead of count
+    random points."""
     rng = np.random.default_rng(seed)
-    pts = rng.random((count, 2)) * n
+    if jitter_grid:
+        g = jitter_grid
+        gy, gx = np.mgrid[0:g, 0:g]
+        pts = (np.stack([gx.ravel(), gy.ravel()], 1) + 0.15 + 0.7 * rng.random((g * g, 2))) * (n / g)
+    else:
+        pts = rng.random((count, 2)) * n
     yy, xx = np.mgrid[0:n, 0:n].astype(np.float64) + 0.5
     best = np.full((n, n), 1e9)
     second = np.full((n, n), 1e9)
@@ -332,40 +341,89 @@ FILL_CORNERS = {"ne": (1.0, 0.0), "se": (1.0, 1.0), "sw": (0.0, 1.0), "nw": (0.0
 
 
 def road_textures():
+    """Tile-space textures (period 1 tile): surfaces and the edge band under them."""
     n = RES
     big = fbm(n, 2, 3, 900)
     mid = fbm(n, 8, 3, 901)
     fine = fbm(n, 32, 2, 902)
     speck = vnoise(n, 64, 903)
-    dirt = mix(hexc("#a3845c"), hexc("#8e6f4a"), smoothstep(0.3, 0.7, big * 0.5 + mid * 0.5))
-    dirt = mix(dirt, hexc("#b89d78"), smoothstep(0.8, 0.95, speck) * 0.5)
-    dirt = mix(dirt, hexc("#776046"), smoothstep(0.75, 0.9, 1 - speck) * 0.4)
-    dirt = dirt * shade(mid * 2 + fine * 2 + speck, 2.0)[..., None]
-    f1, edge, ident = voronoi(n, 13, 905)
+    # Dirt: light packed earth, pale dusty patches, a few pebbles.
+    dirt = mix(hexc("#c8ad80"), hexc("#b4976a"), smoothstep(0.3, 0.7, big * 0.6 + mid * 0.4))
+    dirt = mix(dirt, hexc("#d8c398"), smoothstep(0.6, 0.8, mid) * 0.4)
+    dirt = mix(dirt, hexc("#dccba6"), smoothstep(0.88, 0.98, speck) * 0.25)
+    dirt = mix(dirt, hexc("#9a8060"), smoothstep(0.9, 0.99, 1 - speck) * 0.2)
+    dirt = dirt * shade(mid * 2 + fine * 0.6, 1.0)[..., None]
+    # Dirt edge: darker trodden earth breaking into grass tufts.
+    tuft = smoothstep(0.45, 0.75, fbm(n, 24, 2, 907))
+    dirt_edge = mix(hexc("#a88d64"), hexc("#927a54"), smoothstep(0.3, 0.7, mid))
+    dirt_edge = mix(dirt_edge, hexc("#7a8a40"), tuft * 0.6)
+    dirt_edge = dirt_edge * shade(mid * 2 + tuft * 3 + fine, 1.6)[..., None]
+    # Paved: polygonal grey stone (basalt-ish, worn light), dark joints, each stone domed.
+    f1, edge, ident = voronoi(n, 0, 905, jitter_grid=6)
     per = np.random.default_rng(906).random(ident.max() + 1)[ident]
-    stone = mix(hexc("#6c6a66"), hexc("#55534f"), per * 0.8 + fine * 0.2)
-    stone = mix(stone, hexc("#7d7a74"), smoothstep(0.75, 0.95, speck) * 0.3)
-    gap = 1 - smoothstep(0.6, 2.2, edge)
+    stone = mix(hexc("#c2bcaf"), hexc("#a6a197"), per * 0.85 + fine * 0.15)
+    stone = mix(stone, hexc("#b0afa8"), smoothstep(0.5, 0.8, big) * 0.35)
+    stone = mix(stone, hexc("#c9c2b2"), smoothstep(0.8, 0.97, speck) * 0.25)
+    gap = 1 - smoothstep(0.3, 1.3, edge)
     dome = np.clip(f1 / 9.0, 0, 1)
-    paved = mix(stone, hexc("#3a3733"), gap * 0.85)
-    paved = paved * shade(-dome * 5 - gap * 3 + fine, 1.4)[..., None]
-    return {"dirt": dirt, "paved": paved}, fbm(n, 4, 3, 910) - 0.5
+    paved = mix(stone, hexc("#736d62"), gap * 0.7)
+    paved = paved * shade(-dome * 3 - gap * 2 + fine * 0.5, 1.2)[..., None]
+    # Kerb: cream travertine blocks with fine joints.
+    kf1, kedge, kid = voronoi(n, 70, 908)
+    kper = np.random.default_rng(909).random(kid.max() + 1)[kid]
+    kerb = mix(hexc("#e2d6bb"), hexc("#cdbf9f"), kper * 0.8 + fine * 0.2)
+    kgap = 1 - smoothstep(0.4, 1.3, kedge)
+    kerb = mix(kerb, hexc("#8a7f68"), kgap * 0.7)
+    kerb = kerb * shade(-np.clip(kf1 / 6.0, 0, 1) * 2 - kgap * 2, 1.2)[..., None]
+    return ({"dirt": dirt, "paved": paved}, {"dirt": dirt_edge, "paved": kerb}, fbm(n, 4, 3, 910) - 0.5,
+            fbm(n, 12, 2, 911) - 0.5)
+
+
+# Road widths (tile units).  Streets fill most of the tile diamond: the surface's half width, then
+# the edge band around it (dirt: worn earth and tufts, soft; paved: a kerb of cream blocks).
+ROAD_HALF = {"dirt": 0.39, "paved": 0.35}
+ROAD_EDGE = {"dirt": 0.08, "paved": 0.105}
 
 
 def roads():
-    texs, wobble = road_textures()
+    """Road pieces.  Every piece is a surface sprite road/<k>_<piece> plus its edge band
+    road/<k>_k_<piece> (the band only, from the surface outward).  The game draws all edge bands of
+    a tile under all its surfaces, so the union of the surfaces hides the bands' inner overlaps and
+    a kerb shows only along the street's true outline, in every autotile shape."""
+    texs, edges, wobble, wob2 = road_textures()
     tx, ty, w, h, ax, ay = iso_grid(1, 1, 1.0, 1.0)
     s, t = tx, ty  # tile (0, 0): local coords are tile coords
     wob = sample(wobble, s, t, 1)
+    wb2 = sample(wob2, s, t, 1)
     tile = inside(s, t, 0, 1, 0, 1)
-    for kind, half in (("dirt", 0.25), ("paved", 0.28)):
+    for kind in ("dirt", "paved"):
+        half, band = ROAD_HALF[kind], ROAD_EDGE[kind]
         col = sample(texs[kind], s, t, 1)
-        e = 0.035 if kind == "dirt" else 0.012
-        amp = 0.07 if kind == "dirt" else 0.015
+        ecol = sample(edges[kind], s, t, 1)
+        if kind == "dirt":
+            e, amp, eamp = 0.03, 0.05, 0.10
+        else:
+            e, amp, eamp = 0.008, 0.0, 0.006
 
-        def emit(name, dist):
-            a = smoothstep(half + e, half - e, dist + wob * amp) * tile
+        def emit(name, dist, edge=True):
+            d = dist + wob * amp
+            a = smoothstep(half + e, half - e, d) * tile
+            # (no edge shading here: surfaces overlap each other, so any rim would show inside the street)
             save("road/%s_%s" % (kind, name), finish(col, a, w, h), ax, ay)
+            if not edge:
+                return
+            de = dist + wob * amp + wb2 * eamp
+            if kind == "dirt":  # worn edge fading into the grass
+                outer = smoothstep(half + band, half + band * 0.3, de)
+                shade_in = 1.0 - 0.12 * smoothstep(half + band, half, de)
+                ea = outer * smoothstep(half - 2 * e, half, d) * tile
+                save("road/%s_k_%s" % (kind, name), finish(ecol * shade_in[..., None], ea, w, h), ax, ay)
+            else:  # kerb: crisp outer edge with a thin dark lip where it meets the ground
+                outer = smoothstep(half + band + 0.008, half + band - 0.004, de)
+                lip = smoothstep(half + band - 0.02, half + band, de)
+                cc = ecol * (1.0 - 0.35 * lip)[..., None]
+                ea = outer * smoothstep(half - 2 * e, half, d) * tile
+                save("road/%s_k_%s" % (kind, name), finish(cc, ea, w, h), ax, ay)
 
         emit("c", np.hypot(s - 0.5, t - 0.5))
         for d, (ex, ey) in ROAD_DIRS.items():
@@ -379,6 +437,11 @@ def roads():
             dx, dy = (1.0, 1.0) if c in ("ne", "sw") else (1.0, -1.0)
             dist = np.abs((s - cx) * dy - (t - cy) * dx) / np.sqrt(2)
             emit("fill_" + c, dist)
+            # the tile quarter at this corner, paved solid: where two orthogonal neighbours and the
+            # diagonal one between them are all road (a wide street or a square), no kerb island
+            qs = (s >= 0.5) if cx > 0.5 else (s <= 0.5)
+            qt = (t >= 0.5) if cy > 0.5 else (t <= 0.5)
+            emit("q_" + c, np.where(qs & qt, 0.0, 1.0), edge=False)
 
 
 def main():
@@ -388,9 +451,13 @@ def main():
             _meta.update(json.load(f))
     except (OSError, ValueError):
         pass
-    dual_cells()
-    cliffs()
-    roads()
+    parts = sys.argv[1:] or ["terrain", "cliffs", "roads"]  # e.g. terrain_tex.py roads
+    if "terrain" in parts:
+        dual_cells()
+    if "cliffs" in parts:
+        cliffs()
+    if "roads" in parts:
+        roads()
     with open(META, "w") as f:
         json.dump(_meta, f, indent=1, sort_keys=True)
         f.write("\n")

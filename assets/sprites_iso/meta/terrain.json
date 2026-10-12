@@ -47,6 +47,38 @@
   "ax": 40,
   "ay": 24
  },
+ "obj/flowers_0": {
+  "ax": 16,
+  "ay": 16
+ },
+ "obj/flowers_1": {
+  "ax": 15,
+  "ay": 13
+ },
+ "obj/flowers_2": {
+  "ax": 16,
+  "ay": 16
+ },
+ "obj/flowers_3": {
+  "ax": 17,
+  "ay": 14
+ },
+ "obj/pebbles_0": {
+  "ax": 15,
+  "ay": 10
+ },
+ "obj/pebbles_0_shadow": {
+  "ax": 34,
+  "ay": 20
+ },
+ "obj/pebbles_1": {
+  "ax": 15,
+  "ay": 7
+ },
+ "obj/pebbles_1_shadow": {
+  "ax": 34,
+  "ay": 20
+ },
  "obj/reeds_0": {
   "ax": 17,
   "ay": 39
@@ -191,6 +223,18 @@
   "ax": 66,
   "ay": 117
  },
+ "obj/tuft_0": {
+  "ax": 14,
+  "ay": 17
+ },
+ "obj/tuft_1": {
+  "ax": 16,
+  "ay": 21
+ },
+ "obj/tuft_2": {
+  "ax": 20,
+  "ay": 15
+ },
  "road/dirt_c": {
   "ax": 66,
   "ay": 66
@@ -215,6 +259,58 @@
   "ax": 66,
   "ay": 66
  },
+ "road/dirt_k_c": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_e": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_fill_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_fill_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_fill_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_fill_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_n": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_s": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_k_w": {
+  "ax": 66,
+  "ay": 66
+ },
  "road/dirt_n": {
   "ax": 66,
   "ay": 66
@@ -224,6 +320,22 @@
   "ay": 66
  },
  "road/dirt_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_q_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_q_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_q_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/dirt_q_sw": {
   "ax": 66,
   "ay": 66
  },
@@ -267,6 +379,58 @@
   "ax": 66,
   "ay": 66
  },
+ "road/paved_k_c": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_e": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_fill_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_fill_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_fill_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_fill_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_n": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_s": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_sw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_k_w": {
+  "ax": 66,
+  "ay": 66
+ },
  "road/paved_n": {
   "ax": 66,
   "ay": 66
@@ -276,6 +440,22 @@
   "ay": 66
  },
  "road/paved_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_q_ne": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_q_nw": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_q_se": {
+  "ax": 66,
+  "ay": 66
+ },
+ "road/paved_q_sw": {
   "ax": 66,
   "ay": 66
  },

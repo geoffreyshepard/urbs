@@ -19,13 +19,17 @@ struct TerrainSprites {
   // One quarter (0 NW, 1 NE, 2 SW, 3 SE) of a dual cell, for cells across a height step.
   Sprite quarter[kTerrainCount][4][4];
   Sprite cliff[2][2];       // [south, east][variant]: one height level of face under that edge
-  Sprite road_center[3];    // indexed by sim::Road (None unused)
-  Sprite road_spoke[3][8];  // N, NE, E, SE, S, SW, W, NW
-  Sprite road_fill[3][4];   // ne, se, sw, nw: drawn on a non-road tile whose two side neighbours join diagonally
+  // Roads: [kind 1 dirt, 2 paved][0 surface, 1 edge band (dirt: worn edge; paved: kerb)].  A tile's
+  // edge bands draw under all its surfaces, so kerbs show only along the street's outline.
+  Sprite road_center[3][2];
+  Sprite road_spoke[3][8][2];  // N, NE, E, SE, S, SW, W, NW
+  Sprite road_fill[3][4][2];   // ne, se, sw, nw: drawn on a non-road tile whose two side neighbours join diagonally
+  Sprite road_quad[3][4];      // ne, se, sw, nw tile quarter, solid: both side neighbours and the corner are road
   struct Decor {
     Sprite body, shadow;  // the object, and the shadow it casts (drawn under every body)
   };
   Decor tree[7], bush[3], reeds[3], boulder[3];
+  Decor tuft[3], flowers[4], pebbles[2];  // meadow decor scattered over open grass (optional art)
   Decor res[static_cast<int>(sim::Resource::Count)];
   u32 base_color[kTerrainCount] = {};
   u32 road_color[3] = {};
@@ -51,10 +55,12 @@ inline constexpr f32 kDepthTerrain = 0.999f;  // far-zoom diamond (drawn alone)
 inline constexpr f32 kDepthRoad = 0.998f;     // legacy: kept so kDepthRoad - small offsets stay above ground
 inline constexpr int kGroundSlots = 1024;     // > map w + h + 2 for every supported map size
 // Sub-layers inside one ground slot, back to front.
-enum GroundLayer : int { kLayerCell = 0, kLayerRoad = 1, kLayerQuarter = 2, kLayerCliff = 3 };
+enum GroundLayer : int { kLayerCell = 0, kLayerKerb = 1, kLayerRoad = 2, kLayerQuarter = 3, kLayerCliff = 4 };
+inline constexpr int kGroundLayers = 5;
 inline f32 ground_depth(int slot, int layer) {
-  constexpr f32 k = (kDepthGroundFar - kDepthGroundNear) / static_cast<f32>(4 * (kGroundSlots + 2));
-  return kDepthGroundNear + static_cast<f32>((kGroundSlots - slot) * 4 + (3 - layer)) * k;
+  constexpr f32 k = (kDepthGroundFar - kDepthGroundNear) / static_cast<f32>(kGroundLayers * (kGroundSlots + 2));
+  return kDepthGroundNear +
+         static_cast<f32>((kGroundSlots - slot) * kGroundLayers + (kGroundLayers - 1 - layer)) * k;
 }
 static_assert(kDepthFlat < kDepthDecorShadow && kDepthDecorShadow < kDepthGroundNear &&
               kDepthRoad - 0.0004f < kDepthGroundNear);

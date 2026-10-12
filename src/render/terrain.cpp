@@ -82,10 +82,16 @@ void TerrainSprites::resolve(const Atlas& a) {
   }
   const char* rn[3] = {"", "dirt", "paved"};
   for (int r = 1; r < 3; ++r) {
-    road_center[r] = a.get(std::string("road/") + rn[r] + "_c");
-    for (int d = 0; d < 8; ++d) road_spoke[r][d] = a.get(std::string("road/") + rn[r] + "_" + kDir8[d]);
-    for (int c = 0; c < 4; ++c) road_fill[r][c] = a.get(std::string("road/") + rn[r] + "_fill_" + kCorner[c]);
-    road_color[r] = a.average_color(road_center[r]);
+    for (int k = 0; k < 2; ++k) {
+      const std::string p = std::string("road/") + rn[r] + (k ? "_k_" : "_");
+      // The edge bands are optional (an older atlas has none): find(), not get().
+      road_center[r][k] = k ? a.find(p + "c") : a.get(p + "c");
+      for (int d = 0; d < 8; ++d) road_spoke[r][d][k] = k ? a.find(p + kDir8[d]) : a.get(p + kDir8[d]);
+      for (int c = 0; c < 4; ++c)
+        road_fill[r][c][k] = k ? a.find(p + "fill_" + kCorner[c]) : a.get(p + "fill_" + kCorner[c]);
+    }
+    for (int c = 0; c < 4; ++c) road_quad[r][c] = a.find(std::string("road/") + rn[r] + "_q_" + kCorner[c]);
+    road_color[r] = a.average_color(road_center[r][0]);
   }
   auto decor = [&](const std::string& n) { return Decor{a.get(n), a.get(n + "_shadow")}; };
   for (int i = 0; i < 7; ++i) tree[i] = decor("obj/tree_" + std::to_string(i));
@@ -94,6 +100,11 @@ void TerrainSprites::resolve(const Atlas& a) {
     reeds[i] = decor("obj/reeds_" + std::to_string(i));
     boulder[i] = decor("obj/boulder_" + std::to_string(i));
   }
+  // Meadow decor: newer art, so looked up with find() (an older atlas just has none).
+  auto meadow = [&](const std::string& n) { return Decor{a.find(n), a.find(n + "_shadow")}; };
+  for (int i = 0; i < 3; ++i) tuft[i] = meadow("obj/tuft_" + std::to_string(i));
+  for (int i = 0; i < 4; ++i) flowers[i] = meadow("obj/flowers_" + std::to_string(i));
+  for (int i = 0; i < 2; ++i) pebbles[i] = meadow("obj/pebbles_" + std::to_string(i));
   for (int r = 1; r < static_cast<int>(sim::Resource::Count); ++r) res[r] = decor(std::string("obj/res_") + kResName[r]);
 }
 
@@ -184,11 +195,19 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
 
       const Road road = m.road[i];
       const bool occupied = m.building[i].valid();
-      const f32 zr = ground_depth(x + y + 1, kLayerRoad);
+      const f32 zr = ground_depth(x + y + 1, kLayerRoad), zk = ground_depth(x + y + 1, kLayerKerb);
       const u32 road_code = ground_code_color(kKindRoad, lv);
+      // One road piece: its edge band one sub-layer under its surface (see TerrainSprites).
+      auto piece = [&](const Sprite (&p)[2]) {
+        if (p[1].valid) out.push_back(anchored(p[1], corner, zk, road_code));
+        out.push_back(anchored(p[0], corner, zr, road_code));
+      };
+      // Diagonal neighbour d (1 NE, 3 SE, 5 SW, 7 NW) <-> corner index (0 ne, 1 se, 2 sw, 3 nw).
+      static constexpr int kSa[4] = {0, 2, 2, 0}, kSb[4] = {1, 1, 3, 3};  // N/E, S/E, S/W, N/W
+      static constexpr int kDx[4] = {1, 1, -1, -1}, kDy[4] = {-1, 1, 1, -1};
       if (road != Road::None) {
         int ri = road == Road::Paved || road == Road::Bridge ? 2 : 1;
-        out.push_back(anchored(ts.road_center[ri], corner, zr, road_code));
+        piece(ts.road_center[ri]);
         bool orth[4];
         for (int s = 0; s < 4; ++s) orth[s] = R(x + kDir4X[s], y + kDir4Y[s]) != Road::None;
         for (int d = 0; d < 8; ++d) {
@@ -197,22 +216,22 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
             int a = d / 2, b = ((d + 1) / 2) % 4;
             if (orth[a] || orth[b]) continue;
           }
-          out.push_back(anchored(ts.road_spoke[ri][d], corner, zr, road_code));
+          piece(ts.road_spoke[ri][d]);
         }
+        // Wide streets and squares: fill the corner where both sides and the diagonal are road.
+        for (int c = 0; c < 4; ++c)
+          if (orth[kSa[c]] && orth[kSb[c]] && R(x + kDx[c], y + kDy[c]) != Road::None && ts.road_quad[ri][c].valid)
+            out.push_back(anchored(ts.road_quad[ri][c], corner, zr, road_code));
         continue;
       }
       if (occupied) continue;
 
       // Diagonal road fills: the two side neighbours at a corner are joined by a diagonal spoke.
-      {
-        static constexpr int kSa[4] = {0, 2, 2, 0}, kSb[4] = {1, 1, 3, 3};  // N/E, S/E, S/W, N/W
-        static constexpr int kDx[4] = {1, 1, -1, -1}, kDy[4] = {-1, 1, 1, -1};
-        for (int c = 0; c < 4; ++c) {
-          Road ra = R(x + kDir4X[kSa[c]], y + kDir4Y[kSa[c]]), rb = R(x + kDir4X[kSb[c]], y + kDir4Y[kSb[c]]);
-          if (ra == Road::None || rb == Road::None || R(x + kDx[c], y + kDy[c]) != Road::None) continue;
-          int ri = (ra == Road::Dirt && rb == Road::Dirt) ? 1 : 2;
-          out.push_back(anchored(ts.road_fill[ri][c], corner, zr, road_code));
-        }
+      for (int c = 0; c < 4; ++c) {
+        Road ra = R(x + kDir4X[kSa[c]], y + kDir4Y[kSa[c]]), rb = R(x + kDir4X[kSb[c]], y + kDir4Y[kSb[c]]);
+        if (ra == Road::None || rb == Road::None || R(x + kDx[c], y + kDy[c]) != Road::None) continue;
+        int ri = (ra == Road::Dirt && rb == Road::Dirt) ? 1 : 2;
+        piece(ts.road_fill[ri][c]);
       }
 
       // Decorations and resource outcrops, y-sorted with buildings and agents.  The foot is jittered
@@ -225,6 +244,32 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
       };
       const f32 jx = (static_cast<f32>((var >> 2) & 7) - 3.5f) / 14.0f;
       const f32 jy = (static_cast<f32>((var >> 5) & 3) - 1.5f) / 8.0f;
+      // Meadow decor on open grass: tufts, wildflowers and pebbles, placed by a hash of the tile (render
+      // only; built-on and road tiles never reach here, so it vanishes with the next chunk rebuild).
+      // Tiles beside a road are trodden: sparser, no flowers.
+      auto meadow = [&](i32 tx, i32 ty, bool fertile) {
+        u32 h = static_cast<u32>(tx) * 0x9E3779B1u ^ static_cast<u32>(ty) * 0x85EBCA77u;
+        h = (h ^ (h >> 15)) * 0x2C1B3C6Du;
+        h ^= h >> 12;
+        bool trodden = false;
+        for (int s = 0; s < 4; ++s) {
+          const i32 nx = tx + kDir4X[s], ny = ty + kDir4Y[s];
+          if (R(nx, ny) != Road::None) trodden = true;
+        }
+        const int n = static_cast<int>((h & 0xFF) < (trodden ? 90u : 170u)) + static_cast<int>(!trodden && ((h >> 8) & 0xFF) < 80u);
+        for (int k = 0; k < n; ++k) {
+          const u32 hk = (h >> (k * 7 + 3)) * 0x27D4EB2Du ^ h;
+          const u32 pick = (hk >> 4) % 100;
+          const TerrainSprites::Decor* d;
+          if (pick < (trodden ? 70u : 48u)) d = &ts.tuft[(hk >> 12) % (fertile ? 2 : 3)];  // fertile: no dry tufts
+          else if (!trodden && pick < 86u) d = &ts.flowers[(hk >> 14) % 4];
+          else d = &ts.pebbles[(hk >> 16) % 2];
+          if (!d->body.valid) continue;
+          const f32 ox = (static_cast<f32>((hk >> 18) & 15) / 15.0f - 0.5f) * 0.7f;
+          const f32 oy = (static_cast<f32>((hk >> 22) & 15) / 15.0f - 0.5f) * 0.7f;
+          put(*d, ox, oy);
+        }
+      };
       if (m.resource[i] != sim::Resource::None && !sim::terrain_water(t) && var % 4 == 0) {
         put(ts.res[static_cast<int>(m.resource[i])], jx * 0.5f, jy * 0.5f);
         continue;
@@ -237,11 +282,13 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
           break;
         }
         case Terrain::Grass:
-          if (var % 23 == 0) put(ts.bush[var % 3], jx, jy);
-          else if (var % 41 == 1) put(ts.tree[(var / 41) % 2 ? 2 : 6], jx, jy);  // olive or poplar
+          // Nothing tall on buildable ground: trees grow only where the sim has forest.
+          if (var % 23 == 0 || var % 41 == 1) put(ts.bush[var % 3], jx, jy);
+          else meadow(x, y, false);
           break;
         case Terrain::Fertile:
-          if (var % 61 == 2) put(ts.tree[2], jx, jy);
+          if (var % 61 == 2) put(ts.bush[var % 3], jx, jy);
+          else meadow(x, y, true);
           break;
         case Terrain::Marsh:
           if (var % 5 < 2) put(ts.reeds[var % 3], jx, jy);
