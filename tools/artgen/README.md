@@ -38,6 +38,7 @@ fails.
 | `ui.py` | God medallions and advisor portraits |
 | `hud.py` | Logo, meander ornaments, HUD icons |
 | `worldmap.py` | Province map (coastline polygons in lon/lat) and `province_places.json` |
+| `province_map_hd.py` | The painted 2560x1440 campaign map, `assets/ui/province_map.png` (numpy; run on its own, not by `build_all.py`) |
 | `buildings/kit.py` | Building kit: projection helpers, faces, roofs, colonnades, pediments, domes, arcades, props |
 | `buildings/works.py`, `buildings/civic.py` | One recipe per fixed building id (sizes come from `data/defs/buildings.json`) |
 | `buildings/fixed.py` | Runs the recipes; stops if a non-painted building has no recipe |

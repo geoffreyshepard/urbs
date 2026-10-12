@@ -153,8 +153,10 @@ void mul3(f32* v, f32 r, f32 g, f32 b) {
 
 }  // namespace
 
-void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 dt) {
-  const f32 hour = (static_cast<f32>(sim::tick_of_day(w.now)) + alpha) / static_cast<f32>(kTicksPerDay) * 24.0f;
+void Lighting::update(const sim::World& w, sim::Weather weather, f32 alpha, f32 dt, f32 fixed_hour) {
+  const f32 hour = fixed_hour >= 0
+                       ? fixed_hour
+                       : (static_cast<f32>(sim::tick_of_day(w.now)) + alpha) / static_cast<f32>(kTicksPerDay) * 24.0f;
   Preset p = at_hour(hour);
 
   switch (sim::season(w.now)) {

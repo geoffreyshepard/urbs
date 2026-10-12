@@ -213,6 +213,12 @@ void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
           bh = b.contains("size") ? b["size"][1].get<i32>() : fp.h;
       BuildingId id = w.place_building(d, b["x"], b["y"], bw, bh, true, rot);
       if (!id) throw std::runtime_error("scenario: cannot place " + bd.id + " at " + b["x"].dump() + "," + b["y"].dump());
+      // "tier": a house that starts evolved (it keeps the tier while its needs are met; see housing.cpp).
+      if (b.contains("tier") && bd.kind == data::BuildingKind::House) {
+        Building& hb = w.buildings[id];
+        hb.tier = std::min<u8>(b["tier"].get<u8>(), defs.max_tier(bd.house_line));
+        if (const auto* t = defs.tier(bd.house_line, hb.tier)) hb.capacity = t->capacity;
+      }
       if (b.contains("stock"))
         for (auto& [g, n] : b["stock"].items()) w.add_stock(id, defs.good(g), n.get<u16>());
       placed.push_back(id);
@@ -222,11 +228,16 @@ void setup_scripted(World& w, const data::Defs& defs, ScenarioSpec& s) {
     for (auto& h : st["households"]) {
       BuildingId home = placed.at(h["building"].get<size_t>());
       u32 count = h.value("count", 1u), members = h.value("members", 4u);
+      CitizenClass cls = CitizenClass::Pleb;
+      if (h.contains("class"))
+        for (u8 c = 0; c < static_cast<u8>(CitizenClass::Count); ++c)
+          if (h["class"].get<std::string>() == class_name(static_cast<CitizenClass>(c)))
+            cls = static_cast<CitizenClass>(c);
       for (u32 k = 0; k < count; ++k) {
-        HouseholdId hh = w.create_household(home, CitizenClass::Pleb);
+        HouseholdId hh = w.create_household(home, cls);
         w.households[hh].food = static_cast<u16>(h.value("food", 8u));
         w.households[hh].savings = h.value("savings", 100);
-        for (u32 m = 0; m < members; ++m) w.spawn_citizen(CitizenClass::Pleb, home, hh, m < 2 ? 20 + r.below(20) : 15 + r.below(30));
+        for (u32 m = 0; m < members; ++m) w.spawn_citizen(cls, home, hh, m < 2 ? 20 + r.below(20) : 15 + r.below(30));
       }
     }
   }

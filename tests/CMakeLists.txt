@@ -37,6 +37,10 @@ foreach(sv ${URBS_OLD_SAVES})
   set_tests_properties(save_${_n} PROPERTIES PASS_REGULAR_EXPRESSION "loaded .*alloc_violations\":0")
 endforeach()
 
+# The main menu's backdrop city (tools/menu_backdrop.sh) loads and lives a game day with consistency checks.
+add_test(NAME menu_backdrop COMMAND urbs_headless --scenario ${CMAKE_SOURCE_DIR}/data/menu/backdrop/scenario.json
+         --ticks 1200 --check)
+
 # The example mod loads and its scenario runs.
 add_test(NAME mod_example COMMAND urbs_headless --mod ${CMAKE_SOURCE_DIR}/mods/example_vintners_guild
          --scenario ${CMAKE_SOURCE_DIR}/mods/example_vintners_guild/scenarios/vintners_valley/scenario.json

@@ -62,7 +62,7 @@ Three layers:
 
 ## Province map
 
-Between missions the player sees a stylized map of the Roman world. Every completed city stays on it as a **trade partner** that sells what it was good at. This is how earlier work pays off later, and it gives the campaign continuity even though each mission is a new city.
+Between missions the player sees a stylized map of the Roman world. Every completed city stays on it as a **trade partner** that sells what it was good at. This is how earlier work pays off later, and it gives the campaign continuity even though each mission is a new city. The map is a painted atlas plate of the Mediterranean (`tools/artgen/province_map_hd.py`); the missions sit on it as numbered medallions, and a line of the same medallions under the map groups them by rank, from Colonus to Praefectus Urbi. Beside it, the selected mission's dossier carries the letter of appointment, the difficulty and the Begin button.
 
 ## Sandbox, random maps, editor
 

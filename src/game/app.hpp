@@ -12,6 +12,7 @@
 #include "game/tools.hpp"
 #include "game/ui_icons.hpp"
 #include "game/ui_skin.hpp"
+#include "game/ui_picture.hpp"
 #include "game/world_view.hpp"
 #include "platform/platform.hpp"
 #include "render/renderer.hpp"
@@ -40,9 +41,13 @@ struct AppOptions {
   std::string show;       // screenshots: comma-separated panels to open (finance,labor,...)
   bool autoplay = false;  // let the autoplay bot play (demo / screenshots)
   bool mute = false;      // no audio device (screenshot runs are always silent)
+  int career = -1;        // screenshots: pretend the first N campaign missions are won (never saved)
 };
 
 AppOptions parse_args(int argc, char** argv);
+
+// Darkens the living city behind the menu screens (campaign, sandbox, custom scenarios, mods, dialogs).
+void dim_backdrop(int alpha = 200);
 
 // The report panels, in top-bar order. One is open at a time, hanging from its button.
 enum class Panel : u8 {
@@ -144,6 +149,8 @@ class App {
   Tools tools_;
   UiIcons icons_;
   UiSkin skin_;
+  UiPicture province_map_;  // the campaign's painted map (assets/ui), loaded the first time it is shown
+  bool province_map_tried_ = false;
   Settings settings_;
   CampaignDef campaign_;
   CampaignProfile profile_;
@@ -172,6 +179,10 @@ class App {
   u64 last_counter_ = 0;
   f32 frame_ms_ = 0;
   u16 last_autosave_day_ = 0;
+  // The menu backdrop: a living city (true) or a plain landscape, and the camera's drift around it.
+  bool menu_live_ = false;
+  Vec2 menu_focus_{0, 0};
+  f32 menu_radius_ = 0, menu_clock_ = 0;
   u16 salary_day_ = 0;
 
   // Panels

@@ -1,10 +1,13 @@
+#include <unistd.h>
+
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
-#include <unistd.h>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
@@ -12,10 +15,10 @@
 #include "core/log.hpp"
 #include "data/defs.hpp"
 #include "save/save.hpp"
-#include "sim/scenario.hpp"
 #include "sim/autoplay.hpp"
 #include "sim/chaos.hpp"
 #include "sim/invariants.hpp"
+#include "sim/scenario.hpp"
 #include "sim/world.hpp"
 
 using namespace urbs;
@@ -27,6 +30,97 @@ std::string data_root() {
 #else
   return "data";
 #endif
+}
+
+// --export-city DIR: freezes the city as a scripted scenario (DIR/scenario.json + DIR/map.urbsmap): the
+// map with its roads, every finished building with its tier and stock, and the households.  The main
+// menu's backdrop is made this way (tools/menu_backdrop.sh).  Every building is test-placed on a fresh
+// copy of the map so the scenario always loads; the few that cannot be placed again are left out.
+bool export_city(const sim::World& w, const data::Defs& defs, const sim::ScenarioSpec& spec, const std::string& dir,
+                 u64 ticks) {
+  namespace fs = std::filesystem;
+  using json = nlohmann::json;
+  fs::create_directories(dir);
+  std::string err;
+  if (!save::save_map(w.map, dir + "/map.urbsmap", &err)) {
+    std::fprintf(stderr, "export: %s\n", err.c_str());
+    return false;
+  }
+  const json src = json::parse(spec.json, nullptr, true, true);
+  sim::WorldConfig cfg = spec.world;
+  cfg.max_buildings = std::max<u32>(256, w.buildings.ids.count() + 256);
+  cfg.max_households = std::max<u32>(256, w.households.ids.count() + 512);
+  cfg.max_citizens = std::max<u32>(1024, w.citizens.ids.count() * 3 / 2);
+  auto test = std::make_unique<sim::World>();
+  if (!save::load_map(test->map, dir + "/map.urbsmap", &err)) return false;
+  test->init(cfg, defs);
+  json buildings = json::array(), households = json::array();
+  std::vector<u32> index_of(w.buildings.ids.high_water(), 0xFFFFFFFFu);
+  u32 skipped = 0;
+  w.buildings.for_each([&](BuildingId id, const sim::Building& b) {
+    if (b.state != sim::BState::Active) return;
+    if (!test->place_building(b.def, b.x, b.y, b.w, b.h, true, b.rot)) {
+      ++skipped;
+      return;
+    }
+    const auto& d = defs.b(b.def);
+    json e = {{"def", d.id}, {"x", b.x}, {"y", b.y}, {"size", {b.w, b.h}}};
+    if (b.rot) e["rot"] = b.rot;
+    if (d.kind == data::BuildingKind::House && b.tier) e["tier"] = b.tier;
+    if (b.inv != econ::kNoInv && d.kind != data::BuildingKind::House) {
+      json stock = json::object();
+      for (u32 g = 0; g < w.econ.goods; ++g) {
+        const u16 n = w.econ.amt(b.inv, GoodId{static_cast<u16>(g)});
+        if (n) stock[defs.goods[g].id] = n;
+      }
+      if (!stock.empty()) e["stock"] = stock;
+    }
+    index_of[id.index()] = static_cast<u32>(buildings.size());
+    buildings.push_back(std::move(e));
+  });
+  // Households, grouped per home: how many and their average size (free families only).
+  std::vector<u32> hh_count(buildings.size(), 0), hh_members(buildings.size(), 0);
+  std::vector<sim::CitizenClass> hh_class(buildings.size(), sim::CitizenClass::Pleb);
+  for (u32 i = 0; i < w.households.ids.high_water(); ++i) {
+    if (!w.households.ids.alive_index(i)) continue;
+    const auto& h = w.households[w.households.ids.id_at(i)];
+    if (h.city_slaves || h.cls == sim::CitizenClass::Slave || !h.home.valid() || h.members == 0) continue;
+    const u32 k = index_of[h.home.index()];
+    if (k == 0xFFFFFFFFu) continue;
+    ++hh_count[k];
+    hh_members[k] += h.members;
+    hh_class[k] = h.cls;
+  }
+  for (size_t k = 0; k < buildings.size(); ++k) {
+    if (!hh_count[k]) continue;
+    json e = {{"building", k},
+              {"count", hh_count[k]},
+              {"members", std::max<u32>(1, (hh_members[k] + hh_count[k] / 2) / hh_count[k])},
+              {"food", 16},
+              {"savings", 150}};
+    if (hh_class[k] != sim::CitizenClass::Pleb) e["class"] = sim::class_name(hh_class[k]);
+    households.push_back(std::move(e));
+  }
+  json out = {{"name", "Menu backdrop"},
+              {"id", "menu_backdrop"},
+              {"source", fs::path(spec.path).parent_path().filename().string() + " built by the autoplay bot for " +
+                             std::to_string(ticks) + " ticks (tools/menu_backdrop.sh)"},
+              {"mission", 16},
+              {"start_hour", 10},
+              {"map_file", "map.urbsmap"},
+              {"world",
+               {{"max_citizens", cfg.max_citizens},
+                {"max_buildings", cfg.max_buildings},
+                {"max_households", cfg.max_households}}},
+              {"generator", "scripted"},
+              {"start", {{"treasury", 20000}, {"buildings", buildings}, {"households", households}}}};
+  for (const char* key : {"region", "era", "nile", "gods"})
+    if (src.contains(key)) out[key] = src[key];
+  std::ofstream f(dir + "/scenario.json");
+  f << out.dump(1) << "\n";
+  std::printf("exported %zu buildings (%u left out), %zu homes with families to %s\n", buildings.size(), skipped,
+              households.size(), dir.c_str());
+  return static_cast<bool>(f);
 }
 }  // namespace
 
@@ -43,6 +137,7 @@ int main(int argc, char** argv) {
   bool keep_playing = false;         // --keep-playing: run all ticks even after the mission ends
   u32 chaos = 0;                     // --chaos N: N random player commands per game hour
   u32 roundtrip = 0;                 // --roundtrip D: every D days, save, reload, and compare a day of play
+  std::string export_dir;            // --export-city DIR: write the final city as a scripted scenario
   for (int i = 1; i < argc; ++i) {
     auto is = [&](const char* n) { return std::strcmp(argv[i], n) == 0; };
     if (is("--version")) {
@@ -64,6 +159,8 @@ int main(int argc, char** argv) {
     else if (is("--keep-playing")) keep_playing = true;
     else if (is("--chaos") && i + 1 < argc) chaos = static_cast<u32>(std::atoi(argv[++i]));
     else if (is("--roundtrip") && i + 1 < argc) roundtrip = static_cast<u32>(std::atoi(argv[++i]));
+    else if (is("--export-city") && i + 1 < argc)
+      export_dir = argv[++i];
     else if (is("--watch") && i + 1 < argc) {
       std::string list = argv[++i];
       for (size_t a = 0, b; a <= list.size(); a = b + 1) {
@@ -81,10 +178,12 @@ int main(int argc, char** argv) {
   }
   core::init_logging(verbose);
   if (scenario_path.empty() && load_path.empty()) {
-    std::fprintf(stderr,
-                 "usage: urbs_headless (--scenario file.json | --load save.urbs) [--ticks N] [--test] [--autoplay]\n"
-                 "       [--daily] [--verbose] [--dump] [--difficulty 0-2] [--seed N] [--mod dir]... [--watch goods]\n"
-                 "       [--ascii x0 y0 x1 y1] [--check] [--chaos N] [--roundtrip DAYS] [--keep-playing] [--version]\n");
+    std::fprintf(
+        stderr,
+        "usage: urbs_headless (--scenario file.json | --load save.urbs) [--ticks N] [--test] [--autoplay]\n"
+        "       [--daily] [--verbose] [--dump] [--difficulty 0-2] [--seed N] [--mod dir]... [--watch goods]\n"
+        "       [--ascii x0 y0 x1 y1] [--check] [--chaos N] [--roundtrip DAYS] [--keep-playing] [--export-city DIR]\n"
+        "       [--version]\n");
     return 2;
   }
   data::Defs defs;
@@ -421,6 +520,7 @@ int main(int argc, char** argv) {
                 per_side[0], units_side[0], per_side[1], units_side[1], static_cast<double>(ex), static_cast<double>(ey),
                 world->soldiers_lost_, world->enemies_killed_);
   }
+  if (!export_dir.empty() && !export_city(*world, defs, spec, export_dir, ticks)) return 1;
   if (dump || verbose) {
     u32 reasons[64] = {}, acts[32] = {}, tiers[8] = {};
     const auto& C = world->citizens;

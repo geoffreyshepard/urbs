@@ -76,6 +76,7 @@ bool App::reload_defs(std::string* err) {
 }
 
 void App::draw_mods() {
+  dim_backdrop();
   center_next(640, 550);
   begin_window(
       "##mods", nullptr,
@@ -162,21 +163,38 @@ std::vector<std::pair<std::string, std::string>> App::custom_scenarios() const {
 }
 
 void App::draw_custom() {
-  center_next(560, 510);
+  dim_backdrop();
+  const float fs = ImGui::GetFontSize();
+  const float w = std::round(fs * 36), h = std::round(fs * 30);
+  center_next(w, h);
   begin_window(
       "##custom", nullptr,
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
   menu_title("Custom scenarios");
-  ImGui::TextWrapped("Scenarios made in the editor (saved in %sscenarios) and scenarios from enabled mods.", user_dir_.c_str());
-  ImGui::Separator();
+  ImGui::TextWrapped("Scenarios made in the Scenario editor, and those that come with enabled mods.");
+  ImGui::TextDisabled("Your scenarios are kept in %sscenarios", user_dir_.c_str());
+  ImGui::Spacing();
   const auto list = custom_scenarios();
-  ImGui::BeginChild("list", ImVec2(0, 340), true);
-  if (list.empty()) ImGui::TextDisabled("None yet. Make one in the Scenario editor.");
+  const float list_h = ImGui::GetContentRegionAvail().y - fs * 3.0f;
+  ImGui::BeginChild("list", ImVec2(0, list_h), ImGuiChildFlags_Borders);
+  if (list.empty()) {
+    const char* none = "None yet. Make one in the Scenario editor.";
+    const ImVec2 sz = ImGui::CalcTextSize(none);
+    ImGui::SetCursorPos(ImVec2((ImGui::GetWindowWidth() - sz.x) * 0.5f, (ImGui::GetWindowHeight() - sz.y) * 0.45f));
+    ImGui::TextDisabled("%s", none);
+  }
   for (size_t k = 0; k < list.size(); ++k) {
     ImGui::PushID(static_cast<int>(k));
+    const bool mine = list[k].second.rfind(user_dir_, 0) == 0;
+    const float row_y = ImGui::GetCursorPosY();
+    ImGui::PushFont(ui_fonts().bold, 0.0f);
     ImGui::TextUnformatted(list[k].first.c_str());
-    ImGui::SameLine(ImGui::GetWindowWidth() - 170);
-    if (ImGui::SmallButton("Play")) {
+    ImGui::PopFont();
+    ImGui::TextDisabled("%s", mine ? "your scenario" : "from a mod");
+    const float bw = std::round(fs * 5.0f), right = ImGui::GetWindowWidth() - ImGui::GetStyle().WindowPadding.x;
+    ImGui::SetCursorPos(
+        ImVec2(right - bw * (mine ? 2.0f : 1.0f) - (mine ? ImGui::GetStyle().ItemSpacing.x : 0.0f), row_y + fs * 0.3f));
+    if (ImGui::Button("Play", ImVec2(bw, 0))) {
       try {
         mission_index_ = -1;
         defs_ = base_defs_;
@@ -186,14 +204,17 @@ void App::draw_custom() {
         status_time_ = 8;
       }
     }
-    if (list[k].second.rfind(user_dir_, 0) == 0) {
+    if (mine) {
       ImGui::SameLine();
-      if (ImGui::SmallButton("Edit")) editor_open(list[k].second);
+      if (ImGui::Button("Edit", ImVec2(bw, 0))) editor_open(list[k].second);
     }
+    ImGui::SetCursorPosY(row_y + fs * 2.6f);
+    if (k + 1 < list.size()) ImGui::Separator();
     ImGui::PopID();
   }
   ImGui::EndChild();
-  if (big_button("Back")) screen_ = Screen::Menu;
+  ImGui::Spacing();
+  if (ImGui::Button("Back", ImVec2(std::round(fs * 9), std::round(fs * 2.0f)))) screen_ = Screen::Menu;
   ImGui::End();
 }
 
