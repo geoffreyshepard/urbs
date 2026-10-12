@@ -12,6 +12,7 @@
 #include "game/panel_kit.hpp"
 #include "game/panels.hpp"
 #include "game/profile.hpp"
+#include "game/sfx.hpp"
 #include "game/tools.hpp"
 #include "game/ui_icons.hpp"
 #include "game/ui_picture.hpp"
@@ -161,6 +162,7 @@ class App {
   render::Renderer renderer_;
   platform::Audio audio_;
   MusicDirector music_;
+  SoundDirector sfx_;
   data::Defs defs_, base_defs_;
   std::string root_, user_dir_;
   std::unique_ptr<sim::World> world_;
