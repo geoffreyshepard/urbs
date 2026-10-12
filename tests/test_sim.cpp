@@ -644,8 +644,9 @@ TEST_CASE("deliveries nobody can make expire instead of reserving goods forever"
 }
 
 TEST_CASE("goods staged for export are the city's again once stock is at the export level") {
-  // 40 bricks staged at the trade post for export, a site that needs 12. Above the export level the
-  // post keeps them for the caravans; at or below it they are not for sale and the site gets them.
+  // 40 bricks staged at the trade post for export to Rome, a site that needs 12. Above the export
+  // level the post keeps them for the caravans; at or below it they are not for sale and the site
+  // gets them.
   const auto& D = defs();
   const GoodId bricks = D.good("bricks");
   for (const i32 level : {10, 40}) {
@@ -656,6 +657,8 @@ TEST_CASE("goods staged for export are the city's again once stock is at the exp
     w->add_stock(post, bricks, 40);
     w->trade_mode[bricks.v] = 2;
     w->trade_level[bricks.v] = static_cast<u16>(level);
+    for (u32 p = 0; p < D.partners.size(); ++p)
+      if (D.partners[p].id == "rome") w->routes[p].open = 1;  // Rome buys bricks
     for (int t = 0; t < static_cast<int>(kTicksPerDay); ++t) w->tick();  // the daily count of city stock
     REQUIRE(w->econ.city_stock[bricks.v] == 40);
     const BuildingDefId bal = D.building("balneum");
@@ -665,6 +668,25 @@ TEST_CASE("goods staged for export are the city's again once stock is at the exp
     CAPTURE(level);
     CHECK((w->econ.rin(w->buildings[site].inv, bricks) > 0) == (level >= 40));
   }
+}
+
+TEST_CASE("a full trade post sends what no caravan will buy to storage, so imports still fit") {
+  // 180 statues staged for export at a post (capacity 200) and no open route buying them: they go to
+  // the warehouse instead of blocking the post.
+  const auto& D = defs();
+  const GoodId statues = D.good("statues");
+  auto w = flat_world(64);
+  w->entry_tile = w->map.idx(0, 32);
+  BuildingId post = put(*w, "trade_post", 10, 30);
+  BuildingId store = put(*w, "warehouse", 30, 30);
+  REQUIRE(post.valid());
+  REQUIRE(store.valid());
+  w->add_stock(post, statues, 180);
+  w->trade_mode[statues.v] = 2;
+  w->trade_level[statues.v] = 0;
+  for (int t = 0; t < static_cast<int>(kTicksPerDay) + static_cast<int>(kTicksPerHour) * 6; ++t) w->tick();
+  CHECK(w->econ.rout(w->buildings[post].inv, statues) > 0);
+  CHECK(w->econ.rin(w->buildings[store].inv, statues) > 0);
 }
 
 TEST_CASE("a town stays consistent under a chaos player, and reloads exactly") {

@@ -427,10 +427,11 @@ void World::match_good(GoodId g) {
     if (b.state == BState::Construction) continue;
     const bool storage = d.kind == BuildingKind::Storage || d.kind == BuildingKind::TradePost;
     // Goods staged for export stay at the trade post (imports there are handed out as usual) while the
-    // city has more than the export level; at or below it nothing is for sale, and what is staged is
-    // the city's again (otherwise the kept goods could sit at the post for good).
+    // city has more than the export level and an open route still buys them this year; otherwise
+    // nothing is for sale, and what is staged is the city's again (kept goods could sit at the post
+    // for good, and unsold ones fill it until no import fits).
     bool supplies = storage && !(d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2 &&
-                                 econ.city_stock[g.v] > trade_level[g.v]);
+                                 econ.city_stock[g.v] > trade_level[g.v] && open_route_buys(g, d.needs_water_adjacent));
     if (!storage && d.recipe.valid())
       for (const auto& o : defs->recipes[d.recipe.v].outputs)
         if (o.good == g) supplies = true;
@@ -529,11 +530,18 @@ void World::match_good(GoodId g) {
     if (made >= kMaxTasksPerPass) break;
     const Building& sb = buildings.b[si];
     const data::BuildingDef& sd = defs->b(sb.def);
-    if (sd.kind == BuildingKind::Storage || sd.kind == BuildingKind::TradePost || !sd.recipe.valid()) continue;
-    bool is_output = false;
-    for (const auto& o : defs->recipes[sd.recipe.v].outputs)
-      if (o.good == g) is_output = true;
-    if (!is_output) continue;
+    if (sd.kind == BuildingKind::Storage) continue;
+    if (sd.kind == BuildingKind::TradePost) {
+      // A trade post is a dock, not a warehouse: when it is three-quarters full, what is not held for
+      // a caravan goes to storage so imports still fit.
+      if (econ.free_space(sb.inv) * 4 > sd.storage) continue;
+    } else {
+      if (!sd.recipe.valid()) continue;
+      bool is_output = false;
+      for (const auto& o : defs->recipes[sd.recipe.v].outputs)
+        if (o.good == g) is_output = true;
+      if (!is_output) continue;
+    }
     u16 avail = econ.available(sb.inv, g);
     if (avail == 0) continue;
     u32 best = kNoIndex;
