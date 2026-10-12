@@ -52,6 +52,11 @@ The owner chose pre-rendered 3D art on an isometric camera (option C of the art 
   native size; `main.json` records `"scale"` (atlas texels per iso px) and the renderer divides by it
   (`Atlas::scale`, `iso_w`, `iso_h`). Icons (`ui/`, `goods/`) are never resampled: legacy ones keep
   `s` = 0.25, rendered ones `s` = 1, and the game draws all of them at explicit sizes.
+- Mods ship sprites in their own `sprites/` folder with the same names and conventions (native scale,
+  footprint anchors). The game packs them at load time into extra atlas pages after the base ones
+  (`render/mod_sprites.cpp`: world art resampled to `scale` and trimmed, icons 1:1, colours bled into
+  transparent texels like `pack.py`), and they override base sprites by name. See docs/10-modding.md,
+  "Sprites".
 
 ## Icons (`tools/artgen3d/icons.py`)
 

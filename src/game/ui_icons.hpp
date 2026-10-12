@@ -21,6 +21,7 @@ SDL_GPUTexture* create_mipmapped(SDL_GPUDevice* dev, u32 w, u32 h, u32 levels, s
 // into a second, mipmapped texture instead, so they shrink smoothly to whatever size the layout asks for.
 class UiIcons {
  public:
+  // Call again when the atlas or the defs change (mods applied); then build_thumbs() again too.
   bool init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs);
   void shutdown(SDL_GPUDevice* dev);
   // Draws the named sprite at `size` points; returns false if missing.
@@ -52,6 +53,8 @@ class UiIcons {
   // The previous thumbnail texture is kept one rebuild longer: a draw list built this frame may still use it.
   SDL_GPUTexture* thumbs_ = nullptr;
   SDL_GPUTexture* thumbs_old_ = nullptr;
+  // Textures of the previous init (mods applied mid-frame), released at the next init or shutdown.
+  std::vector<SDL_GPUTexture*> retired_;
   std::unordered_map<std::string, Entry> entries_, big_entries_, thumb_entries_;
 };
 

@@ -78,6 +78,14 @@ SDL_GPUTexture* create_mipmapped(SDL_GPUDevice* dev, u32 w, u32 h, u32 levels, s
 }
 
 bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::Defs& defs) {
+  // Again (mods applied): a draw list built this frame may still use the old textures; keep them one init longer.
+  for (SDL_GPUTexture* t : retired_) SDL_ReleaseGPUTexture(dev, t);
+  retired_.clear();
+  for (SDL_GPUTexture* t : {tex_, hires_, big_})
+    if (t) retired_.push_back(t);
+  tex_ = hires_ = big_ = nullptr;
+  entries_.clear();
+  big_entries_.clear();
   // Which sprites to include: advisors, gods, goods icons, HUD and category icons.
   std::vector<std::string> names;
   for (const char* a : {"engineer", "quaestor", "haruspex", "legate", "aedile"}) names.push_back(std::string("ui/advisor_") + a);
@@ -216,6 +224,8 @@ void UiIcons::shutdown(SDL_GPUDevice* dev) {
   for (SDL_GPUTexture* t : {tex_, hires_, big_, thumbs_, thumbs_old_})
     if (t) SDL_ReleaseGPUTexture(dev, t);
   tex_ = hires_ = big_ = thumbs_ = thumbs_old_ = nullptr;
+  for (SDL_GPUTexture* t : retired_) SDL_ReleaseGPUTexture(dev, t);
+  retired_.clear();
 }
 
 namespace {

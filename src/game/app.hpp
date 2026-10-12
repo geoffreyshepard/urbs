@@ -145,7 +145,9 @@ class App {
   [[nodiscard]] Dock panel_dock(Panel p) const;
   void toggle_panel(Panel p) { panel_ = panel_ == p ? Panel::None : p; }
   // Mods, custom scenarios, scenario editor (editor.cpp)
+  // Loads the defs and the sprites of the enabled mods, then re-resolves the views' sprites.
   bool reload_defs(std::string* err);
+  [[nodiscard]] std::string mod_sprite_status() const;  // " Mod sprite refused: ..." or empty
   void draw_mods();
   void draw_custom();
   void draw_editor();
@@ -183,6 +185,7 @@ class App {
   int sandbox_region_ = 0;
   bool sandbox_nile_ = false;
   std::vector<ModInfo> mods_;
+  std::vector<std::string> mod_sprite_warnings_;  // files the enabled mods' sprites/ folders had refused
   EditorState ed_;
 
   int speed_ = 1;  // 0 pause, 1, 2, 3 = 1x 2x 4x

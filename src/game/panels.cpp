@@ -1381,12 +1381,12 @@ void draw_selection(const sim::World& w, const Selection& sel, render::Renderer&
     const auto& b = w.buildings[sel.building];
     // Corner brackets (fx/select_WxH, ground-attached) where the art has them, else an outline.
     static render::Sprite brackets[4][4];
-    static bool resolved = false;
-    if (!resolved) {
+    static u32 resolved = ~0u;  // the atlas revision they were resolved for (mods may replace them)
+    if (resolved != r.atlas().revision()) {
       for (int sw = 1; sw <= 4; ++sw)
         for (int sh = 1; sh <= 4; ++sh)
           brackets[sw - 1][sh - 1] = r.atlas().find("fx/select_" + std::to_string(sw) + "x" + std::to_string(sh));
-      resolved = true;
+      resolved = r.atlas().revision();
     }
     const f32 lv = iso::level_at(w.map, b.x, b.y);
     const render::Sprite* br = b.w <= 4 && b.h <= 4 ? &brackets[b.w - 1][b.h - 1] : nullptr;

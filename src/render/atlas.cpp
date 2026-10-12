@@ -8,12 +8,48 @@
 
 #include "core/log.hpp"
 #include "render/gpu.hpp"
+#include "render/mod_sprites.hpp"
 
 namespace urbs::render {
 
 namespace {
 constexpr u32 kMipLevels = 3;  // base, 1/2, 1/4: enough for the zoomed-out levels above far zoom
+
+SDL_GPUTexture* create_array(SDL_GPUDevice* dev, u32 w, u32 h, u32 pages) {
+  SDL_GPUTextureCreateInfo ti{};
+  ti.type = SDL_GPU_TEXTURETYPE_2D_ARRAY;
+  ti.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+  ti.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;  // colour target: mip generation
+  ti.width = w;
+  ti.height = h;
+  ti.layer_count_or_depth = pages;
+  ti.num_levels = kMipLevels;
+  SDL_GPUTexture* tex = SDL_CreateGPUTexture(dev, &ti);
+  if (!tex) URBS_LOG_ERROR("atlas: texture creation failed: {}", SDL_GetError());
+  return tex;
 }
+
+void upload_page(SDL_GPUDevice* dev, SDL_GPUCopyPass* pass, SDL_GPUTexture* tex, u32 layer, const u8* px, u32 w, u32 h,
+                 std::vector<SDL_GPUTransferBuffer*>& to_release) {
+  const size_t page_bytes = static_cast<size_t>(w) * h * 4;
+  SDL_GPUTransferBufferCreateInfo xi{};
+  xi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
+  xi.size = static_cast<u32>(page_bytes);
+  SDL_GPUTransferBuffer* xb = SDL_CreateGPUTransferBuffer(dev, &xi);
+  std::memcpy(SDL_MapGPUTransferBuffer(dev, xb, false), px, page_bytes);
+  SDL_UnmapGPUTransferBuffer(dev, xb);
+  SDL_GPUTextureTransferInfo src{};
+  src.transfer_buffer = xb;
+  SDL_GPUTextureRegion dst{};
+  dst.texture = tex;
+  dst.layer = layer;
+  dst.w = w;
+  dst.h = h;
+  dst.d = 1;
+  SDL_UploadToGPUTexture(pass, &src, &dst, false);
+  to_release.push_back(xb);
+}
+}  // namespace
 
 bool Atlas::load(SDL_GPUDevice* dev, SDL_GPUCopyPass* pass, const std::string& dir,
                  std::vector<SDL_GPUTransferBuffer*>& to_release) {
@@ -63,39 +99,48 @@ bool Atlas::load(SDL_GPUDevice* dev, SDL_GPUCopyPass* pass, const std::string& d
   fallback_ = find("fx/white");
   fallback_.valid = false;
 
-  SDL_GPUTextureCreateInfo ti{};
-  ti.type = SDL_GPU_TEXTURETYPE_2D_ARRAY;
-  ti.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-  ti.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER | SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;  // colour target: mip generation
-  ti.width = w_;
-  ti.height = h_;
-  ti.layer_count_or_depth = pages_;
-  ti.num_levels = kMipLevels;
-  tex_ = SDL_CreateGPUTexture(dev, &ti);
-  if (!tex_) {
-    URBS_LOG_ERROR("atlas: texture creation failed: {}", SDL_GetError());
-    return false;
-  }
-  for (u32 p = 0; p < pages_; ++p) {
-    SDL_GPUTransferBufferCreateInfo xi{};
-    xi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
-    xi.size = static_cast<u32>(page_bytes);
-    SDL_GPUTransferBuffer* xb = SDL_CreateGPUTransferBuffer(dev, &xi);
-    std::memcpy(SDL_MapGPUTransferBuffer(dev, xb, false), pixels_.data() + page_bytes * p, page_bytes);
-    SDL_UnmapGPUTransferBuffer(dev, xb);
-    SDL_GPUTextureTransferInfo src{};
-    src.transfer_buffer = xb;
-    SDL_GPUTextureRegion dst{};
-    dst.texture = tex_;
-    dst.layer = p;
-    dst.w = w_;
-    dst.h = h_;
-    dst.d = 1;
-    SDL_UploadToGPUTexture(pass, &src, &dst, false);
-    to_release.push_back(xb);
-  }
+  base_pages_ = pages_;
+  base_sprites_ = sprites_;
+  tex_ = create_array(dev, w_, h_, pages_);
+  if (!tex_) return false;
+  for (u32 p = 0; p < pages_; ++p) upload_page(dev, pass, tex_, p, pixels_.data() + page_bytes * p, w_, h_, to_release);
   URBS_LOG_INFO("atlas: {} sprites, {} page(s) of {}x{}, scale {}", sprites_.size(), pages_, w_, h_, scale_);
   return true;
+}
+
+void Atlas::set_mod_sprites(SDL_GPUDevice* dev, SDL_GPUCopyPass* pass, const ModSpritePack& pack,
+                            std::vector<SDL_GPUTransferBuffer*>& to_release) {
+  ++revision_;
+  sprites_ = base_sprites_;
+  const u32 mod_pages = pack.page_w == w_ && pack.page_h == h_ ? pack.pages : 0;
+  if (mod_pages != pack.pages)
+    URBS_LOG_ERROR("atlas: mod sprite pages are {}x{}, not {}x{}", pack.page_w, pack.page_h, w_, h_);
+  else
+    merge_mod_sprites(sprites_, pack);
+  if (mod_pages == 0 && pages_ == base_pages_) return;  // no extra pages before or after: the texture stays
+  SDL_GPUTexture* tex = create_array(dev, w_, h_, base_pages_ + mod_pages);
+  if (!tex) {  // keep the old texture, drawn with the base sprites only
+    sprites_ = base_sprites_;
+    return;
+  }
+  const size_t page_bytes = static_cast<size_t>(w_) * h_ * 4;
+  pixels_.resize(page_bytes * base_pages_);
+  pixels_.insert(pixels_.end(), pack.pixels.begin(),
+                 pack.pixels.begin() + static_cast<std::ptrdiff_t>(page_bytes * mod_pages));
+  for (u32 p = 0; p < base_pages_; ++p) {  // base pages: copied on the GPU, mip 0 (the mips are regenerated)
+    SDL_GPUTextureLocation from{};
+    from.texture = tex_;
+    from.layer = p;
+    SDL_GPUTextureLocation to{};
+    to.texture = tex;
+    to.layer = p;
+    SDL_CopyGPUTextureToTexture(pass, &from, &to, w_, h_, 1, false);
+  }
+  for (u32 p = 0; p < mod_pages; ++p)
+    upload_page(dev, pass, tex, base_pages_ + p, pixels_.data() + page_bytes * (base_pages_ + p), w_, h_, to_release);
+  SDL_ReleaseGPUTexture(dev, tex_);  // freed once the copies above are done
+  tex_ = tex;
+  pages_ = base_pages_ + mod_pages;
 }
 
 void Atlas::generate_mips(SDL_GPUCommandBuffer* cmd) const {
