@@ -643,6 +643,30 @@ TEST_CASE("deliveries nobody can make expire instead of reserving goods forever"
   CHECK(w->econ.rin(w->buildings[site].inv, D.good("cut_stone")) == live);
 }
 
+TEST_CASE("goods staged for export are the city's again once stock is at the export level") {
+  // 40 bricks staged at the trade post for export, a site that needs 12. Above the export level the
+  // post keeps them for the caravans; at or below it they are not for sale and the site gets them.
+  const auto& D = defs();
+  const GoodId bricks = D.good("bricks");
+  for (const i32 level : {10, 40}) {
+    auto w = flat_world(64);
+    w->entry_tile = w->map.idx(0, 32);
+    BuildingId post = put(*w, "trade_post", 10, 30);
+    REQUIRE(post.valid());
+    w->add_stock(post, bricks, 40);
+    w->trade_mode[bricks.v] = 2;
+    w->trade_level[bricks.v] = static_cast<u16>(level);
+    for (int t = 0; t < static_cast<int>(kTicksPerDay); ++t) w->tick();  // the daily count of city stock
+    REQUIRE(w->econ.city_stock[bricks.v] == 40);
+    const BuildingDefId bal = D.building("balneum");
+    BuildingId site = w->place_building(bal, 30, 30, D.b(bal).w, D.b(bal).h, false);
+    REQUIRE(site.valid());
+    for (int t = 0; t < static_cast<int>(kTicksPerHour) * 6; ++t) w->tick();
+    CAPTURE(level);
+    CHECK((w->econ.rin(w->buildings[site].inv, bricks) > 0) == (level >= 40));
+  }
+}
+
 TEST_CASE("a town stays consistent under a chaos player, and reloads exactly") {
   // Random building, demolition, policies, trade, armies and disasters for ten days: every counter and
   // reservation must still agree with a recount (sim/invariants.cpp), and a save must reload exactly.

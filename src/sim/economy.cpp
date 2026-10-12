@@ -426,8 +426,11 @@ void World::match_good(GoodId g) {
     const data::BuildingDef& d = defs->b(b.def);
     if (b.state == BState::Construction) continue;
     const bool storage = d.kind == BuildingKind::Storage || d.kind == BuildingKind::TradePost;
-    // Goods staged for export stay at the trade post (imports there are handed out as usual).
-    bool supplies = storage && !(d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2);
+    // Goods staged for export stay at the trade post (imports there are handed out as usual) while the
+    // city has more than the export level; at or below it nothing is for sale, and what is staged is
+    // the city's again (otherwise the kept goods could sit at the post for good).
+    bool supplies = storage && !(d.kind == BuildingKind::TradePost && trade_mode[g.v] == 2 &&
+                                 econ.city_stock[g.v] > trade_level[g.v]);
     if (!storage && d.recipe.valid())
       for (const auto& o : defs->recipes[d.recipe.v].outputs)
         if (o.good == g) supplies = true;

@@ -28,7 +28,7 @@
 | Stockpiling | Per-good trade mode "stockpile": markets leave the good in storage (for Rome's requests) | Players otherwise can't gather goods that citizens also consume |
 | Unreachable raiders | Raiders with no path into the city withdraw | They used to wait forever at the map edge |
 | Walking speed | Roads are fast (dirt 1.5, paved 1 tick per tile) | Commutes otherwise ate the working day; the autoplay bot could not grow past ~2,000 |
-| Exports at the trade post | Goods staged for export are not handed back out to markets | Markets drained the staged goods and caravans found nothing |
+| Exports at the trade post | Goods staged for export are not handed back out to markets while the city holds more than the export level; at or below it nothing is for sale and the staged goods are handed out like any stored goods | Markets drained the staged goods and caravans found nothing; but holding them below the level stranded the goods the player chose to keep (sites waited forever for bricks sitting at the post) |
 | Housing devolution | After three failed daily checks (was two) | Single-day hiccups caused eviction cascades |
 | Waterside buildings and floods | Harbors, wharves and the lighthouse take no flood damage | The yearly Nile flood otherwise wore the harbor down; on stone-less maps it could then never be rebuilt |
 | Heirless estates | Savings of a household that dies out go to the treasury, booked as taxes | The ledger has no separate category (a new one would change the save format) |

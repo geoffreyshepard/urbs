@@ -4,7 +4,7 @@ Urbs is tested in layers, from seconds to hours. The autoplay bot (`src/sim/auto
 
 ## 1. `ctest --preset dev` (about a minute, every commit)
 
-- **Unit tests** (`tests/test_*.cpp`): determinism and save round-trips, pathfinding, the water network, military, Lua scripts, monuments, map files, entrances, defences, expiring deliveries, every good having a source and a use, and music rules.
+- **Unit tests** (`tests/test_*.cpp`): determinism and save round-trips, pathfinding, the water network, military, Lua scripts, monuments, map files, entrances, defences, expiring deliveries, exports at the trade post, every good having a source and a use, and music rules.
 - **Chaos on a small town:** a town played by the chaos player for ten days stays consistent and reloads exactly.
 - **Scenario tests** (`tests/scenarios/*.json` with a `"test"` block): small towns run headless with expectations. These include:
   - minimum citizens, stock, production and births;
@@ -73,4 +73,5 @@ Any failure gives exit status 3. Unknown flags are rejected.
 - **Stale flow fields:** raiders kept marching on flow fields computed before the map changed (walls breached, roads built).
 - **Estates:** an heirless household's estate was booked in the ledger as an expense.
 - **Blocked entrances:** buildings whose entrance was built over could never be staffed or supplied.
+- **Exports stranded at the trade post:** goods staged for export were never handed back out, even when the city's stock fell to the export level, so the goods the player chose to keep could sit at the post while construction sites waited for them. The bot abandoned 428 sites in one Antioch run and lost to debt; with the fix it won in 141 days.
 - **The bot's reservoirs:** the bot rebuilt a reservoir on the same cut-off shore spot again and again (45 times in one Antioch run), draining the treasury. Its stalled-site notes now say why a site was cleared (`cut off`, `no builders`, `no materials`, `waited too long`) and where.
