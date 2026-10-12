@@ -1,0 +1,182 @@
+{
+ "ui/advisor_aedile": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/advisor_engineer": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/advisor_haruspex": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/advisor_legate": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/advisor_quaestor": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_ceres": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_divus": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_isis": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_juno": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_jupiter": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_mars": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_mercury": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_minerva": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_neptune": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_serapis": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_venus": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_vesta": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/god_vulcan": {
+  "ax": 64,
+  "ay": 64
+ },
+ "ui/icon_advisors": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_alerts": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_build": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_culture": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_demolish": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_fast": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_faster": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_favor": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_finance": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_goods": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_happiness": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_help": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_labor": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_menu": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_military": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_overlay": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_pause": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_play": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_population": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_prosperity": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_religion": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_research": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_road": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_rome": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_security": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/icon_trade": {
+  "ax": 48,
+  "ay": 48
+ },
+ "ui/logo": {
+  "ax": 300,
+  "ay": 90
+ }
+}

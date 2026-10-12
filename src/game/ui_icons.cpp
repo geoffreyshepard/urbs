@@ -106,7 +106,8 @@ bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::D
     names = std::move(pixel);
   }
   constexpr int kScale = 6, kCell = 32 * kScale, kCols = 8;
-  const int rows = static_cast<int>((names.size() + kCols - 1) / kCols);
+  // At least one row: every icon may be a rendered one, and a texture cannot be empty.
+  const int rows = std::max(1, static_cast<int>((names.size() + kCols - 1) / kCols));
   const u32 W = kCols * kCell, H = static_cast<u32>(rows) * kCell;
   std::vector<u8> px(static_cast<size_t>(W) * H * 4, 0);
   const auto& src = atlas.pixels();
@@ -157,16 +158,20 @@ bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::D
     }
     hires_ = create_mipmapped(dev, HW, HH, kLevels, std::move(hp));
   }
-  // Big pictures, upscaled x3 into their own texture (stacked vertically).
+  // Big pictures in their own mipmapped texture, stacked vertically: pixel art (province map) upscaled x3
+  // with nearest neighbour, rendered art (the logo from tools/artgen3d/ui_art.py, 1 texel per iso px)
+  // copied 1:1.  Each picture starts on a multiple of 8 rows so mip levels never mix two pictures.
   {
     const char* bigs[] = {"ui/province_map", "ui/logo"};
-    constexpr int kS = 3;
+    constexpr u32 kLevels = 4, kAlign = 1u << (kLevels - 1);
+    auto scale_of = [](const render::Sprite& s) { return s.iso_per_texel > 1.5f ? 3u : 1u; };
+    auto align = [](u32 v) { return (v + kAlign - 1) / kAlign * kAlign; };
     u32 BW = 0, BH = 0;
     for (const char* n : bigs) {
       const render::Sprite s = atlas.find(n);
       if (!s.valid) continue;
-      BW = std::max<u32>(BW, s.w * kS);
-      BH += s.h * kS;
+      BW = std::max<u32>(BW, align(s.w * scale_of(s)));
+      BH += align(s.h * scale_of(s));
     }
     if (BW > 0) {
       std::vector<u8> bp(static_cast<size_t>(BW) * BH * 4, 0);
@@ -174,24 +179,18 @@ bool UiIcons::init(SDL_GPUDevice* dev, const render::Atlas& atlas, const data::D
       for (const char* n : bigs) {
         const render::Sprite s = atlas.find(n);
         if (!s.valid) continue;
-        for (u32 y = 0; y < static_cast<u32>(s.h) * kS; ++y)
-          for (u32 x = 0; x < static_cast<u32>(s.w) * kS; ++x) {
-            const size_t si = (static_cast<size_t>(s.v + y / kS) * atlas.width() + s.u + x / kS) * 4;
+        const u32 k = scale_of(s);
+        for (u32 y = 0; y < static_cast<u32>(s.h) * k; ++y)
+          for (u32 x = 0; x < static_cast<u32>(s.w) * k; ++x) {
+            const size_t si = (static_cast<size_t>(s.v + y / k) * atlas.width() + s.u + x / k) * 4;
             const size_t di = (static_cast<size_t>(oy + y) * BW + x) * 4;
             for (int c = 0; c < 4; ++c) bp[di + c] = src[si + c];
           }
         big_entries_[n] = Entry{ImVec2(0, static_cast<float>(oy) / BH),
-                                ImVec2(static_cast<float>(s.w * kS) / BW, static_cast<float>(oy + s.h * kS) / BH)};
-        oy += s.h * kS;
+                                ImVec2(static_cast<float>(s.w * k) / BW, static_cast<float>(oy + s.h * k) / BH)};
+        oy += align(s.h * k);
       }
-      SDL_GPUCommandBuffer* c2 = SDL_AcquireGPUCommandBuffer(dev);
-      SDL_GPUCopyPass* p2 = SDL_BeginGPUCopyPass(c2);
-      std::vector<SDL_GPUTransferBuffer*> x2;
-      big_ = render::create_texture_rgba(dev, BW, BH, bp.data(), p2, x2);
-      SDL_EndGPUCopyPass(p2);
-      SDL_SubmitGPUCommandBuffer(c2);
-      SDL_WaitForGPUIdle(dev);
-      for (auto* x : x2) SDL_ReleaseGPUTransferBuffer(dev, x);
+      big_ = create_mipmapped(dev, BW, BH, kLevels, std::move(bp));
     }
   }
   return tex_ != nullptr;

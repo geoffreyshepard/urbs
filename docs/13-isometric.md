@@ -43,8 +43,10 @@ The owner chose pre-rendered 3D art on an isometric camera (option C of the art 
 - `<name>_lit`: night window glow, same canvas and anchor, rendered by `kit.render_lit` (windows
   must use the `window` material).
 - Icons: goods icons (`goods/<id>`, `goods/<id>_16`) and build-category icons (`ui/cat_<id>`) are
-  rendered by `tools/artgen3d/icons.py` (see "Icons" below). The other `ui/*` art (HUD buttons, gods,
-  advisors, logo, province map) is still pixel art in `assets/sprites/ui/`.
+  rendered by `tools/artgen3d/icons.py`; HUD icons (`ui/icon_<id>`), god and advisor portraits
+  (`ui/god_<id>`, `ui/advisor_<id>`) and the logo (`ui/logo`) by `tools/artgen3d/ui_art.py` (see
+  "Icons" below). Only the province map and the panel chrome bits (`panel_corner`, `divider`) are
+  still pixel art in `assets/sprites/ui/`.
 - `tools/atlas/pack.py` packs `assets/sprites_iso` plus the legacy `ui/` and `goods/` folders; an
   `assets/sprites_iso` icon wins over a legacy sprite of the same name. World art may be packed below
   native size; `main.json` records `"scale"` (atlas texels per iso px) and the renderer divides by it
@@ -62,6 +64,10 @@ thin dark Freestyle contour so the silhouette survives small sizes.
 | `goods/<id>_16` | 64 x 64 | UI: panels, goods chips, trade rows, costs (`denarii_16`), ~20-30 points |
 | `goods/<id>` | 40 x 40 | over walking citizens: 20 iso px wide (`world_view.cpp`, `kCarriedIso`) |
 | `ui/cat_<id>` | 96 x 96 | build-menu category rail, 24-48 points |
+| `ui/icon_<id>` | 96 x 96 | top-bar stats and buttons (~21 points), panel headers (~38 points) |
+| `ui/god_<id>` | 128 x 128 | religion panel (~48 points), temple info (~24 points) |
+| `ui/advisor_<id>` | 128 x 128 | advisors panel buttons and messages (56-64 points) |
+| `ui/logo` | 600 x 180 | main menu title, 300 x 90 points (`UiIcons::picture`) |
 
 `game::UiIcons` copies icons larger than 32 texels 1:1 into a separate mipmapped texture (the pixel
 art keeps its x6 nearest-neighbour texture), so they shrink cleanly to any layout size. Rules: one
@@ -69,6 +75,34 @@ distinct silhouette and colour per good; goods sharing a container differ by sha
 slender amphora, red band, dark-red seal; olive oil: globular greenish amphora, green band, golden
 stopper; amphorae: two plain empty jars; garum: one-handled jug with a fish). Category icons are a
 miniature on a one-tile diamond of the category's ground, using the category accents below.
+
+`tools/artgen3d/ui_art.py` (family `ui_art`) renders the rest of the UI art in the same look; pictures
+that face the viewer get an extra warm key light from the upper left (the world sun only grazes
+surfaces turned toward the camera). Its rules:
+
+- HUD icons are one object each, distinct in silhouette: population = man and woman, happiness =
+  comedy mask, culture = lyre, prosperity = cornucopia, security = round blue shield, favor = gold
+  laurel wreath, rome = eagle standard with an SPQR plaque, advisors = painted counsellor bust,
+  finance = purse of gold coins, goods = crate, sack and amphora, trade = merchant ship, labor = saw
+  and hammer, religion = altar with fire, military = crested bronze helmet, research = wax tablet and
+  stylus, alerts = bell, help = scroll with a red "?", overlay = stacked map tiles, road = paved
+  stretch, build = trowel on bricks, demolish = pickaxe and broken bricks.
+- Speed controls (pause, play, fast, faster) and the menu button are geometric glyphs, not objects:
+  dark bronze faces with a gilt bevel and a heavier contour, so they read on light, ochre, red and
+  dark buttons alike. They share one scale (`span`), so the bars and triangles are the same height.
+- Portraits are busts on a round medallion (bronze rim, gilt bead, a coloured ground per figure). Gods
+  are white marble with an attribute (Jupiter thunderbolt and laurel, Juno diadem and peacock fan,
+  Mars helmet and spear, Venus scallop shell, Minerva helmet and owl, Mercury winged petasos and
+  caduceus, Neptune trident, Vesta veil and flame, Ceres wheat crown and sheaves, Vulcan cap, hammer
+  and anvil, Isis wig with sun disc and horns, Serapis modius and sceptre, Divus laurel and purple
+  border). Advisors are painted: quaestor toga, purse and coins; engineer tunic, groma and dividers;
+  haruspex veil and lituus; legate helmet, cuirass and red cloak; aedile toga praetexta and scroll.
+  The head and headgear are scaled up (`HEAD_SCALE`) so faces survive ~40-point display.
+- The logo is "URBS" in Cinzel (`assets/fonts/Cinzel.ttf`), marble on a dark bronze offset copy, between
+  two gilt laurel branches. Cinzel is a variable font with overlapping contours, so `text_mesh` fills
+  each outer contour separately and merges them with a voxel remesh.
+- `game::UiIcons` keeps the logo 1:1 (pixel-art big pictures are still upscaled x3) in a mipmapped
+  texture; the religion panel draws god medallions without an extra square frame.
 
 ## Rotation
 
