@@ -938,9 +938,16 @@ void draw_military_panel(sim::World& w, Selection& sel, const UiIcons& icons, co
   }
   section("Units");
   bool any = false;
-  for (u16 u = 0; u < military::kMaxUnits; ++u) {
+  // The city's cohorts by number, then the enemy.
+  std::vector<u16> order;
+  for (u16 u = 0; u < military::kMaxUnits; ++u)
+    if (w.army.units[u].alive) order.push_back(u);
+  std::stable_sort(order.begin(), order.end(), [&](u16 a, u16 b) {
+    const auto &ua = w.army.units[a], &ub = w.army.units[b];
+    return ua.side != ub.side ? ua.side < ub.side : ua.side == 0 && ua.number < ub.number;
+  });
+  for (const u16 u : order) {
     const auto& un = w.army.units[u];
-    if (!un.alive) continue;
     any = true;
     const auto& ud = D.units[un.def.v];
     ImGui::PushID(u);
