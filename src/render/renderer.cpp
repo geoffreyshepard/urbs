@@ -373,8 +373,9 @@ void Renderer::rebuild_dirty_chunks(SDL_GPUCopyPass* pass, int budget) {
 
 void Renderer::upload_ground(SDL_GPUCopyPass* pass, const std::vector<size_t>& chunks) {
   if (!ground_tex_) return;
-  // Wear spreads two tiles, so each rebuilt chunk refreshes its texels plus a 2-tile border.
-  constexpr i32 kPad = 2;
+  // Wear spreads two tiles and a texel averages the four tiles at a corner, so each rebuilt chunk
+  // refreshes its texels plus a 3-tile border.
+  constexpr i32 kPad = 3;
   struct Region {
     i32 x0, y0, w, h;
     u32 offset;

@@ -76,6 +76,11 @@ void TerrainSprites::resolve(const Atlas& a) {
     }
     base_color[t] = a.average_color(base[t][0]);
   }
+  for (int p = 0; p < 4; ++p) {
+    const std::string ps = "_" + std::to_string(p);
+    for (int m = 1; m < 15; ++m) shore[m][p] = a.find("terrain/shore_" + std::to_string(m) + ps);
+    for (int o = 0; o < 16; ++o) lagoon[o][p] = a.find("terrain/shore_x" + std::to_string(o) + ps);
+  }
   for (int v = 0; v < 2; ++v) {
     cliff[0][v] = a.get("terrain/cliff_s_" + std::to_string(v));
     cliff[1][v] = a.get("terrain/cliff_e_" + std::to_string(v));
@@ -122,6 +127,36 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
   };
   auto Hc = [&](i32 x, i32 y) {
     return static_cast<int>(m.height[static_cast<size_t>(m.idx(std::clamp(x, 0, m.w - 1), std::clamp(y, 0, m.h - 1)))]);
+  };
+  // Shores.  bank(): what tile (x, y) is beside water on level wl: 0 nothing (water, off the map,
+  // or not above it), 1 low land with a beach (1..kBeachMaxRise levels up), 2 high ground (rock
+  // cliffs, with a scree apron at their foot).
+  auto bank = [&](i32 x, i32 y, int wl) {
+    if (!m.in_bounds(x, y)) return 0;
+    const size_t i = static_cast<size_t>(m.idx(x, y));
+    const int rise = static_cast<int>(m.height[i]) - wl;
+    if (sim::terrain_water(m.terrain[i]) || rise < 1) return 0;
+    return rise <= kBeachMaxRise ? 1 : 2;
+  };
+  // Corners of water tile (x, y) that touch land (bits NW=1, NE=2, SW=4, SE=8), and those of them
+  // that touch high ground; {0, 0} for land.
+  struct ShoreCorners {
+    int land = 0, rock = 0;
+  };
+  auto shore_corners = [&](i32 x, i32 y) {
+    ShoreCorners sc;
+    if (!m.in_bounds(x, y) || !sim::terrain_water(m.terrain[static_cast<size_t>(m.idx(x, y))])) return sc;
+    const int wl = Hc(x, y);
+    // The three other tiles at each corner: NW, NE, SW, SE.
+    static constexpr i32 kCx[4][3] = {{-1, 0, -1}, {0, 1, 1}, {-1, -1, 0}, {1, 0, 1}};
+    static constexpr i32 kCy[4][3] = {{-1, -1, 0}, {-1, -1, 0}, {0, 1, 1}, {0, 1, 1}};
+    for (int k = 0; k < 4; ++k) {
+      int b = 0;
+      for (int j = 0; j < 3; ++j) b = std::max(b, bank(x + kCx[k][j], y + kCy[k][j], wl));
+      sc.land |= (b > 0 ? 1 : 0) << k;
+      sc.rock |= (b == 2 ? 1 : 0) << k;
+    }
+    return sc;
   };
 
   // Terrain: dual-grid cells centred on tile corners.  Cell (x, y) has the centres of tiles
@@ -183,12 +218,40 @@ u32 build_chunk(const sim::TileMap& m, const TerrainSprites& ts, int cx, int cy,
       const int lv = static_cast<int>(m.height[i]);
       const Vec2 corner = iso::tile_anchor(x, y, static_cast<f32>(lv));
 
+      // Shore piece on a water tile beside land: a beach, or scree at the foot of rock cliffs (the
+      // instance colour's red byte carries the corners that touch high ground, so the shader can
+      // blend sand into stones).  It goes with the decorations (drawn after every chunk's ground,
+      // see build_chunk in terrain.hpp); its depth slot puts it over this tile's water cells and
+      // under the quarters of the land in front.
+      if (sim::terrain_water(t)) {
+        const ShoreCorners sc = shore_corners(x, y);
+        const int p = (x & 1) | ((y & 1) << 1);
+        const Sprite* s = nullptr;
+        if (sc.land == 15) {
+          static constexpr i32 kNx[4] = {0, 1, 0, -1}, kNy[4] = {-1, 0, 1, 0};  // N, E, S, W
+          int open = 0;
+          for (int k = 0; k < 4; ++k)
+            if (shore_corners(x + kNx[k], y + kNy[k]).land == 15 && Hc(x + kNx[k], y + kNy[k]) == lv) open |= 1 << k;
+          s = &ts.lagoon[open][p];
+        } else if (sc.land != 0) {
+          s = &ts.shore[sc.land][p];
+        }
+        if (s && s->valid) {
+          const u32 rock = static_cast<u32>(sc.rock * 16 + 8);
+          decor.push_back(anchored(*s, corner, ground_depth(x + y + 1, kLayerShore),
+                                   (ground_code_color(kKindShore, lv) & ~0xFFu) | rock));
+        }
+      }
+
       // Cliff faces under the south and east edges, one per level down to the neighbour (the map's
-      // front edges drop to level 0).
+      // front edges drop to level 0).  Over water, low land has no face for the first level: the
+      // water tile's beach climbs it.
       for (int side = 0; side < 2; ++side) {
         const i32 nx = x + (side == 1 ? 1 : 0), ny = y + (side == 0 ? 1 : 0);
         const int nl = m.in_bounds(nx, ny) ? Hc(nx, ny) : 0;
-        for (int l = nl; l < lv; ++l)
+        const bool beach = ts.shore[3][0].valid && m.in_bounds(nx, ny) &&
+                           sim::terrain_water(m.terrain[static_cast<size_t>(m.idx(nx, ny))]) && bank(x, y, nl) == 1;
+        for (int l = beach ? nl + 1 : nl; l < lv; ++l)
           out.push_back(anchored(ts.cliff[side][(x * 7 + y * 3 + l) & 1], iso::tile_anchor(x, y, static_cast<f32>(l)),
                                  ground_depth(x + y, kLayerCliff), ground_code_color(kKindCliff, l)));
       }
@@ -323,9 +386,19 @@ void build_ground_texels(const sim::TileMap& m, i32 x0, i32 y0, i32 x1, i32 y1, 
   const i32 w = x1 - x0, h = y1 - y0;
   out.resize(static_cast<size_t>(w * h));
   auto at = [&](i32 x, i32 y) { return static_cast<size_t>(m.idx(std::clamp(x, 0, m.w - 1), std::clamp(y, 0, m.h - 1))); };
-  for (i32 y = y0; y < y1; ++y)
-    for (i32 x = x0; x < x1; ++x) {
-      const size_t i = static_cast<size_t>(m.idx(x, y));
+  // Per-tile values for the rect and one more row and column up-left; each texel then holds the
+  // average of the four tiles around its tile's NW corner (render thread, chunk rebuilds only).
+  struct TileVals {
+    f32 wear, lum, veg;
+    bool land;
+  };
+  static std::vector<TileVals> tiles;
+  const i32 tw = w + 1;
+  tiles.resize(static_cast<size_t>(tw * (h + 1)));
+  for (i32 y = y0 - 1; y < y1; ++y)
+    for (i32 x = x0 - 1; x < x1; ++x) {
+      const size_t i = at(x, y);
+      const i32 tx = std::clamp(x, 0, m.w - 1), ty = std::clamp(y, 0, m.h - 1);
       const Terrain t = m.terrain[i];
       const bool water = sim::terrain_water(t);
 
@@ -336,38 +409,63 @@ void build_ground_texels(const sim::TileMap& m, i32 x0, i32 y0, i32 x1, i32 y1, 
           for (i32 dx = -2; dx <= 2; ++dx) {
             const i32 dist = std::max(std::abs(dx), std::abs(dy));
             if (dist == 0) continue;
-            const size_t j = at(x + dx, y + dy);
+            const size_t j = at(tx + dx, ty + dy);
             f32 src = 0;
             if (m.building[j].valid()) src = 0.85f;
             else if (m.road[j] == Road::Dirt) src = 0.55f;
             else if (m.road[j] != Road::None) src = 0.40f;
             wear = std::max(wear, src * (dist == 1 ? 1.0f : 0.40f));
           }
-        wear *= 0.75f + 0.5f * value_noise(x + 4096, y + 4096, 3, 7);
+        wear *= 0.75f + 0.5f * value_noise(tx + 4096, ty + 4096, 3, 7);
       } else if (!water && m.building[i].valid()) {
         wear = 0.7f;  // yards and gaps inside a footprint
       }
 
       // Luminance: height plus two octaves of broad variation.
       f32 lum = 0.91f + 0.0118f * static_cast<f32>(m.height[i]);
-      lum *= 0.93f + 0.10f * value_noise(x + 1024, y + 1024, 13, 1) + 0.04f * value_noise(x, y, 5, 2);
+      lum *= 0.93f + 0.10f * value_noise(tx + 1024, ty + 1024, 13, 1) + 0.04f * value_noise(tx, ty, 5, 2);
       if (water) lum = 1.0f;
 
       // Vegetation: grass and fertile soil are lush where the noise says so, drier elsewhere.
       f32 veg = 0;
       switch (t) {
-        case Terrain::Grass: veg = 0.5f + 0.5f * value_noise(x + 300, y + 900, 9, 3); break;
-        case Terrain::Fertile: veg = 0.85f + 0.15f * value_noise(x, y, 7, 4); break;
+        case Terrain::Grass:
+          veg = 0.5f + 0.5f * value_noise(tx + 300, ty + 900, 9, 3);
+          break;
+        case Terrain::Fertile:
+          veg = 0.85f + 0.15f * value_noise(tx, ty, 7, 4);
+          break;
         case Terrain::Forest: veg = 0.9f; break;
         case Terrain::Marsh: veg = 0.8f; break;
         default: break;
       }
+      tiles[static_cast<size_t>((y - y0 + 1) * tw + (x - x0 + 1))] = {wear, lum, veg, !water};
+    }
 
-      // Land mask: filtered linearly it ramps from 0 at water tile centres to 0.5 on the coastline.
-      const f32 shore = water ? 0.0f : 1.0f;
-      auto q = [](f32 v) { return static_cast<u8>(std::clamp(v * 255.0f + 0.5f, 0.0f, 255.0f)); };
-      out[static_cast<size_t>((y - y0) * w + (x - x0))] =
-          rgba(q(wear), q(lum * (128.0f / 255.0f)), veg > 0 ? q(veg) : 0, q(shore));
+  // Texel (x, y) = tile corner (x, y): ground.frag samples half a texel up-left, so filtering
+  // interpolates between tile corners.  Land (alpha): 1 when all four tiles are land, else count / 6;
+  // on land it falls below 1 toward the water (the beach's sand fringe), on water it rises from 0
+  // toward the land (shallows, surf under cliffs).  Vegetation is averaged over the vegetated tiles
+  // (halved where only one of the four is), so a meadow keeps its strength up to a road or a field.
+  auto q = [](f32 v) { return static_cast<u8>(std::clamp(v * 255.0f + 0.5f, 0.0f, 255.0f)); };
+  for (i32 y = 0; y < h; ++y)
+    for (i32 x = 0; x < w; ++x) {
+      f32 wear = 0, lum = 0, veg = 0;
+      int land = 0, vegn = 0;
+      for (i32 dy = 0; dy <= 1; ++dy)
+        for (i32 dx = 0; dx <= 1; ++dx) {
+          const TileVals& v = tiles[static_cast<size_t>((y + dy) * tw + (x + dx))];
+          wear += v.wear * 0.25f;
+          lum += v.lum * 0.25f;
+          if (v.veg > 0) {
+            veg += v.veg;
+            ++vegn;
+          }
+          land += v.land ? 1 : 0;
+        }
+      veg = vegn > 0 ? veg / static_cast<f32>(vegn) * std::min(1.0f, static_cast<f32>(vegn) * 0.5f) : 0.0f;
+      const f32 shore = land == 4 ? 1.0f : static_cast<f32>(land) / 6.0f;
+      out[static_cast<size_t>(y * w + x)] = rgba(q(wear), q(lum * (128.0f / 255.0f)), q(veg), q(shore));
     }
 }
 

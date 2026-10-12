@@ -19,6 +19,12 @@ struct TerrainSprites {
   // One quarter (0 NW, 1 NE, 2 SW, 3 SE) of a dual cell, for cells across a height step.
   Sprite quarter[kTerrainCount][4][4];
   Sprite cliff[2][2];       // [south, east][variant]: one height level of face under that edge
+  // Shore pieces (beaches, scree under cliffs; see build_chunk and shaders/ground.frag): a water tile
+  // next to land draws one, picked by the corners that touch land (bits NW=1, NE=2, SW=4, SE=8; 1..14), or,
+  // when all four do, a lagoon piece by the edges whose neighbour is another such tile (N=1, E=2,
+  // S=4, W=8).  [p] is the tile's position class (x & 1) + 2 * (y & 1).  Optional art.
+  Sprite shore[15][4];
+  Sprite lagoon[16][4];
   // Roads: [kind 1 dirt, 2 paved][0 surface, 1 edge band (dirt: worn edge; paved: kerb)].  A tile's
   // edge bands draw under all its surfaces, so kerbs show only along the street's outline.
   Sprite road_center[3][2];
@@ -55,8 +61,16 @@ inline constexpr f32 kDepthTerrain = 0.999f;  // far-zoom diamond (drawn alone)
 inline constexpr f32 kDepthRoad = 0.998f;     // legacy: kept so kDepthRoad - small offsets stay above ground
 inline constexpr int kGroundSlots = 1024;     // > map w + h + 2 for every supported map size
 // Sub-layers inside one ground slot, back to front.
-enum GroundLayer : int { kLayerCell = 0, kLayerKerb = 1, kLayerRoad = 2, kLayerQuarter = 3, kLayerCliff = 4 };
-inline constexpr int kGroundLayers = 5;
+// kLayerShore (beaches) sits over the water cells of its slot and under the nearer land's quarters.
+enum GroundLayer : int {
+  kLayerCell = 0,
+  kLayerShore = 1,
+  kLayerKerb = 2,
+  kLayerRoad = 3,
+  kLayerQuarter = 4,
+  kLayerCliff = 5
+};
+inline constexpr int kGroundLayers = 6;
 inline f32 ground_depth(int slot, int layer) {
   constexpr f32 k = (kDepthGroundFar - kDepthGroundNear) / static_cast<f32>(kGroundLayers * (kGroundSlots + 2));
   return kDepthGroundNear + static_cast<f32>((kGroundSlots - slot) * kGroundLayers + (kGroundLayers - 1 - layer)) * k;
@@ -74,20 +88,36 @@ inline constexpr f32 kDepthOverlayMax = 0.08f;
 // shaders/ground.vert decodes: code = 1 + kind * 8 + height level.  The ground shader treats every
 // chunk instance as fully opaque tint.  Terrain bases and cliff faces are alpha-tested (hard edges,
 // so a raised piece never leaves a half-transparent seam over ground drawn after it); blends, roads
-// and decorations keep soft edges.
-enum GroundKind : int { kKindTerrain = 0, kKindRoad = 1, kKindCliff = 2, kKindDecor = 3, kKindBlend = 4 };
+// and decorations keep soft edges.  Beach pieces (kKindShore) carry data, not colour: the shader
+// paints them (sand, wet sand, swash and foam, the sand seen through shallow water).
+enum GroundKind : int {
+  kKindTerrain = 0,
+  kKindRoad = 1,
+  kKindCliff = 2,
+  kKindDecor = 3,
+  kKindBlend = 4,
+  kKindShore = 5
+};
+
+// Land one or two levels above the water beside it gets a beach (the sand climbs one level to its
+// edge; a second level stands as a low bluff behind the beach); higher ground meets the water with
+// rock cliffs, a scree apron (the same shore pieces, painted as stones) at their foot.
+inline constexpr int kBeachMaxRise = 2;
 inline constexpr u32 ground_code_color(int kind, int level) {
   return 0x00FFFFFFu | (static_cast<u32>(255 - (1 + kind * 8 + level)) << 24);
 }
 
 // Appends all static instances of one chunk: first the ground (terrain, blends, cliffs, roads), then
-// the decorations (tree/rock shadows, then bodies far to near).  Returns how many ground instances
+// the beaches and decorations (beach pieces, tree/rock shadows, then bodies far to near).  Beaches
+// ride with the decorations so they are drawn after every chunk's ground: their water part is
+// translucent and must land on finished water, whichever chunk owns it.  Returns how many ground instances
 // lead the appended range; the renderer draws every chunk's ground before any chunk's decorations,
 // so a tree hanging over the next chunk never punches a hole in that chunk's ground.
 u32 build_chunk(const sim::TileMap& map, const TerrainSprites& ts, int cx, int cy, std::vector<SpriteInstance>& out);
 
-// Ground texture texels (RGBA8, one per tile; see shaders/ground.frag for the channels) for the tile
-// rect [x0, x1) x [y0, y1), row-major into out (resized to the rect).
+// Ground texture texels (RGBA8, one per tile corner: texel (x, y) holds the values around tile
+// (x, y)'s NW corner; see shaders/ground.frag for the channels) for the rect [x0, x1) x [y0, y1),
+// row-major into out (resized to the rect).
 void build_ground_texels(const sim::TileMap& map, i32 x0, i32 y0, i32 x1, i32 y1, std::vector<u32>& out);
 
 // One RGBA8 pixel per tile for far zoom levels / minimap.

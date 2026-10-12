@@ -148,7 +148,7 @@ class Renderer {
   DynamicBuffer dyn_buf_, trans_buf_, light_buf_;
   Sprite tile_, white_;  // fx/tile (white 128 x 64 diamond), fx/white
 
-  SDL_GPUTexture* ground_tex_ = nullptr;  // one texel per tile: wear, luminance, vegetation, shore
+  SDL_GPUTexture* ground_tex_ = nullptr;  // one texel per tile corner: wear, luminance, vegetation, land
   std::vector<u32> ground_scratch_;
   SDL_GPUTexture* far_tex_ = nullptr;   // one texel per tile
   std::vector<u32> far_pixels_;
